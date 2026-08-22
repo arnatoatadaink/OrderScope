@@ -1,0 +1,38 @@
+version: "0.1"
+source_of_truth: docs/stock_monitoring_v0.1_universe_spec.md
+policy:
+  market: US
+  membership: fixed
+  automatic_addition: false
+
+tiers:
+  A:
+    cadence: 1m
+    groups:
+      market_benchmark: [SPY, QQQ, IWM, RSP]
+      sector_reference: [XLK, XLF, XLE, XLI, XLU]
+      ai_compute: [NVDA, AMD, AVGO, CBRS]
+      ai_infrastructure: [VRT, ANET, CEG, VST]
+      hyperscaler: [MSFT, GOOGL, AMZN, META]
+      crypto_regime_sensitive: [MSTR, RIOT, COIN, BTCUSD]
+  B:
+    cadence: 15m
+    groups:
+      remaining_sector_etfs: [XLC, XLY, XLP, XLV, XLB, XLRE]
+      semiconductor_ai_supply_chain: [MRVL, INTC, TSM, ASML, AMAT, LRCX, KLAC, MU, ARM]
+      datacenter_power_infrastructure: [ETN, PWR, GEV, NEE]
+      crypto_mining_hpc_transition: [MARA, CLSK, CORZ, IREN, CIFR]
+  C:
+    cadence: 1d
+    groups:
+      country_proxy: [EWJ, EWU, EWG, EWC, EWA, MCHI, EWT, EWY, INDA, EWZ, EWW]
+      macro_cross_asset: [TLT, IEF, HYG, LQD, GLD, SLV, USO, ETHUSD]
+      software: [ORCL, PLTR, CRM, NOW, SNOW]
+      storage: [WDC, STX, SNDK]
+      crypto_financial: [HOOD]
+      financial: [JPM, BAC, GS, SCHW, COF]
+      industrial_real_economy: [CAT, DE, UPS, FDX, UNP]
+      defense: [LMT, RTX, NOC, GD]
+      energy_materials: [XOM, CVX, FCX, NEM]
+      consumer: [WMT, COST, HD, TSLA]
+      healthcare: [LLY, UNH, MRNA]
