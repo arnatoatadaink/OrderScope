@@ -1,0 +1,12 @@
+version: "0.1"
+status: pending-transcription
+market: US
+policy:
+  membership: fixed
+  automatic_discovery: false
+  realtime_minute_bars_required_for_all: false
+
+# The v0.1 Universe was already approved at ~100 tickers in the design phase.
+# Do not guess or substitute symbols here.
+# Replace the empty list only by transcribing the approved manifest verbatim.
+tickers: []
