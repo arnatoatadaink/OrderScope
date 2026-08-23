@@ -29,6 +29,8 @@ The parent specification is the entry point. The three reference specifications 
   - Non-normative, reusable guidance for Mermaid diagrams and requirement → high-level design → detailed design traceability.
 - `docs/REQUIREMENTS_TRACEABILITY_v0.1.md`
   - Non-normative stable requirement IDs derived from the four v0.1 Code of Truth documents, including acceptance/verification links and unresolved design questions.
+- `docs/HIGH_LEVEL_DESIGN_v0.1.md`
+  - Provisional, non-normative high-level component boundaries mapped to the requirement IDs. Unresolved technology and deployment choices remain explicitly open.
 
 These derived documents do not add to or replace the four-document Code of Truth. Authoritative rules remain in the normative specifications above.
 
@@ -53,4 +55,4 @@ Provider-specific schemas must remain behind provider interfaces so the Core can
 
 Implementation should be checked against the v0.1 Definition of Done in `docs/stock_monitoring_v0.1_spec.md`. Domain-specific behavior must also conform to the corresponding reference specification.
 
-Use `docs/REQUIREMENTS_TRACEABILITY_v0.1.md` as the stable bridge from normative requirements into future high-level design, detailed design, and verification artifacts.
+Use `docs/REQUIREMENTS_TRACEABILITY_v0.1.md` as the stable bridge from normative requirements into design and verification. Use `docs/HIGH_LEVEL_DESIGN_v0.1.md` as the current provisional architecture layer before creating detailed-design artifacts.
