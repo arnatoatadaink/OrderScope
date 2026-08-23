@@ -23,11 +23,14 @@ The v0.1 Code of Truth consists of four normative documents under `docs/`.
 
 The parent specification is the entry point. The three reference specifications are part of the same v0.1 Code of Truth and are normative for their respective domains.
 
-### Documentation conventions
+### Documentation conventions and traceability
 
 - `docs/MERMAID_CONVENTIONS.md`
   - Non-normative, reusable guidance for Mermaid diagrams and requirement → high-level design → detailed design traceability.
-  - This guide does not add a fifth Code of Truth document; authoritative rules remain in the four normative specifications above.
+- `docs/REQUIREMENTS_TRACEABILITY_v0.1.md`
+  - Non-normative stable requirement IDs derived from the four v0.1 Code of Truth documents, including acceptance/verification links and unresolved design questions.
+
+These derived documents do not add to or replace the four-document Code of Truth. Authoritative rules remain in the normative specifications above.
 
 ## Baseline
 
@@ -49,3 +52,5 @@ Provider-specific schemas must remain behind provider interfaces so the Core can
 ## Implementation entry point
 
 Implementation should be checked against the v0.1 Definition of Done in `docs/stock_monitoring_v0.1_spec.md`. Domain-specific behavior must also conform to the corresponding reference specification.
+
+Use `docs/REQUIREMENTS_TRACEABILITY_v0.1.md` as the stable bridge from normative requirements into future high-level design, detailed design, and verification artifacts.
