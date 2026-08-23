@@ -23,6 +23,12 @@ The v0.1 Code of Truth consists of four normative documents under `docs/`.
 
 The parent specification is the entry point. The three reference specifications are part of the same v0.1 Code of Truth and are normative for their respective domains.
 
+### Documentation conventions
+
+- `docs/MERMAID_CONVENTIONS.md`
+  - Non-normative, reusable guidance for Mermaid diagrams and requirement → high-level design → detailed design traceability.
+  - This guide does not add a fifth Code of Truth document; authoritative rules remain in the four normative specifications above.
+
 ## Baseline
 
 - Status: v0.1 fixed for implementation
