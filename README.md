@@ -30,7 +30,11 @@ The parent specification is the entry point. The three reference specifications 
 - `docs/REQUIREMENTS_TRACEABILITY_v0.1.md`
   - Non-normative stable requirement IDs derived from the four v0.1 Code of Truth documents, including acceptance/verification links and unresolved design questions.
 - `docs/HIGH_LEVEL_DESIGN_v0.1.md`
-  - Provisional, non-normative high-level component boundaries mapped to the requirement IDs. Unresolved technology and deployment choices remain explicitly open.
+  - Provisional, non-normative high-level component boundaries mapped to the requirement IDs.
+- `docs/DETAILED_DESIGN_CFG_PROVIDER_v0.1.md`
+  - Detailed-design Slice 01 for `HLD-CFG-001 + HLD-PROV-001`: Universe configuration, provider-neutral schemas, provider contracts, timestamps, cursors, completeness and error boundaries.
+- `docs/DESIGN_DECISIONS_v0.1.md`
+  - Reversible implementation-level decisions. `DD-DEPLOY-001` currently selects Cloud + Main PC for the initial v0.1 deployment while keeping module contracts placement-independent.
 
 These derived documents do not add to or replace the four-document Code of Truth. Authoritative rules remain in the normative specifications above.
 
@@ -41,6 +45,7 @@ These derived documents do not add to or replace the four-document Code of Truth
 - Initial Universe: approximately 100 fixed instruments, with cadence defined in the Universe specification
 - Initial market-data candidate: Alpaca
 - SEC / Fundamental baseline: SEC EDGAR / XBRL
+- Initial deployment design: Cloud acquisition + Main PC heavy analysis (reversible design decision)
 - Internal timestamps: UTC
 - Market classification timezone: America/New_York
 - Display timezone: Asia/Tokyo
@@ -51,8 +56,10 @@ The system records what changed as Fact and separates Fact / Derived Metric / In
 
 Provider-specific schemas must remain behind provider interfaces so the Core can evolve independently of individual API vendors.
 
+Deployment placement must also remain behind module contracts: moving acquisition from Cloud to a future always-on server must not require rewriting Core-facing provider contracts.
+
 ## Implementation entry point
 
 Implementation should be checked against the v0.1 Definition of Done in `docs/stock_monitoring_v0.1_spec.md`. Domain-specific behavior must also conform to the corresponding reference specification.
 
-Use `docs/REQUIREMENTS_TRACEABILITY_v0.1.md` as the stable bridge from normative requirements into design and verification. Use `docs/HIGH_LEVEL_DESIGN_v0.1.md` as the current provisional architecture layer before creating detailed-design artifacts.
+Use `docs/REQUIREMENTS_TRACEABILITY_v0.1.md` as the stable bridge from normative requirements into design and verification. Use `docs/HIGH_LEVEL_DESIGN_v0.1.md` for architectural responsibility, `docs/DETAILED_DESIGN_CFG_PROVIDER_v0.1.md` for the first contract-level design slice, and `docs/DESIGN_DECISIONS_v0.1.md` for reversible deployment/implementation choices.
