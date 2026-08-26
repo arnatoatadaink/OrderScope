@@ -33,6 +33,8 @@ The parent specification is the entry point. The three reference specifications 
   - Provisional, non-normative high-level component boundaries mapped to the requirement IDs.
 - `docs/DETAILED_DESIGN_CFG_PROVIDER_v0.1.md`
   - Detailed-design Slice 01 for `HLD-CFG-001 + HLD-PROV-001`: Universe configuration, provider-neutral schemas, provider contracts, timestamps, cursors, completeness and error boundaries.
+- `docs/DETAILED_DESIGN_SCHEDULER_MARKET_v0.1.md`
+  - Detailed-design Slice 02 for `HLD-SCH-001 + HLD-MKT-001`: acquisition jobs, coverage checkpoints, catch-up overlap, cadence/session normalization, idempotent bar acceptance and retry/failure boundaries.
 - `docs/DESIGN_DECISIONS_v0.1.md`
   - Reversible implementation-level decisions. `DD-DEPLOY-001` currently selects Cloud + Main PC for the initial v0.1 deployment while keeping module contracts placement-independent.
 
@@ -62,4 +64,4 @@ Deployment placement must also remain behind module contracts: moving acquisitio
 
 Implementation should be checked against the v0.1 Definition of Done in `docs/stock_monitoring_v0.1_spec.md`. Domain-specific behavior must also conform to the corresponding reference specification.
 
-Use `docs/REQUIREMENTS_TRACEABILITY_v0.1.md` as the stable bridge from normative requirements into design and verification. Use `docs/HIGH_LEVEL_DESIGN_v0.1.md` for architectural responsibility, `docs/DETAILED_DESIGN_CFG_PROVIDER_v0.1.md` for the first contract-level design slice, and `docs/DESIGN_DECISIONS_v0.1.md` for reversible deployment/implementation choices.
+Use `docs/REQUIREMENTS_TRACEABILITY_v0.1.md` as the stable bridge from normative requirements into design and verification. Use `docs/HIGH_LEVEL_DESIGN_v0.1.md` for architectural responsibility, the `docs/DETAILED_DESIGN_*_v0.1.md` files for contract-level design slices, and `docs/DESIGN_DECISIONS_v0.1.md` for reversible deployment/implementation choices.
