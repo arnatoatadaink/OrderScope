@@ -105,8 +105,10 @@ Not fixed here:
 Responsibilities:
 
 - trigger 1m / 15m / 1d market-data acquisition according to instrument configuration,
+- represent work as provider-neutral acquisition jobs,
+- plan historical catch-up from explicit coverage checkpoints and overlap policy,
 - accept event-driven triggers for News / SEC / Official Signals,
-- keep triggering policy independent from vendor adapter internals.
+- keep triggering, job transport and retry policy independent from vendor adapter internals.
 
 Requirement coverage:
 
@@ -148,6 +150,8 @@ Responsibilities:
 - classify Regular / Premarket / After-hours using New York market time,
 - preserve holiday/weekend gaps rather than synthesizing intraday data,
 - distinguish shortened sessions from normal-session baselines,
+- idempotently accept repeated/overlapping bars and surface corrections or conflicts,
+- advance coverage only through durably accepted contiguous expected bars,
 - emit normalized market observations / Facts to downstream processing.
 
 Requirement coverage:
@@ -376,10 +380,11 @@ The next design layer should define `DLD-*` artifacts against one HLD boundary a
 
 Recommended first detailed-design slices:
 
-1. `HLD-CFG-001` + `HLD-PROV-001` — configuration and provider contracts,
-2. `HLD-MKT-001` + `HLD-FFT-001` — market-data normalization and analysis pipeline,
-3. `HLD-SEC-001` + `HLD-REG-001` — filing/fundamental and Regime calculations,
-4. `HLD-EVT-001` + `HLD-FACT-001` — Fact schema and event/provenance flow,
-5. `HLD-RET-001` + `HLD-OBS-001` — retention and acceptance verification.
+1. `HLD-CFG-001` + `HLD-PROV-001` — configuration and provider contracts (`DETAILED_DESIGN_CFG_PROVIDER_v0.1.md`),
+2. `HLD-SCH-001` + `HLD-MKT-001` — acquisition scheduling, coverage and market-bar acceptance (`DETAILED_DESIGN_SCHEDULER_MARKET_v0.1.md`),
+3. `HLD-MKT-001` + `HLD-FFT-001` — analysis-ready market series and numerical analysis contracts,
+4. `HLD-SEC-001` + `HLD-REG-001` — filing/fundamental and Regime calculations,
+5. `HLD-EVT-001` + `HLD-FACT-001` — Fact schema and event/provenance flow,
+6. `HLD-RET-001` + `HLD-OBS-001` — retention and acceptance verification.
 
 Detailed design must link back to both its `HLD-*` owner and the relevant `REQ-*` IDs.
