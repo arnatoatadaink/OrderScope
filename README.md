@@ -37,6 +37,10 @@ The parent specification is the entry point. The three reference specifications 
   - Detailed-design Slice 02 for `HLD-SCH-001 + HLD-MKT-001`: acquisition jobs, coverage checkpoints, catch-up overlap, cadence/session normalization, idempotent bar acceptance and retry/failure boundaries.
 - `docs/DESIGN_DECISIONS_v0.1.md`
   - Reversible implementation-level decisions. `DD-DEPLOY-001` currently selects Cloud + Main PC for the initial v0.1 deployment while keeping module contracts placement-independent.
+- `docs/REPORT_VOLUME_FLOW_ALPACA_2026-08-28.md`
+  - Non-normative report defining the volume / relative-volume / traded-notional proxy boundary, IEX-vs-SIP validation loop, and the distinction between observed OHLCV, Derived Metrics, and capital-flow interpretation.
+- `docs/RUNBOOK_CLOUDFLARE_WORKER_SCHEDULE_v0.1.md`
+  - Non-normative deployment/operations runbook for Cloudflare Worker + Cron acquisition and ChatGPT Scheduled Task digest consumption.
 
 These derived documents do not add to or replace the four-document Code of Truth. Authoritative rules remain in the normative specifications above.
 
@@ -64,4 +68,4 @@ Deployment placement must also remain behind module contracts: moving acquisitio
 
 Implementation should be checked against the v0.1 Definition of Done in `docs/stock_monitoring_v0.1_spec.md`. Domain-specific behavior must also conform to the corresponding reference specification.
 
-Use `docs/REQUIREMENTS_TRACEABILITY_v0.1.md` as the stable bridge from normative requirements into design and verification. Use `docs/HIGH_LEVEL_DESIGN_v0.1.md` for architectural responsibility, the `docs/DETAILED_DESIGN_*_v0.1.md` files for contract-level design slices, and `docs/DESIGN_DECISIONS_v0.1.md` for reversible deployment/implementation choices.
+Use `docs/REQUIREMENTS_TRACEABILITY_v0.1.md` as the stable bridge from normative requirements into design and verification. Use `docs/HIGH_LEVEL_DESIGN_v0.1.md` for architectural responsibility, the `docs/DETAILED_DESIGN_*_v0.1.md` files for contract-level design slices, and `docs/DESIGN_DECISIONS_v0.1.md` for reversible deployment/implementation choices. Use the volume/activity report and deployment runbook as implementation guidance; if either conflicts with Code of Truth or contract-level design, the normative/contract documents win.
