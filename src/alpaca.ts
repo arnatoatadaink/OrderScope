@@ -75,6 +75,11 @@ function normalize(symbol: string, bar: AlpacaBar, dataVariant: string): Provide
   };
 }
 
+function insideHalfOpen(bar: AlpacaBar, startInclusive: string, endExclusive: string): boolean {
+  const t = Date.parse(bar.t);
+  return t >= Date.parse(startInclusive) && t < Date.parse(endExclusive);
+}
+
 export async function fetchHistoricalBars(
   credentials: AlpacaCredentials,
   request: HistoricalBarRequest,
@@ -83,13 +88,17 @@ export async function fetchHistoricalBars(
   const limit = Math.min(Math.max(request.limit ?? 1000, 1), 10000);
 
   if (instrument.providerRoute === "alpaca_stock_bars") {
+    const logicalFeed = request.feed ?? "iex";
+    const apiFeed = logicalFeed === "delayed_sip" ? "sip" : logicalFeed;
     const url = new URL(`https://data.alpaca.markets/v2/stocks/${encodeURIComponent(instrument.symbol)}/bars`);
     url.searchParams.set("timeframe", timeframe(instrument.cadence));
     url.searchParams.set("start", request.startInclusive);
+    // Alpaca's end parameter is inclusive while Core windows are half-open.
+    // Request the boundary and filter locally so the adapter preserves [start, end).
     url.searchParams.set("end", request.endExclusive);
     url.searchParams.set("limit", String(limit));
     url.searchParams.set("adjustment", "raw");
-    url.searchParams.set("feed", request.feed ?? "iex");
+    url.searchParams.set("feed", apiFeed);
     url.searchParams.set("sort", "asc");
     if (request.pageToken) url.searchParams.set("page_token", request.pageToken);
 
@@ -97,7 +106,9 @@ export async function fetchHistoricalBars(
     if (!response.ok) throw new Error(`alpaca stock bars failed: ${response.status}`);
     const payload = await response.json() as { bars?: AlpacaBar[]; next_page_token?: string | null };
     return {
-      bars: (payload.bars ?? []).map((bar) => normalize(instrument.symbol, bar, `stock:${request.feed ?? "iex"}:raw`)),
+      bars: (payload.bars ?? [])
+        .filter((bar) => insideHalfOpen(bar, request.startInclusive, request.endExclusive))
+        .map((bar) => normalize(instrument.symbol, bar, `stock:${logicalFeed}:raw`)),
       nextPageToken: payload.next_page_token ?? undefined,
     };
   }
@@ -117,7 +128,9 @@ export async function fetchHistoricalBars(
   const payload = await response.json() as { bars?: Record<string, AlpacaBar[]>; next_page_token?: string | null };
   const bars = payload.bars?.[alpacaSymbol] ?? [];
   return {
-    bars: bars.map((bar) => normalize(instrument.symbol, bar, "crypto:us")),
+    bars: bars
+      .filter((bar) => insideHalfOpen(bar, request.startInclusive, request.endExclusive))
+      .map((bar) => normalize(instrument.symbol, bar, "crypto:us")),
     nextPageToken: payload.next_page_token ?? undefined,
   };
 }
