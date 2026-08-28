@@ -41,6 +41,8 @@ The parent specification is the entry point. The three reference specifications 
   - Non-normative report defining the volume / relative-volume / traded-notional proxy boundary, IEX-vs-SIP validation loop, and the distinction between observed OHLCV, Derived Metrics, and capital-flow interpretation.
 - `docs/RUNBOOK_CLOUDFLARE_WORKER_SCHEDULE_v0.1.md`
   - Non-normative deployment/operations runbook for Cloudflare Worker + Cron acquisition and ChatGPT Scheduled Task digest consumption.
+- `docs/IMPLEMENTATION_DECISIONS_WORKER_v0.1.md`
+  - Provisional Worker implementation choices derived from the functional requirements, including D1/R2 responsibilities, cadence-vs-Attention semantics, RVOL baseline, notional activity proxy, digest exposure, IEX/SIP quality gating, volatility baseline and shadow-mode promotion criteria.
 
 These derived documents do not add to or replace the four-document Code of Truth. Authoritative rules remain in the normative specifications above.
 
@@ -52,6 +54,8 @@ These derived documents do not add to or replace the four-document Code of Truth
 - Initial market-data candidate: Alpaca
 - SEC / Fundamental baseline: SEC EDGAR / XBRL
 - Initial deployment design: Cloud acquisition + Main PC heavy analysis (reversible design decision)
+- Initial Worker runtime: Cloudflare Worker shadow-mode scaffold with per-minute Cron wake-up
+- Initial operational storage split: D1 for hot scheduler/checkpoint/digest state; R2 for long-lived/batched OHLCV archive (provisional implementation decision)
 - Internal timestamps: UTC
 - Market classification timezone: America/New_York
 - Display timezone: Asia/Tokyo
@@ -64,8 +68,19 @@ Provider-specific schemas must remain behind provider interfaces so the Core can
 
 Deployment placement must also remain behind module contracts: moving acquisition from Cloud to a future always-on server must not require rewriting Core-facing provider contracts.
 
+## Worker scaffold
+
+The repository now includes a minimal deployable Cloudflare Worker scaffold:
+
+- `src/index.ts`
+- `wrangler.toml`
+- `package.json`
+- `tsconfig.json`
+
+The Worker defaults to `WORKER_MODE = "shadow"`. Shadow mode exposes `/health` and `/digest/latest` and accepts Cron Trigger wake-ups, but intentionally performs no Alpaca acquisition until an authoritative market calendar/session path, Alpaca secrets and D1 operational state binding are configured.
+
 ## Implementation entry point
 
 Implementation should be checked against the v0.1 Definition of Done in `docs/stock_monitoring_v0.1_spec.md`. Domain-specific behavior must also conform to the corresponding reference specification.
 
-Use `docs/REQUIREMENTS_TRACEABILITY_v0.1.md` as the stable bridge from normative requirements into design and verification. Use `docs/HIGH_LEVEL_DESIGN_v0.1.md` for architectural responsibility, the `docs/DETAILED_DESIGN_*_v0.1.md` files for contract-level design slices, and `docs/DESIGN_DECISIONS_v0.1.md` for reversible deployment/implementation choices. Use the volume/activity report and deployment runbook as implementation guidance; if either conflicts with Code of Truth or contract-level design, the normative/contract documents win.
+Use `docs/REQUIREMENTS_TRACEABILITY_v0.1.md` as the stable bridge from normative requirements into design and verification. Use `docs/HIGH_LEVEL_DESIGN_v0.1.md` for architectural responsibility, the `docs/DETAILED_DESIGN_*_v0.1.md` files for contract-level design slices, and `docs/DESIGN_DECISIONS_v0.1.md` for reversible deployment/implementation choices. Use the volume/activity report, deployment runbook and Worker implementation-decision document as implementation guidance; if they conflict with Code of Truth or contract-level design, the normative/contract documents win.
