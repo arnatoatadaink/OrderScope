@@ -49,7 +49,7 @@ function expectedBars(job: AcquisitionJob, calendar: MarketCalendarSnapshot): Ex
     }
     return result;
   }
-  for (const session of calendar.sessions) {
+  for (const session of calendar.sessions.filter((candidate) => candidate.sessionKind === job.sessionScope)) {
     const open = Date.parse(session.opensAt);
     const close = Date.parse(session.closesAt);
     if (instrument.cadence === "1Day") {

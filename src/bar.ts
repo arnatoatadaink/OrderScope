@@ -3,7 +3,7 @@ import type { MarketCalendarSnapshot, NormalizedMarketSession } from "./calendar
 import type { SessionScope } from "./schedule";
 import type { Cadence, UniverseInstrument } from "./universe";
 
-export type NormalizedBarSessionKind = "REGULAR" | "ALL_TRADING";
+export type NormalizedBarSessionKind = "PREMARKET" | "REGULAR" | "ALL_TRADING";
 
 export type NormalizedMarketBar = {
   instrumentId: string;
@@ -117,20 +117,25 @@ export function normalizeMarketBar(
     } };
   }
 
-  if (sessionScope !== "REGULAR") return reject("SESSION_MISMATCH", "equity bars require REGULAR scope in v0.1");
+  if (sessionScope === "ALL_TRADING") {
+    return reject("SESSION_MISMATCH", "equity bars require PREMARKET or REGULAR scope");
+  }
   let session: NormalizedMarketSession | undefined;
   let startMs: number;
   let endMs: number;
   if (instrument.cadence === "1Day") {
+    if (sessionScope !== "REGULAR") {
+      return reject("SESSION_MISMATCH", "daily equity bars require REGULAR scope");
+    }
     session = regularSessionForDaily(calendar, sourceMs);
     if (!session) return reject("SESSION_MISMATCH", "daily bar market date has no authoritative Regular session");
     startMs = Date.parse(session.opensAt);
     endMs = Date.parse(session.closesAt);
   } else {
     const intervalMs = INTERVAL_MS[instrument.cadence];
-    session = calendar.sessions.find((candidate) => candidate.sessionKind === "REGULAR"
+    session = calendar.sessions.find((candidate) => candidate.sessionKind === sessionScope
       && sourceMs >= Date.parse(candidate.opensAt) && sourceMs < Date.parse(candidate.closesAt));
-    if (!session) return reject("SESSION_MISMATCH", "intraday bar starts outside an authoritative Regular session");
+    if (!session) return reject("SESSION_MISMATCH", `intraday bar starts outside an authoritative ${sessionScope} session`);
     const openMs = Date.parse(session.opensAt);
     if ((sourceMs - openMs) % intervalMs !== 0) {
       return reject("GRID_MISMATCH", "intraday bar is not aligned to the session-open grid");
@@ -138,14 +143,14 @@ export function normalizeMarketBar(
     startMs = sourceMs;
     endMs = sourceMs + intervalMs;
     if (endMs > Date.parse(session.closesAt)) {
-      return reject("SESSION_MISMATCH", "intraday bar straddles the Regular session close");
+      return reject("SESSION_MISMATCH", `intraday bar straddles the ${sessionScope} session close`);
     }
   }
 
   return { outcome: "NORMALIZED", bar: {
     instrumentId: instrument.symbol, interval: instrument.cadence,
     barStartUtc: iso(startMs), barEndUtc: iso(endMs), marketDate: session.marketDate,
-    sessionKind: "REGULAR", isShortenedSession: session.isShortened,
+    sessionKind: sessionScope, isShortenedSession: session.isShortened,
     logicalDataVariant: source.dataVariant,
     open: source.open, high: source.high, low: source.low, close: source.close,
     volume: source.volume, tradeCount: source.tradeCount, vwap: source.vwap,

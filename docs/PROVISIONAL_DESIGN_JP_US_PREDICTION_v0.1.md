@@ -334,11 +334,18 @@ No production threshold is invented here. Promotion thresholds require measured 
 
 ## 14. Implementation sequence
 
+Current repository implementation status (2026-08-31):
+
+- `src/prediction.ts` implements the separate registry contracts, four horizon/anchor chain, anchor observation windows, readiness deadline and timestamp leakage guard.
+- Calendar, bar normalization, checkpoints and the bounded acquisition planner support `PREMARKET` as a scope distinct from `REGULAR`.
+- Premarket calendar generation is opt-in and is derived only for dates returned by the authoritative Alpaca trading calendar; the default Worker profile remains Regular-only.
+- No Japanese symbols, U.S. theme/ETF mappings or model parameters have been inferred. Consequently the Premarket planner is not yet wired into live Worker orchestration.
+
 1. Approve the Japanese predictor instrument/theme mapping and assign a registry revision.
 2. Approve provisional U.S. target mappings or explicitly mark ETF-less targets.
-3. Generalize calendar/session fixtures for Japan's split session and U.S. extended hours.
+3. Generalize calendar/session fixtures for Japan's split session and U.S. extended hours. U.S. Premarket core support is implemented; Japan split-session support remains open.
 4. Add the Japan provider-neutral adapter and immutable snapshot builder.
-5. Add U.S. Premarket acquisition as a distinct coverage scope.
+5. Add U.S. Premarket acquisition as a distinct coverage scope. Core planning/normalization/checkpoint support is implemented; approved-target Worker wiring remains open.
 6. Materialize the four target anchors and realized-label records.
 7. Add `PredictionRecord` persistence and sanitized digest projection.
 8. Build an availability-aware historical dataset on the Main PC.

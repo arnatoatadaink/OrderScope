@@ -2,7 +2,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { AlpacaMarketCalendarProvider, sessionAt } from "./calendar.ts";
 
-function provider(payload: unknown, inspect?: (request: Request) => void): AlpacaMarketCalendarProvider {
+function provider(
+  payload: unknown,
+  inspect?: (request: Request) => void,
+  includePremarket = false,
+): AlpacaMarketCalendarProvider {
   return new AlpacaMarketCalendarProvider({
     credentials: { keyId: "test-key", secretKey: "test-secret" },
     now: () => new Date("2026-08-29T00:00:00Z"),
@@ -11,6 +15,7 @@ function provider(payload: unknown, inspect?: (request: Request) => void): Alpac
       inspect?.(request);
       return Response.json(payload);
     },
+    includePremarket,
   });
 }
 
@@ -58,6 +63,39 @@ test("keeps holidays absent and marks shortened sessions", async () => {
   assert.equal(snapshot.sessions[0]?.isShortened, true);
   assert.equal(sessionAt(snapshot, new Date("2026-11-27T17:59:59Z"))?.sessionKind, "REGULAR");
   assert.equal(sessionAt(snapshot, new Date("2026-11-27T18:00:00Z")), undefined);
+});
+
+test("derives Premarket only for authoritative trading dates across DST", async () => {
+  const snapshot = await provider([
+    { date: "2026-01-05", open: "09:30", close: "16:00" },
+    { date: "2026-07-06", open: "09:30", close: "16:00" },
+  ], undefined, true).getCalendar("2026-01-01", "2026-07-07");
+
+  assert.deepEqual(snapshot.sessions.map((session) => ({
+    date: session.marketDate,
+    kind: session.sessionKind,
+    opensAt: session.opensAt,
+    closesAt: session.closesAt,
+  })), [
+    { date: "2026-01-05", kind: "PREMARKET", opensAt: "2026-01-05T09:00:00.000Z", closesAt: "2026-01-05T14:30:00.000Z" },
+    { date: "2026-01-05", kind: "REGULAR", opensAt: "2026-01-05T14:30:00.000Z", closesAt: "2026-01-05T21:00:00.000Z" },
+    { date: "2026-07-06", kind: "PREMARKET", opensAt: "2026-07-06T08:00:00.000Z", closesAt: "2026-07-06T13:30:00.000Z" },
+    { date: "2026-07-06", kind: "REGULAR", opensAt: "2026-07-06T13:30:00.000Z", closesAt: "2026-07-06T20:00:00.000Z" },
+  ]);
+  assert.equal(sessionAt(snapshot, new Date("2026-07-06T12:00:00Z"))?.sessionKind, "PREMARKET");
+  assert.equal(new Set(snapshot.sessions.map((session) => session.calendarRevision)).size, 1);
+});
+
+test("keeps the default calendar Regular-only", async () => {
+  const regularOnly = await provider([
+    { date: "2026-07-06", open: "09:30", close: "16:00" },
+  ]).getCalendar("2026-07-06", "2026-07-07");
+  const withPremarket = await provider([
+    { date: "2026-07-06", open: "09:30", close: "16:00" },
+  ], undefined, true).getCalendar("2026-07-06", "2026-07-07");
+
+  assert.deepEqual(regularOnly.sessions.map((session) => session.sessionKind), ["REGULAR"]);
+  assert.notEqual(regularOnly.revision, withPremarket.revision);
 });
 
 test("rejects malformed or out-of-range provider data", async () => {

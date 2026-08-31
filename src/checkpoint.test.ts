@@ -102,6 +102,19 @@ test("maps due rows and uses bounded, prepared filters", async () => {
   assert.deepEqual(db.statements[0]?.values, ["2026-08-28T14:40:00.000Z", "1Min", "1Min", "REGULAR", "REGULAR", 25]);
 });
 
+test("round-trips a Premarket checkpoint as a distinct scope", async () => {
+  const db = new ScriptedD1();
+  const value = checkpoint({
+    coverageKey: "SPY|1Min|PREMARKET|raw-iex",
+    sessionScope: "PREMARKET",
+  });
+  db.firstResults.push(row(value));
+  const stored = await new D1CoverageCheckpointPort(db).get(value.coverageKey);
+
+  assert.equal(stored?.sessionScope, "PREMARKET");
+  assert.equal(stored?.coverageKey, value.coverageKey);
+});
+
 test("records attempt updates idempotently without interpolating values", async () => {
   const db = new ScriptedD1();
   const port = new D1CoverageCheckpointPort(db);

@@ -176,7 +176,7 @@ Decision:
 - Japanese predictor instruments remain outside the fixed Worker `UniverseSnapshot` and use a separate versioned `PredictionInputRegistry`.
 - A local Windows adapter may publish a provider-neutral, market-data-only snapshot to the durable handoff boundary.
 - The Main PC owns the first prediction baseline and writes a versioned `PredictionRecord` for later sanitized digest projection.
-- U.S. Premarket acquisition must be implemented as a distinct coverage scope before `PM_OPEN` or `PM_SESSION` predictions can be evaluated live.
+- U.S. Premarket now has a distinct calendar/session/checkpoint scope and an explicit planner boundary. It is not scheduled by the default Worker profile until an approved target registry supplies the acquisition instruments.
 
 This preserves the existing acquisition/checkpoint invariants and `DD-DEPLOY-001`. Detailed contracts are in `PROVISIONAL_DESIGN_JP_US_PREDICTION_v0.1.md`.
 
@@ -185,11 +185,14 @@ This preserves the existing acquisition/checkpoint invariants and `DD-DEPLOY-001
 Implemented and tested in the repository:
 
 1. fixed Tier A/B/C Universe loader,
-2. authoritative Alpaca Regular-session calendar port,
+2. authoritative Alpaca Regular-session calendar port with opt-in Premarket derivation only for returned trading dates,
 3. D1 migrations/adapters for checkpoints, attempts, canonical bars, conflicts, leases and digest history,
 4. Alpaca historical stock/crypto bar adapters with pagination and bounded retry,
 5. overlap planning, gap-safe contiguous coverage and idempotent acceptance,
-6. scheduled orchestration with lease exclusion, stale-attempt handling and sanitized digest endpoints.
+6. scheduled orchestration with lease exclusion, stale-attempt handling and sanitized digest endpoints,
+7. distinct `PREMARKET` calendar, normalization, checkpoint and acquisition-planning support while preserving `REGULAR` as the default,
+8. separate versioned `PredictionInputRegistry` / `PredictionTargetRegistry` validation contracts,
+9. four prediction horizons, anchor windows, calendar-derived readiness deadline and as-of leakage guards.
 
 This does not prove that production D1 migrations, secrets or a live deployment have been completed.
 
@@ -199,6 +202,7 @@ Next implementation order:
 2. implement RVOL/notional deterministic feature computation,
 3. add the R2 batch archive/handoff writer before sustained high-density retention,
 4. collect the 20-trading-day IEX vs SIP quality report,
-5. add U.S. Premarket/extended-hours acquisition as a separate coverage scope,
-6. approve the Japanese predictor/target registries and implement the local snapshot bridge,
-7. build the availability-aware Main-PC volatility and Japan-to-U.S. prediction baselines.
+5. approve the Japanese predictor/target registries and construct the explicit Premarket acquisition Universe,
+6. wire that approved target profile into Worker shadow orchestration,
+7. implement the local Japanese snapshot bridge and immutable availability-aware handoff,
+8. materialize target anchors/labels and build the Main-PC volatility and Japan-to-U.S. prediction baselines.

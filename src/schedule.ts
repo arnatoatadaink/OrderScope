@@ -1,7 +1,7 @@
 import type { MarketCalendarSnapshot, NormalizedMarketSession } from "./calendar";
 import type { Cadence, ProviderRoute, UniverseInstrument, UniverseSnapshot } from "./universe";
 
-export type SessionScope = "REGULAR" | "ALL_TRADING";
+export type SessionScope = "PREMARKET" | "REGULAR" | "ALL_TRADING";
 export type AcquisitionMode = "INCREMENTAL" | "CATCH_UP" | "RECONCILE";
 
 export type TimeRange = {
@@ -45,6 +45,7 @@ export type SchedulePolicyConfig = {
   finalizationLagMs: Readonly<Record<Cadence, number>>;
   maxBarsPerJob: number;
   logicalDataVariant: (instrument: UniverseInstrument) => string;
+  sessionScopeFor?: (instrument: UniverseInstrument) => SessionScope;
 };
 
 const INTERVAL_MS: Readonly<Record<Cadence, number>> = {
@@ -80,11 +81,12 @@ export function coverageKeyFor(
   return [instrument.symbol, instrument.cadence, sessionScope, logicalDataVariant].join("|");
 }
 
-function currentRegularSession(
+function currentEquitySession(
   calendar: MarketCalendarSnapshot,
   nowMs: number,
+  sessionScope: Exclude<SessionScope, "ALL_TRADING">,
 ): NormalizedMarketSession | undefined {
-  return calendar.sessions.find((session) => session.sessionKind === "REGULAR"
+  return calendar.sessions.find((session) => session.sessionKind === sessionScope
     && nowMs >= instant(session.opensAt, "session open")
     && nowMs < instant(session.closesAt, "session close"));
 }
@@ -94,8 +96,10 @@ function latestEquityBoundary(
   calendar: MarketCalendarSnapshot,
   nowMs: number,
   lagMs: number,
+  sessionScope: Exclude<SessionScope, "ALL_TRADING">,
 ): number | undefined {
   if (cadence === "1Day") {
+    if (sessionScope !== "REGULAR") return undefined;
     const eligible = calendar.sessions
       .filter((session) => session.sessionKind === "REGULAR")
       .filter((session) => instant(session.closesAt, "session close") + lagMs <= nowMs)
@@ -103,8 +107,8 @@ function latestEquityBoundary(
     return eligible[0] ? instant(eligible[0].closesAt, "session close") : undefined;
   }
 
-  const session = currentRegularSession(calendar, nowMs) ?? calendar.sessions
-    .filter((candidate) => candidate.sessionKind === "REGULAR")
+  const session = currentEquitySession(calendar, nowMs, sessionScope) ?? calendar.sessions
+    .filter((candidate) => candidate.sessionKind === sessionScope)
     .filter((candidate) => instant(candidate.closesAt, "session close") + lagMs <= nowMs)
     .sort((left, right) => right.closesAt.localeCompare(left.closesAt))[0];
   if (!session) return undefined;
@@ -136,6 +140,17 @@ function validateConfig(config: SchedulePolicyConfig): number {
   return floor;
 }
 
+function configuredEquitySessionScope(
+  config: SchedulePolicyConfig,
+  instrument: UniverseInstrument,
+): Exclude<SessionScope, "ALL_TRADING"> {
+  const scope = config.sessionScopeFor?.(instrument) ?? "REGULAR";
+  if (scope === "ALL_TRADING") {
+    throw new Error("equity acquisition scope must be PREMARKET or REGULAR");
+  }
+  return scope;
+}
+
 export class SchedulePolicy {
   private readonly config: SchedulePolicyConfig;
 
@@ -158,13 +173,24 @@ export class SchedulePolicy {
 
     for (const instrument of universe.instruments) {
       const isCrypto = instrument.providerRoute === "alpaca_crypto_bars";
-      const sessionScope: SessionScope = isCrypto ? "ALL_TRADING" : "REGULAR";
+      const equitySessionScope = isCrypto
+        ? undefined
+        : configuredEquitySessionScope(this.config, instrument);
+      const sessionScope: SessionScope = isCrypto
+        ? "ALL_TRADING"
+        : equitySessionScope!;
       const variant = this.config.logicalDataVariant(instrument);
       const coverageKey = coverageKeyFor(instrument, sessionScope, variant);
       const checkpoint = checkpointByKey.get(coverageKey);
       const boundary = isCrypto
         ? latestCryptoBoundary(instrument.cadence, nowMs, this.config.finalizationLagMs[instrument.cadence])
-        : latestEquityBoundary(instrument.cadence, calendar, nowMs, this.config.finalizationLagMs[instrument.cadence]);
+        : latestEquityBoundary(
+          instrument.cadence,
+          calendar,
+          nowMs,
+          this.config.finalizationLagMs[instrument.cadence],
+          equitySessionScope!,
+        );
       if (boundary === undefined || boundary <= retentionFloorMs) continue;
 
       const missing = checkpoint?.missingRanges

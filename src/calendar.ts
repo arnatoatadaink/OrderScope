@@ -31,6 +31,7 @@ export type AlpacaCalendarProviderOptions = {
   baseUrl?: string;
   fetcher?: typeof fetch;
   now?: () => Date;
+  includePremarket?: boolean;
 };
 
 type AlpacaCalendarDay = {
@@ -43,6 +44,7 @@ const MARKET_TIMEZONE = "America/New_York";
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const TIME_PATTERN = /^(\d{2}):(\d{2})$/;
 const REGULAR_SESSION_MINUTES = 390;
+const PREMARKET_OPEN = "04:00";
 
 function assertDate(value: string, name: string): void {
   const parsed = new Date(`${value}T00:00:00Z`);
@@ -110,14 +112,14 @@ function isCalendarDay(value: unknown): value is AlpacaCalendarDay {
 
 function revisionFor(sessions: readonly NormalizedMarketSession[]): string {
   const canonical = sessions.map((session) =>
-    `${session.marketDate}|${session.opensAt}|${session.closesAt}`,
+    `${session.marketDate}|${session.sessionKind}|${session.opensAt}|${session.closesAt}|${session.isShortened}`,
   ).join(";");
   let hash = 0x811c9dc5;
   for (let index = 0; index < canonical.length; index += 1) {
     hash ^= canonical.charCodeAt(index);
     hash = Math.imul(hash, 0x01000193);
   }
-  return `alpaca-calendar-v1:${(hash >>> 0).toString(16).padStart(8, "0")}`;
+  return `alpaca-calendar-v2:${(hash >>> 0).toString(16).padStart(8, "0")}`;
 }
 
 export class AlpacaMarketCalendarProvider implements MarketCalendarProvider {
@@ -125,6 +127,7 @@ export class AlpacaMarketCalendarProvider implements MarketCalendarProvider {
   private readonly baseUrl: string;
   private readonly fetcher: typeof fetch;
   private readonly now: () => Date;
+  private readonly includePremarket: boolean;
 
   constructor(options: AlpacaCalendarProviderOptions) {
     this.credentials = options.credentials;
@@ -135,6 +138,7 @@ export class AlpacaMarketCalendarProvider implements MarketCalendarProvider {
     // fails at runtime with "Illegal invocation".
     this.fetcher = (input, init) => fetcher(input, init);
     this.now = options.now ?? (() => new Date());
+    this.includePremarket = options.includePremarket ?? false;
   }
 
   async getCalendar(startDate: string, endDate: string): Promise<MarketCalendarSnapshot> {
@@ -159,7 +163,7 @@ export class AlpacaMarketCalendarProvider implements MarketCalendarProvider {
       throw new Error("alpaca market calendar response has an invalid schema");
     }
 
-    const provisional = payload.map((day): NormalizedMarketSession => {
+    const provisional = payload.flatMap((day): NormalizedMarketSession[] => {
       if (day.date < startDate || day.date >= endDate) {
         throw new Error(`alpaca market calendar returned out-of-range date: ${day.date}`);
       }
@@ -167,7 +171,7 @@ export class AlpacaMarketCalendarProvider implements MarketCalendarProvider {
       const closesAt = marketLocalInstant(day.date, day.close);
       const durationMinutes = (Date.parse(closesAt) - Date.parse(opensAt)) / 60_000;
       if (durationMinutes <= 0) throw new Error(`invalid Alpaca session duration: ${day.date}`);
-      return {
+      const regular: NormalizedMarketSession = {
         marketDate: day.date,
         sessionKind: "REGULAR",
         opensAt,
@@ -175,8 +179,22 @@ export class AlpacaMarketCalendarProvider implements MarketCalendarProvider {
         isShortened: durationMinutes < REGULAR_SESSION_MINUTES,
         calendarRevision: "pending",
       };
+      if (!this.includePremarket) return [regular];
+      const premarketOpensAt = marketLocalInstant(day.date, PREMARKET_OPEN);
+      if (Date.parse(premarketOpensAt) >= Date.parse(opensAt)) {
+        throw new Error(`invalid Alpaca Premarket duration: ${day.date}`);
+      }
+      return [{
+        marketDate: day.date,
+        sessionKind: "PREMARKET",
+        opensAt: premarketOpensAt,
+        closesAt: opensAt,
+        isShortened: false,
+        calendarRevision: "pending",
+      }, regular];
     });
-    provisional.sort((left, right) => left.marketDate.localeCompare(right.marketDate));
+    provisional.sort((left, right) => left.opensAt.localeCompare(right.opensAt)
+      || left.sessionKind.localeCompare(right.sessionKind));
     const revision = revisionFor(provisional);
     const sessions = provisional.map((session) => ({ ...session, calendarRevision: revision }));
 

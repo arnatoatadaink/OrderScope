@@ -12,6 +12,16 @@ const calendar = {
   }],
 };
 
+const extendedCalendar = {
+  ...calendar,
+  revision: "cal-extended-1",
+  sessions: [{
+    marketDate: "2026-08-28", sessionKind: "PREMARKET" as const,
+    opensAt: "2026-08-28T08:00:00.000Z", closesAt: "2026-08-28T13:30:00.000Z",
+    isShortened: false, calendarRevision: "cal-extended-1",
+  }, { ...calendar.sessions[0]!, calendarRevision: "cal-extended-1" }],
+};
+
 const job: AcquisitionJob = {
   jobId: "job-1", jobKind: "MARKET_BARS", createdAt: "2026-08-28T14:33:00Z",
   universeRevision: "u1", calendarRevision: "cal-1",
@@ -65,6 +75,35 @@ test("paginates, accepts bars, and advances only contiguous expected coverage", 
   assert.equal(result.pages, 2);
   assert.equal(checkpoints.proposed?.completeThrough, "2026-08-28T14:32:00.000Z");
   assert.equal(checkpoints.attempts.at(-1)?.outcome, "SUCCEEDED");
+});
+
+test("computes expected coverage only from the requested session scope", async () => {
+  const checkpoints = new Checkpoints();
+  const premarketJob: AcquisitionJob = {
+    ...job,
+    jobId: "job-premarket",
+    calendarRevision: "cal-extended-1",
+    createdAt: "2026-08-28T08:03:00Z",
+    requestedRange: { startInclusive: "2026-08-28T08:00:00.000Z", endExclusive: "2026-08-28T08:02:00.000Z" },
+    sessionScope: "PREMARKET",
+    checkpointExpectations: [{ coverageKey: "SPY|1Min|PREMARKET|stock:iex:raw" }],
+  };
+  const result = await executeAcquisitionJob(premarketJob, {
+    credentials: { keyId: "key", secretKey: "secret" }, calendar: extendedCalendar,
+    checkpoints: checkpoints as never,
+    bars: { accept: async (candidate, provenance) => ({
+      identity: candidate.outcome === "NORMALIZED" ? candidate.bar.barStartUtc : undefined,
+      outcome: candidate.outcome === "NORMALIZED" ? "INSERTED" as const : "REJECTED" as const,
+      acceptanceReceipt: provenance.idempotencyKey, provenanceAppended: true,
+    }) },
+    feed: "iex", maxPages: 10, maxBars: 100, now: () => new Date("2026-08-28T08:03:00Z"),
+    fetchPage: async () => ({ bars: [source("2026-08-28T08:00:00Z"), source("2026-08-28T08:01:00Z")] }),
+  });
+
+  assert.equal(result.outcome, "SUCCEEDED");
+  assert.equal(result.missing, 0);
+  assert.equal(checkpoints.proposed?.completeThrough, "2026-08-28T08:02:00.000Z");
+  assert.equal(checkpoints.proposed?.sessionScope, "PREMARKET");
 });
 
 test("records a missing expected bar and does not advance across it", async () => {

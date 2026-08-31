@@ -96,7 +96,7 @@ function isCadence(value: string): value is Cadence {
 }
 
 function isSessionScope(value: string): value is SessionScope {
-  return value === "REGULAR" || value === "ALL_TRADING";
+  return value === "PREMARKET" || value === "REGULAR" || value === "ALL_TRADING";
 }
 
 function parseInstant(value: string, name: string): number {

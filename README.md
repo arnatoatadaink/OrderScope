@@ -79,7 +79,9 @@ The repository now includes a minimal deployable Cloudflare Worker scaffold:
 - `package.json`
 - `tsconfig.json`
 
-The Worker defaults to `WORKER_MODE = "shadow"`. Shadow mode exposes `/health` and `/digest/latest` and accepts Cron Trigger wake-ups, but intentionally performs no Alpaca acquisition until an authoritative market calendar/session path, Alpaca secrets and D1 operational state binding are configured.
+The Worker defaults to `WORKER_MODE = "shadow"`. Shadow mode exposes `/health` and `/digest/latest` and accepts Cron Trigger wake-ups without market-data writes. The live acquisition path requires Alpaca secrets and the D1 binding. Regular acquisition remains the default; Premarket support is opt-in and is not wired to a target profile until the prediction registries are approved.
+
+The provisional prediction implementation is isolated in `src/prediction.ts`. It provides executable contracts for versioned predictor/target registries, the four horizon/anchor chain, Premarket anchor windows, readiness deadlines, leakage guards and bounded Premarket acquisition planning without adding Japanese instruments to the fixed monitoring Universe.
 
 ## Implementation entry point
 

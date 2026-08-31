@@ -11,6 +11,10 @@ const calendar: MarketCalendarSnapshot = {
   generatedAt: "2026-11-27T00:00:00.000Z",
   revision: "calendar:test",
   sessions: [{
+    marketDate: "2026-11-27", sessionKind: "PREMARKET",
+    opensAt: "2026-11-27T09:00:00.000Z", closesAt: "2026-11-27T14:30:00.000Z",
+    isShortened: false, calendarRevision: "calendar:test",
+  }, {
     marketDate: "2026-11-27", sessionKind: "REGULAR",
     opensAt: "2026-11-27T14:30:00.000Z", closesAt: "2026-11-27T18:00:00.000Z",
     isShortened: true, calendarRevision: "calendar:test",
@@ -36,10 +40,22 @@ test("normalizes an intraday bar on the authoritative shortened-session grid", (
   }
 });
 
+test("normalizes Premarket independently from Regular coverage", () => {
+  const result = normalizeMarketBar(source("2026-11-27T09:15:00Z"), stock("15Min"), calendar, "PREMARKET");
+  assert.equal(result.outcome, "NORMALIZED");
+  if (result.outcome === "NORMALIZED") {
+    assert.equal(result.bar.sessionKind, "PREMARKET");
+    assert.equal(result.bar.barEndUtc, "2026-11-27T09:30:00.000Z");
+    assert.equal(result.bar.isShortenedSession, false);
+  }
+  assert.equal(normalizeMarketBar(source("2026-11-27T09:15:00Z"), stock("15Min"), calendar, "REGULAR").outcome, "REJECTED");
+  assert.equal(normalizeMarketBar(source("2026-11-27T05:00:00Z"), stock("1Day"), calendar, "PREMARKET").outcome, "REJECTED");
+});
+
 test("rejects misaligned, closed-session, and straddling intraday bars", () => {
   assert.equal(normalizeMarketBar(source("2026-11-27T14:31:00Z"), stock("15Min"), calendar, "REGULAR").outcome, "REJECTED");
   assert.equal(normalizeMarketBar(source("2026-11-27T18:00:00Z"), stock("1Min"), calendar, "REGULAR").outcome, "REJECTED");
-  const oddCalendar = { ...calendar, sessions: [{ ...calendar.sessions[0]!, closesAt: "2026-11-27T17:58:00.000Z" }] };
+  const oddCalendar = { ...calendar, sessions: [{ ...calendar.sessions[1]!, closesAt: "2026-11-27T17:58:00.000Z" }] };
   assert.equal(normalizeMarketBar(source("2026-11-27T17:45:00Z"), stock("15Min"), oddCalendar, "REGULAR").outcome, "REJECTED");
 });
 

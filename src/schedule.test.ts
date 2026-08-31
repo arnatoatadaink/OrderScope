@@ -33,6 +33,19 @@ function calendar(close = "2026-11-27T18:00:00.000Z"): MarketCalendarSnapshot {
   };
 }
 
+function extendedCalendar(): MarketCalendarSnapshot {
+  const regular = calendar("2026-11-27T21:00:00.000Z");
+  return {
+    ...regular,
+    revision: "calendar-extended-v1",
+    sessions: [{
+      marketDate: "2026-11-27", sessionKind: "PREMARKET",
+      opensAt: "2026-11-27T09:00:00.000Z", closesAt: "2026-11-27T14:30:00.000Z",
+      isShortened: false, calendarRevision: "calendar-extended-v1",
+    }, { ...regular.sessions[0]!, calendarRevision: "calendar-extended-v1" }],
+  };
+}
+
 test("plans deterministic 1m and 15m jobs on session-aligned boundaries", () => {
   const instruments: UniverseInstrument[] = [
     { symbol: "SPY", cadence: "1Min", providerRoute: "alpaca_stock_bars" },
@@ -47,6 +60,42 @@ test("plans deterministic 1m and 15m jobs on session-aligned boundaries", () => 
   assert.equal(first.find((job) => job.interval === "1Min")?.requestedRange.endExclusive, "2026-11-27T16:07:00.000Z");
   assert.equal(first.find((job) => job.interval === "15Min")?.requestedRange.endExclusive, "2026-11-27T16:00:00.000Z");
   assert.ok(first.every((job) => job.universeRevision === "universe-test-v1"));
+});
+
+test("plans Premarket coverage as a distinct checkpoint scope when explicitly requested", () => {
+  const spy: UniverseInstrument = { symbol: "SPY", cadence: "1Min", providerRoute: "alpaca_stock_bars" };
+  const premarket = new SchedulePolicy({
+    ...config,
+    retentionFloor: "2026-11-27T09:00:00.000Z",
+    sessionScopeFor: () => "PREMARKET",
+  }).plan(universe([spy]), extendedCalendar(), [], new Date("2026-11-27T12:07:45Z"));
+
+  assert.equal(premarket.length, 1);
+  assert.equal(premarket[0]?.sessionScope, "PREMARKET");
+  assert.equal(premarket[0]?.requestedRange.endExclusive, "2026-11-27T12:07:00.000Z");
+  assert.equal(premarket[0]?.checkpointExpectations[0]?.coverageKey, "SPY|1Min|PREMARKET|raw-iex");
+});
+
+test("does not invent Premarket coverage without an authoritative Premarket session", () => {
+  const spy: UniverseInstrument = { symbol: "SPY", cadence: "1Min", providerRoute: "alpaca_stock_bars" };
+  const policy = new SchedulePolicy({
+    ...config,
+    retentionFloor: "2026-11-27T09:00:00.000Z",
+    sessionScopeFor: () => "PREMARKET",
+  });
+
+  assert.deepEqual(policy.plan(universe([spy]), calendar(), [], new Date("2026-11-27T12:07:45Z")), []);
+});
+
+test("does not treat a daily equity bar as a Premarket bar", () => {
+  const ewj: UniverseInstrument = { symbol: "EWJ", cadence: "1Day", providerRoute: "alpaca_stock_bars" };
+  const jobs = new SchedulePolicy({
+    ...config,
+    retentionFloor: "2026-11-26T09:00:00.000Z",
+    sessionScopeFor: () => "PREMARKET",
+  }).plan(universe([ewj]), extendedCalendar(), [], new Date("2026-11-27T22:00:00Z"));
+
+  assert.deepEqual(jobs, []);
 });
 
 test("does not plan equity intraday work while the authoritative calendar is closed", () => {
