@@ -94,6 +94,40 @@ Re-evaluate this decision if one or more of the following becomes required:
 - `HLD-FFT-001`
 - `DETAILED_DESIGN_CFG_PROVIDER_v0.1.md`
 
+## DD-PRED-001 — Isolate Japan-to-U.S. prediction as a research extension
+
+Status: Accepted for provisional design; reversible; not a v0.1 Definition-of-Done requirement
+
+### Decision
+
+- Keep Japanese predictor instruments in a separate versioned `PredictionInputRegistry`; do not add them to the fixed U.S. monitoring `UniverseSnapshot`.
+- Keep U.S. target/label mappings in a separate versioned `PredictionTargetRegistry`.
+- Reuse provider-neutral bar, calendar, provenance, completeness and durable-handoff semantics.
+- Keep same-day desktop-only Japan sources behind a local adapter/bridge.
+- Keep first model training, walk-forward evaluation and probabilistic inference on the Main PC.
+- Persist outputs as Predictions and realized labels as Derived Metrics, never as observed Facts.
+
+### Rationale
+
+The Code of Truth fixes a U.S.-market monitoring Universe and says price prediction is not the primary purpose. A separate research boundary permits cross-market experimentation without changing current acquisition correctness, Universe semantics or v0.1 acceptance criteria.
+
+The local bridge also preserves `DD-DEPLOY-001`: sources requiring Windows/Excel or a logged-in desktop process can publish provider-neutral snapshots while the Cloudflare Worker continues to own recoverable U.S. acquisition.
+
+### Promotion boundary
+
+Moving this extension into the normative Definition of Done requires an explicit Code of Truth change covering at least:
+
+- approved Japanese predictor registry,
+- approved U.S. target/label registry,
+- required provider and availability behavior,
+- output/evaluation requirements,
+- acceptance thresholds.
+
+### Related design
+
+- `HLD-PRED-001`
+- `PROVISIONAL_DESIGN_JP_US_PREDICTION_v0.1.md`
+
 ## Decision maintenance rule
 
 A design decision may be replaced without changing Code of Truth when the replacement preserves externally required behavior. If changing a decision would alter a normative behavior or acceptance requirement, the Code of Truth must be reconsidered first.

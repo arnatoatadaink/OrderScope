@@ -22,7 +22,7 @@ Reasoning:
 Illustrative regular-session bar count from the current Universe (not a measured production value):
 
 - Tier A: 25 instruments × 390 one-minute bars ≈ 9,750 bars/trading day.
-- Tier B: 24 instruments × 26 fifteen-minute bars ≈ 624 bars/trading day.
+- Tier B: 28 instruments × 26 fifteen-minute bars ≈ 728 bars/trading day.
 - Tier C: roughly one bar per enabled daily instrument after session finality.
 
 This is enough to justify separating hot operational state from long-term bar retention before production measurements exist.
@@ -168,16 +168,37 @@ Promotion to `live` requires:
 
 R2 is recommended before sustained retention but is not a blocker for the first live acquisition test.
 
-## 9. Next implementation slice
+## 9. Japan-to-U.S. prediction boundary
 
-Implement in this order:
+Decision:
 
-1. Universe loader for the fixed Tier A/B/C configuration.
-2. Market calendar/session port.
-3. D1 schema for checkpoints + digest state.
-4. Alpaca historical multi-symbol bars adapter.
-5. overlap/pagination and idempotent acceptance.
-6. RVOL/notional deterministic feature computation.
-7. R2 batch archive writer.
-8. 20-trading-day IEX vs SIP quality report.
-9. Main-PC volatility baseline.
+- The current Worker does not acquire Japanese desktop-only feeds, train models or generate predictions.
+- Japanese predictor instruments remain outside the fixed Worker `UniverseSnapshot` and use a separate versioned `PredictionInputRegistry`.
+- A local Windows adapter may publish a provider-neutral, market-data-only snapshot to the durable handoff boundary.
+- The Main PC owns the first prediction baseline and writes a versioned `PredictionRecord` for later sanitized digest projection.
+- U.S. Premarket acquisition must be implemented as a distinct coverage scope before `PM_OPEN` or `PM_SESSION` predictions can be evaluated live.
+
+This preserves the existing acquisition/checkpoint invariants and `DD-DEPLOY-001`. Detailed contracts are in `PROVISIONAL_DESIGN_JP_US_PREDICTION_v0.1.md`.
+
+## 10. Current repository status and next implementation slice
+
+Implemented and tested in the repository:
+
+1. fixed Tier A/B/C Universe loader,
+2. authoritative Alpaca Regular-session calendar port,
+3. D1 migrations/adapters for checkpoints, attempts, canonical bars, conflicts, leases and digest history,
+4. Alpaca historical stock/crypto bar adapters with pagination and bounded retry,
+5. overlap planning, gap-safe contiguous coverage and idempotent acceptance,
+6. scheduled orchestration with lease exclusion, stale-attempt handling and sanitized digest endpoints.
+
+This does not prove that production D1 migrations, secrets or a live deployment have been completed.
+
+Next implementation order:
+
+1. apply/verify D1 migrations in the target environment and run the first bounded live canary,
+2. implement RVOL/notional deterministic feature computation,
+3. add the R2 batch archive/handoff writer before sustained high-density retention,
+4. collect the 20-trading-day IEX vs SIP quality report,
+5. add U.S. Premarket/extended-hours acquisition as a separate coverage scope,
+6. approve the Japanese predictor/target registries and implement the local snapshot bridge,
+7. build the availability-aware Main-PC volatility and Japan-to-U.S. prediction baselines.

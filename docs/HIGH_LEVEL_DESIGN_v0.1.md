@@ -19,6 +19,7 @@ The high-level design preserves these constraints:
 - Raw news body retention is minimized and bounded.
 - Time handling is explicit: UTC internally, New York for market classification, Tokyo for display.
 - Fixed v0.1 Universe and per-instrument cadence remain configuration concerns rather than provider concerns.
+- Provisional prediction research remains separated from observed Facts and from the fixed monitoring Universe.
 
 ## 3. High-level component IDs
 
@@ -36,6 +37,7 @@ The high-level design preserves these constraints:
 | HLD-FACT-001 | Fact Store Boundary | Persist common Facts and immutable/reconstructable Regime history |
 | HLD-RET-001 | Retention Controller | Enforce raw-news deletion / exception-retention rules |
 | HLD-OBS-001 | Verification / Observability Boundary | Provide evidence needed to demonstrate Definition-of-Done behavior without defining a specific monitoring stack |
+| HLD-PRED-001 | Prediction Research Pipeline | Build versioned as-of snapshots, target windows, labels and probabilistic Prediction records without changing observed Facts or the fixed monitoring Universe |
 
 These IDs define architectural responsibility, not necessarily one process, service, package, table or deployment unit each.
 
@@ -296,6 +298,31 @@ Requirement coverage:
 
 `REQ-VER-001..014`
 
+### 5.13 HLD-PRED-001 — Prediction Research Pipeline
+
+Status: provisional extension; not part of the current v0.1 Definition of Done.
+
+Responsibilities:
+
+- consume versioned, provider-neutral input snapshots without look-ahead leakage,
+- keep predictor instruments outside the fixed monitoring `UniverseSnapshot`,
+- define U.S. Premarket/Regular target windows and robust price anchors,
+- materialize realized labels separately from Predictions,
+- emit probabilistic direction, expected return, predicted volatility and distribution ranges,
+- record model, feature, registry, label-policy, calendar and provider-data revisions,
+- expose quality/as-of information so stale or partial inputs are never hidden.
+
+Normative compatibility:
+
+- preserves `REQ-SYS-002` because prediction remains a secondary extension,
+- preserves `REQ-SYS-003` because Japanese inputs use a separate registry,
+- preserves `REQ-PROV-001` through replaceable provider adapters,
+- preserves `REQ-FACT-001` by storing outputs as Predictions and realized labels as Derived Metrics.
+
+Detailed boundary:
+
+`PROVISIONAL_DESIGN_JP_US_PREDICTION_v0.1.md`
+
 ## 6. Main data flows
 
 ### 6.1 Market-data path
@@ -334,6 +361,22 @@ flowchart LR
     REG --> FACT
 ```
 
+### 6.4 Provisional cross-market prediction path
+
+```mermaid
+flowchart LR
+    JP["Prediction input registry"]
+    MKT["HLD-MKT-001"]
+    PRED["HLD-PRED-001"]
+    FACT["HLD-FACT-001"]
+
+    JP --> MKT
+    MKT --> PRED
+    PRED -->|Prediction / realized label| FACT
+```
+
+This path is a research extension. It does not make Japanese instruments members of the fixed v0.1 monitoring Universe.
+
 ## 7. Requirement-to-HLD map
 
 | Requirement domain | Primary HLD realization |
@@ -351,6 +394,8 @@ flowchart LR
 | REQ-PROV-* | HLD-PROV-001 |
 | REQ-FACT-* | HLD-EVT-001, HLD-FACT-001 |
 | REQ-VER-* | HLD-OBS-001 plus the component being verified |
+
+`HLD-PRED-001` has no independent v0.1 product requirement. It is constrained by `REQ-SYS-002`, `REQ-SYS-003`, `REQ-PROV-001` and `REQ-FACT-001`; promotion into the Definition of Done requires a later normative decision.
 
 ## 8. Explicit unresolved design points
 
@@ -371,6 +416,9 @@ The current Code of Truth does not settle the following, so this HLD does not se
 - observability product selection,
 - backup / disaster recovery policy,
 - non-news retention policy.
+- exact Japanese prediction-input registry and U.S. target-label registry,
+- cross-market prediction acceptance thresholds and model policy,
+- same-day Japan provider/fallback and local-to-cloud handoff.
 
 These require either a design decision that does not change product semantics or a future Code of Truth decision when observable behavior is affected.
 
@@ -386,5 +434,6 @@ Recommended first detailed-design slices:
 4. `HLD-SEC-001` + `HLD-REG-001` — filing/fundamental and Regime calculations,
 5. `HLD-EVT-001` + `HLD-FACT-001` — Fact schema and event/provenance flow,
 6. `HLD-RET-001` + `HLD-OBS-001` — retention and acceptance verification.
+7. `HLD-MKT-001` + `HLD-PRED-001` — provisional Japan-to-U.S. snapshots, target anchors, labels, predictions and leakage controls (`PROVISIONAL_DESIGN_JP_US_PREDICTION_v0.1.md`).
 
 Detailed design must link back to both its `HLD-*` owner and the relevant `REQ-*` IDs.

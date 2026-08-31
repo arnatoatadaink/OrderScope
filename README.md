@@ -43,6 +43,8 @@ The parent specification is the entry point. The three reference specifications 
   - Non-normative deployment/operations runbook for Cloudflare Worker + Cron acquisition and ChatGPT Scheduled Task digest consumption.
 - `docs/IMPLEMENTATION_DECISIONS_WORKER_v0.1.md`
   - Provisional Worker implementation choices derived from the functional requirements, including D1/R2 responsibilities, cadence-vs-Attention semantics, RVOL baseline, notional activity proxy, digest exposure, IEX/SIP quality gating, volatility baseline and shadow-mode promotion criteria.
+- `docs/PROVISIONAL_DESIGN_JP_US_PREDICTION_v0.1.md`
+  - Non-normative Japan-to-U.S. prediction extension: separate predictor/target registries, Japan provider fallback, four U.S. Premarket/Regular horizons, as-of/leakage rules, provisional labels and probabilistic output contracts.
 
 These derived documents do not add to or replace the four-document Code of Truth. Authoritative rules remain in the normative specifications above.
 
@@ -50,7 +52,7 @@ These derived documents do not add to or replace the four-document Code of Truth
 
 - Status: v0.1 fixed for implementation
 - Target market: U.S. market
-- Initial Universe: approximately 100 fixed instruments, with cadence defined in the Universe specification
+- Initial Universe: 106 fixed instruments (Tier A 25 / Tier B 28 / Tier C 53), with cadence defined in the Universe specification
 - Initial market-data candidate: Alpaca
 - SEC / Fundamental baseline: SEC EDGAR / XBRL
 - Initial deployment design: Cloud acquisition + Main PC heavy analysis (reversible design decision)
@@ -73,7 +75,7 @@ Deployment placement must also remain behind module contracts: moving acquisitio
 The repository now includes a minimal deployable Cloudflare Worker scaffold:
 
 - `src/index.ts`
-- `wrangler.toml`
+- `wrangler.jsonc`
 - `package.json`
 - `tsconfig.json`
 
@@ -84,3 +86,5 @@ The Worker defaults to `WORKER_MODE = "shadow"`. Shadow mode exposes `/health` a
 Implementation should be checked against the v0.1 Definition of Done in `docs/stock_monitoring_v0.1_spec.md`. Domain-specific behavior must also conform to the corresponding reference specification.
 
 Use `docs/REQUIREMENTS_TRACEABILITY_v0.1.md` as the stable bridge from normative requirements into design and verification. Use `docs/HIGH_LEVEL_DESIGN_v0.1.md` for architectural responsibility, the `docs/DETAILED_DESIGN_*_v0.1.md` files for contract-level design slices, and `docs/DESIGN_DECISIONS_v0.1.md` for reversible deployment/implementation choices. Use the volume/activity report, deployment runbook and Worker implementation-decision document as implementation guidance; if they conflict with Code of Truth or contract-level design, the normative/contract documents win.
+
+The Japan-to-U.S. prediction document is a provisional research extension. It keeps Japanese predictor instruments outside the fixed monitoring Universe and does not add prediction accuracy to the current v0.1 Definition of Done.

@@ -13,7 +13,7 @@ export type UniverseSnapshot = {
   instruments: readonly UniverseInstrument[];
 };
 
-export const V01_UNIVERSE_REVISION = "stock-monitoring-universe-v0.1";
+export const V01_UNIVERSE_REVISION = "stock-monitoring-universe-v0.1-r2";
 export const CANARY_V01_UNIVERSE_REVISION = "stock-monitoring-canary-v0.1";
 export type UniverseProfile = "canary-v0.1" | "full-v0.1";
 
@@ -25,6 +25,7 @@ const TIER_A = [
 
 const TIER_B = [
   "XLC","XLY","XLP","XLV","XLB","XLRE","MRVL","INTC","TSM","ASML","AMAT","LRCX","KLAC","MU","ARM",
+  "ENTG","Q","MKSI","MTRN",
   "ETN","PWR","GEV","NEE","MARA","CLSK","CORZ","IREN","CIFR",
 ] as const;
 

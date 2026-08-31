@@ -244,6 +244,8 @@ These are not silently resolved by this traceability map:
 - Exact handling of provider failure, retries, rate limiting and backfill is not defined by the current Code of Truth.
 - Future Expected Realization Time / industry-specific decay belongs to v0.2+ research and is not a v0.1 requirement.
 - `strategic_strength` remains intentionally non-quantified in v0.1.
+- Japan-to-U.S. prediction remains a provisional research extension; it must not add Japanese instruments to the fixed monitoring Universe implicitly.
+- Exact prediction inputs, target labels, horizons, model policy and accuracy thresholds are not v0.1 requirements until the Code of Truth is explicitly amended.
 
 These items should remain explicit design questions until a normative decision is made or a design can be selected without altering observable requirements.
 

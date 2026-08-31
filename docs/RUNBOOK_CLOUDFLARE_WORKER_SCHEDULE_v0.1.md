@@ -129,7 +129,7 @@ ALPACA_API_KEY
 ALPACA_API_SECRET
 ```
 
-Do not place credentials in repository Markdown, `wrangler.toml`, public environment variables or digest responses.
+Do not place credentials in repository Markdown, `wrangler.jsonc`, public environment variables or digest responses.
 
 Non-secret configuration can include:
 
@@ -159,6 +159,7 @@ Suggested logical fields:
     "blocked": 0
   },
   "attention": [],
+  "predictions": [],
   "events": [],
   "provider_quality": {
     "feed_variant": "logical variant",
@@ -180,6 +181,8 @@ Attention entries should prefer deterministic fields such as:
 
 ChatGPT should interpret these fields rather than reconstruct them from raw bars.
 
+When the provisional Japan-to-U.S. prediction extension is enabled, each sanitized prediction entry should expose only the contract fields needed for interpretation, including target, horizon, `up_probability`, expected return, predicted volatility, distribution range, `as_of`, model/version references and quality reasons. The Worker must not train a model or fabricate a prediction from incomplete raw bars; it only publishes an already-materialized `PredictionRecord` reference/projection.
+
 ## 9. ChatGPT Scheduled Task usage
 
 Use ChatGPT Scheduled Tasks as a lower-frequency interpretation layer.
@@ -199,6 +202,7 @@ Suggested logical uses, if task capacity is available:
 3. Macro / Barometer digest
 4. Fact / Regime change review
 5. System health / coverage review
+6. Japan-to-U.S. prediction checkpoint review after the same-day input deadline
 
 Do not create one ChatGPT task per symbol.
 
