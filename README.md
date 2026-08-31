@@ -47,6 +47,8 @@ The parent specification is the entry point. The three reference specifications 
   - Non-normative Japan-to-U.S. prediction extension: separate predictor/target registries, Japan provider fallback, four U.S. Premarket/Regular horizons, as-of/leakage rules, provisional labels and probabilistic output contracts.
 - `docs/PREDICTION_REGISTRY_SEMICONDUCTOR_CANARY_v0.1.md`
   - Evidence and limits for the first versioned Japanese semiconductor-input / U.S. theme-target canary profile.
+- `docs/HANDOFF_LOCAL_JP_US_PREDICTION_2026-08-31.md`
+  - Local continuation handoff for the provider-neutral immutable Japanese-input snapshot slice, including safety boundaries, required tests and completion criteria.
 
 These derived documents do not add to or replace the four-document Code of Truth. Authoritative rules remain in the normative specifications above.
 
