@@ -7,6 +7,16 @@ export type UniverseInstrument = {
   providerRoute: ProviderRoute;
 };
 
+export type UniverseSnapshot = {
+  revision: string;
+  generatedAt: string;
+  instruments: readonly UniverseInstrument[];
+};
+
+export const V01_UNIVERSE_REVISION = "stock-monitoring-universe-v0.1";
+export const CANARY_V01_UNIVERSE_REVISION = "stock-monitoring-canary-v0.1";
+export type UniverseProfile = "canary-v0.1" | "full-v0.1";
+
 const TIER_A = [
   "SPY","QQQ","IWM","RSP","XLK","XLF","XLE","XLI","XLU",
   "NVDA","AMD","AVGO","CBRS","VRT","ANET","CEG","VST",
@@ -42,6 +52,31 @@ export const V01_UNIVERSE: readonly UniverseInstrument[] = Object.freeze([
   ...tier(TIER_C, "1Day"),
 ]);
 
+const CANARY_SYMBOLS = ["SPY", "QQQ", "NVDA", "AMD", "BTCUSD"] as const;
+
+export const CANARY_V01_UNIVERSE: readonly UniverseInstrument[] = Object.freeze(
+  tier(CANARY_SYMBOLS, "1Min"),
+);
+
 export function loadUniverseV01(): readonly UniverseInstrument[] {
   return V01_UNIVERSE;
+}
+
+export function loadUniverseSnapshotV01(generatedAt = "2026-08-29T00:00:00.000Z"): UniverseSnapshot {
+  return {
+    revision: V01_UNIVERSE_REVISION,
+    generatedAt,
+    instruments: V01_UNIVERSE,
+  };
+}
+
+export function loadUniverseSnapshot(
+  profile: string,
+  generatedAt = "2026-08-29T00:00:00.000Z",
+): UniverseSnapshot {
+  if (profile === "canary-v0.1") {
+    return { revision: CANARY_V01_UNIVERSE_REVISION, generatedAt, instruments: CANARY_V01_UNIVERSE };
+  }
+  if (profile === "full-v0.1") return loadUniverseSnapshotV01(generatedAt);
+  throw new Error(`unsupported UNIVERSE_PROFILE: ${profile}`);
 }

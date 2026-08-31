@@ -1,0 +1,12 @@
+node_modules/
+.wrangler/
+.dev.vars
+.env
+.env.*
+!.env.example
+
+# Local operational notes produced while developing or deploying. The durable
+# project documentation uses versioned filenames and remains tracked.
+docs/SESSION_HANDOFF_*.md
+docs/*Deployment Handoff.md
+docs/RUNBOOK_20*.md
