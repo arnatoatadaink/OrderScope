@@ -6,8 +6,12 @@ import { DIGEST_HISTORY_DEFAULT_LIMIT, DIGEST_HISTORY_MAX_LIMIT, D1LatestDigestS
 import { executeAcquisitionJob, type AcquisitionExecutionSummary, type AcquisitionExecutorOptions } from "./execution";
 import { D1AcquisitionLeaseStore, type AcquisitionLeaseStore } from "./lease";
 import { gapRetryEligibility, type DeferredGapRetry } from "./gap-retry";
+import { loadPredictionRegistries, type PredictionRegistryBundle } from "./prediction-registry";
+import { buildPredictionPremarketUniverse, planPredictionPremarketAcquisition } from "./prediction";
 import { coverageKeyFor, SchedulePolicy } from "./schedule";
 import { loadUniverseSnapshot, type UniverseInstrument, type UniverseSnapshot } from "./universe";
+
+type PredictionMode = "off" | "shadow";
 
 type Digest = {
   generatedAt: string;
@@ -15,6 +19,8 @@ type Digest = {
   status: "shadow" | "ready" | "blocked";
   marketTimezone: string;
   feed: string;
+  predictionMode?: PredictionMode;
+  predictionTargetProfile?: string;
   notes: string[];
 };
 
@@ -27,8 +33,15 @@ type ProvisionedBindings = {
   BAR_ARCHIVE?: R2Bucket;
 };
 
-type RuntimeEnv = Omit<Env, "WORKER_MODE"> & ProvisionedBindings & {
+type RuntimeEnv = Omit<Env, "WORKER_MODE" | "PREDICTION_MODE" | "PREDICTION_TARGET_PROFILE"> & ProvisionedBindings & {
   WORKER_MODE: "shadow" | "live";
+  PREDICTION_MODE?: PredictionMode;
+  PREDICTION_TARGET_PROFILE?: string;
+};
+
+type PredictionRuntimeConfig = {
+  mode: PredictionMode;
+  targetProfile?: string;
 };
 
 function json(body: unknown, status = 200): Response {
@@ -41,7 +54,21 @@ function json(body: unknown, status = 200): Response {
   });
 }
 
-function currentDigest(env: RuntimeEnv, now: Date): Digest {
+function predictionRuntimeConfig(env: RuntimeEnv): PredictionRuntimeConfig {
+  const mode = env.PREDICTION_MODE ?? "off";
+  if (mode !== "off" && mode !== "shadow") throw new Error(`unsupported PREDICTION_MODE: ${mode}`);
+  const targetProfile = env.PREDICTION_TARGET_PROFILE?.trim();
+  if (mode === "shadow" && !targetProfile) {
+    throw new Error("PREDICTION_TARGET_PROFILE is required in prediction shadow mode");
+  }
+  return { mode, ...(targetProfile ? { targetProfile } : {}) };
+}
+
+function currentDigest(
+  env: RuntimeEnv,
+  now: Date,
+  predictionConfig = predictionRuntimeConfig(env),
+): Digest {
   const hasCredentials = Boolean(env.ALPACA_API_KEY && env.ALPACA_API_SECRET);
   const hasState = "STATE_DB" in env && Boolean(env.STATE_DB);
   const hasArchive = "BAR_ARCHIVE" in env && Boolean(env.BAR_ARCHIVE);
@@ -53,6 +80,8 @@ function currentDigest(env: RuntimeEnv, now: Date): Digest {
     status: liveRequested && hasCredentials && hasState ? "ready" : liveRequested ? "blocked" : "shadow",
     marketTimezone: env.MARKET_TIMEZONE ?? "America/New_York",
     feed: env.ALPACA_FEED ?? "iex",
+    ...(env.PREDICTION_MODE !== undefined ? { predictionMode: predictionConfig.mode } : {}),
+    ...(predictionConfig.targetProfile ? { predictionTargetProfile: predictionConfig.targetProfile } : {}),
     notes: [
       hasCredentials ? "alpaca credentials configured" : "alpaca credentials not configured",
       hasState ? "D1 state binding configured" : "D1 state binding not configured",
@@ -63,8 +92,13 @@ function currentDigest(env: RuntimeEnv, now: Date): Digest {
 }
 
 export type ScheduledOrchestrationDependencies = {
-  calendarProvider: (credentials: { keyId: string; secretKey: string }) => MarketCalendarProvider;
+  calendarProvider: (
+    credentials: { keyId: string; secretKey: string },
+    options: { includePremarket: boolean },
+  ) => MarketCalendarProvider;
   universe: (profile: string) => UniverseSnapshot;
+  predictionRegistries?: (profile: string) => PredictionRegistryBundle;
+  predictionUniverse?: () => UniverseSnapshot;
   fetchPage?: AcquisitionExecutorOptions["fetchPage"];
   checkpointPort?: (db: D1Database) => CoverageCheckpointPort;
   leaseStore?: (db: D1Database) => AcquisitionLeaseStore;
@@ -72,8 +106,10 @@ export type ScheduledOrchestrationDependencies = {
 };
 
 const productionDependencies: ScheduledOrchestrationDependencies = {
-  calendarProvider: (credentials) => new AlpacaMarketCalendarProvider({ credentials }),
+  calendarProvider: (credentials, options) => new AlpacaMarketCalendarProvider({ credentials, ...options }),
   universe: (profile) => loadUniverseSnapshot(profile),
+  predictionRegistries: (profile) => loadPredictionRegistries(profile),
+  predictionUniverse: () => loadUniverseSnapshot("full-v0.1"),
 };
 
 async function runScheduledTick(
@@ -82,7 +118,8 @@ async function runScheduledTick(
   dependencies: ScheduledOrchestrationDependencies,
 ): Promise<void> {
   const now = new Date(controller.scheduledTime);
-  const digest = currentDigest(env, now);
+  const predictionConfig = predictionRuntimeConfig(env);
+  const digest = currentDigest(env, now, predictionConfig);
 
   // Shadow mode is deployable before credentials/storage exist and deliberately
   // performs no market-data writes. This prevents a calendar/session guess from
@@ -105,10 +142,22 @@ async function runScheduledTick(
   const credentials = { keyId: env.ALPACA_API_KEY, secretKey: env.ALPACA_API_SECRET };
   const acquisitionConfig = loadAcquisitionRuntimeConfig(env);
   const universe = dependencies.universe(env.UNIVERSE_PROFILE);
+  const predictionRegistries = predictionConfig.mode === "shadow"
+    ? (dependencies.predictionRegistries ?? productionDependencies.predictionRegistries!)(predictionConfig.targetProfile!)
+    : undefined;
+  const predictionUniverse = predictionRegistries
+    ? buildPredictionPremarketUniverse(
+      predictionRegistries.target,
+      (dependencies.predictionUniverse ?? productionDependencies.predictionUniverse!)(),
+      now.toISOString(),
+    )
+    : undefined;
   const retentionFloor = new Date(now.getTime() - acquisitionConfig.retentionLookbackMs).toISOString();
   const calendarStart = new Date(Date.parse(retentionFloor) - 24 * 60 * 60_000).toISOString().slice(0, 10);
   const calendarEnd = new Date(now.getTime() + 2 * 24 * 60 * 60_000).toISOString().slice(0, 10);
-  const calendar = await dependencies.calendarProvider(credentials).getCalendar(calendarStart, calendarEnd);
+  const calendar = await dependencies.calendarProvider(credentials, {
+    includePremarket: predictionConfig.mode === "shadow",
+  }).getCalendar(calendarStart, calendarEnd);
   const checkpoints = dependencies.checkpointPort?.(env.STATE_DB) ?? new D1CoverageCheckpointPort(env.STATE_DB);
   const stored = (await Promise.all(universe.instruments.map((instrument) => {
     const scope = instrument.providerRoute === "alpaca_crypto_bars" ? "ALL_TRADING" : "REGULAR";
@@ -129,6 +178,53 @@ async function runScheduledTick(
   const deferredCoverageKeys = new Set(deferredGapRetries.map((retry) => retry.coverageKey));
   const jobs = planned.filter((job) => job.dueReason !== "MISSING_RANGE"
     || !deferredCoverageKeys.has(job.checkpointExpectations[0]?.coverageKey ?? ""));
+  let predictionShadow: Record<string, unknown> | undefined;
+  if (predictionRegistries && predictionUniverse) {
+    const predictionStored = (await Promise.all(predictionUniverse.instruments.map((instrument) =>
+      checkpoints.get(coverageKeyFor(instrument, "PREMARKET", logicalVariant(instrument, env.ALPACA_FEED))),
+    ))).filter((checkpoint) => checkpoint !== undefined);
+    const predictionPlanned = planPredictionPremarketAcquisition({
+      acquisitionUniverse: predictionUniverse,
+      calendar,
+      checkpoints: predictionStored,
+      now,
+      scheduleConfig: {
+        retentionFloor,
+        overlapMs: acquisitionConfig.overlapMs,
+        finalizationLagMs: acquisitionConfig.finalizationLagMs,
+        maxBarsPerJob: acquisitionConfig.maxBarsPerJob,
+        logicalDataVariant: (instrument) => logicalVariant(instrument, env.ALPACA_FEED),
+      },
+    }).filter((job) => predictionStored.find((checkpoint) =>
+      checkpoint.coverageKey === job.checkpointExpectations[0]?.coverageKey)?.state !== "BLOCKED");
+    const predictionDeferredGapRetries = predictionStored
+      .map((checkpoint) => gapRetryEligibility(
+        checkpoint, now, acquisitionConfig.gapRetryMinutes, retentionFloor,
+      ))
+      .filter((retry): retry is DeferredGapRetry => retry !== undefined);
+    const predictionDeferredCoverageKeys = new Set(
+      predictionDeferredGapRetries.map((retry) => retry.coverageKey),
+    );
+    const predictionJobs = predictionPlanned.filter((job) => job.dueReason !== "MISSING_RANGE"
+      || !predictionDeferredCoverageKeys.has(job.checkpointExpectations[0]?.coverageKey ?? ""));
+    predictionShadow = {
+      mode: "shadow",
+      targetProfile: predictionConfig.targetProfile,
+      inputRegistryRevision: predictionRegistries.input.revision,
+      targetRegistryRevision: predictionRegistries.target.revision,
+      inputInstrumentCount: predictionRegistries.input.instruments.filter((instrument) => instrument.enabled).length,
+      targetCount: predictionRegistries.target.targets.length,
+      acquisitionInstrumentCount: predictionUniverse.instruments.length,
+      plannedPremarketJobs: predictionJobs.length,
+      deferredGapRetries: predictionDeferredGapRetries.length,
+      jobPlans: predictionJobs.slice(0, acquisitionConfig.maxJobsPerTick).map((job) => ({
+        jobId: job.jobId,
+        dueReason: job.dueReason,
+        sessionScope: job.sessionScope,
+        requestedRange: job.requestedRange,
+      })),
+    };
+  }
   const runnableJobs = jobs.slice(0, acquisitionConfig.maxJobsPerTick);
   const jobPlans = runnableJobs.map((job) => ({
     jobId: job.jobId,
@@ -182,7 +278,8 @@ async function runScheduledTick(
         .map((retry) => retry.retryEligibleAt).sort()[0],
     } : {}),
     staleAttemptThresholdMinutes: acquisitionConfig.staleAttemptMinutes,
-    staleAttempts, supersededStaleAttempts, summaries };
+    staleAttempts, supersededStaleAttempts, summaries,
+    ...(predictionShadow ? { predictionShadow } : {}) };
   await new D1LatestDigestStore(env.STATE_DB).put(LATEST_DIGEST_KEY, digest.generatedAt, persistedDigest);
   console.log(JSON.stringify({ event: "scheduler_tick_live", ...persistedDigest }));
 }

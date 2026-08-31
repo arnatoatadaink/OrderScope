@@ -9,6 +9,8 @@
   },
   "vars": {
     "WORKER_MODE": "shadow",
+    "PREDICTION_MODE": "shadow",
+    "PREDICTION_TARGET_PROFILE": "semiconductor-canary-v0.1",
     "MARKET_TIMEZONE": "America/New_York",
     "DISPLAY_TIMEZONE": "Asia/Tokyo",
     "ALPACA_FEED": "iex",

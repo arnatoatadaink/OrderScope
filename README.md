@@ -45,6 +45,8 @@ The parent specification is the entry point. The three reference specifications 
   - Provisional Worker implementation choices derived from the functional requirements, including D1/R2 responsibilities, cadence-vs-Attention semantics, RVOL baseline, notional activity proxy, digest exposure, IEX/SIP quality gating, volatility baseline and shadow-mode promotion criteria.
 - `docs/PROVISIONAL_DESIGN_JP_US_PREDICTION_v0.1.md`
   - Non-normative Japan-to-U.S. prediction extension: separate predictor/target registries, Japan provider fallback, four U.S. Premarket/Regular horizons, as-of/leakage rules, provisional labels and probabilistic output contracts.
+- `docs/PREDICTION_REGISTRY_SEMICONDUCTOR_CANARY_v0.1.md`
+  - Evidence and limits for the first versioned Japanese semiconductor-input / U.S. theme-target canary profile.
 
 These derived documents do not add to or replace the four-document Code of Truth. Authoritative rules remain in the normative specifications above.
 
@@ -79,9 +81,9 @@ The repository now includes a minimal deployable Cloudflare Worker scaffold:
 - `package.json`
 - `tsconfig.json`
 
-The Worker defaults to `WORKER_MODE = "shadow"`. Shadow mode exposes `/health` and `/digest/latest` and accepts Cron Trigger wake-ups without market-data writes. The live acquisition path requires Alpaca secrets and the D1 binding. Regular acquisition remains the default; Premarket support is opt-in and is not wired to a target profile until the prediction registries are approved.
+The Worker defaults to `WORKER_MODE = "shadow"`. Shadow mode exposes `/health` and `/digest/latest` and accepts Cron Trigger wake-ups without market-data writes. The live acquisition path requires Alpaca secrets and the D1 binding. Regular acquisition remains unchanged. The separate `PREDICTION_MODE = "shadow"` profile records its configured registry in the digest while the outer Worker is in shadow mode; after the outer Worker is promoted to `live`, it also plans target-only Premarket coverage without executing those Premarket jobs or writing bars.
 
-The provisional prediction implementation is isolated in `src/prediction.ts`. It provides executable contracts for versioned predictor/target registries, the four horizon/anchor chain, Premarket anchor windows, readiness deadlines, leakage guards and bounded Premarket acquisition planning without adding Japanese instruments to the fixed monitoring Universe.
+The provisional prediction implementation is isolated in `src/prediction.ts` and `src/prediction-registry.ts`. It provides executable contracts for versioned predictor/target registries, the four horizon/anchor chain, Premarket anchor windows, readiness deadlines, leakage guards, a reviewed semiconductor canary profile and bounded Premarket shadow planning without adding Japanese instruments to the fixed monitoring Universe.
 
 ## Implementation entry point
 

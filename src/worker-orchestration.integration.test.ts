@@ -126,6 +126,110 @@ test("scheduled shadow tick persists a digest exposed by /digest/latest", async 
   assert.equal(invalidHistory.status, 400);
 });
 
+test("prediction shadow plans Premarket target coverage without executing or writing bars", async (t) => {
+  const script = await bundleWorker(`
+    import { createWorker } from "./worker.ts";
+    const calendar = {
+      market: "US_EQUITIES",
+      dateRange: { startInclusive: "2026-07-06", endExclusive: "2026-07-07" },
+      sessions: [{
+        marketDate: "2026-07-06", sessionKind: "PREMARKET",
+        opensAt: "2026-07-06T08:00:00.000Z", closesAt: "2026-07-06T13:30:00.000Z",
+        isShortened: false, calendarRevision: "integration-prediction-calendar-v1",
+      }, {
+        marketDate: "2026-07-06", sessionKind: "REGULAR",
+        opensAt: "2026-07-06T13:30:00.000Z", closesAt: "2026-07-06T20:00:00.000Z",
+        isShortened: false, calendarRevision: "integration-prediction-calendar-v1",
+      }],
+      generatedAt: "2026-07-06T08:03:00.000Z", revision: "integration-prediction-calendar-v1",
+    };
+    export default createWorker({
+      calendarProvider: (_credentials, options) => {
+        if (!options.includePremarket) throw new Error("prediction shadow must request Premarket");
+        return { getCalendar: async () => calendar };
+      },
+      universe: () => ({
+        revision: "integration-universe-v1", generatedAt: "2026-07-06T08:03:00.000Z",
+        instruments: [{ symbol: "SPY", cadence: "1Min", providerRoute: "alpaca_stock_bars" }],
+      }),
+      predictionUniverse: () => ({
+        revision: "integration-full-universe-v1", generatedAt: "2026-07-06T08:03:00.000Z",
+        instruments: [{ symbol: "SPY", cadence: "1Min", providerRoute: "alpaca_stock_bars" }],
+      }),
+      predictionRegistries: () => ({
+        input: {
+          revision: "prediction-input:integration-v1", market: "JAPAN_EQUITIES",
+          generatedAt: "2026-07-06T08:03:00.000Z", instruments: [{
+            instrumentId: "tse:0001", displaySymbol: "0001", providerSymbolMappings: { fixture: "0001" },
+            exchange: "TSE", themes: ["Fixture"], baseCadence: "1Min", enabled: true,
+            validFrom: "2026-07-06",
+          }],
+        },
+        target: {
+          revision: "prediction-target:integration-v1", generatedAt: "2026-07-06T08:03:00.000Z",
+          targets: [{
+            targetId: "us-theme:fixture", themeOrSector: "Fixture", constituentInstrumentIds: ["SPY"],
+            labelPolicyVersion: "constituent-median-return-v0.1",
+            enabledHorizons: ["PM_OPEN", "PM_SESSION", "REG_OPEN", "REG_SESSION"],
+          }],
+        },
+      }),
+      fetchPage: async () => { throw new Error("prediction shadow must not execute acquisition"); },
+    });
+  `);
+  const mf = new Miniflare({
+    modules: true, script, compatibilityDate: "2026-08-06", d1Databases: ["STATE_DB"],
+    bindings: {
+      ...LIVE_BINDINGS,
+      PREDICTION_MODE: "shadow",
+      PREDICTION_TARGET_PROFILE: "integration-v1",
+      ACQUISITION_RETENTION_MINUTES: "2",
+    },
+  });
+  t.after(() => mf.dispose());
+  const db = await mf.getD1Database("STATE_DB");
+  await migrateStateDb(db as unknown as D1Database);
+
+  const result = await (await mf.getWorker()).scheduled({
+    cron: "* * * * *", scheduledTime: new Date("2026-07-06T08:03:00.000Z"),
+  });
+  assert.equal(result.outcome, "ok");
+  const envelope = await (await mf.dispatchFetch("http://integration.test/digest/latest")).json() as {
+    payload: Record<string, unknown>;
+  };
+  assert.equal(envelope.payload.predictionMode, "shadow");
+  assert.equal(envelope.payload.predictionTargetProfile, "integration-v1");
+  assert.equal(envelope.payload.plannedJobs, 0);
+  assert.deepEqual(envelope.payload.summaries, []);
+  const shadow = envelope.payload.predictionShadow as Record<string, unknown>;
+  assert.deepEqual({ ...shadow, jobPlans: undefined }, {
+    mode: "shadow",
+    targetProfile: "integration-v1",
+    inputRegistryRevision: "prediction-input:integration-v1",
+    targetRegistryRevision: "prediction-target:integration-v1",
+    inputInstrumentCount: 1,
+    targetCount: 1,
+    acquisitionInstrumentCount: 1,
+    plannedPremarketJobs: 1,
+    deferredGapRetries: 0,
+    jobPlans: undefined,
+  });
+  const jobPlans = shadow.jobPlans as Array<Record<string, unknown>>;
+  assert.equal(jobPlans.length, 1);
+  assert.equal(jobPlans[0]?.dueReason, "NO_CHECKPOINT");
+  assert.equal(jobPlans[0]?.sessionScope, "PREMARKET");
+  assert.deepEqual(jobPlans[0]?.requestedRange, {
+    startInclusive: "2026-07-06T08:01:00.000Z",
+    endExclusive: "2026-07-06T08:02:00.000Z",
+  });
+  assert.deepEqual(await db.prepare(`SELECT
+    (SELECT COUNT(*) FROM normalized_bar) AS bars,
+    (SELECT COUNT(*) FROM bar_acceptance_receipt) AS receipts,
+    (SELECT COUNT(*) FROM acquisition_attempt) AS attempts,
+    (SELECT COUNT(*) FROM coverage_checkpoint) AS checkpoints
+  `).first(), { bars: 0, receipts: 0, attempts: 0, checkpoints: 0 });
+});
+
 test("scheduled live tick executes with injected providers and persists a sanitized summary", async (t) => {
   const script = await bundleWorker(`
     import { createWorker } from "./worker.ts";

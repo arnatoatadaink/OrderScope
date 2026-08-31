@@ -337,15 +337,16 @@ No production threshold is invented here. Promotion thresholds require measured 
 Current repository implementation status (2026-08-31):
 
 - `src/prediction.ts` implements the separate registry contracts, four horizon/anchor chain, anchor observation windows, readiness deadline and timestamp leakage guard.
+- `src/prediction-registry.ts` implements the versioned `semiconductor-canary-v0.1` input and target registries documented in `PREDICTION_REGISTRY_SEMICONDUCTOR_CANARY_v0.1.md`.
 - Calendar, bar normalization, checkpoints and the bounded acquisition planner support `PREMARKET` as a scope distinct from `REGULAR`.
-- Premarket calendar generation is opt-in and is derived only for dates returned by the authoritative Alpaca trading calendar; the default Worker profile remains Regular-only.
-- No Japanese symbols, U.S. theme/ETF mappings or model parameters have been inferred. Consequently the Premarket planner is not yet wired into live Worker orchestration.
+- Premarket calendar generation is opt-in and is derived only for dates returned by the authoritative Alpaca trading calendar. Prediction shadow orchestration opts in only to plan target coverage; it does not execute Premarket jobs.
+- Eight Japanese symbols and two ETF-less U.S. theme targets are explicit provisional canary decisions. No predictive relationship, ETF mapping or model parameter is inferred from those registrations.
 
-1. Approve the Japanese predictor instrument/theme mapping and assign a registry revision.
-2. Approve provisional U.S. target mappings or explicitly mark ETF-less targets.
+1. Review measured input availability for the provisional Japanese canary and promote or revise its registry revision.
+2. Evaluate the ETF-less constituent-median labels against any later evidence-backed ETF mapping.
 3. Generalize calendar/session fixtures for Japan's split session and U.S. extended hours. U.S. Premarket core support is implemented; Japan split-session support remains open.
 4. Add the Japan provider-neutral adapter and immutable snapshot builder.
-5. Add U.S. Premarket acquisition as a distinct coverage scope. Core planning/normalization/checkpoint support is implemented; approved-target Worker wiring remains open.
+5. Add U.S. Premarket acquisition as a distinct coverage scope. Core support and target-only Worker shadow planning are implemented; execution remains intentionally disabled.
 6. Materialize the four target anchors and realized-label records.
 7. Add `PredictionRecord` persistence and sanitized digest projection.
 8. Build an availability-aware historical dataset on the Main PC.
@@ -354,8 +355,8 @@ Current repository implementation status (2026-08-31):
 
 ## 15. Explicit unresolved items
 
-- exact Japanese predictor symbols and theme memberships,
-- exact U.S. theme ETF/constituent label mapping,
+- predictive validity and weighting of the provisional Japanese symbol/theme memberships,
+- exact U.S. theme ETF mapping; the current label is explicitly ETF-less,
 - weighting and outlier policy for Japanese theme aggregation,
 - minimum history required before `Q` and other new listings enter training,
 - J-Quants subscription/add-on and licensing details at implementation time,

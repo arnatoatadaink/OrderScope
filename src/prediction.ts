@@ -318,3 +318,41 @@ export function planPredictionPremarketAcquisition(
     request.now,
   );
 }
+
+export function buildPredictionPremarketUniverse(
+  targetRegistry: PredictionTargetRegistry,
+  monitoringUniverse: UniverseSnapshot,
+  generatedAt = targetRegistry.generatedAt,
+): UniverseSnapshot {
+  validatePredictionTargetRegistry(targetRegistry);
+  instant(generatedAt, "prediction acquisition Universe generatedAt");
+
+  const monitoringBySymbol = new Map<string, UniverseSnapshot["instruments"][number]>();
+  for (const instrument of monitoringUniverse.instruments) {
+    if (monitoringBySymbol.has(instrument.symbol)) {
+      throw new Error(`monitoring Universe contains a duplicate symbol: ${instrument.symbol}`);
+    }
+    monitoringBySymbol.set(instrument.symbol, instrument);
+  }
+
+  const requestedSymbols = new Set<string>();
+  for (const target of targetRegistry.targets) {
+    if (target.primaryLabelInstrumentId) requestedSymbols.add(target.primaryLabelInstrumentId);
+    for (const instrumentId of target.constituentInstrumentIds) requestedSymbols.add(instrumentId);
+  }
+
+  const instruments = [...requestedSymbols].sort().map((symbol) => {
+    const source = monitoringBySymbol.get(symbol);
+    if (!source) throw new Error(`prediction target instrument is absent from monitoring Universe: ${symbol}`);
+    if (source.providerRoute !== "alpaca_stock_bars") {
+      throw new Error(`prediction target instrument requires an equity route: ${symbol}`);
+    }
+    return { ...source, cadence: "1Min" as const };
+  });
+
+  return {
+    revision: `prediction-premarket:${targetRegistry.revision}:${monitoringUniverse.revision}`,
+    generatedAt,
+    instruments,
+  };
+}
