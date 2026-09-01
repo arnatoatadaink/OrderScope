@@ -337,6 +337,7 @@ No production threshold is invented here. Promotion thresholds require measured 
 Current repository implementation status (2026-08-31):
 
 - `src/prediction.ts` implements the separate registry contracts, four horizon/anchor chain, anchor observation windows, readiness deadline and timestamp leakage guard.
+- `src/prediction-snapshot.ts` implements an immutable, provider-neutral Japanese-input snapshot contract and injectable handoff port. It canonicalizes observation order and identity, preserves source/retrieval/availability provenance, rejects late or malformed observations with explicit reason codes, and accepts only authoritative supplied morning/afternoon session windows (never an interpolated lunch-break bar).
 - `src/prediction-registry.ts` implements the versioned `semiconductor-canary-v0.1` input and target registries documented in `PREDICTION_REGISTRY_SEMICONDUCTOR_CANARY_v0.1.md`.
 - Calendar, bar normalization, checkpoints and the bounded acquisition planner support `PREMARKET` as a scope distinct from `REGULAR`.
 - Premarket calendar generation is opt-in and is derived only for dates returned by the authoritative Alpaca trading calendar. Prediction shadow orchestration opts in only to plan target coverage; it does not execute Premarket jobs.
@@ -344,8 +345,8 @@ Current repository implementation status (2026-08-31):
 
 1. Review measured input availability for the provisional Japanese canary and promote or revise its registry revision.
 2. Evaluate the ETF-less constituent-median labels against any later evidence-backed ETF mapping.
-3. Generalize calendar/session fixtures for Japan's split session and U.S. extended hours. U.S. Premarket core support is implemented; Japan split-session support remains open.
-4. Add the Japan provider-neutral adapter and immutable snapshot builder.
+3. Generalize calendar/session fixtures for Japan's split session and U.S. extended hours. U.S. Premarket core support is implemented; the snapshot boundary accepts separate authoritative Japan session segments, while a Japan calendar-provider adapter remains open.
+4. Add the Japan provider-neutral adapter and connect it to the immutable snapshot builder/handoff port.
 5. Add U.S. Premarket acquisition as a distinct coverage scope. Core support and target-only Worker shadow planning are implemented; execution remains intentionally disabled.
 6. Materialize the four target anchors and realized-label records.
 7. Add `PredictionRecord` persistence and sanitized digest projection.

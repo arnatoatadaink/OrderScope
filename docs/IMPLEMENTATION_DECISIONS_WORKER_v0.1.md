@@ -194,6 +194,7 @@ Implemented and tested in the repository:
 8. separate versioned `PredictionInputRegistry` / `PredictionTargetRegistry` validation contracts,
 9. four prediction horizons, anchor windows, calendar-derived readiness deadline and as-of leakage guards,
 10. provisional `semiconductor-canary-v0.1` registries and target-only Premarket Worker shadow planning.
+11. immutable provider-neutral Japanese prediction-input snapshots with cutoff-aware provenance validation, separate Japan session-segment windows, deterministic identity/content hashing and an injectable handoff port.
 
 This does not prove that production D1 migrations, secrets or a live deployment have been completed.
 
@@ -204,5 +205,5 @@ Next implementation order:
 3. add the R2 batch archive/handoff writer before sustained high-density retention,
 4. collect the 20-trading-day IEX vs SIP quality report,
 5. review the provisional Japanese predictor/target canary after measured coverage is available,
-6. implement the local Japanese snapshot bridge and immutable availability-aware handoff,
+6. implement the local Japanese provider adapter/calendar bridge and connect it to the immutable availability-aware handoff,
 7. materialize target anchors/labels and build the Main-PC volatility and Japan-to-U.S. prediction baselines.
