@@ -31,17 +31,17 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 
 | 状態 | 件数 |
 |---|---:|
-| 未着手 | 4 |
+| 未着手 | 3 |
 | 進行中 | 0 |
 | 調査完了 | 0 |
-| 引渡し済み | 7 |
+| 引渡し済み | 8 |
 | 保留（依存） | 9 |
 | 保留（外部） | 0 |
 | 再確認要 | 0 |
 
 `WEB-003`は共通のProvider・利用条件確認票を`W0-004`、`S0-001`、`N0-001`、adapter ADRへ引渡し済みである。`WEB-005`はSECのUser-Agent、Fair Access、endpoint、公開content再利用条件を現行公式資料で再確認し、`S0-001`および`S0-002〜007`へ引渡し済みである。`WEB-006`は対象SEC formについてbase/amendment/近縁form境界を公式情報で整理し、strict allowlistとfixture条件を`S0-004`/`S0-007`へ引き渡した。これによりSEC form filterのWeb入力は揃った。
 
-即時着手可能なのは`WEB-008`、`WEB-009`、`WEB-011`、`WEB-015`である。`WEB-007`はEarnings event/result契約のCanary事例を公式一次情報で整理し、`E0-001`へ引渡し済みである。`WEB-004`も履歴付きregistry seedを`I0-001`へ引渡し済みである。`WEB-008`は`WEB-001`のidentity handoffを利用でき、`WEB-011`は`WEB-003`の確認方式を使って採否調査へ進める。
+即時着手可能なのは`WEB-009`、`WEB-011`、`WEB-015`である。`WEB-007`はEarnings event/result契約のCanary事例を公式一次情報で整理し、`E0-001`へ引渡し済みである。`WEB-008`はAMD/NVIDIAの決算専用IR listing、公式release archive、個別release URLを整理し、SEC/IR Evidenceを両方保持するfallback contract案を`E0-003`へ引渡し済みである。`WEB-004`も履歴付きregistry seedを`I0-001`へ引渡し済みであり、`WEB-011`は`WEB-003`の確認方式を使って採否調査へ進める。
 
 隣接作業の既知状態は次のとおり。
 
@@ -61,13 +61,13 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 | WEB-005 | S0-001 | A | 引渡し済み | WEB-003引渡し済み | [`REPORT_SEC_ACCESS_CONDITIONS_WEB_005_2026-09-04.md`](REPORT_SEC_ACCESS_CONDITIONS_WEB_005_2026-09-04.md); Evidence確認 `2026-09-03T16:28Z`〜`2026-09-03T16:31Z` | S0-001、S0-002〜007、WEB-006/007/009 | local SEC adapterでdeclared User-Agent、source-wide limiter、bounded retry/cooldown、Submissions/bulk経路を実装・試験。Web側はWEB-006/007/009へ進める | 2026-09-04 | web-2026-09-04-WEB-005 |
 | WEB-006 | S0-004 | B | 引渡し済み | WEB-005引渡し済み | [`REPORT_SEC_FORM_FILTER_WEB_006_2026-09-04.md`](REPORT_SEC_FORM_FILTER_WEB_006_2026-09-04.md); Evidence確認 `2026-09-03T16:39Z` | S0-004 filter実装、S0-007 fixture/受入試験 | strict allowlist、`raw_form`/family/amendment正規化、near-miss fixtureを実装。AMD/NVDA限定取得でamendment/partialを検証 | 2026-09-04 | web-2026-09-04-WEB-006 |
 | WEB-007 | E0-001 | C | 引渡し済み | WEB-001/005引渡し済み | [`REPORT_EARNINGS_EVENT_RESULT_CONTRACT_WEB_007_2026-09-04.md`](REPORT_EARNINGS_EVENT_RESULT_CONTRACT_WEB_007_2026-09-04.md); Evidence確認 `2026-09-03T18:16Z` | E0-001 Earnings contract実装、I0-002 provenance整合、E0-002 fixture | schedule/release/call/SEC accepted時刻を分離し、nullable actual release、issuer fiscal label、GAAP/non-GAAP dimensionをcontract testへ反映 | 2026-09-04 | web-2026-09-04-WEB-007 |
-| WEB-008 | E0-003 | B | 未着手 | WEB-001引渡し済み | WEB-001でIR入口確認済み | IR fallback adapter | AMD/NVDAのstable release/archive経路を調査 | 2026-09-03 | — |
+| WEB-008 | E0-003 | B | 引渡し済み | WEB-001引渡し済み | [`REPORT_IR_FALLBACK_WEB_008_2026-09-04.md`](REPORT_IR_FALLBACK_WEB_008_2026-09-04.md); Evidence確認 `2026-09-03T21:15Z` | E0-003 IR fallback adapter、I0-002/004 provenance・idempotency contract | AMD Financial Results / Press Releases、NVIDIA Quarterly Results / News Archiveをdiscovery経路にし、listing hrefをcanonical release URLとして保存。SEC/IR Evidenceを同一eventへ関連付けつつ両方保持し、HTTP更新挙動をfixtureで検証 | 2026-09-04 | web-2026-09-04-WEB-008 |
 | WEB-009 | E0-005 | C | 未着手 | WEB-001/005引渡し済み | WEB-005でCompany Factsのdimension/custom extension制約をhandoff | segment fallback実装 | 複数四半期のCompany Facts、XBRL Dimension、Filing fallback可用性を整理し、欠損を推測しない | 2026-09-04 | — |
 | WEB-010 | E0-007 | D | 保留（依存） | WEB-007〜009とlocal contract形状 | — | local reconciliation・品質report | field確定後に公式照合setを準備 | 2026-09-03 | — |
 | WEB-011 | N0-001 | A | 未着手 | WEB-003引渡し済み | 既存Provider調査の更新が必要。WEB-003共通票利用可能 | News Provider ADR | 現行価格、履歴、rate、本文権利、internal-use、再配布条件をplan/use case単位で更新 | 2026-09-04 | — |
 | WEB-012 | N0-003 | C | 保留（依存） | WEB-011 | — | canonicalization fixture/test | 対象Providerに対応する重複・転載・訂正例を収集 | 2026-09-03 | — |
 | WEB-013 | N1-001 | C | 保留（依存） | WEB-007とI0-005のcontract方針 | 親計画に初期分類あり | taxonomy schema・extractor fixture | 定義とEvidence付き事例を作成 | 2026-09-03 | — |
-| WEB-014 | N1-006 | D | 保留（依存） | WEB-008、WEB-010とlocal評価形状 | — | recall/latency評価 | 1〜3か月のSEC/IR基準イベントsetを準備 | 2026-09-03 | — |
+| WEB-014 | N1-006 | D | 保留（依存） | WEB-008、WEB-010とlocal評価形状 | WEB-008でIR基準source経路は準備済み | recall/latency評価 | WEB-009/010とlocal評価形状が揃った後、1〜3か月のSEC/IR基準イベントsetを準備 | 2026-09-04 | — |
 | WEB-015 | O0-001 | A | 未着手 | なし | official actor種別は親計画で固定済み | O0-002 adapter設計 | 恒久入口を含むofficial source registryを作成 | 2026-09-03 | — |
 | WEB-016 | O0-002 | B | 保留（依存） | WEB-002、WEB-015 | — | official feed adapter | source別のRSS/API/更新一覧を調査 | 2026-09-03 | — |
 | WEB-017 | O0-003 | C | 保留（依存） | WEB-015、WEB-016 | — | official Fact type fixture | 発言・提案と施行・正式決定の事例を収集 | 2026-09-03 | — |
@@ -129,6 +129,7 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 | 2026-09-03 | web-2026-09-04-WEB-005 | WEB-005 | SEC Developer Resources、Webmaster FAQ、EDGAR APIs、Accessing EDGAR Data、Privacy/Security policyを再確認。10 req/s以下のFair Access、declared User-Agent、API key不要、Submissions/XBRL/bulk経路、公開EDGAR content reuse、保存期間の明示なしをFact/Unknownへ分離して引渡し | `REPORT_SEC_ACCESS_CONDITIONS_WEB_005_2026-09-04.md`; Evidence確認 `2026-09-03T16:28Z`〜`2026-09-03T16:31Z` | S0-002〜007でadapter/limiter/retry/storageを実装・試験。Web側は解放されたWEB-006/007/009、またはWEB-008/011/015へ進む |
 | 2026-09-03 | web-2026-09-04-WEB-006 | WEB-006 | 8-K、10-Q、10-K、S-1、S-3、424B群、DEF 14A、Schedule 13D/G、Form 4の目的・amendment・近縁form境界をSEC公式情報で整理。strict allowlist、raw form保持、family/amendment正規化、near-miss fixture条件を引渡し | `REPORT_SEC_FORM_FILTER_WEB_006_2026-09-04.md`; Evidence確認 `2026-09-03T16:39Z` | S0-004でfilterを実装し、S0-007でbase/amendment/near-miss/unknownとAMD/NVDA限定取得を試験。Web側はWEB-007/008/009/011/015へ進む |
 | 2026-09-03 | web-2026-09-04-WEB-007 | WEB-007 | AMD Q2 2026とNVIDIA Q2 FY2027を公式IR/SECで照合し、予定release window、call時刻、IR release日、SEC accepted時刻、period end、GAAP/non-GAAP、source roleを分離するCanary契約案を作成。IR本文でexact release時刻が未確認なケースはunknownのまま保持 | `REPORT_EARNINGS_EVENT_RESULT_CONTRACT_WEB_007_2026-09-04.md`; Evidence確認 `2026-09-03T18:16Z` | E0-001でnullable actual release、issuer fiscal label、accounting basis、source roleを実装し、SEC accepted時刻のrelease時刻誤用をnegative test化。Web側はWEB-008/009/011/015へ進む |
+| 2026-09-03 | web-2026-09-04-WEB-008 | WEB-008 | AMD/NVIDIAの決算専用IR listing、公式release archive、個別release URLを公式一次情報で確認。listing/archive URLとcanonical individual release URLを分離し、SEC/IRを同一eventへ関連付けてもEvidenceは両方残すfallback contract案を引渡し | `REPORT_IR_FALLBACK_WEB_008_2026-09-04.md`; Evidence確認 `2026-09-03T21:15Z` | E0-003でissuer別listing/archive adapter、canonical URL/hash/provenance、partial/error、重複discoveryを実装・試験。Web側はWEB-009/011/015へ進む |
 
 ## 8. 更新時チェックリスト
 
