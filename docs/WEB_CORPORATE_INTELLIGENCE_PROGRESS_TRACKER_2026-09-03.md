@@ -31,8 +31,8 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 
 | 状態 | 件数 |
 |---|---:|
-| 未着手 | 6 |
-| 進行中 | 0 |
+| 未着手 | 5 |
+| 進行中 | 1 |
 | 調査完了 | 0 |
 | 引渡し済み | 2 |
 | 保留（依存） | 12 |
@@ -55,7 +55,7 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 | WEB-001 | W0-002 | A | 引渡し済み | なし | [`REPORT_CORPORATE_CANARY_IDENTITY_WEB_001_2026-09-03.md`](REPORT_CORPORATE_CANARY_IDENTITY_WEB_001_2026-09-03.md); Evidence確認 2026-09-03T11:43:05Z | I0-001、S0-002、E0-003 | I0-001で内部ID、履歴、share classのschemaをreview・実装 | 2026-09-03 | web-2026-09-03-WEB-001 |
 | WEB-002 | W0-003 | A | 引渡し済み | なし | [`REPORT_OFFICIAL_SOURCE_SCOPE_WEB_002_2026-09-03.md`](REPORT_OFFICIAL_SOURCE_SCOPE_WEB_002_2026-09-03.md); Evidence確認 2026-09-03T12:18:39Z | I0-001、WEB-004、O0-001/002 | source laneとowner/actor境界をWEB-004の履歴付きregistry案へ変換。恒久入口・feed詳細はWEB-015/016で継続 | 2026-09-03 | web-2026-09-03-WEB-002 |
 | WEB-003 | W0-004 | A | 未着手 | なし | 既存Provider調査は時点情報 | S0-001、N0-001、adapter ADR | 共通の公式利用条件確認票を作成 | 2026-09-03 | — |
-| WEB-004 | I0-001 | B | 未着手 | WEB-001/002引渡し済み | `REPORT_CORPORATE_CANARY_IDENTITY_WEB_001_2026-09-03.md`; `REPORT_OFFICIAL_SOURCE_SCOPE_WEB_002_2026-09-03.md` | registry schema・test | 検証済みidentity/sourceを履歴付き対応案に変換 | 2026-09-03 | — |
+| WEB-004 | I0-001 | B | 進行中 | WEB-001/002引渡し済み | `REPORT_CORPORATE_CANARY_IDENTITY_WEB_001_2026-09-03.md`; `REPORT_OFFICIAL_SOURCE_SCOPE_WEB_002_2026-09-03.md` | registry schema・test | 先行EvidenceとI0-001要件を照合し、entity/source/actorの有効期間・識別子・根拠を履歴付き対応案へ変換 | 2026-09-03 | web-2026-09-03-WEB-004 |
 | WEB-005 | S0-001 | A | 未着手 | なし | SEC EDGAR/XBRLはv0.1 baseline | S0-002〜007 | SEC公式接続・Fair Access条件を再確認 | 2026-09-03 | — |
 | WEB-006 | S0-004 | B | 保留（依存） | WEB-005 | form一覧は親計画で固定済み | S0-004 test/fixture | 公式のform目的・例外対応表を作成 | 2026-09-03 | — |
 | WEB-007 | E0-001 | C | 保留（依存） | WEB-001済、残りWEB-005 | — | Earnings contract実装 | 必須の時刻・会計区分を示すCanary事例を収集 | 2026-09-03 | — |
