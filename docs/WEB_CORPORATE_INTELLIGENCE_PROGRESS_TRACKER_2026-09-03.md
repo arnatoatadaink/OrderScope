@@ -31,15 +31,15 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 
 | 状態 | 件数 |
 |---|---:|
-| 未着手 | 5 |
+| 未着手 | 4 |
 | 進行中 | 0 |
 | 調査完了 | 0 |
-| 引渡し済み | 3 |
+| 引渡し済み | 4 |
 | 保留（依存） | 12 |
 | 保留（外部） | 0 |
 | 再確認要 | 0 |
 
-即時着手可能なのは`WEB-003`、`WEB-005`、`WEB-008`、`WEB-011`、`WEB-015`である。`WEB-004`は履歴付きregistry seedを`I0-001`へ引渡し済みである。`WEB-008`は`WEB-001`のidentity handoffを利用できる。`WEB-011`は候補調査を開始できるが、採否提案には`WEB-003`の利用条件確認方式を適用する。
+`WEB-003`は共通のProvider・利用条件確認票を`W0-004`、`S0-001`、`N0-001`、adapter ADRへ引渡し済みである。即時着手可能なのは`WEB-005`、`WEB-008`、`WEB-011`、`WEB-015`である。`WEB-004`も履歴付きregistry seedを`I0-001`へ引渡し済みである。`WEB-008`は`WEB-001`のidentity handoffを利用でき、`WEB-011`は`WEB-003`の確認方式を使って採否調査へ進める。
 
 隣接作業の既知状態は次のとおり。
 
@@ -54,15 +54,15 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 |---|---|---|---|---|---|---|---|---|---|
 | WEB-001 | W0-002 | A | 引渡し済み | なし | [`REPORT_CORPORATE_CANARY_IDENTITY_WEB_001_2026-09-03.md`](REPORT_CORPORATE_CANARY_IDENTITY_WEB_001_2026-09-03.md); Evidence確認 2026-09-03T11:43:05Z | I0-001、S0-002、E0-003 | I0-001で内部ID、履歴、share classのschemaをreview・実装 | 2026-09-03 | web-2026-09-03-WEB-001 |
 | WEB-002 | W0-003 | A | 引渡し済み | なし | [`REPORT_OFFICIAL_SOURCE_SCOPE_WEB_002_2026-09-03.md`](REPORT_OFFICIAL_SOURCE_SCOPE_WEB_002_2026-09-03.md); Evidence確認 2026-09-03T12:18:39Z | I0-001、WEB-004、O0-001/002 | source laneとowner/actor境界をWEB-004の履歴付きregistry案へ変換。恒久入口・feed詳細はWEB-015/016で継続 | 2026-09-03 | web-2026-09-03-WEB-002 |
-| WEB-003 | W0-004 | A | 未着手 | なし | 既存Provider調査は時点情報 | S0-001、N0-001、adapter ADR | 共通の公式利用条件確認票を作成 | 2026-09-03 | — |
+| WEB-003 | W0-004 | A | 引渡し済み | なし | [`REPORT_PROVIDER_TERMS_CHECKLIST_WEB_003_2026-09-04.md`](REPORT_PROVIDER_TERMS_CHECKLIST_WEB_003_2026-09-04.md); Evidence確認 `2026-09-03T16:23:58Z` | W0-004、S0-001、N0-001、adapter ADR / contract test | WEB-005はSEC詳細を再確認、WEB-011はNews候補へ共通票を適用。`記載なし`をdefault allowにしない | 2026-09-04 | web-2026-09-04-WEB-003 |
 | WEB-004 | I0-001 | B | 引渡し済み | WEB-001/002引渡し済み | [`REPORT_ENTITY_SOURCE_REGISTRY_VALUES_WEB_004_2026-09-03.md`](REPORT_ENTITY_SOURCE_REGISTRY_VALUES_WEB_004_2026-09-03.md); Evidence再確認 `2026-09-03T15:53:08Z` | I0-001 registry schema・migration・contract test | 共通Actor、nullable外部validity、listing/source endpoint履歴、Evidence制約を実装。AMD venue履歴のunknown gapをfixtureで検証 | 2026-09-03 | web-2026-09-03-WEB-004 |
-| WEB-005 | S0-001 | A | 未着手 | なし | SEC EDGAR/XBRLはv0.1 baseline | S0-002〜007 | SEC公式接続・Fair Access条件を再確認 | 2026-09-03 | — |
+| WEB-005 | S0-001 | A | 未着手 | WEB-003引渡し済み | SEC EDGAR/XBRLはv0.1 baseline。WEB-003共通票利用可能 | S0-002〜007 | SEC公式接続・Fair Access・endpoint・保存条件をWEB-003票で再確認 | 2026-09-04 | — |
 | WEB-006 | S0-004 | B | 保留（依存） | WEB-005 | form一覧は親計画で固定済み | S0-004 test/fixture | 公式のform目的・例外対応表を作成 | 2026-09-03 | — |
 | WEB-007 | E0-001 | C | 保留（依存） | WEB-001済、残りWEB-005 | — | Earnings contract実装 | 必須の時刻・会計区分を示すCanary事例を収集 | 2026-09-03 | — |
 | WEB-008 | E0-003 | B | 未着手 | WEB-001引渡し済み | WEB-001でIR入口確認済み | IR fallback adapter | AMD/NVDAのstable release/archive経路を調査 | 2026-09-03 | — |
 | WEB-009 | E0-005 | C | 保留（依存） | WEB-001済、残りWEB-005 | — | segment fallback実装 | 複数四半期のsegment source可用性を整理 | 2026-09-03 | — |
 | WEB-010 | E0-007 | D | 保留（依存） | WEB-007〜009とlocal contract形状 | — | local reconciliation・品質report | field確定後に公式照合setを準備 | 2026-09-03 | — |
-| WEB-011 | N0-001 | A | 未着手 | 候補調査はなし。採否にはWEB-003 | 既存Provider調査の更新が必要 | News Provider ADR | 現行価格、履歴、rate、本文権利を更新 | 2026-09-03 | — |
+| WEB-011 | N0-001 | A | 未着手 | WEB-003引渡し済み | 既存Provider調査の更新が必要。WEB-003共通票利用可能 | News Provider ADR | 現行価格、履歴、rate、本文権利、internal-use、再配布条件をplan/use case単位で更新 | 2026-09-04 | — |
 | WEB-012 | N0-003 | C | 保留（依存） | WEB-011 | — | canonicalization fixture/test | 対象Providerに対応する重複・転載・訂正例を収集 | 2026-09-03 | — |
 | WEB-013 | N1-001 | C | 保留（依存） | WEB-007とI0-005のcontract方針 | 親計画に初期分類あり | taxonomy schema・extractor fixture | 定義とEvidence付き事例を作成 | 2026-09-03 | — |
 | WEB-014 | N1-006 | D | 保留（依存） | WEB-008、WEB-010とlocal評価形状 | — | recall/latency評価 | 1〜3か月のSEC/IR基準イベントsetを準備 | 2026-09-03 | — |
@@ -71,7 +71,7 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 | WEB-017 | O0-003 | C | 保留（依存） | WEB-015、WEB-016 | — | official Fact type fixture | 発言・提案と施行・正式決定の事例を収集 | 2026-09-03 | — |
 | WEB-018 | O0-004 | C | 保留（依存） | WEB-001済、残りWEB-015、WEB-017 | — | instrument/theme関連付け実装 | Evidence閾値とCanary事例を定義 | 2026-09-03 | — |
 | WEB-019 | O0-005 | D | 保留（依存） | WEB-016〜018とlocal adapter形状 | — | Official Signal品質test | update/delete/重複/時刻fixture候補を準備 | 2026-09-03 | — |
-| WEB-020 | X0-006 | D | 保留（依存） | WEB-003、005、011、016とlocal実装証跡 | — | Canary運用runbook | 公開制約部分を作成し、未試験操作を明示 | 2026-09-03 | — |
+| WEB-020 | X0-006 | D | 保留（依存） | WEB-003済、残りWEB-005、WEB-011、WEB-016とlocal実装証跡 | — | Canary運用runbook | 公開制約部分を作成し、未試験操作を明示 | 2026-09-04 | — |
 
 ## 5. 親タスクへのhandoff
 
@@ -123,18 +123,19 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 | 2026-09-03 | web-2026-09-03-WEB-004 | WEB-004 | AMD/NVIDIAのcompany・instrument・CIK・ticker/listingと、7つの公式source laneのowner/publisher/content actor規則を履歴付きregistry seedへ変換して引渡し | `REPORT_ENTITY_SOURCE_REGISTRY_VALUES_WEB_004_2026-09-03.md`; Evidence再確認 `2026-09-03T15:48:29Z` | I0-001でactor統合、履歴schema、Evidence制約、as-of/identity contract testを実装。Web側はWEB-003/005/008/015へ進む |
 | 2026-09-03 | web-2026-09-03-WEB-004-followup | WEB-004 | 並行セッションの完了成果を維持して競合を解消し、AMDの2017年NASDAQ Capital Market／2020年Global Select Market Evidenceと、正確な切替日を推測しない履歴規則を追記 | `REPORT_ENTITY_SOURCE_REGISTRY_VALUES_WEB_004_2026-09-03.md`; 追加Evidence確認 `2026-09-03T15:53:08Z` | I0-001 contract testでvenue切替のunknown gapを保持。次のWeb候補はWEB-003/005/008/015 |
 | 2026-09-03 | web-2026-09-03-WEB-004-verification | WEB-004 | 対象remote branchへの反映、成果物link、状態別件数を照合し、AMD 2017/2020 Form 10-K、NVIDIA 2026 Form 10-K、SEC association file注意事項を公式一次情報で再確認。追加修正なし | `REPORT_ENTITY_SOURCE_REGISTRY_VALUES_WEB_004_2026-09-03.md`; 限定再確認 `2026-09-03T16:00:29Z` | WEB-004は引渡し済みを維持。次セッションは優先度と依存を確認してWEB-003/005/008/011/015のいずれかに着手 |
+| 2026-09-03 | web-2026-09-04-WEB-003 | WEB-003 | rate、User-Agent、credential、履歴/freshness、保存、本文利用、再配布、費用等を`公式根拠あり` / `記載なし` / `契約確認要`へ必ず分類する共通確認票を作成し、SEC/Tiingo/Alpaca/Massiveの限定seedで適用可能性を確認 | `REPORT_PROVIDER_TERMS_CHECKLIST_WEB_003_2026-09-04.md`; Evidence確認 `2026-09-03T16:23:58Z` | W0-004のWeb入力として引渡し。次はWEB-005でSEC接続条件を詳細化、またはWEB-011でNews Provider比較へ適用 |
 
 ## 8. 更新時チェックリスト
 
-- [ ] 編集前に対象ブランチの最新版を読んだ。
-- [ ] 変更したタスクの`WEB-*` IDと親IDを維持した。
-- [ ] Fact、Interpretation、ローカル完了主張を分離した。
-- [ ] 公式sourceへの直接linkと確認日を記録した。
-- [ ] 不明値を明示した。
-- [ ] credential、account identifier、provider response body、制限対象本文を含めていない。
-- [ ] 時点依存の料金・条件に再確認条件を付けた。
-- [ ] 状態別件数と台帳が一致する。
-- [ ] Session logと次の操作を更新した。
+- [x] 編集前に対象ブランチの最新版を読んだ。
+- [x] 変更したタスクの`WEB-*` IDと親IDを維持した。
+- [x] Fact、Interpretation、ローカル完了主張を分離した。
+- [x] 公式sourceへの直接linkと確認日を記録した。
+- [x] 不明値を明示した。
+- [x] credential、account identifier、provider response body、制限対象本文を含めていない。
+- [x] 時点依存の料金・条件に再確認条件を付けた。
+- [x] 状態別件数と台帳が一致する。
+- [x] Session logと次の操作を更新した。
 
 ## 9. 関連文書
 
