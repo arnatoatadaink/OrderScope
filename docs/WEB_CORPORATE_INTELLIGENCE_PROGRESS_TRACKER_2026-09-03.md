@@ -31,15 +31,15 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 
 | 状態 | 件数 |
 |---|---:|
-| 未着手 | 5 |
-| 進行中 | 1 |
+| 未着手 | 6 |
+| 進行中 | 0 |
 | 調査完了 | 0 |
-| 引渡し済み | 0 |
-| 保留（依存） | 14 |
+| 引渡し済み | 1 |
+| 保留（依存） | 13 |
 | 保留（外部） | 0 |
 | 再確認要 | 0 |
 
-即時着手可能なのは`WEB-001`、`WEB-002`、`WEB-003`、`WEB-005`、`WEB-011`、`WEB-015`である。`WEB-011`は候補調査を開始できるが、採否提案には`WEB-003`の利用条件確認方式を適用する。
+即時着手可能なのは`WEB-002`、`WEB-003`、`WEB-005`、`WEB-008`、`WEB-011`、`WEB-015`である。`WEB-008`は`WEB-001`のidentity handoffを利用できる。`WEB-011`は候補調査を開始できるが、採否提案には`WEB-003`の利用条件確認方式を適用する。
 
 隣接作業の既知状態は次のとおり。
 
@@ -52,15 +52,15 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 
 | Web ID | 親 | Wave | 状態 | 依存・blocker | 成果物・Evidence | ローカルhandoff | 次の操作 | 最終更新 | Session |
 |---|---|---|---|---|---|---|---|---|---|
-| WEB-001 | W0-002 | A | 進行中 | なし | 調査中 | I0-001、S0-002、E0-003 | SECと企業公式サイトでAMD/NVDAのticker、CIK、IR入口を確認 | 2026-09-03 | web-2026-09-03-WEB-001 |
+| WEB-001 | W0-002 | A | 引渡し済み | なし | [`REPORT_CORPORATE_CANARY_IDENTITY_WEB_001_2026-09-03.md`](REPORT_CORPORATE_CANARY_IDENTITY_WEB_001_2026-09-03.md); Evidence確認 2026-09-03T11:43:05Z | I0-001、S0-002、E0-003 | I0-001で内部ID、履歴、share classのschemaをreview・実装 | 2026-09-03 | web-2026-09-03-WEB-001 |
 | WEB-002 | W0-003 | A | 未着手 | なし | source種別は親計画で固定済み。registry未作成 | O0-001/002 | 対象・除外source表を作成 | 2026-09-03 | — |
 | WEB-003 | W0-004 | A | 未着手 | なし | 既存Provider調査は時点情報 | S0-001、N0-001、adapter ADR | 共通の公式利用条件確認票を作成 | 2026-09-03 | — |
-| WEB-004 | I0-001 | B | 保留（依存） | WEB-001、WEB-002 | — | registry schema・test | 検証済みidentity/sourceを履歴付き対応案に変換 | 2026-09-03 | — |
+| WEB-004 | I0-001 | B | 保留（依存） | WEB-001済、残りWEB-002 | — | registry schema・test | 検証済みidentity/sourceを履歴付き対応案に変換 | 2026-09-03 | — |
 | WEB-005 | S0-001 | A | 未着手 | なし | SEC EDGAR/XBRLはv0.1 baseline | S0-002〜007 | SEC公式接続・Fair Access条件を再確認 | 2026-09-03 | — |
 | WEB-006 | S0-004 | B | 保留（依存） | WEB-005 | form一覧は親計画で固定済み | S0-004 test/fixture | 公式のform目的・例外対応表を作成 | 2026-09-03 | — |
-| WEB-007 | E0-001 | C | 保留（依存） | WEB-001、WEB-005 | — | Earnings contract実装 | 必須の時刻・会計区分を示すCanary事例を収集 | 2026-09-03 | — |
-| WEB-008 | E0-003 | B | 保留（依存） | WEB-001 | — | IR fallback adapter | AMD/NVDAのstable release/archive経路を調査 | 2026-09-03 | — |
-| WEB-009 | E0-005 | C | 保留（依存） | WEB-001、WEB-005 | — | segment fallback実装 | 複数四半期のsegment source可用性を整理 | 2026-09-03 | — |
+| WEB-007 | E0-001 | C | 保留（依存） | WEB-001済、残りWEB-005 | — | Earnings contract実装 | 必須の時刻・会計区分を示すCanary事例を収集 | 2026-09-03 | — |
+| WEB-008 | E0-003 | B | 未着手 | WEB-001引渡し済み | WEB-001でIR入口確認済み | IR fallback adapter | AMD/NVDAのstable release/archive経路を調査 | 2026-09-03 | — |
+| WEB-009 | E0-005 | C | 保留（依存） | WEB-001済、残りWEB-005 | — | segment fallback実装 | 複数四半期のsegment source可用性を整理 | 2026-09-03 | — |
 | WEB-010 | E0-007 | D | 保留（依存） | WEB-007〜009とlocal contract形状 | — | local reconciliation・品質report | field確定後に公式照合setを準備 | 2026-09-03 | — |
 | WEB-011 | N0-001 | A | 未着手 | 候補調査はなし。採否にはWEB-003 | 既存Provider調査の更新が必要 | News Provider ADR | 現行価格、履歴、rate、本文権利を更新 | 2026-09-03 | — |
 | WEB-012 | N0-003 | C | 保留（依存） | WEB-011 | — | canonicalization fixture/test | 対象Providerに対応する重複・転載・訂正例を収集 | 2026-09-03 | — |
@@ -69,7 +69,7 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 | WEB-015 | O0-001 | A | 未着手 | なし | official actor種別は親計画で固定済み | O0-002 adapter設計 | 恒久入口を含むofficial source registryを作成 | 2026-09-03 | — |
 | WEB-016 | O0-002 | B | 保留（依存） | WEB-002、WEB-015 | — | official feed adapter | source別のRSS/API/更新一覧を調査 | 2026-09-03 | — |
 | WEB-017 | O0-003 | C | 保留（依存） | WEB-015、WEB-016 | — | official Fact type fixture | 発言・提案と施行・正式決定の事例を収集 | 2026-09-03 | — |
-| WEB-018 | O0-004 | C | 保留（依存） | WEB-001、WEB-015、WEB-017 | — | instrument/theme関連付け実装 | Evidence閾値とCanary事例を定義 | 2026-09-03 | — |
+| WEB-018 | O0-004 | C | 保留（依存） | WEB-001済、残りWEB-015、WEB-017 | — | instrument/theme関連付け実装 | Evidence閾値とCanary事例を定義 | 2026-09-03 | — |
 | WEB-019 | O0-005 | D | 保留（依存） | WEB-016〜018とlocal adapter形状 | — | Official Signal品質test | update/delete/重複/時刻fixture候補を準備 | 2026-09-03 | — |
 | WEB-020 | X0-006 | D | 保留（依存） | WEB-003、005、011、016とlocal実装証跡 | — | Canary運用runbook | 公開制約部分を作成し、未試験操作を明示 | 2026-09-03 | — |
 
@@ -118,6 +118,7 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 | UTC日付 | Session | Web ID | 変更 | Evidence・成果物 | 次の操作 |
 |---|---|---|---|---|---|
 | 2026-09-03 | initial tracker creation | WEB-001〜020 | カタログ、依存Wave、状態、handoffを作成 | `REPORT_WEB_CORPORATE_INTELLIGENCE_WORKSTREAM_2026-09-03.md` | Wave Aを開始。最初の限定タスクはWEB-001またはWEB-005 |
+| 2026-09-03 | web-2026-09-03-WEB-001 | WEB-001 | AMD/NVDAのCIK、ticker、security class、exchange、公式IR入口を公式一次情報で確認し、version付きregistry案を引渡し | `REPORT_CORPORATE_CANARY_IDENTITY_WEB_001_2026-09-03.md`; Evidence確認 2026-09-03T11:43:05Z | I0-001でregistry schemaを実装。Web側はWEB-002/003/005/015または解放済みWEB-008へ進む |
 
 ## 8. 更新時チェックリスト
 
