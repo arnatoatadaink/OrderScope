@@ -47,6 +47,10 @@ The parent specification is the entry point. The three reference specifications 
   - Non-normative phased work plan separating bounded live validation and D1-export-based local analysis from R2-backed long-term retention, reconciliation, recovery and prediction-research preparation.
 - `docs/WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
   - Reviewable task breakdown for the next local-analysis, SEC/earnings, news, official-context, retention, and localhost integration phase; keeps remaining Worker operational checks as a separate backlog.
+- `docs/REPORT_WEB_CORPORATE_INTELLIGENCE_WORKSTREAM_2026-09-03.md`
+  - Cross-session map of the corporate-intelligence research and documentation that ChatGPT Web can complete or prepare, with explicit local handoff boundaries.
+- `docs/WEB_CORPORATE_INTELLIGENCE_PROGRESS_TRACKER_2026-09-03.md`
+  - Active ledger for `WEB-001` through `WEB-020`, including dependencies, evidence links, session ownership, handoff state and next action.
 - `docs/ADR_LOCAL_ANALYSIS_STACK_v0.1.md`
   - Accepted `L0-001` stack decision for the local MVP: Python/uv, SQLite/DuckDB, Arrow/Parquet, localhost API and the Windows/WSL execution boundary.
 - `docs/REPORT_JAPAN_LOCAL_MARKET_DATA_OPTIONS_2026-09-03.md`
