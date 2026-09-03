@@ -4,7 +4,7 @@ Status: Web research complete; local schema and contract tests pending
 Web task: `WEB-004`  
 Parent task: `I0-001`  
 Registry proposal version: `entity-source-registry-v0.1`  
-Checked at: `2026-09-03T15:48:29Z`
+Checked at: `2026-09-03T15:53:08Z`
 
 ## 1. 結論
 
@@ -62,6 +62,17 @@ CIKは10桁zero-paddingを保持した文字列である。上表の`actor_id`�
 
 `security_class_raw`と`venue_name`はEvidenceの表記を保持する。検索・比較用の正規化値を追加する場合も原文を上書きしない。`instrument_id`の正式な命名規則と全Universeでのuniquenessはローカルreview対象である。
 
+### 3.3 追加確認できたAMD listing履歴境界
+
+| instrument_id | ticker | venue_name | Evidence coverage | 確認できた事実 | 不明点 |
+|---|---|---|---|---|---|
+| `us-sec-0000002488-common` | `AMD` | The NASDAQ Capital Market | fiscal 2017 Form 10-K。2018-02-23時点のmarket記載 | 2017年次報告時点のlisting/ticker | Global Selectへの正確な移行日 |
+| `us-sec-0000002488-common` | `AMD` | The NASDAQ Global Select Market | fiscal 2020 Form 10-K。2021-01-22時点のmarket記載 | 2020年次報告時点のlisting/ticker | Capital Marketからの正確な移行日 |
+
+2資料によりAMDのvenue変更は確認できるが、切替日は確認できない。このため連続した`[valid_from, valid_to)`を推測生成せず、各assertionのEvidence coverageと`observed_at`を保存し、境界gapをunknownのままにする。ticker `AMD`が両資料に記載されることも、資料間の全日で同tickerが連続していたことの証明には使わない。
+
+SECのticker/CIK/company name association fileは現行対応の補助入力にできるが、SECは定期更新する一方で正確性・範囲を保証していない。したがって、同fileだけからhistorical validityを生成しない。
+
 ## 4. Publisher / official actor seed
 
 | actor_id（内部提案） | actor_kind | display name | 外部valid_from | valid_to | Evidence |
@@ -108,6 +119,9 @@ White Houseについて、`The White House`とExecutive Office of the President�
 | `E-AMD-10KA-COVER` | AMD Form 10-K/A cover | Advanced Micro Devices, Inc. | https://www.sec.gov/Archives/edgar/data/2488/000000248826000021/amd-20251227.htm | `2026-09-03T15:48:29Z` | fiscal year ended `2025-12-27` | `official data` | legal name、common stock、ticker `AMD`、registered exchange | listing各属性の開始日 |
 | `E-NVDA-10K-DETAIL` | NVIDIA Form 10-K filing detail, accession `0001045810-26-000021` | SEC / NVIDIA filer | https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/0001045810-26-000021-index.htm | `2026-09-03T15:48:29Z` | filed `2026-02-25`; period `2026-01-25` | `official data` | CIK `0001045810`とNVIDIA filer表示 | CIK割当開始日 |
 | `E-NVDA-10K-COVER` | NVIDIA Form 10-K cover | NVIDIA Corporation | https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm | `2026-09-03T15:48:29Z` | fiscal year ended `2026-01-25` | `official data` | legal name、common stock、ticker `NVDA`、registered exchange | listing各属性の開始日 |
+| `E-AMD-2017-10K-LISTING` | AMD fiscal 2017 Form 10-K | SEC / Advanced Micro Devices, Inc. filer | https://www.sec.gov/Archives/edgar/data/2488/000000248818000042/amd-12302017x10k.htm | `2026-09-03T15:53:08Z` | fiscal year ended `2017-12-30`; market statement references `2018-02-23` | `official data` | ticker `AMD`、The NASDAQ Capital Market | venue切替日 |
+| `E-AMD-2020-10K-LISTING` | AMD fiscal 2020 Form 10-K | SEC / Advanced Micro Devices, Inc. filer | https://www.sec.gov/Archives/edgar/data/2488/000162828021001185/amd-20201226.htm | `2026-09-03T15:53:08Z` | fiscal year ended `2020-12-26`; market statement references `2021-01-22` | `official data` | ticker `AMD`、The NASDAQ Global Select Market | Capital Marketからの正確な移行日 |
+| `E-SEC-TICKER-ASSOCIATIONS` | Accessing EDGAR Data — CIK, ticker, and exchange associations | U.S. Securities and Exchange Commission | https://www.sec.gov/search-filings/edgar-search-assistance/accessing-edgar-data | `2026-09-03T15:53:08Z` | section version `記載なし` | `official data documentation` | association fileの用途と、正確性・範囲を保証しない旨 | historical validity、更新差分の保証 |
 | `E-SEC-EDGAR` | Search Filings | U.S. Securities and Exchange Commission | https://www.sec.gov/search-filings | `2026-09-03T15:48:29Z` | `記載なし` | `official data` | EDGAR検索、CIK検索、API/RSSへの公式入口 | URL開設日、変更履歴 |
 | `E-SEC-NEWSROOM` | SEC Press Releases | U.S. Securities and Exchange Commission | https://www.sec.gov/newsroom/press-releases | `2026-09-03T15:48:29Z` | `記載なし` | `official data` | SEC official announcementsの入口 | URL開設日、item actorの完全な規則 |
 | `E-AMD-IR` | AMD Investor Relations | Advanced Micro Devices, Inc. | https://ir.amd.com/ | `2026-09-03T15:48:29Z` | `記載なし` | `official data` | Press Releases、Financial Results、SEC Filingsへの公式導線 | URLの開始日、redirect/archive挙動 |
@@ -146,10 +160,11 @@ White Houseについて、`The White House`とExecutive Office of the President�
 5. 公式pageの外部linkへ公式ownerを自動継承しない。
 6. `valid_from = unknown`を保持でき、`observed_at`で代用しない。
 7. source policy除外後も過去as-ofでは当時の採用状態を再現できる。
+8. AMDのCapital Market/Global Select資料間に、推測した切替日や連続期間を生成しない。
 
 ## 9. 未解決事項
 
-- AMD/NVIDIAの過去ticker、旧listing、security class変更、successor/predecessor履歴は未調査。
+- AMDの2017年時点のNASDAQ Capital Marketと2020年時点のGlobal Select Marketは確認したが、正確なvenue切替日は不明。AMD/NVIDIAの完全な過去ticker、その他の旧listing、security class変更、successor/predecessor履歴は未調査。
 - CIK、ticker、公式URLの外部valid_fromは確認したEvidenceだけでは不明。
 - `instrument_id`と`actor_id`の全Universe共通命名規則、DB uniqueness制約は未確定。
 - White HouseとExecutive Office of the Presidentのregistry上の組織関係は未確定。
