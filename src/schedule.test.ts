@@ -46,6 +46,24 @@ function extendedCalendar(): MarketCalendarSnapshot {
   };
 }
 
+function twoDayCalendar(): MarketCalendarSnapshot {
+  const first = calendar("2026-11-27T21:00:00.000Z").sessions[0]!;
+  return {
+    market: "US_EQUITIES",
+    dateRange: { startInclusive: "2026-11-27", endExclusive: "2026-11-29" },
+    generatedAt: "2026-11-28T00:00:00.000Z",
+    revision: "calendar-two-day-v1",
+    sessions: [
+      { ...first, calendarRevision: "calendar-two-day-v1" },
+      {
+        marketDate: "2026-11-28", sessionKind: "REGULAR",
+        opensAt: "2026-11-28T14:30:00.000Z", closesAt: "2026-11-28T21:00:00.000Z",
+        isShortened: false, calendarRevision: "calendar-two-day-v1",
+      },
+    ],
+  };
+}
+
 test("plans deterministic 1m and 15m jobs on session-aligned boundaries", () => {
   const instruments: UniverseInstrument[] = [
     { symbol: "SPY", cadence: "1Min", providerRoute: "alpaca_stock_bars" },
@@ -115,6 +133,44 @@ test("keeps crypto on its separate continuous route when equities are closed", (
   assert.equal(jobs.length, 1);
   assert.equal(jobs[0]?.sessionScope, "ALL_TRADING");
   assert.equal(jobs[0]?.requestedRange.endExclusive, "2026-11-28T16:07:00.000Z");
+});
+
+test("caps an initial equity backfill at one authoritative session close", () => {
+  const spy: UniverseInstrument = { symbol: "SPY", cadence: "1Min", providerRoute: "alpaca_stock_bars" };
+  const policy = new SchedulePolicy({
+    ...config,
+    retentionFloor: "2026-11-27T19:30:00.000Z",
+    maxBarsPerJob: 100,
+  });
+  const job = policy.plan(universe([spy]), twoDayCalendar(), [], new Date("2026-11-28T16:07:45Z"))[0]!;
+
+  assert.equal(job.dueReason, "NO_CHECKPOINT");
+  assert.deepEqual(job.requestedRange, {
+    startInclusive: "2026-11-27T19:30:00.000Z",
+    endExclusive: "2026-11-27T21:00:00.000Z",
+  });
+});
+
+test("advances from a prior equity close to the next authoritative session open", () => {
+  const spy: UniverseInstrument = { symbol: "SPY", cadence: "1Min", providerRoute: "alpaca_stock_bars" };
+  const coverageKey = coverageKeyFor(spy, "REGULAR", "raw-iex");
+  const policy = new SchedulePolicy({
+    ...config,
+    retentionFloor: "2026-11-27T19:30:00.000Z",
+    maxBarsPerJob: 100,
+  });
+  const job = policy.plan(universe([spy]), twoDayCalendar(), [{
+    coverageKey,
+    completeThrough: "2026-11-27T21:00:00.000Z",
+    missingRanges: [],
+    version: 1,
+  }], new Date("2026-11-28T16:07:45Z"))[0]!;
+
+  assert.equal(job.dueReason, "FORWARD_COVERAGE");
+  assert.deepEqual(job.requestedRange, {
+    startInclusive: "2026-11-28T14:30:00.000Z",
+    endExclusive: "2026-11-28T16:07:00.000Z",
+  });
 });
 
 test("bounds an initial crypto backfill and deterministically continues from its checkpoint", () => {

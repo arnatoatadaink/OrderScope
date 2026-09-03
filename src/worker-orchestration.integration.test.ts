@@ -650,7 +650,7 @@ test("CAS conflict is sanitized publicly and replanned successfully on the next 
   const failedResponse = await mf.dispatchFetch("http://integration.test/digest/latest");
   const failedEnvelope = await failedResponse.json() as { payload: Record<string, unknown> };
   assert.deepEqual(failedEnvelope.payload.summaries, [{
-    jobId: "market-bars:4120436b46998871", outcome: "FAILED",
+    jobId: "market-bars:038e620d299135bb", outcome: "FAILED",
   }]);
   assert.equal(JSON.stringify(failedEnvelope).includes("compare-and-set"), false);
 
@@ -742,7 +742,7 @@ test("scheduled live tick preserves a provider gap as partial durable coverage",
   assert.equal(response.status, 200);
   const envelope = await response.json() as { payload: Record<string, unknown> };
   assert.deepEqual(envelope.payload.summaries, [{
-    jobId: "market-bars:772dbad533a4d2fa", outcome: "PARTIAL",
+    jobId: "market-bars:544c3126bd098914", outcome: "PARTIAL",
     pages: 1, inserted: 1, matched: 0, conflicts: 0, rejected: 0, missing: 1,
   }]);
 

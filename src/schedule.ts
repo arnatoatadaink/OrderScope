@@ -151,6 +151,19 @@ function configuredEquitySessionScope(
   return scope;
 }
 
+function nextEquitySession(
+  calendar: MarketCalendarSnapshot,
+  sessionScope: Exclude<SessionScope, "ALL_TRADING">,
+  anchorMs: number,
+  boundaryMs: number,
+): NormalizedMarketSession | undefined {
+  return calendar.sessions
+    .filter((session) => session.sessionKind === sessionScope)
+    .filter((session) => instant(session.closesAt, "session close") > anchorMs)
+    .filter((session) => instant(session.opensAt, "session open") < boundaryMs)
+    .sort((left, right) => left.opensAt.localeCompare(right.opensAt))[0];
+}
+
 export class SchedulePolicy {
   private readonly config: SchedulePolicyConfig;
 
@@ -202,7 +215,9 @@ export class SchedulePolicy {
       let endMs = boundary;
       let mode: AcquisitionMode;
       let dueReason: AcquisitionJob["dueReason"];
+      let progressionAnchorMs = retentionFloorMs;
       if (missing) {
+        progressionAnchorMs = missing.start;
         startMs = Math.max(retentionFloorMs, missing.start - this.config.overlapMs[instrument.cadence]);
         endMs = Math.min(boundary, missing.end);
         mode = "RECONCILE";
@@ -214,9 +229,21 @@ export class SchedulePolicy {
       } else {
         const completeThroughMs = instant(checkpoint.completeThrough, "checkpoint completeThrough");
         if (completeThroughMs >= boundary) continue;
+        progressionAnchorMs = completeThroughMs;
         startMs = Math.max(retentionFloorMs, completeThroughMs - this.config.overlapMs[instrument.cadence]);
         mode = "INCREMENTAL";
         dueReason = "FORWARD_COVERAGE";
+      }
+
+      // An equity provider range must never span a closed-session gap. Besides
+      // admitting extended-hours observations that REGULAR normalization must
+      // reject, a checkpoint exactly at close would otherwise overlap the last
+      // bar of the old session forever instead of advancing to the next open.
+      if (!isCrypto && instrument.cadence !== "1Day") {
+        const session = nextEquitySession(calendar, equitySessionScope!, progressionAnchorMs, boundary);
+        if (!session) continue;
+        startMs = Math.max(startMs, instant(session.opensAt, "session open"));
+        endMs = Math.min(endMs, instant(session.closesAt, "session close"));
       }
       if (startMs >= endMs) continue;
 

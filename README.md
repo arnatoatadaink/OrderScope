@@ -43,6 +43,14 @@ The parent specification is the entry point. The three reference specifications 
   - Non-normative deployment/operations runbook for Cloudflare Worker + Cron acquisition and ChatGPT Scheduled Task digest consumption.
 - `docs/IMPLEMENTATION_DECISIONS_WORKER_v0.1.md`
   - Provisional Worker implementation choices derived from the functional requirements, including D1/R2 responsibilities, cadence-vs-Attention semantics, RVOL baseline, notional activity proxy, digest exposure, IEX/SIP quality gating, volatility baseline and shadow-mode promotion criteria.
+- `docs/WORK_PLAN_INITIAL_VALIDATION_AND_LONG_TERM_OPERATIONS_2026-09-01.md`
+  - Non-normative phased work plan separating bounded live validation and D1-export-based local analysis from R2-backed long-term retention, reconciliation, recovery and prediction-research preparation.
+- `docs/WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
+  - Reviewable task breakdown for the next local-analysis, SEC/earnings, news, official-context, retention, and localhost integration phase; keeps remaining Worker operational checks as a separate backlog.
+- `docs/ADR_LOCAL_ANALYSIS_STACK_v0.1.md`
+  - Accepted `L0-001` stack decision for the local MVP: Python/uv, SQLite/DuckDB, Arrow/Parquet, localhost API and the Windows/WSL execution boundary.
+- `docs/REPORT_JAPAN_LOCAL_MARKET_DATA_OPTIONS_2026-09-03.md`
+  - Current research on MARKET SPEED II RSS/Excel constraints, kabu Station API, J-Quants plans and safe Windows-to-WSL handoff options for local Japanese market data.
 - `docs/PROVISIONAL_DESIGN_JP_US_PREDICTION_v0.1.md`
   - Non-normative Japan-to-U.S. prediction extension: separate predictor/target registries, Japan provider fallback, four U.S. Premarket/Regular horizons, as-of/leakage rules, provisional labels and probabilistic output contracts.
 - `docs/PREDICTION_REGISTRY_SEMICONDUCTOR_CANARY_v0.1.md`

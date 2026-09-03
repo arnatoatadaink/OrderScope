@@ -4,6 +4,7 @@ import { AlpacaMarketCalendarProvider, type MarketCalendarProvider } from "./cal
 import { D1CoverageCheckpointPort, type CoverageCheckpointPort } from "./checkpoint";
 import { DIGEST_HISTORY_DEFAULT_LIMIT, DIGEST_HISTORY_MAX_LIMIT, D1LatestDigestStore, LATEST_DIGEST_KEY } from "./digest";
 import { executeAcquisitionJob, type AcquisitionExecutionSummary, type AcquisitionExecutorOptions } from "./execution";
+import { prioritizeAcquisitionJobs } from "./job-priority";
 import { D1AcquisitionLeaseStore, type AcquisitionLeaseStore } from "./lease";
 import { gapRetryEligibility, type DeferredGapRetry } from "./gap-retry";
 import { loadPredictionRegistries, type PredictionRegistryBundle } from "./prediction-registry";
@@ -225,7 +226,7 @@ async function runScheduledTick(
       })),
     };
   }
-  const runnableJobs = jobs.slice(0, acquisitionConfig.maxJobsPerTick);
+  const runnableJobs = prioritizeAcquisitionJobs(jobs, stored).slice(0, acquisitionConfig.maxJobsPerTick);
   const jobPlans = runnableJobs.map((job) => ({
     jobId: job.jobId,
     dueReason: job.dueReason,
