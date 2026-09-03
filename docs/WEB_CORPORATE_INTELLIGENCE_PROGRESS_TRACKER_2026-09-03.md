@@ -55,7 +55,7 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 | WEB-001 | W0-002 | A | 引渡し済み | なし | [`REPORT_CORPORATE_CANARY_IDENTITY_WEB_001_2026-09-03.md`](REPORT_CORPORATE_CANARY_IDENTITY_WEB_001_2026-09-03.md); Evidence確認 2026-09-03T11:43:05Z | I0-001、S0-002、E0-003 | I0-001で内部ID、履歴、share classのschemaをreview・実装 | 2026-09-03 | web-2026-09-03-WEB-001 |
 | WEB-002 | W0-003 | A | 引渡し済み | なし | [`REPORT_OFFICIAL_SOURCE_SCOPE_WEB_002_2026-09-03.md`](REPORT_OFFICIAL_SOURCE_SCOPE_WEB_002_2026-09-03.md); Evidence確認 2026-09-03T12:18:39Z | I0-001、WEB-004、O0-001/002 | source laneとowner/actor境界をWEB-004の履歴付きregistry案へ変換。恒久入口・feed詳細はWEB-015/016で継続 | 2026-09-03 | web-2026-09-03-WEB-002 |
 | WEB-003 | W0-004 | A | 未着手 | なし | 既存Provider調査は時点情報 | S0-001、N0-001、adapter ADR | 共通の公式利用条件確認票を作成 | 2026-09-03 | — |
-| WEB-004 | I0-001 | B | 引渡し済み | WEB-001/002引渡し済み | [`REPORT_ENTITY_SOURCE_REGISTRY_VALUES_WEB_004_2026-09-03.md`](REPORT_ENTITY_SOURCE_REGISTRY_VALUES_WEB_004_2026-09-03.md); Evidence再確認 `2026-09-03T15:48:29Z` | I0-001 registry schema・migration・contract test | 共通Actor、nullable外部validity、listing/source endpoint履歴、Evidence制約を実装 | 2026-09-03 | web-2026-09-03-WEB-004 |
+| WEB-004 | I0-001 | B | 引渡し済み | WEB-001/002引渡し済み | [`REPORT_ENTITY_SOURCE_REGISTRY_VALUES_WEB_004_2026-09-03.md`](REPORT_ENTITY_SOURCE_REGISTRY_VALUES_WEB_004_2026-09-03.md); Evidence再確認 `2026-09-03T15:53:08Z` | I0-001 registry schema・migration・contract test | 共通Actor、nullable外部validity、listing/source endpoint履歴、Evidence制約を実装。AMD venue履歴のunknown gapをfixtureで検証 | 2026-09-03 | web-2026-09-03-WEB-004 |
 | WEB-005 | S0-001 | A | 未着手 | なし | SEC EDGAR/XBRLはv0.1 baseline | S0-002〜007 | SEC公式接続・Fair Access条件を再確認 | 2026-09-03 | — |
 | WEB-006 | S0-004 | B | 保留（依存） | WEB-005 | form一覧は親計画で固定済み | S0-004 test/fixture | 公式のform目的・例外対応表を作成 | 2026-09-03 | — |
 | WEB-007 | E0-001 | C | 保留（依存） | WEB-001済、残りWEB-005 | — | Earnings contract実装 | 必須の時刻・会計区分を示すCanary事例を収集 | 2026-09-03 | — |
@@ -121,6 +121,7 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 | 2026-09-03 | web-2026-09-03-WEB-001 | WEB-001 | AMD/NVDAのCIK、ticker、security class、exchange、公式IR入口を公式一次情報で確認し、version付きregistry案を引渡し | `REPORT_CORPORATE_CANARY_IDENTITY_WEB_001_2026-09-03.md`; Evidence確認 2026-09-03T11:43:05Z | I0-001でregistry schemaを実装。Web側はWEB-002/003/005/015または解放済みWEB-008へ進む |
 | 2026-09-03 | web-2026-09-03-WEB-002 | WEB-002 | SECをEDGAR/当局発表に分離し、AMD/NVIDIA IR、White House、Treasury、Federal Reserve Boardの対象範囲と一般SNS等の除外範囲を固定して引渡し | `REPORT_OFFICIAL_SOURCE_SCOPE_WEB_002_2026-09-03.md`; Evidence確認 2026-09-03T12:18:39Z | WEB-004で履歴付きsource/entity対応案を作成。WEB-015/016で恒久入口とfeed挙動を詳査 |
 | 2026-09-03 | web-2026-09-03-WEB-004 | WEB-004 | AMD/NVIDIAのcompany・instrument・CIK・ticker/listingと、7つの公式source laneのowner/publisher/content actor規則を履歴付きregistry seedへ変換して引渡し | `REPORT_ENTITY_SOURCE_REGISTRY_VALUES_WEB_004_2026-09-03.md`; Evidence再確認 `2026-09-03T15:48:29Z` | I0-001でactor統合、履歴schema、Evidence制約、as-of/identity contract testを実装。Web側はWEB-003/005/008/015へ進む |
+| 2026-09-03 | web-2026-09-03-WEB-004-followup | WEB-004 | 並行セッションの完了成果を維持して競合を解消し、AMDの2017年NASDAQ Capital Market／2020年Global Select Market Evidenceと、正確な切替日を推測しない履歴規則を追記 | `REPORT_ENTITY_SOURCE_REGISTRY_VALUES_WEB_004_2026-09-03.md`; 追加Evidence確認 `2026-09-03T15:53:08Z` | I0-001 contract testでvenue切替のunknown gapを保持。次のWeb候補はWEB-003/005/008/015 |
 
 ## 8. 更新時チェックリスト
 
