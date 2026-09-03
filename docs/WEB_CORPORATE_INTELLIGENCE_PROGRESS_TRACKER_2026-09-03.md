@@ -122,6 +122,7 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 | 2026-09-03 | web-2026-09-03-WEB-002 | WEB-002 | SECをEDGAR/当局発表に分離し、AMD/NVIDIA IR、White House、Treasury、Federal Reserve Boardの対象範囲と一般SNS等の除外範囲を固定して引渡し | `REPORT_OFFICIAL_SOURCE_SCOPE_WEB_002_2026-09-03.md`; Evidence確認 2026-09-03T12:18:39Z | WEB-004で履歴付きsource/entity対応案を作成。WEB-015/016で恒久入口とfeed挙動を詳査 |
 | 2026-09-03 | web-2026-09-03-WEB-004 | WEB-004 | AMD/NVIDIAのcompany・instrument・CIK・ticker/listingと、7つの公式source laneのowner/publisher/content actor規則を履歴付きregistry seedへ変換して引渡し | `REPORT_ENTITY_SOURCE_REGISTRY_VALUES_WEB_004_2026-09-03.md`; Evidence再確認 `2026-09-03T15:48:29Z` | I0-001でactor統合、履歴schema、Evidence制約、as-of/identity contract testを実装。Web側はWEB-003/005/008/015へ進む |
 | 2026-09-03 | web-2026-09-03-WEB-004-followup | WEB-004 | 並行セッションの完了成果を維持して競合を解消し、AMDの2017年NASDAQ Capital Market／2020年Global Select Market Evidenceと、正確な切替日を推測しない履歴規則を追記 | `REPORT_ENTITY_SOURCE_REGISTRY_VALUES_WEB_004_2026-09-03.md`; 追加Evidence確認 `2026-09-03T15:53:08Z` | I0-001 contract testでvenue切替のunknown gapを保持。次のWeb候補はWEB-003/005/008/015 |
+| 2026-09-03 | web-2026-09-03-WEB-004-verification | WEB-004 | 対象remote branchへの反映、成果物link、状態別件数を照合し、AMD 2017/2020 Form 10-K、NVIDIA 2026 Form 10-K、SEC association file注意事項を公式一次情報で再確認。追加修正なし | `REPORT_ENTITY_SOURCE_REGISTRY_VALUES_WEB_004_2026-09-03.md`; 限定再確認 `2026-09-03T16:00:29Z` | WEB-004は引渡し済みを維持。次セッションは優先度と依存を確認してWEB-003/005/008/011/015のいずれかに着手 |
 
 ## 8. 更新時チェックリスト
 
