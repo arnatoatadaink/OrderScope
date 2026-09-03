@@ -31,15 +31,15 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 
 | 状態 | 件数 |
 |---|---:|
-| 未着手 | 5 |
-| 進行中 | 1 |
+| 未着手 | 6 |
+| 進行中 | 0 |
 | 調査完了 | 0 |
-| 引渡し済み | 1 |
-| 保留（依存） | 13 |
+| 引渡し済み | 2 |
+| 保留（依存） | 12 |
 | 保留（外部） | 0 |
 | 再確認要 | 0 |
 
-即時着手可能なのは`WEB-002`、`WEB-003`、`WEB-005`、`WEB-008`、`WEB-011`、`WEB-015`である。`WEB-008`は`WEB-001`のidentity handoffを利用できる。`WEB-011`は候補調査を開始できるが、採否提案には`WEB-003`の利用条件確認方式を適用する。
+即時着手可能なのは`WEB-003`、`WEB-004`、`WEB-005`、`WEB-008`、`WEB-011`、`WEB-015`である。`WEB-004`は`WEB-001/002`のidentity/source handoffを利用できる。`WEB-008`は`WEB-001`のidentity handoffを利用できる。`WEB-011`は候補調査を開始できるが、採否提案には`WEB-003`の利用条件確認方式を適用する。
 
 隣接作業の既知状態は次のとおり。
 
@@ -53,9 +53,9 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 | Web ID | 親 | Wave | 状態 | 依存・blocker | 成果物・Evidence | ローカルhandoff | 次の操作 | 最終更新 | Session |
 |---|---|---|---|---|---|---|---|---|---|
 | WEB-001 | W0-002 | A | 引渡し済み | なし | [`REPORT_CORPORATE_CANARY_IDENTITY_WEB_001_2026-09-03.md`](REPORT_CORPORATE_CANARY_IDENTITY_WEB_001_2026-09-03.md); Evidence確認 2026-09-03T11:43:05Z | I0-001、S0-002、E0-003 | I0-001で内部ID、履歴、share classのschemaをreview・実装 | 2026-09-03 | web-2026-09-03-WEB-001 |
-| WEB-002 | W0-003 | A | 進行中 | なし | source種別は親計画で固定済み。registry未作成 | O0-001/002 | SEC、企業IR、White House、Treasury、Federal Reserveの公式入口・対象・除外範囲を公式一次情報で確認 | 2026-09-03 | web-2026-09-03-WEB-002 |
+| WEB-002 | W0-003 | A | 引渡し済み | なし | [`REPORT_OFFICIAL_SOURCE_SCOPE_WEB_002_2026-09-03.md`](REPORT_OFFICIAL_SOURCE_SCOPE_WEB_002_2026-09-03.md); Evidence確認 2026-09-03T12:18:39Z | I0-001、WEB-004、O0-001/002 | source laneとowner/actor境界をWEB-004の履歴付きregistry案へ変換。恒久入口・feed詳細はWEB-015/016で継続 | 2026-09-03 | web-2026-09-03-WEB-002 |
 | WEB-003 | W0-004 | A | 未着手 | なし | 既存Provider調査は時点情報 | S0-001、N0-001、adapter ADR | 共通の公式利用条件確認票を作成 | 2026-09-03 | — |
-| WEB-004 | I0-001 | B | 保留（依存） | WEB-001済、残りWEB-002 | — | registry schema・test | 検証済みidentity/sourceを履歴付き対応案に変換 | 2026-09-03 | — |
+| WEB-004 | I0-001 | B | 未着手 | WEB-001/002引渡し済み | `REPORT_CORPORATE_CANARY_IDENTITY_WEB_001_2026-09-03.md`; `REPORT_OFFICIAL_SOURCE_SCOPE_WEB_002_2026-09-03.md` | registry schema・test | 検証済みidentity/sourceを履歴付き対応案に変換 | 2026-09-03 | — |
 | WEB-005 | S0-001 | A | 未着手 | なし | SEC EDGAR/XBRLはv0.1 baseline | S0-002〜007 | SEC公式接続・Fair Access条件を再確認 | 2026-09-03 | — |
 | WEB-006 | S0-004 | B | 保留（依存） | WEB-005 | form一覧は親計画で固定済み | S0-004 test/fixture | 公式のform目的・例外対応表を作成 | 2026-09-03 | — |
 | WEB-007 | E0-001 | C | 保留（依存） | WEB-001済、残りWEB-005 | — | Earnings contract実装 | 必須の時刻・会計区分を示すCanary事例を収集 | 2026-09-03 | — |
@@ -119,7 +119,7 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 |---|---|---|---|---|---|
 | 2026-09-03 | initial tracker creation | WEB-001〜020 | カタログ、依存Wave、状態、handoffを作成 | `REPORT_WEB_CORPORATE_INTELLIGENCE_WORKSTREAM_2026-09-03.md` | Wave Aを開始。最初の限定タスクはWEB-001またはWEB-005 |
 | 2026-09-03 | web-2026-09-03-WEB-001 | WEB-001 | AMD/NVDAのCIK、ticker、security class、exchange、公式IR入口を公式一次情報で確認し、version付きregistry案を引渡し | `REPORT_CORPORATE_CANARY_IDENTITY_WEB_001_2026-09-03.md`; Evidence確認 2026-09-03T11:43:05Z | I0-001でregistry schemaを実装。Web側はWEB-002/003/005/015または解放済みWEB-008へ進む |
-| 2026-09-03 | web-2026-09-03-WEB-002 | WEB-002 | 調査開始。公式source範囲と一般SNSを含む除外範囲を明文化する | 作成中 | SEC、企業IR、White House、Treasury、Federal Reserveの公式入口と公開範囲を確認 |
+| 2026-09-03 | web-2026-09-03-WEB-002 | WEB-002 | SECをEDGAR/当局発表に分離し、AMD/NVIDIA IR、White House、Treasury、Federal Reserve Boardの対象範囲と一般SNS等の除外範囲を固定して引渡し | `REPORT_OFFICIAL_SOURCE_SCOPE_WEB_002_2026-09-03.md`; Evidence確認 2026-09-03T12:18:39Z | WEB-004で履歴付きsource/entity対応案を作成。WEB-015/016で恒久入口とfeed挙動を詳査 |
 
 ## 8. 更新時チェックリスト
 
