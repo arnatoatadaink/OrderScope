@@ -1,35 +1,35 @@
-# OrderScope — Web Corporate Intelligence Progress Tracker
+# OrderScope — Web企業情報調査・進捗トラッカー
 
 Status: active operational tracker (non-normative)
 Date: 2026-09-03
 Scope: `REPORT_WEB_CORPORATE_INTELLIGENCE_WORKSTREAM_2026-09-03.md`
 Parent plan: `WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
 
-## 1. Purpose
+## 1. 目的
 
-This is the single progress ledger for `WEB-001` through `WEB-020`. It is designed to be read and updated from separate ChatGPT Web sessions without treating conversation history as the source of truth.
+`WEB-001`〜`WEB-020`を管理する単一の進捗台帳である。会話履歴を正本にせず、別のChatGPT Webセッションから参照・更新できるようにする。
 
-The workstream report defines task meaning. This tracker defines current Web status, evidence, handoff and next action. The parent work-breakdown document continues to define the completion of W0/L0/L1/I0/S0/E0/N0/N1/O0/X0 tasks.
+Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence・handoff・次の操作は本書を正とする。W0/L0/L1/I0/S0/E0/N0/N1/O0/X0の完了条件は、引き続き親作業分解文書を正とする。
 
-## 2. Status rules
+## 2. 状態定義
 
-| Status | Meaning |
+| 状態 | 意味 |
 |---|---|
-| `未着手` | No repository-backed research result exists yet. Dependencies may or may not be satisfied. |
-| `進行中` | A named session is actively researching or drafting the task. |
-| `調査完了` | The Web deliverable and official evidence are complete, but local handoff or parent-task implementation may remain. |
-| `引渡し済み` | The Web result has an explicit local consumer and is sufficient for that consumer to proceed. |
-| `保留（依存）` | A preceding Web result, local contract/adapter shape, or user decision is required. |
-| `保留（外部）` | Access, current official disclosure, licence/contract clarification or another external condition is required. |
-| `再確認要` | A formerly completed point-in-time result is stale or affected by a source/terms change. |
+| `未着手` | repositoryに調査成果がまだ存在しない。依存条件を満たしているものは着手可能 |
+| `進行中` | 記録されたsessionが調査または文書化を実行中 |
+| `調査完了` | Web成果物と公式Evidenceが完成。ローカルhandoffまたは親タスク実装は残り得る |
+| `引渡し済み` | 成果物のローカル利用先が明確で、その作業を開始できる状態 |
+| `保留（依存）` | 先行Web成果、ローカルcontract/adapter形状、またはユーザー判断が必要 |
+| `保留（外部）` | access、licence、契約確認、公式開示など外部条件が必要 |
+| `再確認要` | 完了済みの時点情報が古いか、source・料金・条件の変更可能性がある |
 
-`調査完了` and `引渡し済み` do not mean that the mapped parent task is complete. Numerical quality claims require local measurement evidence.
+`調査完了`または`引渡し済み`は、対応する親タスクの完了を意味しない。品質に関する数値はローカル実測証跡が必要である。
 
-## 3. Current summary
+## 3. 現在地
 
-As of 2026-09-03, the Web catalogue contains 20 tasks.
+2026-09-03時点のWeb作業カタログは20件である。
 
-| Status | Count |
+| 状態 | 件数 |
 |---|---:|
 | 未着手 | 6 |
 | 進行中 | 0 |
@@ -39,99 +39,99 @@ As of 2026-09-03, the Web catalogue contains 20 tasks.
 | 保留（外部） | 0 |
 | 再確認要 | 0 |
 
-The immediate queue is `WEB-001`, `WEB-002`, `WEB-003`, `WEB-005`, `WEB-011`, and `WEB-015`. `WEB-011` can survey candidates immediately, but its recommendation must use the usage-condition framework from `WEB-003`.
+即時着手可能なのは`WEB-001`、`WEB-002`、`WEB-003`、`WEB-005`、`WEB-011`、`WEB-015`である。`WEB-011`は候補調査を開始できるが、採否提案には`WEB-003`の利用条件確認方式を適用する。
 
-Known adjacent state:
+隣接作業の既知状態は次のとおり。
 
-- `W0-001` is satisfied for starting the local MVP; remaining Worker `SMOKE-*` and `CANARY-*` work stays separate.
-- `L0-001` is complete through `ADR_LOCAL_ANALYSIS_STACK_v0.1.md`.
-- The next local implementation item is `L0-002`.
-- Worker and Prediction modes remain Shadow according to the parent work breakdown and implementation tracker.
+- `W0-001`はローカルMVP開始条件として満たされている。Workerの残り`SMOKE-*`、`CANARY-*`は別バックログである。
+- `L0-001`は`ADR_LOCAL_ANALYSIS_STACK_v0.1.md`により完了している。
+- 次のローカル実装は`L0-002`である。
+- 親作業分解と既存実装トラッカー上、WorkerとPredictionはShadowを維持する。
 
-## 4. Task ledger
+## 4. タスク台帳
 
-| Web ID | Parent | Wave | Status | Dependency / blocker | Result / evidence | Local handoff | Next action | Last update | Session |
+| Web ID | 親 | Wave | 状態 | 依存・blocker | 成果物・Evidence | ローカルhandoff | 次の操作 | 最終更新 | Session |
 |---|---|---|---|---|---|---|---|---|---|
-| WEB-001 | W0-002 | A | 未着手 | none | — | I0-001, S0-002, E0-003 | Verify AMD/NVDA identity, CIK and official IR URLs | 2026-09-03 | — |
-| WEB-002 | W0-003 | A | 未着手 | none | Source classes fixed by parent plan; registry not yet produced | O0-001/002 | Produce explicit included/excluded source-scope table | 2026-09-03 | — |
-| WEB-003 | W0-004 | A | 未着手 | none | Existing provider research is point-in-time only | S0-001, N0-001, adapter ADRs | Create the reusable official-conditions checklist | 2026-09-03 | — |
-| WEB-004 | I0-001 | B | 保留（依存） | WEB-001, WEB-002 | — | Local registry schema and tests | Convert verified identities/sources into proposed historical mappings | 2026-09-03 | — |
-| WEB-005 | S0-001 | A | 未着手 | none | SEC EDGAR/XBRL is the v0.1 baseline | S0-002〜007 | Recheck current SEC official connection and fair-access rules | 2026-09-03 | — |
-| WEB-006 | S0-004 | B | 保留（依存） | WEB-005 | Target form list fixed in parent plan | S0-004 tests/fixtures | Build official form-purpose and edge-case matrix | 2026-09-03 | — |
-| WEB-007 | E0-001 | C | 保留（依存） | WEB-001, WEB-005 | — | Earnings contract implementation | Collect canary examples for all required time/accounting distinctions | 2026-09-03 | — |
-| WEB-008 | E0-003 | B | 保留（依存） | WEB-001 | — | IR fallback adapter | Survey AMD/NVDA stable IR release/archive paths | 2026-09-03 | — |
-| WEB-009 | E0-005 | C | 保留（依存） | WEB-001, WEB-005 | — | Segment fallback implementation | Map multi-quarter segment-source availability | 2026-09-03 | — |
-| WEB-010 | E0-007 | D | 保留（依存） | WEB-007, WEB-008, WEB-009 and local contract shape | — | Local reconciliation and quality report | Prepare official comparison set after fields are stable | 2026-09-03 | — |
-| WEB-011 | N0-001 | A | 未着手 | none for survey; WEB-003 for recommendation | Existing provider research must be refreshed | News-provider ADR | Identify candidates and update current price/history/rate/body-rights evidence | 2026-09-03 | — |
-| WEB-012 | N0-003 | C | 保留（依存） | WEB-011 | — | Canonicalization fixtures/tests | Collect provider-relevant duplicate, syndication and correction cases | 2026-09-03 | — |
-| WEB-013 | N1-001 | C | 保留（依存） | WEB-007 and I0-005 contract direction | Initial category list exists in parent plan | Taxonomy schema and extractor fixtures | Draft definitions and evidence-backed examples | 2026-09-03 | — |
-| WEB-014 | N1-006 | D | 保留（依存） | WEB-008, WEB-010 and local evaluation shape | — | Recall/latency evaluation | Prepare one-to-three-month SEC/IR reference-event set | 2026-09-03 | — |
-| WEB-015 | O0-001 | A | 未着手 | none | Official actor classes fixed by parent plan | O0-002 adapter design | Build official-source registry with permanent entry points | 2026-09-03 | — |
-| WEB-016 | O0-002 | B | 保留（依存） | WEB-002, WEB-015 | — | Official feed adapter | Survey RSS/API/update-list behavior per source | 2026-09-03 | — |
-| WEB-017 | O0-003 | C | 保留（依存） | WEB-015, WEB-016 | — | Official Fact type fixtures | Collect statement/proposal versus implementation/decision examples | 2026-09-03 | — |
-| WEB-018 | O0-004 | C | 保留（依存） | WEB-001, WEB-015, WEB-017 | — | Instrument/theme relation implementation | Define evidence threshold and canary examples | 2026-09-03 | — |
-| WEB-019 | O0-005 | D | 保留（依存） | WEB-016〜018 and local adapter shape | — | Official Signal quality tests | Prepare reproducible update/delete/duplicate/time fixture candidates | 2026-09-03 | — |
-| WEB-020 | X0-006 | D | 保留（依存） | WEB-003, WEB-005, WEB-011, WEB-016 and local implementation evidence | — | Canary operating runbook | Draft public-constraint sections; keep untested operations marked | 2026-09-03 | — |
+| WEB-001 | W0-002 | A | 未着手 | なし | — | I0-001、S0-002、E0-003 | AMD/NVDAのidentity、CIK、公式IR URLを確認 | 2026-09-03 | — |
+| WEB-002 | W0-003 | A | 未着手 | なし | source種別は親計画で固定済み。registry未作成 | O0-001/002 | 対象・除外source表を作成 | 2026-09-03 | — |
+| WEB-003 | W0-004 | A | 未着手 | なし | 既存Provider調査は時点情報 | S0-001、N0-001、adapter ADR | 共通の公式利用条件確認票を作成 | 2026-09-03 | — |
+| WEB-004 | I0-001 | B | 保留（依存） | WEB-001、WEB-002 | — | registry schema・test | 検証済みidentity/sourceを履歴付き対応案に変換 | 2026-09-03 | — |
+| WEB-005 | S0-001 | A | 未着手 | なし | SEC EDGAR/XBRLはv0.1 baseline | S0-002〜007 | SEC公式接続・Fair Access条件を再確認 | 2026-09-03 | — |
+| WEB-006 | S0-004 | B | 保留（依存） | WEB-005 | form一覧は親計画で固定済み | S0-004 test/fixture | 公式のform目的・例外対応表を作成 | 2026-09-03 | — |
+| WEB-007 | E0-001 | C | 保留（依存） | WEB-001、WEB-005 | — | Earnings contract実装 | 必須の時刻・会計区分を示すCanary事例を収集 | 2026-09-03 | — |
+| WEB-008 | E0-003 | B | 保留（依存） | WEB-001 | — | IR fallback adapter | AMD/NVDAのstable release/archive経路を調査 | 2026-09-03 | — |
+| WEB-009 | E0-005 | C | 保留（依存） | WEB-001、WEB-005 | — | segment fallback実装 | 複数四半期のsegment source可用性を整理 | 2026-09-03 | — |
+| WEB-010 | E0-007 | D | 保留（依存） | WEB-007〜009とlocal contract形状 | — | local reconciliation・品質report | field確定後に公式照合setを準備 | 2026-09-03 | — |
+| WEB-011 | N0-001 | A | 未着手 | 候補調査はなし。採否にはWEB-003 | 既存Provider調査の更新が必要 | News Provider ADR | 現行価格、履歴、rate、本文権利を更新 | 2026-09-03 | — |
+| WEB-012 | N0-003 | C | 保留（依存） | WEB-011 | — | canonicalization fixture/test | 対象Providerに対応する重複・転載・訂正例を収集 | 2026-09-03 | — |
+| WEB-013 | N1-001 | C | 保留（依存） | WEB-007とI0-005のcontract方針 | 親計画に初期分類あり | taxonomy schema・extractor fixture | 定義とEvidence付き事例を作成 | 2026-09-03 | — |
+| WEB-014 | N1-006 | D | 保留（依存） | WEB-008、WEB-010とlocal評価形状 | — | recall/latency評価 | 1〜3か月のSEC/IR基準イベントsetを準備 | 2026-09-03 | — |
+| WEB-015 | O0-001 | A | 未着手 | なし | official actor種別は親計画で固定済み | O0-002 adapter設計 | 恒久入口を含むofficial source registryを作成 | 2026-09-03 | — |
+| WEB-016 | O0-002 | B | 保留（依存） | WEB-002、WEB-015 | — | official feed adapter | source別のRSS/API/更新一覧を調査 | 2026-09-03 | — |
+| WEB-017 | O0-003 | C | 保留（依存） | WEB-015、WEB-016 | — | official Fact type fixture | 発言・提案と施行・正式決定の事例を収集 | 2026-09-03 | — |
+| WEB-018 | O0-004 | C | 保留（依存） | WEB-001、WEB-015、WEB-017 | — | instrument/theme関連付け実装 | Evidence閾値とCanary事例を定義 | 2026-09-03 | — |
+| WEB-019 | O0-005 | D | 保留（依存） | WEB-016〜018とlocal adapter形状 | — | Official Signal品質test | update/delete/重複/時刻fixture候補を準備 | 2026-09-03 | — |
+| WEB-020 | X0-006 | D | 保留（依存） | WEB-003、005、011、016とlocal実装証跡 | — | Canary運用runbook | 公開制約部分を作成し、未試験操作を明示 | 2026-09-03 | — |
 
-## 5. Parent-task handoff matrix
+## 5. 親タスクへのhandoff
 
-| Parent area | Web input | Local completion evidence required |
+| 親領域 | Web入力 | 親タスク完了に必要なローカル証跡 |
 |---|---|---|
-| W0 boundary | WEB-001〜003 | Registry/config review where applicable |
-| I0 contracts | WEB-004 | Schema, history semantics and contract tests |
-| S0 SEC | WEB-005/006 | Adapter, persistence, filter, document/XBRL and acceptance tests |
-| E0 earnings | WEB-007〜010 | Detection, extraction, fallback, segment history and measured quality |
-| N0/N1 news | WEB-011〜014 | Adapter, canonicalization, body lifecycle, extraction, retention and measured recall |
-| O0 official context | WEB-015〜019 | Feed adapter, Fact typing, relationship logic and fixture tests |
-| X0 integration | WEB-020 | Local timeline/API/scheduler/E2E evidence and tested runbook |
+| W0 境界 | WEB-001〜003 | 必要に応じたregistry/config review |
+| I0 契約 | WEB-004 | schema、履歴意味論、contract test |
+| S0 SEC | WEB-005/006 | adapter、永続化、filter、文書/XBRL、受入試験 |
+| E0 決算 | WEB-007〜010 | 検出、抽出、fallback、segment履歴、品質実測 |
+| N0/N1 News | WEB-011〜014 | adapter、canonicalization、本文lifecycle、抽出、retention、recall実測 |
+| O0 公式情報 | WEB-015〜019 | feed adapter、Fact type、関連付け、fixture試験 |
+| X0 統合 | WEB-020 | timeline/API/scheduler/E2E証跡と試験済みrunbook |
 
-## 6. Update procedure
+## 6. 更新手順
 
-### Start a task
+### 着手時
 
-1. Fetch the latest tracker revision.
-2. Confirm dependencies in the ledger.
-3. Set one task to `進行中`.
-4. Put the ChatGPT session identifier or a stable session label in `Session`.
-5. Replace `Next action` with the bounded research action being executed.
+1. trackerの最新版を取得する。
+2. 台帳の依存条件を確認する。
+3. 対象を`進行中`へ変更する。
+4. `Session`へChatGPT session識別子または安定したsession名を記録する。
+5. `次の操作`を今回実行する限定的な調査内容へ更新する。
 
-### Finish Web research
+### Web調査完了時
 
-1. Save the focused result under `docs/`.
-2. Record its relative link and checked-at date in `Result / evidence`.
-3. Record the exact consuming parent/local task in `Local handoff`.
-4. Use `調査完了` if the result exists but handoff sufficiency is not reviewed.
-5. Use `引渡し済み` only when the result is sufficient for the named local consumer.
-6. Recalculate the status-count table.
-7. Append one row to the session log.
+1. 対象範囲を限定した成果物を`docs/`へ保存する。
+2. `成果物・Evidence`へ相対linkと確認日を記録する。
+3. `ローカルhandoff`へ利用する親・ローカルタスクを記録する。
+4. 成果物はあるがhandoff充足を未確認なら`調査完了`とする。
+5. 利用先が明確で着手可能なら`引渡し済み`とする。
+6. 状態別件数を再計算する。
+7. Session logへ1行追加する。
 
-### Handle uncertainty or changes
+### 不明・変更への対応
 
-- Use `保留（依存）` when a named prerequisite is missing.
-- Use `保留（外部）` for access, licence or unavailable official information.
-- Use `再確認要` when terms, prices, URLs, APIs or official rules may have changed.
-- Record `not stated`, `not found` or an explicit question; do not infer the missing value.
-- Do not mark a parent task complete from Web research alone when local execution evidence is required.
+- 先行成果が不足する場合は`保留（依存）`とする。
+- access、licence、非公開条件が必要なら`保留（外部）`とする。
+- 料金、規約、URL、API、公式ルールが古くなった場合は`再確認要`とする。
+- `記載なし`、`未発見`、未解決質問を明示し、推測で補完しない。
+- ローカル実行証跡が必要な親タスクをWeb調査だけで完了にしない。
 
 ## 7. Session log
 
-| UTC date | Session | Web IDs | Change | Evidence / output | Next action |
+| UTC日付 | Session | Web ID | 変更 | Evidence・成果物 | 次の操作 |
 |---|---|---|---|---|---|
-| 2026-09-03 | Initial tracker creation | WEB-001〜020 | Created catalogue, dependency waves, status rules and handoff matrix | `REPORT_WEB_CORPORATE_INTELLIGENCE_WORKSTREAM_2026-09-03.md` | Start Wave A; recommended first bounded task is WEB-001 or WEB-005 |
+| 2026-09-03 | initial tracker creation | WEB-001〜020 | カタログ、依存Wave、状態、handoffを作成 | `REPORT_WEB_CORPORATE_INTELLIGENCE_WORKSTREAM_2026-09-03.md` | Wave Aを開始。最初の限定タスクはWEB-001またはWEB-005 |
 
-## 8. Review checklist
+## 8. 更新時チェックリスト
 
-- [ ] The latest branch revision was read before editing.
-- [ ] Every changed task retains its original `WEB-*` and parent ID.
-- [ ] Facts, interpretations and local completion claims remain separate.
-- [ ] Official sources are linked directly and include checked-at dates.
-- [ ] Unknown values are explicit.
-- [ ] No credential, account identifier, provider response body or restricted article body is present.
-- [ ] Point-in-time terms and prices have a recheck condition.
-- [ ] Status counts match the ledger.
-- [ ] The session log and next action were updated.
+- [ ] 編集前に対象ブランチの最新版を読んだ。
+- [ ] 変更したタスクの`WEB-*` IDと親IDを維持した。
+- [ ] Fact、Interpretation、ローカル完了主張を分離した。
+- [ ] 公式sourceへの直接linkと確認日を記録した。
+- [ ] 不明値を明示した。
+- [ ] credential、account identifier、provider response body、制限対象本文を含めていない。
+- [ ] 時点依存の料金・条件に再確認条件を付けた。
+- [ ] 状態別件数と台帳が一致する。
+- [ ] Session logと次の操作を更新した。
 
-## 9. Related documents
+## 9. 関連文書
 
 - `REPORT_WEB_CORPORATE_INTELLIGENCE_WORKSTREAM_2026-09-03.md`
 - `WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
