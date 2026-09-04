@@ -226,7 +226,37 @@ Derived Interpretation例:
 - AI_RISK_APPETITE_RECOVERY
 - CROSS_MARKET_CAPITAL_ROTATION_CANDIDATE
 
-`CROSS_MARKET_CAPITAL_ROTATION_CANDIDATE` は直接観測された資金移動ではなく、複数市場の価格・出来高・為替・金利の同時変化から生成する仮説ラベルとし、Factへ昇格させない。
+`CROSS_MARKET_CAPITAL_ROTATION_CANDIDATE` は直接観測された資金移動ではなく、複数市場の価格・出来高・為替・金利の同時変化から生成するInterpretation/Hypothesisとし、Factへ昇格させない。
+
+Cross-Market Rotation Hypothesisでは少なくとも以下を保持する:
+- source_region
+- destination_region
+- proposed_direction
+- observed_window_start / observed_window_end
+- supporting_evidence_refs
+- contradicting_evidence_refs
+- fx_direction_consistency
+- confidence
+- generated_at
+- rule/model version
+
+`fx_direction_consistency` は以下のordinal値を取る:
+- SUPPORT
+- NEUTRAL
+- CONTRADICT
+- UNKNOWN
+
+例えばJapan → US direct rotationを仮定する場合、単純化したJPY売り/USD買い経路に対してUSD/JPY上昇はsupport候補、USD/JPYの大幅低下はcontradiction候補となる。ただしFXはcarry unwind、政策期待、hedging、介入警戒等でも動くため、FX単独で資金移動仮説をFact確定または完全棄却しない。
+
+v0.1のconfidenceは精密確率ではなく以下のordinalとする:
+- HIGH
+- MEDIUM
+- LOW
+- UNKNOWN
+
+重大なFX contradictionがある場合、他の独立したsupport evidenceが十分でない限りHIGHを付与しない。
+
+詳細作業は `WORK_BREAKDOWN_ANALYST_CROSS_MARKET_2026-09-05.md` を参照。
 
 ## 15. Provider Boundary
 Coreはベンダ固有APIを知らない。
@@ -282,6 +312,7 @@ Fact / Derived Metric / Interpretation / Predictionを分離する。
 - Analyst Consensus snapshotを時系列保存
 - Rating / Price Target RevisionをFact化
 - current priceとconsensus low/median/highの乖離をDerived Metric化
+- Cross-Market Rotation仮説でsupport/contradiction EvidenceとFX方向整合性を保持
 - 1D/7D/20D/60D FFT
 - Market/Corporate/Policy Factを共通Storeへ保存
 - Regime Historyを時系列再現
