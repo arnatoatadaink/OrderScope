@@ -37,7 +37,7 @@ TreasuryのOutbound Investment Security Programは、proposalとimplementation�
 
 Federal Reserveの2025-07-30 FOMC系列では、statementとimplementation noteが公式に分離されている。
 
-- 2025-07-30: FOMC statementで政策スタンスを決定・公表。
+- 2025-07-30 2:00 p.m. EDT: FOMC statementで政策スタンスを決定・公表。
 - 2025-07-30: Implementation Noteが発行され、その政策スタンスを実装するためのBoard/FOMCの具体的決定を列挙。
 - 2025-07-31: reserve balance rateやDeskへのdirectiveがeffective。
 
@@ -50,7 +50,7 @@ FOMC statementに含まれる「将来追加調整を検討する」等の文言
 - 2026-01-14: PresidentがProclamationに署名。White House Fact Sheetも同日にsignedと明示。
 - Proclamationは一定のCovered Productsへ25% tariffを課すことを正式決定。
 - 2026-01-15 12:01 a.m. EST: 対象goodsについてtariffがeffective。
-- 同Proclamation中の「交渉状況により将来さらにsignificant tariffsを検討し得る」という部分は、同日の25% tariff実装Factとは別の将来意向であり、`STATEMENT`として扱う。
+- 同Proclamation中の、交渉後により広範な半導体関税を検討する将来方針は、同日の25% tariff実装Factとは別の将来意向であり、`STATEMENT`として扱う。
 
 同一文書内でも、署名済み措置、発効時刻、将来意向が混在する。document typeだけからFact typeを一意決定してはいけない。
 
@@ -134,10 +134,10 @@ Web成果物ではsource記載のeffective expressionを保持し、絶対日付
 | `E-WEB017-TREASURY-PROGRAM` | Program Regulations | https://home.treasury.gov/policy-issues/international/outbound-investment-program/program-regulations | `2026-09-04T08:48Z` | `official rule` | NPRM issued 2024-06-21 / FR published 2024-07-05、Final Rule issued 2024-10-28 / FR published 2024-11-15、effective 2025-01-02を同一系列で明示 | item-level exact clock timeは未確認 |
 | `E-WEB017-TREASURY-NPRM` | Treasury Issues Proposed Rule to Implement Executive Order... | https://home.treasury.gov/news/press-releases/jy2421 | `2026-09-04T08:48Z` | `official rule` | NPRMはproposalでありcomment募集、後続final regulationsがeffective dateを設定すると明示 | proposal内の個別条項taxonomyはlocal extractor fixtureで限定 |
 | `E-WEB017-TREASURY-FINAL` | Additional Information on Final Regulations Implementing Outbound Investment Executive Order | https://home.treasury.gov/news/press-releases/jy2690 | `2026-09-04T08:48Z` | `official rule` | Final Rule issued 2024-10-28、effective 2025-01-02 | exact issuance clock timeは未確認 |
-| `E-WEB017-FED-STATEMENT` | Federal Reserve issues FOMC statement | https://www.federalreserve.gov/newsevents/pressreleases/monetary20250917a.htm | `2026-09-04T08:48Z` | `official data` | FOMC decision、release time、future-adjustment guidanceを同一pageで確認可能 | sentence-level extractionはlocal deterministic rule/fixtureで確認 |
+| `E-WEB017-FED-STATEMENT` | Federal Reserve issues FOMC statement | https://www.federalreserve.gov/monetarypolicy/monetary20250730a.htm | `2026-09-04T08:48Z` | `official data` | 2025-07-30 2:00 p.m. EDT release、target-range decision、future-adjustment guidanceを同一pageで確認 | sentence-level extractionはlocal deterministic rule/fixtureで確認 |
 | `E-WEB017-FED-IMPLEMENT` | Implementation Note issued July 30, 2025 | https://www.federalreserve.gov/newsevents/pressreleases/monetary20250730a1.htm | `2026-09-04T08:48Z` | `official data` | implementation decisionsは2025-07-30発行、reserve rate/Desk directiveは2025-07-31 effective | source itemのexact publication clock timeは未確認 |
-| `E-WEB017-WH-SEMI` | Adjusting Imports of Semiconductors, Semiconductor Manufacturing Equipment, and Their Derivative Products into the United States | https://www.whitehouse.gov/presidential-actions/2026/01/adjusting-imports-of-semiconductors-semiconductor-manufacturing-equipment-and-their-derivative-products-into-the-united-states/ | `2026-09-04T08:48Z` | `official rule` | Proclamation dated 2026-01-14、25% tariff effective 2026-01-15 12:01 a.m. EST、将来additional tariffs検討文を含む | page-level published exact timeは未確認 |
-| `E-WEB017-WH-FACTSHEET` | Fact Sheet: President Donald J. Trump Takes Action on Certain Advanced Computing Chips... | https://www.whitehouse.gov/fact-sheets/2026/01/fact-sheet-president-donald-j-trump-takes-action-on-certain-advanced-computing-chips-to-protect-americas-economic-and-national-security/ | `2026-09-04T08:48Z` | `official data` | President signed the Proclamation on 2026-01-14と確認できる補助official Evidence | Proclamation本文を法的根拠のprimaryとする |
+| `E-WEB017-WH-SEMI` | Adjusting Imports of Semiconductors, Semiconductor Manufacturing Equipment, and Their Derivative Products into the United States | https://www.whitehouse.gov/presidential-actions/2026/01/adjusting-imports-of-semiconductors-semiconductor-manufacturing-equipment-and-their-derivative-products-into-the-united-states/ | `2026-09-04T08:48Z` | `official rule` | Proclamation dated 2026-01-14、25% tariff effective 2026-01-15 12:01 a.m. EST、将来のbroader tariff方針を含む | page-level published exact timeは未確認 |
+| `E-WEB017-WH-FACTSHEET` | Fact Sheet: President Donald J. Trump Takes Action on Certain Advanced Computing Chips... | https://www.whitehouse.gov/fact-sheets/2026/01/fact-sheet-president-donald-j-trump-takes-action-on-certain-advanced-computing-chips-to-protect-americas-economic-and-national-security/ | `2026-09-04T08:48Z` | `official data` | President signed the Proclamation on 2026-01-14と確認でき、NVIDIA H200 / AMD MI325Xも例示 | Proclamation本文を法的根拠のprimaryとする |
 | `E-WEB017-SEC-INTERNET` | Exemption for Certain Investment Advisers Operating Through the Internet | https://www.sec.gov/rules-regulations/2024/03/s7-13-23 | `2026-09-04T08:48Z` | `official rule` | Proposed Rule issue date、Final Rule issue date、FR publication date、effective expressionを同一rule pageで確認 | relative effective dateの絶対日付化はlocal deterministic parser/testへ渡す |
 
 ## 8. Local handoff
@@ -158,7 +158,7 @@ Web成果物ではsource記載のeffective expressionを保持し、絶対日付
 
 ### `O0-004` / WEB-018
 
-WEB-018では、このsemantic分離を前提にAMD/NVIDIAへの直接関連とsemiconductor themeへの間接関連をEvidence付きで定義する。White House semiconductor Proclamationは、AMD MI325X / NVIDIA H200をFact Sheetが明示するため、direct instrument Evidence fixture候補として利用できるが、個別企業への業績影響を自動推測しない。
+WEB-018では、このsemantic分離を前提にAMD/NVIDIAへの直接関連とsemiconductor themeへの間接関連をEvidence付きで定義する。White House semiconductor Proclamationは、Fact SheetがNVIDIA H200 / AMD MI325Xを明示するため、direct instrument Evidence fixture候補として利用できるが、個別企業への業績影響を自動推測しない。
 
 ## 9. 未解決・local verification
 
