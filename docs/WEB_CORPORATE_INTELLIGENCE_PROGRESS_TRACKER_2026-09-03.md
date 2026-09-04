@@ -27,21 +27,21 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 
 ## 3. 現在地
 
-2026-09-03時点のWeb作業カタログは20件である。
+2026-09-04時点のWeb作業カタログは20件である。
 
 | 状態 | 件数 |
 |---|---:|
 | 未着手 | 1 |
 | 進行中 | 0 |
 | 調査完了 | 0 |
-| 引渡し済み | 12 |
-| 保留（依存） | 7 |
+| 引渡し済み | 13 |
+| 保留（依存） | 6 |
 | 保留（外部） | 0 |
 | 再確認要 | 0 |
 
 `WEB-003`は共通のProvider・利用条件確認票を`W0-004`、`S0-001`、`N0-001`、adapter ADRへ引渡し済みである。`WEB-005`はSECのUser-Agent、Fair Access、endpoint、公開content再利用条件を現行公式資料で再確認し、`S0-001`および`S0-002〜007`へ引渡し済みである。`WEB-006`は対象SEC formについてbase/amendment/近縁form境界を公式情報で整理し、strict allowlistとfixture条件を`S0-004`/`S0-007`へ引き渡した。これによりSEC form filterのWeb入力は揃った。
 
-`WEB-009`はAMD/NVIDIAの複数四半期・年次segment revenueを調査し、Company Factsのentity-wide/non-custom境界、NVIDIAのdimension member Evidence、AMD/NVIDIAのfiling table fallback、AMDのsegment統合・recast境界を整理して`E0-005`/`S0-006`/`E0-006`へ引渡し済みである。`WEB-011`はTiingo、Massive/Benzinga、Alpaca Newsを現行公式情報で再比較し、Tiingo Powerをv0.1第一候補として維持しつつ、本文保存・再配布等の未確定権利を契約確認要として分離した。`WEB-012`はReuters wireのregional mirror / syndication、明示的訂正、同一canonical URLのmaterial updateを公開Evidenceでcase set化し、story identityとdistribution instance、revisionを分離するcanonicalization fixture案を`N0-003`へ引渡した。`WEB-015`はWhite House、Treasury、Federal Reserve Board/FOMC、SEC Agencyについて公式owner、source type、恒久discovery入口、item actor解決規則をregistry seedとして整理し、`O0-002`/`I0-001`へ引渡し済みである。これにより即時着手可能な未着手タスクは`WEB-016`となった。`WEB-010`はWeb側のWEB-007〜009が揃ったが、公式照合setのfieldを固定するためのlocal E0-004〜006 contract/adapter形状を待つ。
+`WEB-009`はAMD/NVIDIAの複数四半期・年次segment revenueを調査し、Company Factsのentity-wide/non-custom境界、NVIDIAのdimension member Evidence、AMD/NVIDIAのfiling table fallback、AMDのsegment統合・recast境界を整理して`E0-005`/`S0-006`/`E0-006`へ引渡し済みである。`WEB-011`はTiingo、Massive/Benzinga、Alpaca Newsを現行公式情報で再比較し、Tiingo Powerをv0.1第一候補として維持しつつ、本文保存・再配布等の未確定権利を契約確認要として分離した。`WEB-012`はReuters wireのregional mirror / syndication、明示的訂正、同一canonical URLのmaterial updateを公開Evidenceでcase set化し、story identityとdistribution instance、revisionを分離するcanonicalization fixture案を`N0-003`へ引渡した。`WEB-015`はWhite House、Treasury、Federal Reserve Board/FOMC、SEC Agencyについて公式owner、source type、恒久discovery入口、item actor解決規則をregistry seedとして整理し、`O0-002`/`I0-001`へ引渡し済みである。`WEB-016`は各sourceのRSS/HTML取得候補、pagination/backfill、timestamp精度、update/delete観測境界を整理し、Fed/SECをRSS-first、White House/TreasuryをHTML-index-firstとするbounded incremental contract案を`O0-002`/`I0-003/004/007`へ引渡した。これにより即時着手可能な未着手タスクは`WEB-017`となった。`WEB-010`はWeb側のWEB-007〜009が揃ったが、公式照合setのfieldを固定するためのlocal E0-004〜006 contract/adapter形状を待つ。
 
 隣接作業の既知状態は次のとおり。
 
@@ -69,11 +69,11 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 | WEB-013 | N1-001 | C | 保留（依存） | WEB-007とI0-005のcontract方針 | 親計画に初期分類あり | taxonomy schema・extractor fixture | 定義とEvidence付き事例を作成 | 2026-09-03 | — |
 | WEB-014 | N1-006 | D | 保留（依存） | WEB-008、WEB-010とlocal評価形状 | WEB-008でIR基準source経路は準備済み | recall/latency評価 | WEB-010とlocal評価形状が揃った後、1〜3か月のSEC/IR基準イベントsetを準備 | 2026-09-04 | — |
 | WEB-015 | O0-001 | A | 引渡し済み | なし | [`REPORT_OFFICIAL_SOURCE_REGISTRY_WEB_015_2026-09-04.md`](REPORT_OFFICIAL_SOURCE_REGISTRY_WEB_015_2026-09-04.md); Evidence確認 `2026-09-04T07:44Z` | O0-002 official feed adapter、I0-001 OfficialSource/SourceActorRule | registry seedをlocal schemaへ反映。Web側はWEB-016で各entryのRSS/API/更新一覧、pagination、timestamp、update/delete挙動を調査 | 2026-09-04 | web-2026-09-04-WEB-015 |
-| WEB-016 | O0-002 | B | 未着手 | WEB-002/015引渡し済み | WEB-015でofficial owner/source type/恒久入口を準備済み | official feed adapter | source別のRSS/API/更新一覧、pagination、時刻、update/delete挙動を調査 | 2026-09-04 | — |
-| WEB-017 | O0-003 | C | 保留（依存） | WEB-015済、残りWEB-016 | WEB-015でactor/source type境界を準備済み | official Fact type fixture | WEB-016後に発言・提案と施行・正式決定の事例を収集 | 2026-09-04 | — |
+| WEB-016 | O0-002 | B | 引渡し済み | WEB-002/015引渡し済み | [`REPORT_OFFICIAL_FEED_BEHAVIOR_WEB_016_2026-09-04.md`](REPORT_OFFICIAL_FEED_BEHAVIOR_WEB_016_2026-09-04.md); Evidence確認 `2026-09-04T07:50Z` | O0-002 official feed adapter、I0-003/004/007 | Fed/SECはRSS-first + HTML/archive fallback、White House/TreasuryはHTML-index-first。date-only精度、overlap checkpoint、hash update、404/410/redirectをcontract/fixtureへ反映 | 2026-09-04 | web-2026-09-04-WEB-016 |
+| WEB-017 | O0-003 | C | 未着手 | WEB-015/016引渡し済み | WEB-015でactor/source type、WEB-016で取得・timestamp境界を準備済み | official Fact type fixture | 発言・提案と署名・施行・正式決定の事例を収集し、event/publish/effective時刻を分離 | 2026-09-04 | — |
 | WEB-018 | O0-004 | C | 保留（依存） | WEB-001/015済、残りWEB-017 | WEB-015でofficial actor/source identityを準備済み | instrument/theme関連付け実装 | WEB-017後にEvidence閾値とCanary事例を定義 | 2026-09-04 | — |
-| WEB-019 | O0-005 | D | 保留（依存） | WEB-016〜018とlocal adapter形状 | — | Official Signal品質test | update/delete/重複/時刻fixture候補を準備 | 2026-09-03 | — |
-| WEB-020 | X0-006 | D | 保留（依存） | WEB-003/005/011済、残りWEB-016とlocal実装証跡 | WEB-005でSEC公開制約、WEB-011でNews利用条件をhandoff | Canary運用runbook | SEC/News制約は反映可能。official feed制約とlocal実装証跡が揃った後に公開制約部分を統合 | 2026-09-04 | — |
+| WEB-019 | O0-005 | D | 保留（依存） | WEB-017/018とlocal adapter形状 | WEB-016でupdate/delete/重複/時刻fixture候補を準備済み | Official Signal品質test | WEB-017/018後にsemantic fixtureを追加し、local adapter形状確定後に品質setを完成 | 2026-09-04 | — |
+| WEB-020 | X0-006 | D | 保留（依存） | WEB-003/005/011/016済、残りlocal実装証跡 | WEB-005でSEC公開制約、WEB-011でNews利用条件、WEB-016でofficial feed取得制約をhandoff | Canary運用runbook | local official feed実装・試験証跡が揃った後に公開制約部分を統合 | 2026-09-04 | — |
 
 ## 5. 親タスクへのhandoff
 
@@ -122,7 +122,7 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 | 2026-09-03 | initial tracker creation | WEB-001〜020 | カタログ、依存Wave、状態、handoffを作成 | `REPORT_WEB_CORPORATE_INTELLIGENCE_WORKSTREAM_2026-09-03.md` | Wave Aを開始。最初の限定タスクはWEB-001またはWEB-005 |
 | 2026-09-03 | web-2026-09-03-WEB-001 | WEB-001 | AMD/NVDAのCIK、ticker、security class、exchange、公式IR入口を公式一次情報で確認し、version付きregistry案を引渡し | `REPORT_CORPORATE_CANARY_IDENTITY_WEB_001_2026-09-03.md`; Evidence確認 2026-09-03T11:43:05Z | I0-001でregistry schemaを実装。Web側はWEB-002/003/005/015または解放済みWEB-008へ進む |
 | 2026-09-03 | web-2026-09-03-WEB-002 | WEB-002 | SECをEDGAR/当局発表に分離し、AMD/NVIDIA IR、White House、Treasury、Federal Reserve Boardの対象範囲と一般SNS等の除外範囲を固定して引渡し | `REPORT_OFFICIAL_SOURCE_SCOPE_WEB_002_2026-09-03.md`; Evidence確認 2026-09-03T12:18:39Z | WEB-004で履歴付きsource/entity対応案を作成。WEB-015/016で恒久入口とfeed挙動を詳査 |
-| 2026-09-03 | web-2026-09-03-WEB-004 | WEB-004 | AMD/NVIDIAのcompany・instrument・CIK・ticker/listingと、7つの公式source laneのowner/publisher/content actor規則を履歴付きregistry seedへ変換して引渡し | `REPORT_ENTITY_SOURCE_REGISTRY_VALUES_WEB_004_2026-09-03.md`; Evidence再確認 `2026-09-03T15:48:29Z` | I0-001でactor統合、履歴schema、Evidence制約、as-of/identity contract testを実装。Web側はWEB-003/005/008/015へ進む |
+| 2026-09-03 | web-2026-09-03-WEB-004 | WEB-004 | AMD/NVDAのcompany・instrument・CIK・ticker/listingと、7つの公式source laneのowner/publisher/content actor規則を履歴付きregistry seedへ変換して引渡し | `REPORT_ENTITY_SOURCE_REGISTRY_VALUES_WEB_004_2026-09-03.md`; Evidence再確認 `2026-09-03T15:48:29Z` | I0-001でactor統合、履歴schema、Evidence制約、as-of/identity contract testを実装。Web側はWEB-003/005/008/015へ進む |
 | 2026-09-03 | web-2026-09-03-WEB-004-followup | WEB-004 | 並行セッションの完了成果を維持して競合を解消し、AMDの2017年NASDAQ Capital Market／2020年Global Select Market Evidenceと、正確な切替日を推測しない履歴規則を追記 | `REPORT_ENTITY_SOURCE_REGISTRY_VALUES_WEB_004_2026-09-03.md`; 追加Evidence確認 `2026-09-03T15:53:08Z` | I0-001 contract testでvenue切替のunknown gapを保持。次のWeb候補はWEB-003/005/008/015 |
 | 2026-09-03 | web-2026-09-03-WEB-004-verification | WEB-004 | 対象remote branchへの反映、成果物link、状態別件数を照合し、AMD 2017/2020 Form 10-K、NVIDIA 2026 Form 10-K、SEC association file注意事項を公式一次情報で再確認。追加修正なし | `REPORT_ENTITY_SOURCE_REGISTRY_VALUES_WEB_004_2026-09-03.md`; 限定再確認 `2026-09-03T16:00:29Z` | WEB-004は引渡し済みを維持。次セッションは優先度と依存を確認してWEB-003/005/008/011/015のいずれかに着手 |
 | 2026-09-03 | web-2026-09-04-WEB-003 | WEB-003 | rate、User-Agent、credential、履歴/freshness、保存、本文利用、再配布、費用等を`公式根拠あり` / `記載なし` / `契約確認要`へ必ず分類する共通確認票を作成し、SEC/Tiingo/Alpaca/Massiveの限定seedで適用可能性を確認 | `REPORT_PROVIDER_TERMS_CHECKLIST_WEB_003_2026-09-04.md`; Evidence確認 `2026-09-03T16:23:58Z` | W0-004のWeb入力として引渡し。次はWEB-005でSEC接続条件を詳細化、またはWEB-011でNews Provider比較へ適用 |
@@ -135,6 +135,7 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 | 2026-09-03 | web-2026-09-04-WEB-011 | WEB-011 | Tiingo、Massive/Benzinga、Alpaca Newsの現行価格・履歴・rate・本文fields・internal/individual use・再配布/retention境界を公式情報で比較。Tiingo Powerをdefault candidateとして維持し、本文権利未確定箇所を契約確認要へ分離して引渡し | `REPORT_NEWS_PROVIDER_COMPARISON_WEB_011_2026-09-04.md`; Evidence確認 `2026-09-03T21:42Z` | N0-001でADR化し、N0-002/004ではmetadataとtemporary bodyを分離。Web側は解放されたWEB-012またはWEB-015へ進む |
 | 2026-09-04 | web-2026-09-04-WEB-012 | WEB-012 | Reuters wireのregional mirror / syndication、明示的訂正、同一canonical URLのmaterial updateをcase set化し、story identity・distribution instance・revision chainを分離するcanonicalization contract案を引渡し | `REPORT_NEWS_CANONICALIZATION_CASES_WEB_012_2026-09-04.md`; Evidence確認 `2026-09-04T07:24Z` | N0-003でfixture/testを実装し、Tiingo同一URL更新時のID/re-crawl挙動とfalse merge/false splitをcredential付きlocal観測で測定。Web側の即時候補はWEB-015 |
 | 2026-09-04 | web-2026-09-04-WEB-015 | WEB-015 | White House、Treasury、Federal Reserve Board/FOMC、SEC Agencyの公式owner、source type、恒久discovery入口、item actor解決規則を公式一次情報で整理しofficial source registryを引渡し | `REPORT_OFFICIAL_SOURCE_REGISTRY_WEB_015_2026-09-04.md`; Evidence確認 `2026-09-04T07:44Z` | O0-002でRSS/API/HTML更新一覧、pagination、timestamp、update/delete挙動を調査・adapter設計。I0-001でcategory-level sourceとFOMC actorをseed化 |
+| 2026-09-04 | web-2026-09-04-WEB-016 | WEB-016 | White House/Treasury/Fed/SECの公式取得経路、bounded pagination/backfill、timestamp精度、update/delete観測境界を調査し、RSS-first/HTML-index-firstのsource別adapter contract案を引渡し | `REPORT_OFFICIAL_FEED_BEHAVIOR_WEB_016_2026-09-04.md`; Evidence確認 `2026-09-04T07:50Z` | O0-002でadapterを実装し、I0-003/004/007でoverlap、partial checkpoint、hash revision、redirect/404/410 fixtureを試験。Web側は解放されたWEB-017へ進む |
 
 ## 8. 更新時チェックリスト
 
