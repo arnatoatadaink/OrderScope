@@ -34,14 +34,14 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 | 未着手 | 1 |
 | 進行中 | 0 |
 | 調査完了 | 0 |
-| 引渡し済み | 13 |
-| 保留（依存） | 6 |
+| 引渡し済み | 14 |
+| 保留（依存） | 5 |
 | 保留（外部） | 0 |
 | 再確認要 | 0 |
 
 `WEB-003`は共通のProvider・利用条件確認票を`W0-004`、`S0-001`、`N0-001`、adapter ADRへ引渡し済みである。`WEB-005`はSECのUser-Agent、Fair Access、endpoint、公開content再利用条件を現行公式資料で再確認し、`S0-001`および`S0-002〜007`へ引渡し済みである。`WEB-006`は対象SEC formについてbase/amendment/近縁form境界を公式情報で整理し、strict allowlistとfixture条件を`S0-004`/`S0-007`へ引き渡した。これによりSEC form filterのWeb入力は揃った。
 
-`WEB-009`はAMD/NVIDIAの複数四半期・年次segment revenueを調査し、Company Factsのentity-wide/non-custom境界、NVIDIAのdimension member Evidence、AMD/NVIDIAのfiling table fallback、AMDのsegment統合・recast境界を整理して`E0-005`/`S0-006`/`E0-006`へ引渡し済みである。`WEB-011`はTiingo、Massive/Benzinga、Alpaca Newsを現行公式情報で再比較し、Tiingo Powerをv0.1第一候補として維持しつつ、本文保存・再配布等の未確定権利を契約確認要として分離した。`WEB-012`はReuters wireのregional mirror / syndication、明示的訂正、同一canonical URLのmaterial updateを公開Evidenceでcase set化し、story identityとdistribution instance、revisionを分離するcanonicalization fixture案を`N0-003`へ引渡した。`WEB-015`はWhite House、Treasury、Federal Reserve Board/FOMC、SEC Agencyについて公式owner、source type、恒久discovery入口、item actor解決規則をregistry seedとして整理し、`O0-002`/`I0-001`へ引渡し済みである。`WEB-016`は各sourceのRSS/HTML取得候補、pagination/backfill、timestamp精度、update/delete観測境界を整理し、Fed/SECをRSS-first、White House/TreasuryをHTML-index-firstとするbounded incremental contract案を`O0-002`/`I0-003/004/007`へ引渡した。これにより即時着手可能な未着手タスクは`WEB-017`となった。`WEB-010`はWeb側のWEB-007〜009が揃ったが、公式照合setのfieldを固定するためのlocal E0-004〜006 contract/adapter形状を待つ。
+`WEB-009`はAMD/NVIDIAの複数四半期・年次segment revenueを調査し、Company Factsのentity-wide/non-custom境界、NVIDIAのdimension member Evidence、AMD/NVIDIAのfiling table fallback、AMDのsegment統合・recast境界を整理して`E0-005`/`S0-006`/`E0-006`へ引渡し済みである。`WEB-011`はTiingo、Massive/Benzinga、Alpaca Newsを現行公式情報で再比較し、Tiingo Powerをv0.1第一候補として維持しつつ、本文保存・再配布等の未確定権利を契約確認要として分離した。`WEB-012`はReuters wireのregional mirror / syndication、明示的訂正、同一canonical URLのmaterial updateを公開Evidenceでcase set化し、story identityとdistribution instance、revisionを分離するcanonicalization fixture案を`N0-003`へ引渡した。`WEB-015`はWhite House、Treasury、Federal Reserve Board/FOMC、SEC Agencyについて公式owner、source type、恒久discovery入口、item actor解決規則をregistry seedとして整理し、`O0-002`/`I0-001`へ引渡し済みである。`WEB-016`は各sourceのRSS/HTML取得候補、pagination/backfill、timestamp精度、update/delete観測境界を整理し、Fed/SECをRSS-first、White House/TreasuryをHTML-index-firstとするbounded incremental contract案を`O0-002`/`I0-003/004/007`へ引渡した。`WEB-017`はTreasury NPRM→Final Rule、Fed FOMC decision→implementation、White House署名→tariff発効、SEC Proposed Rule→Final Ruleを公式一次情報で分離し、`OFFICIAL_STATEMENT` / `OFFICIAL_PROPOSAL` / `OFFICIAL_DECISION` / `OFFICIAL_IMPLEMENTATION`とtimestamp/relation contract案を`O0-003`/`I0-005`へ引渡した。これにより`WEB-018`の先行Web依存は解消し、即時着手可能な未着手タスクとなった。`WEB-010`はWeb側のWEB-007〜009が揃ったが、公式照合setのfieldを固定するためのlocal E0-004〜006 contract/adapter形状を待つ。
 
 隣接作業の既知状態は次のとおり。
 
@@ -70,9 +70,9 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 | WEB-014 | N1-006 | D | 保留（依存） | WEB-008、WEB-010とlocal評価形状 | WEB-008でIR基準source経路は準備済み | recall/latency評価 | WEB-010とlocal評価形状が揃った後、1〜3か月のSEC/IR基準イベントsetを準備 | 2026-09-04 | — |
 | WEB-015 | O0-001 | A | 引渡し済み | なし | [`REPORT_OFFICIAL_SOURCE_REGISTRY_WEB_015_2026-09-04.md`](REPORT_OFFICIAL_SOURCE_REGISTRY_WEB_015_2026-09-04.md); Evidence確認 `2026-09-04T07:44Z` | O0-002 official feed adapter、I0-001 OfficialSource/SourceActorRule | registry seedをlocal schemaへ反映。Web側はWEB-016で各entryのRSS/API/更新一覧、pagination、timestamp、update/delete挙動を調査 | 2026-09-04 | web-2026-09-04-WEB-015 |
 | WEB-016 | O0-002 | B | 引渡し済み | WEB-002/015引渡し済み | [`REPORT_OFFICIAL_FEED_BEHAVIOR_WEB_016_2026-09-04.md`](REPORT_OFFICIAL_FEED_BEHAVIOR_WEB_016_2026-09-04.md); Evidence確認 `2026-09-04T07:50Z` | O0-002 official feed adapter、I0-003/004/007 | Fed/SECはRSS-first + HTML/archive fallback、White House/TreasuryはHTML-index-first。date-only精度、overlap checkpoint、hash update、404/410/redirectをcontract/fixtureへ反映 | 2026-09-04 | web-2026-09-04-WEB-016 |
-| WEB-017 | O0-003 | C | 未着手 | WEB-015/016引渡し済み | WEB-015でactor/source type、WEB-016で取得・timestamp境界を準備済み | official Fact type fixture | 発言・提案と署名・施行・正式決定の事例を収集し、event/publish/effective時刻を分離 | 2026-09-04 | — |
-| WEB-018 | O0-004 | C | 保留（依存） | WEB-001/015済、残りWEB-017 | WEB-015でofficial actor/source identityを準備済み | instrument/theme関連付け実装 | WEB-017後にEvidence閾値とCanary事例を定義 | 2026-09-04 | — |
-| WEB-019 | O0-005 | D | 保留（依存） | WEB-017/018とlocal adapter形状 | WEB-016でupdate/delete/重複/時刻fixture候補を準備済み | Official Signal品質test | WEB-017/018後にsemantic fixtureを追加し、local adapter形状確定後に品質setを完成 | 2026-09-04 | — |
+| WEB-017 | O0-003 | C | 引渡し済み | WEB-015/016引渡し済み | [`REPORT_OFFICIAL_STATEMENT_IMPLEMENTATION_WEB_017_2026-09-04.md`](REPORT_OFFICIAL_STATEMENT_IMPLEMENTATION_WEB_017_2026-09-04.md); Evidence確認 `2026-09-04T08:48Z` | O0-003 Fact type fixture、I0-005 Fact contract、WEB-018 | statement/proposal/decision/implementationをsemantic Factとして分離し、published/decision/effective/event時刻とpolicy relationを実装・fixture化。親O0-003はlocal実装・試験まで未完了 | 2026-09-04 | web-2026-09-04-WEB-017 |
+| WEB-018 | O0-004 | C | 未着手 | WEB-001/015/017引渡し済み | WEB-015でofficial actor/source identity、WEB-017でsemantic Fact typeとpolicy relationを準備済み | instrument/theme関連付け実装 | AMD/NVDAへの直接関係とsemiconductor themeへの間接関係についてEvidence閾値とCanary事例を定義 | 2026-09-04 | — |
+| WEB-019 | O0-005 | D | 保留（依存） | WEB-017済、残りWEB-018とlocal adapter形状 | WEB-016でupdate/delete/重複/時刻、WEB-017でsemantic Fact fixture候補を準備済み | Official Signal品質test | WEB-018後にsemantic/linkage fixtureを統合し、local adapter形状確定後に品質setを完成 | 2026-09-04 | — |
 | WEB-020 | X0-006 | D | 保留（依存） | WEB-003/005/011/016済、残りlocal実装証跡 | WEB-005でSEC公開制約、WEB-011でNews利用条件、WEB-016でofficial feed取得制約をhandoff | Canary運用runbook | local official feed実装・試験証跡が揃った後に公開制約部分を統合 | 2026-09-04 | — |
 
 ## 5. 親タスクへのhandoff
@@ -136,6 +136,7 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 | 2026-09-04 | web-2026-09-04-WEB-012 | WEB-012 | Reuters wireのregional mirror / syndication、明示的訂正、同一canonical URLのmaterial updateをcase set化し、story identity・distribution instance・revision chainを分離するcanonicalization contract案を引渡し | `REPORT_NEWS_CANONICALIZATION_CASES_WEB_012_2026-09-04.md`; Evidence確認 `2026-09-04T07:24Z` | N0-003でfixture/testを実装し、Tiingo同一URL更新時のID/re-crawl挙動とfalse merge/false splitをcredential付きlocal観測で測定。Web側の即時候補はWEB-015 |
 | 2026-09-04 | web-2026-09-04-WEB-015 | WEB-015 | White House、Treasury、Federal Reserve Board/FOMC、SEC Agencyの公式owner、source type、恒久discovery入口、item actor解決規則を公式一次情報で整理しofficial source registryを引渡し | `REPORT_OFFICIAL_SOURCE_REGISTRY_WEB_015_2026-09-04.md`; Evidence確認 `2026-09-04T07:44Z` | O0-002でRSS/API/HTML更新一覧、pagination、timestamp、update/delete挙動を調査・adapter設計。I0-001でcategory-level sourceとFOMC actorをseed化 |
 | 2026-09-04 | web-2026-09-04-WEB-016 | WEB-016 | White House/Treasury/Fed/SECの公式取得経路、bounded pagination/backfill、timestamp精度、update/delete観測境界を調査し、RSS-first/HTML-index-firstのsource別adapter contract案を引渡し | `REPORT_OFFICIAL_FEED_BEHAVIOR_WEB_016_2026-09-04.md`; Evidence確認 `2026-09-04T07:50Z` | O0-002でadapterを実装し、I0-003/004/007でoverlap、partial checkpoint、hash revision、redirect/404/410 fixtureを試験。Web側は解放されたWEB-017へ進む |
+| 2026-09-04 | web-2026-09-04-WEB-017 | WEB-017 | TreasuryのNPRM→Final Rule→effective、FedのFOMC decision→翌日implementation、White House半導体Proclamationの署名→関税発効、SECのProposed Rule→Final Rule→relative effective expressionを公式一次情報でcase set化。statement/proposal/decision/implementationとpolicy-thread relationを分離して引渡し | `REPORT_OFFICIAL_STATEMENT_IMPLEMENTATION_WEB_017_2026-09-04.md`; Evidence確認 `2026-09-04T08:48Z` | O0-003/I0-005でsemantic Fact type、複数Fact/document、timestamp precision、relation、negative fixtureを実装・試験。Web側は解放されたWEB-018へ進む |
 
 ## 8. 更新時チェックリスト
 
