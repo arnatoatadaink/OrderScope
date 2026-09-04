@@ -53,6 +53,12 @@ The parent specification is the entry point. The three reference specifications 
   - Active ledger for `WEB-001` through `WEB-020`, including dependencies, evidence links, session ownership, handoff state and next action.
 - `docs/ADR_LOCAL_ANALYSIS_STACK_v0.1.md`
   - Accepted `L0-001` stack decision for the local MVP: Python/uv, SQLite/DuckDB, Arrow/Parquet, localhost API and the Windows/WSL execution boundary.
+- `docs/ADR_FACT_STORE_LOGICAL_SCHEMA_v0.1.md`
+  - Proposed `I0-005` logical boundary separating Fact, Evidence, Relationship, Derived Metric and Interpretation; acceptance remains gated by I0-002 provenance types and contract fixtures.
+- `docs/REPORT_LOCAL_SEC_FORM_FILTER_S0_004_S0_007_2026-09-04.md`
+  - Local `S0-004` strict SEC form filter implementation evidence and the completed fixture-only portion / remaining dependency boundary for `S0-007`.
+- `docs/REPORT_LOCAL_COMMON_CONTRACT_TEST_KIT_I0_007_2026-09-04.md`
+  - Local `I0-007` provider-neutral contract test kit for bounded pagination, timestamps, partial/retryable errors and secret non-exposure; adapter integration remains dependency-gated.
 - `docs/REPORT_JAPAN_LOCAL_MARKET_DATA_OPTIONS_2026-09-03.md`
   - Current research on MARKET SPEED II RSS/Excel constraints, kabu Station API, J-Quants plans and safe Windows-to-WSL handoff options for local Japanese market data.
 - `docs/PROVISIONAL_DESIGN_JP_US_PREDICTION_v0.1.md`
