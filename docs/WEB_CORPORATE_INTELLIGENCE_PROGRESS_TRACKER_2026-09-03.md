@@ -31,17 +31,17 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 
 | 状態 | 件数 |
 |---|---:|
-| 未着手 | 2 |
+| 未着手 | 1 |
 | 進行中 | 0 |
 | 調査完了 | 0 |
-| 引渡し済み | 10 |
+| 引渡し済み | 11 |
 | 保留（依存） | 8 |
 | 保留（外部） | 0 |
 | 再確認要 | 0 |
 
 `WEB-003`は共通のProvider・利用条件確認票を`W0-004`、`S0-001`、`N0-001`、adapter ADRへ引渡し済みである。`WEB-005`はSECのUser-Agent、Fair Access、endpoint、公開content再利用条件を現行公式資料で再確認し、`S0-001`および`S0-002〜007`へ引渡し済みである。`WEB-006`は対象SEC formについてbase/amendment/近縁form境界を公式情報で整理し、strict allowlistとfixture条件を`S0-004`/`S0-007`へ引き渡した。これによりSEC form filterのWeb入力は揃った。
 
-`WEB-009`はAMD/NVIDIAの複数四半期・年次segment revenueを調査し、Company Factsのentity-wide/non-custom境界、NVIDIAのdimension member Evidence、AMD/NVIDIAのfiling table fallback、AMDのsegment統合・recast境界を整理して`E0-005`/`S0-006`/`E0-006`へ引渡し済みである。`WEB-011`はTiingo、Massive/Benzinga、Alpaca Newsを現行公式情報で再比較し、Tiingo Powerをv0.1第一候補として維持しつつ、本文保存・再配布等の未確定権利を契約確認要として分離した。これにより`WEB-012`を解放した。即時着手可能な未着手タスクは`WEB-012`、`WEB-015`である。`WEB-010`はWeb側のWEB-007〜009が揃ったが、公式照合setのfieldを固定するためのlocal E0-004〜006 contract/adapter形状を待つ。
+`WEB-009`はAMD/NVIDIAの複数四半期・年次segment revenueを調査し、Company Factsのentity-wide/non-custom境界、NVIDIAのdimension member Evidence、AMD/NVIDIAのfiling table fallback、AMDのsegment統合・recast境界を整理して`E0-005`/`S0-006`/`E0-006`へ引渡し済みである。`WEB-011`はTiingo、Massive/Benzinga、Alpaca Newsを現行公式情報で再比較し、Tiingo Powerをv0.1第一候補として維持しつつ、本文保存・再配布等の未確定権利を契約確認要として分離した。`WEB-012`はReuters wireのregional mirror / syndication、明示的訂正、同一canonical URLのmaterial updateを公開Evidenceでcase set化し、story identityとdistribution instance、revisionを分離するcanonicalization fixture案を`N0-003`へ引渡した。即時着手可能な未着手タスクは`WEB-015`である。`WEB-010`はWeb側のWEB-007〜009が揃ったが、公式照合setのfieldを固定するためのlocal E0-004〜006 contract/adapter形状を待つ。
 
 隣接作業の既知状態は次のとおり。
 
@@ -65,7 +65,7 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 | WEB-009 | E0-005 | C | 引渡し済み | WEB-001/005引渡し済み | [`REPORT_SEGMENT_REVENUE_FALLBACK_WEB_009_2026-09-04.md`](REPORT_SEGMENT_REVENUE_FALLBACK_WEB_009_2026-09-04.md); Evidence確認 `2026-09-03T21:36Z` | E0-005 segment fallback実装、S0-006 XBRL adapter、E0-006 SegmentIdentityHistory | Company Facts失敗理由を保存し、dimension-aware XBRL→filing tableへfallback。AMDのcontext/member mappingはlocal instance parseで確定し、recast/business-line区別をE0-006 contract testへ反映 | 2026-09-04 | web-2026-09-04-WEB-009 |
 | WEB-010 | E0-007 | D | 保留（依存） | WEB-007〜009引渡し済み、残りlocal E0-004〜006 contract/adapter形状 | WEB-009でsegment fallback/recast入力を準備済み | local reconciliation・品質report | E0-004〜006のfield/identity形状確定後に複数四半期の公式照合setを準備 | 2026-09-04 | — |
 | WEB-011 | N0-001 | A | 引渡し済み | WEB-003引渡し済み | [`REPORT_NEWS_PROVIDER_COMPARISON_WEB_011_2026-09-04.md`](REPORT_NEWS_PROVIDER_COMPARISON_WEB_011_2026-09-04.md); Evidence確認 `2026-09-03T21:42Z` | N0-001 News Provider ADR、N0-002/004、I0-006、N1-006 | Tiingo Powerをdefault candidateとしてADR化。本文権利・durable retentionは契約確認までdisabled。Massive/Benzingaをfull-text昇格候補、Alpaca Newsを統合候補として保持 | 2026-09-04 | web-2026-09-04-WEB-011 |
-| WEB-012 | N0-003 | C | 未着手 | WEB-011引渡し済み | WEB-011でprovider候補と権利境界を固定 | canonicalization fixture/test | Tiingoを第一候補として同一記事、転載、訂正、重要更新のcase setを収集。Massive/Alpacaは比較可能な範囲で補助 | 2026-09-04 | — |
+| WEB-012 | N0-003 | C | 引渡し済み | WEB-011引渡し済み | [`REPORT_NEWS_CANONICALIZATION_CASES_WEB_012_2026-09-04.md`](REPORT_NEWS_CANONICALIZATION_CASES_WEB_012_2026-09-04.md); Evidence確認 `2026-09-04T07:24Z` | N0-003 canonicalization fixture/test、N0-002/004、I0-006 | story / distribution / revisionを分離し、same-story mirror、syndication、correction、material update、ambiguous relation fixtureを実装。Tiingo revision semanticsはcredential付きlocal観測で確定 | 2026-09-04 | web-2026-09-04-WEB-012 |
 | WEB-013 | N1-001 | C | 保留（依存） | WEB-007とI0-005のcontract方針 | 親計画に初期分類あり | taxonomy schema・extractor fixture | 定義とEvidence付き事例を作成 | 2026-09-03 | — |
 | WEB-014 | N1-006 | D | 保留（依存） | WEB-008、WEB-010とlocal評価形状 | WEB-008でIR基準source経路は準備済み | recall/latency評価 | WEB-010とlocal評価形状が揃った後、1〜3か月のSEC/IR基準イベントsetを準備 | 2026-09-04 | — |
 | WEB-015 | O0-001 | A | 未着手 | なし | official actor種別は親計画で固定済み | O0-002 adapter設計 | 恒久入口を含むofficial source registryを作成 | 2026-09-03 | — |
@@ -133,6 +133,7 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 | 2026-09-03 | web-2026-09-04-WEB-009 | WEB-009 | 着手。AMD/NVIDIA複数四半期のsegment revenueについてCompany Facts、XBRL Dimension、filing/table fallbackの可用性と失敗理由を調査開始 | 調査中。成果物は完了時に追加 | `Company Facts → XBRL Dimension → Filing Fallback`を一次情報で照合し、欠損を推測しない |
 | 2026-09-03 | web-2026-09-04-WEB-009 | WEB-009 | Company Factsのentity-wide/non-custom境界、NVIDIAのdimension member、AMD/NVIDIA複数四半期・年次segment table、AMDのrecast/business-line境界を整理し、fallback method/failure reason contractを引渡し | `REPORT_SEGMENT_REVENUE_FALLBACK_WEB_009_2026-09-04.md`; Evidence確認 `2026-09-03T21:36Z` | E0-005/S0-006でCompany Facts→dimension→filing tableを実装し、E0-006でrecast/segment identityを履歴化。Web側はWEB-011またはWEB-015へ進む |
 | 2026-09-03 | web-2026-09-04-WEB-011 | WEB-011 | Tiingo、Massive/Benzinga、Alpaca Newsの現行価格・履歴・rate・本文fields・internal/individual use・再配布/retention境界を公式情報で比較。Tiingo Powerをdefault candidateとして維持し、本文権利未確定箇所を契約確認要へ分離して引渡し | `REPORT_NEWS_PROVIDER_COMPARISON_WEB_011_2026-09-04.md`; Evidence確認 `2026-09-03T21:42Z` | N0-001でADR化し、N0-002/004ではmetadataとtemporary bodyを分離。Web側は解放されたWEB-012またはWEB-015へ進む |
+| 2026-09-04 | web-2026-09-04-WEB-012 | WEB-012 | Reuters wireのregional mirror / syndication、明示的訂正、同一canonical URLのmaterial updateをcase set化し、story identity・distribution instance・revision chainを分離するcanonicalization contract案を引渡し | `REPORT_NEWS_CANONICALIZATION_CASES_WEB_012_2026-09-04.md`; Evidence確認 `2026-09-04T07:24Z` | N0-003でfixture/testを実装し、Tiingo同一URL更新時のID/re-crawl挙動とfalse merge/false splitをcredential付きlocal観測で測定。Web側の即時候補はWEB-015 |
 
 ## 8. 更新時チェックリスト
 
