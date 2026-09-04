@@ -47,7 +47,11 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 
 - `W0-001`はローカルMVP開始条件として満たされている。Workerの残り`SMOKE-*`、`CANARY-*`は別バックログである。
 - `L0-001`は`ADR_LOCAL_ANALYSIS_STACK_v0.1.md`により完了している。
-- 次のローカル実装は`L0-002`である。
+- `L0-002`はlocal skeleton側の次作業として並列実行可能である。
+- Corporate Intelligence全体のクリティカルパス上の次作業は`I0-002`である。
+- `I0-005`は論理schema ADRが先行作成済みだが、`I0-002` provenance型とfixtureを受けてAccepted化する必要がある。
+- `I0-007`は共通contract test kitが先行実装済みだが、正式受入は`I0-003/004/006`統合待ちである。
+- `S0-004`はstrict SEC form filterのローカル実装・fixtureが完了している。`S0-007`全体は`S0-002/003/005/006`待ちである。
 - 親作業分解と既存実装トラッカー上、WorkerとPredictionはShadowを維持する。
 
 ## 4. タスク台帳
@@ -138,6 +142,7 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 | 2026-09-04 | web-2026-09-04-WEB-016 | WEB-016 | White House/Treasury/Fed/SECの公式取得経路、bounded pagination/backfill、timestamp精度、update/delete観測境界を調査し、RSS-first/HTML-index-firstのsource別adapter contract案を引渡し | `REPORT_OFFICIAL_FEED_BEHAVIOR_WEB_016_2026-09-04.md`; Evidence確認 `2026-09-04T07:50Z` | O0-002でadapterを実装し、I0-003/004/007でoverlap、partial checkpoint、hash revision、redirect/404/410 fixtureを試験。Web側は解放されたWEB-017へ進む |
 | 2026-09-04 | web-2026-09-04-WEB-017 | WEB-017 | TreasuryのNPRM→Final Rule→effective、FedのFOMC decision→翌日implementation、White House半導体Proclamationの署名→関税発効、SECのProposed Rule→Final Rule→relative effective expressionを公式一次情報でcase set化。statement/proposal/decision/implementationとpolicy-thread relationを分離して引渡し | `REPORT_OFFICIAL_STATEMENT_IMPLEMENTATION_WEB_017_2026-09-04.md`; Evidence確認 `2026-09-04T08:48Z` | O0-003/I0-005でsemantic Fact type、複数Fact/document、timestamp precision、relation、negative fixtureを実装・試験。Web側は解放されたWEB-018へ進む |
 | 2026-09-04 | web-2026-09-04-WEB-018 | WEB-018 | AMD MI308/NVIDIA H20のexport-control direct例、White House Section 232/Treasury CHIPSのtheme-only例、Jensen Huang参加・引用のmention-only負例を公式Evidenceで整理。identity + action/effect anchorをdirect必須条件とし、themeからinstrumentへの推測fan-outを禁止するlinkage contract案を引渡し | `REPORT_OFFICIAL_INSTRUMENT_THEME_LINKAGE_WEB_018_2026-09-04.md`; Evidence確認 `2026-09-04T09:09:35Z` | O0-004/I0-005/I0-007でRelationship classとnegative fixtureを実装・試験。WEB-019はlocal adapter/contract形状確定後にOfficial Signal品質setへ統合 |
+| 2026-09-04 | local-critical-path-review | — (local dependency) | 直近pushの`I0-005` ADR、`I0-007` contract test kit、`S0-004` SEC form filterを親WBSと照合し、実装状態を加味したクリティカルパスを確定 | `ADR_FACT_STORE_LOGICAL_SCHEMA_v0.1.md`; `REPORT_LOCAL_COMMON_CONTRACT_TEST_KIT_I0_007_2026-09-04.md`; `REPORT_LOCAL_SEC_FORM_FILTER_S0_004_S0_007_2026-09-04.md`; commit `fa180ff3` | `I0-002`を主経路の次作業とし、`L0-002`は並列経路で進める |
 
 ## 8. 更新時チェックリスト
 
@@ -158,3 +163,70 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 - `IMPLEMENTATION_PROGRESS_TRACKER_2026-09-01.md`
 - `ADR_LOCAL_ANALYSIS_STACK_v0.1.md`
 - `MERMAID_CONVENTIONS.md`
+
+## 10. Local Corporate Intelligenceクリティカルパス（2026-09-04確定）
+
+この節は親WBSの依存関係に、2026-09-04時点でpush済みのローカル実装状態を重ねた実行順管理である。親タスクの完了条件そのものは`WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`を正とする。
+
+### 10.1 主クリティカルパス
+
+```text
+I0-001
+  ↓
+I0-002  ← 現在の主作業
+  ├─→ I0-003 ─┐
+  ├─→ I0-004 ─┼─→ I0-007 正式受入
+  └─→ I0-005 → I0-006 ─┘
+                         ↓
+                      S0-002
+                         ↓
+                      S0-003
+                    ┌────┼────┐
+               S0-004  S0-005 S0-006
+               完了済み    │      │
+                    └────┼──────┘
+                         ↓
+                      S0-007
+                         ↓
+                    E0-001〜007
+                         ↓
+                    N1 / O0 / X0
+```
+
+実行優先順位は次のとおり。
+
+1. `I0-002`: provenance/timestamp共通型を確定する。
+2. `I0-003`と`I0-004`を可能なら並列で実装する。
+3. 先行作成済み`I0-005` ADRを`I0-002`の型へ適合させ、fixtureを追加してAccepted化する。
+4. `I0-006` temporary content lifecycleを確定する。
+5. 先行実装済み`I0-007` test kitへ`I0-003/004/006`を統合し正式受入する。
+6. `S0-001`のWeb調査済み接続条件を利用し、`S0-002 → S0-003 → S0-005/S0-006`を実装する。
+7. 完了済み`S0-004`を再実装せずadapter出力へ接続し、`S0-007`を正式完了する。
+8. `E0-001〜007`を進め、その後にNews Fact化、Official品質、X0統合へ進む。
+
+### 10.2 並列経路
+
+主クリティカルパスを止めず、次を並行可能とする。
+
+- `L0-002 → L0-003/L0-004/L0-005 → L0-006`
+- `L1-001 → L1-002 → L1-004 → L1-005`のfixture経路
+- `N0-001`のADR化、およびI0受入後の`N0-002〜004`
+- I0受入後の`O0-001〜005`
+
+`L1-003`の実D1 exportは`SMOKE-007`変更窓を必要とするため、fixture経路やCorporate Intelligence共通契約のブロッカーにしない。
+
+### 10.3 先行実装の扱い
+
+| タスク | 2026-09-04状態 | 次の判定 |
+|---|---|---|
+| `I0-005` | Fact Store logical schema ADR作成済み | `I0-002` provenance型とcontract fixture後にAccepted化 |
+| `I0-007` | provider-neutral test kit実装済み、58 tests passed | `I0-003/004/006`統合後に正式受入 |
+| `S0-004` | strict SEC form filterとfixture実装済み | 再実装せず`S0-007`統合へ利用 |
+| `S0-007` | form-filter fixture sliceのみ実施済み | `S0-002/003/005/006`後にfull acceptance |
+
+### 10.4 次回セッション開始規則
+
+- 主経路の次セッションは原則`I0-002`から開始する。
+- 別セッションを並列利用する場合は`L0-002`を進めてよい。
+- `I0-002`完了後、`I0-003`と`I0-004`を分離セッションで並列化できる。
+- 既に先行実装済みの`I0-005`、`I0-007`、`S0-004`は「新規実装」ではなく依存充足後の整合・受入として扱う。
