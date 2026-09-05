@@ -1,7 +1,7 @@
 # OrderScope — Fact Store Logical Schema ADR v0.1
 
-Status: Proposed; acceptance pending I0-002 provenance types and contract fixtures
-Date: 2026-09-04
+Status: Accepted
+Date: 2026-09-06
 Decision ID: `ADR-FACT-STORE-001`
 Work item: `I0-005`
 
@@ -31,7 +31,7 @@ Every record has the following identity and Store audit fields:
 
 | Field | Meaning | Rule |
 |---|---|---|
-| `record_id` | Immutable UUID/UUID-like internal identifier | Never reused; stable across reprocessing |
+| `record_id` | Immutable bounded internal identifier | Never reused; stable across reprocessing |
 | `record_type` | `fact`, `evidence`, `relationship`, `derived_metric`, or `interpretation` | Fixed by the record shape |
 | `schema_version` | Version of this logical record | Required; additive changes require a new version |
 | `subject_ref` | Internal entity/instrument/source reference | Must resolve in the source/entity registry when applicable |
@@ -39,9 +39,9 @@ Every record has the following identity and Store audit fields:
 | `created_at` | Local record creation time | Required; UTC |
 | `supersedes_record_id` | Previous logical assertion replaced by this record | Nullable; history is append-only |
 
-`record_id` generation and duplicate/update/conflict classification are finalized by
-I0-004. Until then, this ADR requires stable identity semantics but does not prescribe
-random UUIDs or a deterministic-ID algorithm.
+External stable identity and duplicate/update/conflict classification are supplied by
+I0-004. The Store record ID remains a distinct internal identifier; this contract does
+not prescribe random UUIDs or a deterministic-ID algorithm.
 
 ### 2.2 Source provenance
 
@@ -52,19 +52,21 @@ their provenance is represented by explicit input/basis record references.
 | Field | Meaning | Rule |
 |---|---|---|
 | `source_ref` | Canonical source or provider reference | No provider response body is embedded |
-| `source_revision` | Provider/source revision or retrieval batch | Nullable only when the source has no revision concept |
+| `provider_revision` | Opaque provider/source revision | Nullable only when the source has no revision concept |
 | `content_hash` | Hash of the normalized source assertion or input payload | Used for idempotency and change detection |
 | `event_time` | When the represented event occurred or is scheduled to occur | Nullable only when the source does not establish it; distinct from observation/publication |
-| `observed_at` | When the source says the assertion was true/observed | Nullable when the source provides no such time |
 | `published_at` | Source publication time | Nullable when not applicable or unknown |
 | `filed_at` | Official filing time | Nullable when not applicable or unknown; never collapsed into `published_at` |
+| `source_accepted_at` | Source-system acceptance time | Nullable when not applicable or unknown; distinct from Store acceptance |
 | `retrieved_at` | When OrderScope obtained the source | Required for acquired external records |
 | `available_at` | Earliest time the source information could be consumed without look-ahead | Required for acquired external records |
 
-Timestamps are UTC, RFC 3339 values with an explicit offset (normally `Z`). Unknown
-external times remain null or an explicit unknown state; `retrieved_at` and
-`accepted_at` must not be backfilled into an unknown event time, publication time or
-filing time. Timestamp precision and source-reported timezone are supplied by I0-002.
+Operational timestamps are UTC instants. Source timestamps retain either an exact UTC
+instant or a date-only value plus optional source-timezone metadata. Unknown external
+times remain null; `retrieved_at` and Store `accepted_at` must not be backfilled into
+an unknown event, publication, filing, or source-acceptance time. These fields use the
+accepted I0-002 `Provenance`, `SourceTimestamp`, `SourceReference`, `ContentHash`, and
+`ProviderRevision` value objects.
 
 ## 3. Logical records
 
@@ -83,6 +85,10 @@ Required fields beyond the base record and source provenance:
 | `period_end` | End of the period to which the value applies; nullable when not applicable |
 | `assertion_kind` | `observation`, `correction`, `amendment`, `withdrawal`, or `pending_review` |
 | `extraction_confidence` | Extractor confidence when extraction was performed; nullable otherwise and separate from Evidence quality and regime strength |
+| `evidence_record_ids` | Reciprocal Evidence references; may be empty only for `pending_review` |
+
+Period and relationship-validity boundaries use I0-002 `SourceTimestamp` values so a
+source-reported date is not promoted to a fabricated instant.
 
 Facts are immutable assertions. A correction, amendment, withdrawal, or revised
 extraction creates a new record and points to the prior record with
@@ -128,6 +134,8 @@ relationships:
 | `valid_from` | External validity start; nullable when unknown |
 | `valid_to` | External validity end; nullable when unknown |
 | `assertion_kind` | `assertion`, `correction`, `termination`, `contradiction`, or `pending_review` |
+| `evidence_record_ids` | Reciprocal Evidence references for an externally asserted relationship |
+| `registry_basis_ref` | Registry assignment basis for an internal structural edge; mutually exclusive with source provenance |
 
 Strategic relationships that do not appear as revenue remain Relationships. Their
 existence does not imply a quantitative `strategic_strength`. Corrections and endings
@@ -189,9 +197,9 @@ The first implementation must reject or flag records that violate any of these r
    null/unknown and are never guessed from neighboring records.
 4. Normally `available_at <= retrieved_at <= accepted_at`. A late arrival has
    `available_at < accepted_at`; it is not rewritten as if it became available at
-   acceptance time. If embargoed content is staged before availability, it remains
-   ineligible for Store consumption until `available_at`. As-of queries exclude any
-   record whose `available_at` is later than the cutoff.
+   acceptance time. The accepted I0-002 acquisition contract does not admit content
+   before `available_at`. As-of queries require both `available_at` and Store
+   `accepted_at` to be at or before the cutoff.
 5. A superseding record does not delete its predecessor, and an amendment retains the
    predecessor link and source reference.
 6. DerivedMetric lineage is complete and method-versioned; Interpretation basis is
@@ -200,9 +208,9 @@ The first implementation must reject or flag records that violate any of these r
    boundary; observed/check time is not used as a fabricated `valid_from`.
 8. Record serialization excludes credentials, provider response bodies, and durable
    raw news content.
-9. `event_time`, `observed_at`, `published_at`, `filed_at`, `retrieved_at`,
-   `available_at`, and `accepted_at` remain separate fields; one timestamp is never
-   copied into another merely to satisfy nullability.
+9. `event_time`, `published_at`, `filed_at`, `source_accepted_at`, `retrieved_at`,
+   `available_at`, and Store `accepted_at` remain separate fields; one timestamp is
+   never copied into another merely to satisfy nullability.
 
 Minimum fixture coverage: one filing Fact with Evidence, one amended Fact, one
 corporate Relationship, one DerivedMetric with two inputs, one Interpretation, one
@@ -221,9 +229,11 @@ availability are preserved.
 - X0 queries may project these records into a timeline, but the projection is not a
   second source of truth.
 
-This ADR moves to Accepted only after I0-002 defines the timestamp/provenance value
-objects and contract fixtures demonstrate the invariants in section 4. A documentation
-review alone does not complete the implementation evidence.
+The immutable contract types are implemented in
+`analysis/app/orderscope_local/contracts/fact_store.py`. Contract fixtures exercise
+the five record boundaries, reciprocal Evidence, append-only amendment history,
+DerivedMetric lineage, Interpretation basis, secret exclusion, and availability-aware
+as-of selection against the accepted I0-002 provenance types.
 
 ## 6. Related requirements and documents
 
