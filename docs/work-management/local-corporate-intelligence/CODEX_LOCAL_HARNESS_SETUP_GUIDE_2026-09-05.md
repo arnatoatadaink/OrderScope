@@ -22,6 +22,8 @@ This guide does not bind the project to a specific Agent framework or external o
 8. Parallelize only tasks with explicit dependency safety.
 9. Manual recovery must remain possible after harness failure.
 10. Avoid unnecessary Codex lock-in; keep migration to CLI/IDE/other Agent harnesses possible.
+11. Use English for machine-facing harness artifacts, work packets, structured results, schemas, code comments, and technical management updates. User-facing responses may remain Japanese.
+12. Do not attempt to control or expose hidden reasoning language; token optimization must come from observable artifact language, deduplication, and task-scoped context.
 
 ## 3. Minimal operating architecture
 
@@ -291,9 +293,13 @@ Start at H0 because:
 - WBS task boundaries are sufficiently fine-grained;
 - building orchestration first would delay the actual I0/L0 work.
 
-Run one or two H0 cycles on I0-002/L0-002. Promote only repeated manual steps into H1 helpers.
+Use the current task from the Progress Tracker for H0 trials. Promote only repeated manual steps into H1 helpers.
 
-## 14. Open questions before H1/H2
+## 14. Existing-language migration rule
+
+When editing an existing machine-facing artifact, translate Japanese technical prose in the touched scope to English if the meaning can be preserved exactly. Keep task IDs, normative terms, evidence, quoted external text, and historical facts unchanged. Do not perform broad historical-report rewrites merely for token reduction unless those reports become active Agent context.
+
+## 15. Open questions before H1/H2
 
 - Can local Codex select a model per child Agent?
 - Can reasoning effort be set per child Agent?
