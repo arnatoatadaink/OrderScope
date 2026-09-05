@@ -8,6 +8,8 @@ Scope: Local Corporate Intelligence parent WBS and A0 extension
 
 Operational guidance for assigning work to models without changing WBS completion conditions or the Critical Path. Model names are not part of task validity or acceptance semantics; if the model lineup changes, update this document rather than the WBS.
 
+Runtime task state is owned only by `LOCAL_CORPORATE_INTELLIGENCE_PROGRESS_TRACKER_2026-09-05.md`. This policy must not hard-code the current task or restart point.
+
 ## 2. Model roles
 
 | Model | Primary role | Suitable work | Avoid as sole owner |
@@ -39,8 +41,8 @@ Otherwise raise effort by one level.
 
 ## 4. Assignment rules
 
-1. Read WBS/CP/Tracker and select one task ID first.
-2. Check completion conditions, dependencies, and existing artifacts before selecting a model.
+1. Read the Progress Tracker first and select one task ID.
+2. Use WBS/CP to check completion conditions, dependencies, and existing artifacts before selecting a model.
 3. Luna: normally one Agent = one bounded change set.
 4. Terra: may own a coherent schema + implementation + test change across several files.
 5. Sol owns decomposition, dependency review, integration review, and Accepted promotion.
@@ -168,17 +170,27 @@ Legend:
 | A0-001 | S | high | Semantic boundary preventing Cross-Market Rotation from becoming Fact; FX contradiction/confidence rules |
 | A0-002 | T+S | high | Terra aligns datasets/calculations; Sol integrates support/contradiction across five hypotheses |
 
-## 7. Current restart assignment
+## 7. Assignment resolution rule
 
-Recommended as of 2026-09-05:
-- Orchestrator: **Sol low** for normal cycles.
-- Main `I0-002`: **Terra high** for implementation/code inspection, **Sol medium-high** for acceptance review.
-- Parallel `L0-002`: **Luna medium**.
-- `A0-002` dataset/source definition only: **Terra medium**; add Sol review when hypothesis evaluation begins.
+Resolve the current task from the Progress Tracker at session start, then look up its static suitability in this policy. Do not copy a current task or restart point into this document.
 
-Keep Sol-low orchestration limited to selecting the main task, bounded delegation, diff/test review, and Tracker updates. Raise to medium+ when Sol is making the design decision itself.
+Typical orchestration profiles:
 
-## 8. Escalation triggers
+- Sol low: stable cycle limited to task selection, bounded delegation, diff/test review, and Tracker update.
+- Sol medium+: initial audit, design decisions, conflicts, or Accepted promotion.
+- Terra medium: normal multi-file implementation/integration work.
+- Terra high: difficult semantic integration or multiple provisional artifacts.
+- Luna medium: bounded implementation under an already-defined contract.
+
+## 8. Technical language policy
+
+Use English for machine-facing technical artifacts and Agent handoffs, including WBS/CP/Tracker updates, task packets, structured results, ADR/schema/interface text, code comments, and test/fixture descriptions. User-facing discussion and reports may remain Japanese.
+
+Do not instruct models to use a specific hidden reasoning language such as `think in English`. Optimize observable context instead: English technical artifacts, reduced duplication, and task-scoped inputs.
+
+When touching an existing machine-facing artifact that contains Japanese, translate the relevant Japanese prose to English if semantics, evidence, IDs, and historical facts can be preserved exactly.
+
+## 9. Escalation triggers
 
 Preserve current work and raise parent model/effort by one level if any of the following occurs:
 - Schema impact reaches three or more domains, e.g. provenance + Fact Store + A0.
