@@ -54,6 +54,7 @@ from .provenance import (
     SourceTimestamp,
     TimestampPrecision,
 )
+from .temporary_content import TemporaryContent, TemporaryContentState, validate_temporary_content
 
 __all__ = [
     "AcquisitionCheckpoint",
@@ -94,6 +95,9 @@ __all__ = [
     "StableIdentity",
     "StableIdentityKind",
     "TimestampPrecision",
+    "TemporaryContent",
+    "TemporaryContentState",
+    "validate_temporary_content",
     "classify_idempotency",
     "DerivedMetric",
     "records_available_as_of",

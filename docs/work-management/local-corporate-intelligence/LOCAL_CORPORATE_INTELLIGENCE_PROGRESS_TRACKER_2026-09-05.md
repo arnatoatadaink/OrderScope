@@ -36,7 +36,7 @@ Model/Agent selection follows the Model Assignment Policy and must be recorded p
 | I0-003 | Accepted | Persistable types and tests fix provider/source scope, bounded windows, opaque cursors, and resumable partial/error states; parent diff/test/semantic review completed in the 2026-09-05 execution cycle | Reference only when connecting I0-007 |
 | I0-004 | Accepted | Stable filing/article/signal identities and immutable new/duplicate/update/conflict classification are fixed by contract tests; parent diff/test/semantic review completed in the 2026-09-06 execution cycle | Reference when connecting I0-007 and downstream adapters |
 | I0-005 | Accepted | Immutable Fact Store contracts and fixtures separate Fact, Evidence, Relationship, DerivedMetric, and Interpretation while using I0-002 provenance; parent semantic/diff/test review completed in the 2026-09-06 execution cycle | Reference when implementing I0-006 and reconciling downstream provisional artifacts |
-| I0-006 | Ready | Its `I0-005` dependency is Accepted | Define the temporary-content lifecycle in a separate cycle |
+| I0-006 | Accepted | Immutable temporary-content lifecycle types, expiry/deletion/exception invariants, and contract tests were reviewed and accepted in the 2026-09-06 execution cycle | Reference when connecting I0-007 and downstream content adapters |
 | I0-007 | Provisional result | Common contract-test kit exists; formal acceptance waits for I0-003/004/006 | Connect the upstream contracts and formally accept |
 | S0-002 | Not started | Gated by I0-007 formal acceptance and S0-001 | Start the SEC adapter after I0-007 is Accepted |
 | S0-003 | Not started | Depends on `S0-002` | Implement FilingRecord persistence |
@@ -51,7 +51,7 @@ Model/Agent selection follows the Model Assignment Policy and must be recorded p
 
 ### Lane A — Core contracts
 
-Latest accepted task: `I0-005`. Next safe main task: implement `I0-006` in a separate cycle.
+Latest accepted task: `I0-006`. Next safe main task: reconcile and formally accept `I0-007` in a separate cycle.
 
 Static dependency order is defined in the Critical Path; this section records only the current runtime position.
 
@@ -182,6 +182,21 @@ Do not infer unresolved values; update this tracker only from repository evidenc
 | Next safe action | Start `I0-006` as a separate main cycle; do not automatically continue to I0-007 or a parallel lane. |
 | Unresolved | No provider or contract semantics were inferred. Physical migration layout remains L0-005 scope; temporary content expiry/delete-proof/exception details remain I0-006 scope. |
 
-## 14. Progress-update rule
+## 14. I0-006 execution cycle (2026-09-06)
+
+| Item | Result |
+|---|---|
+| Task ID | `I0-006` |
+| Model / reasoning | Terra-equivalent implementation / medium; Sol-equivalent parent acceptance review / medium |
+| Selection rationale | The Model Assignment Policy assigns Terra + Sol to the multi-file temporary-content lifecycle contract because retention, expiry, deletion proof, and exception semantics extend the Accepted I0-005 boundary. The work remained one bounded contract/schema/test change set; no downstream adapter or provisional result was promoted. |
+| Changed files | `analysis/app/orderscope_local/contracts/temporary_content.py`, `analysis/app/orderscope_local/contracts/__init__.py`, `analysis/tests/contracts/test_temporary_content_contract.py`, `docs/ADR_TEMPORARY_CONTENT_LIFECYCLE_v0.1.md`, and this Progress Tracker. Existing accepted/provisional artifacts were preserved. |
+| Tests / checks | Focused lifecycle tests **6 passed**; full suite **118 passed**; `python3 -m compileall -q analysis/app analysis/tests` passed; `git diff --check` clean. Initial uv cache permission issue was avoided with `UV_CACHE_DIR=/tmp/orderscope-i0-006-uv-cache`; no repository or source issue was found. |
+| Completion criteria | WBS I0-006 criteria satisfied: immutable content reference, `temporary_success` / `temporary_exception` retention classes, UTC capture/expiry fields, deletion proof, exception reason, secret/body exclusion, state/class alignment, and a 30-day maximum for exception content are fixed by types, ADR, and tests. Physical persistence and retention-worker behavior remain downstream. |
+| State | **Accepted** — parent diff/test/semantic review confirmed I0-005 compatibility, the successful-body deletion handoff, exception expiry, deletion audit, and no raw body or credential fields. |
+| Remaining work | I0-007 remains Provisional until I0-003, I0-004, and I0-006 are connected and formally accepted. Downstream SEC/content adapters remain gated by I0-007. |
+| Next safe action | Start I0-007 reconciliation and formal acceptance as a separate cycle; do not automatically continue to SEC or parallel lanes. |
+| Unresolved | No new unresolved item introduced. The exact physical retention worker, storage layout, and provider-specific body-access behavior remain downstream task scope. |
+
+## 15. Progress-update rule
 
 After normal implementation progress, update this file and do not mirror runtime state into the Critical Path or WBS. Update the Critical Path only when dependency structure, permanent gates, or safe-parallelization rules change.
