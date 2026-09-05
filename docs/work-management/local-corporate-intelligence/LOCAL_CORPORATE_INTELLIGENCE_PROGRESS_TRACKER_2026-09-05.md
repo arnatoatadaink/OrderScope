@@ -5,11 +5,13 @@ Date: 2026-09-05
 Parent WBS: `../../WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
 Integrated CP: `../../WORK_PLAN_LOCAL_CORPORATE_INTELLIGENCE_CRITICAL_PATH_2026-09-05.md`
 Extension WBS: `../../WORK_BREAKDOWN_ANALYST_CROSS_MARKET_2026-09-05.md`
+Model assignment: `MODEL_ASSIGNMENT_POLICY_2026-09-05.md`
 
 ## 1. Purpose
 
 この資料は Local Corporate Intelligence の実行進捗を、Parent WBS と Integrated Critical Path に対応付けて管理する。
 WBSの完了条件を変更せず、各タスクの現在状態、依存、先行成果、正式受入の残作業、次の安全な操作を記録する。
+モデル/Agentの選択は `MODEL_ASSIGNMENT_POLICY_2026-09-05.md` に従い、各作業cycleで選択理由を記録する。
 
 ## 2. Status vocabulary
 
@@ -81,20 +83,32 @@ After the gate opens:
 
 `S0-002 → S0-003 → (S0-005 || S0-006) → S0-007 → E0-001〜007`
 
-## 5. Known non-blockers / deferred items
+## 5. Current model / Agent assignment
+
+| Role / task | Assignment | Reasoning | Note |
+|---|---|---|---|
+| Orchestrator | Sol | low | WBS/CP/Trackerが既に整合している通常cycle。設計判断やAccepted昇格時はmedium以上へ昇格 |
+| I0-002 implementation | Terra | high | provenance/timestamp/source revision契約は後続多数へ波及 |
+| I0-002 acceptance review | Sol | medium〜high | I0-005/A0-001等のsemantic整合を確認 |
+| L0-002 | Luna | medium | bounded scaffold change |
+| A0-002 dataset/source definition | Terra | medium | schema書込みや仮説統合判断はまだ行わない |
+
+各cycle終了時に、実際に使用したモデル、reasoning、委任理由、review結果をこの節または作業履歴へ追記する。
+
+## 6. Known non-blockers / deferred items
 
 - `L1-003` remote D1 export change window is deferred and does not block local fixture implementation.
 - `A0-002` is a validation lane and is not currently a serial blocker for Core Corporate Intelligence.
 - Existing provisional artifacts for `I0-005`, `I0-007`, and `S0-004` must be preserved and reconciled rather than discarded.
 
-## 6. Current restart rule
+## 7. Current restart rule
 
 - Main local session: `I0-002`
 - Second parallel local session: `L0-002`
 - Cross-Market session: `A0-002` dataset/source definition only until `I0-002/I0-005` are Accepted
 - SEC implementation must wait for `I0-007` formal acceptance
 
-## 7. Unresolved items
+## 8. Unresolved items
 
 - Analyst Consensus as-of history provider and contract conditions
 - AI/Semiconductor proxy definition for A0-002
