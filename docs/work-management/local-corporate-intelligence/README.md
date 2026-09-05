@@ -48,6 +48,20 @@ After a normal implementation cycle:
 4. update the Critical Path only if dependency structure, permanent gates, or safe-parallelization rules change;
 5. update the WBS only if task scope/completion conditions are intentionally revised.
 
+## Language policy
+
+Use English for machine-facing and repeatedly loaded technical artifacts to reduce context overhead and keep Agent handoffs consistent. This includes:
+
+- WBS, Critical Path, Progress Tracker, model/Agent policies, harness contracts, and Agent prompts;
+- ADRs, schemas, interface contracts, code comments, test/fixture descriptions, task packets, and structured Agent results;
+- internal implementation notes or generated artifacts that do not need to be presented directly to the user.
+
+User-facing discussion, analysis, explanations, and reports may remain in Japanese unless the user requests otherwise.
+
+Do **not** instruct a model to "think in English" or expose/internalize a particular hidden reasoning language. Optimize the observable inputs and artifacts instead: keep technical context in English, remove duplication, and pass only the task-relevant subset when possible.
+
+When an existing machine-facing artifact contains Japanese, translate it to English when touching that artifact, provided the translation does not change normative semantics, task IDs, completion conditions, evidence, or recorded facts. Historical user-facing reports do not need retroactive translation solely for token reduction.
+
 ## Resume rule
 
 For the current main task, next safe task, blockers, or latest accepted work, consult:
