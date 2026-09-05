@@ -13,6 +13,7 @@ Date: 2026-09-05
 | Parent WBS | `../../WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md` | Local Corporate Intelligence 全体の作業分解、完了条件、依存関係を定義する実行バックログ |
 | Integrated Critical Path | `../../WORK_PLAN_LOCAL_CORPORATE_INTELLIGENCE_CRITICAL_PATH_2026-09-05.md` | Parent WBS と A0 拡張を重ね、現在の主CP、並列lane、再開優先順位を示す |
 | Local Progress Tracker | `LOCAL_CORPORATE_INTELLIGENCE_PROGRESS_TRACKER_2026-09-05.md` | WBS/CPのタスク状態、依存充足、先行成果、次の安全な作業を記録する |
+| Model / Agent Assignment Policy | `MODEL_ASSIGNMENT_POLICY_2026-09-05.md` | Luna/Terra/Solの役割、reasoning effort、全WBS/A0タスクのモデル適正、昇格条件を定義する |
 
 ## Extension / parallel management documents
 
@@ -31,6 +32,7 @@ Date: 2026-09-05
 - WBS は「何を完了させるか」を定義する。
 - Critical Path は「どの依存順で進めると全体完了へ最短で到達するか」を示す。
 - Progress Tracker は「今どこまで終わったか、何がブロックされているか、次に何を安全に進めるか」を記録する。
+- Model / Agent Assignment Policy は「誰にどう委任するか」を定義する。モデル選択はWBSの完了条件を変更しない。
 - Report / Workstream は調査結果や特定laneの実行計画であり、Parent WBSの代替ではない。
 
 ## Current restart point
@@ -38,3 +40,5 @@ Date: 2026-09-05
 2026-09-05 integrated CP に従い、Local Corporate Intelligence の主作業は `I0-002`。
 並列laneは `L0-002`、A0側は `A0-002` のdataset/source定義まで先行可能。
 `I0-005`、`I0-007`、`S0-004` は先行成果を破棄せず、依存充足後に正式受入・整合を行う。
+
+モデル割当は `MODEL_ASSIGNMENT_POLICY_2026-09-05.md` を参照する。現在の推奨は、OrchestratorをSol、`I0-002`実装をTerra、`L0-002`をLuna、A0-002のdataset/source定義をTerraとする。
