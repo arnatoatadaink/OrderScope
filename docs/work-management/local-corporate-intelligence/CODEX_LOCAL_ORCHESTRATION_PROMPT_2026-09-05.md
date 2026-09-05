@@ -5,85 +5,84 @@ Date: 2026-09-05
 
 ## Purpose
 
-ローカルCodex環境で Local Corporate Intelligence の作業を安全に再開するための親Agent向けプロンプト。
-ハーネス実装が存在しない環境でも、管理資料・モデル適正・作業境界・Progress Tracker更新を手順化して運用する。
+Parent-agent prompt for safely resuming Local Corporate Intelligence work in a local Codex environment. It is designed to work even without a custom harness by enforcing management-document, model-selection, scope, review, and Progress Tracker rules.
 
 ## Prompt
 
-次の4ファイルを作業管理上の正本として参照してください。
+Treat the following four files as the canonical work-management inputs:
 
 - `docs/WORK_PLAN_LOCAL_CORPORATE_INTELLIGENCE_CRITICAL_PATH_2026-09-05.md`
 - `docs/WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
 - `docs/work-management/local-corporate-intelligence/LOCAL_CORPORATE_INTELLIGENCE_PROGRESS_TRACKER_2026-09-05.md`
 - `docs/work-management/local-corporate-intelligence/MODEL_ASSIGNMENT_POLICY_2026-09-05.md`
 
-まず4ファイルと現在のrepository状態を確認し、以下を特定してください。
+First inspect all four files and the current repository state. Identify:
 
-1. Progress Tracker上の現在の主作業
-2. WBS上の完了条件と依存関係
-3. Critical Path上の後続・並列タスク
-4. 既存実装、fixture、test、先行成果、Provisional resultとの整合
-5. Model Assignment Policy上の推奨モデルとreasoning effort
+1. the current main task in the Progress Tracker;
+2. its WBS completion conditions and dependencies;
+3. downstream and parallel tasks in the Critical Path;
+4. alignment with existing implementation, fixtures, tests, prior artifacts, and provisional results;
+5. the recommended model and reasoning effort from the Model Assignment Policy.
 
-今回の作業対象は、Progress Trackerで主作業として指定されているタスクを原則1つに限定してください。
-後続タスクへ自動的に進まないでください。
-並列laneを同時に変更しないでください。
-既存のProvisional resultは削除・再実装せず、整合対象として扱ってください。
+By default, work on only one main task selected by the Progress Tracker.
+Do not automatically continue to downstream tasks.
+Do not modify a parallel lane in the same work packet.
+Do not delete or reimplement existing provisional artifacts; treat them as integration targets.
 
-対象タスクを、単独でreview・test・rollback可能な作業単位へ分割してください。
-Agent委任が可能な場合は、1 Agent = 1 bounded change setを基本としてください。
+Split the selected task into changes that can be reviewed, tested, and rolled back independently.
+When delegation is available, use one Agent per bounded change set by default.
 
-モデル選択は `MODEL_ASSIGNMENT_POLICY_2026-09-05.md` に従ってください。
-管理資料にモデル適正が明示されていない新規作業では、推測で割り当てず、作業クラスをB1〜B4に分類して選定理由を記録してください。
+Select models according to `MODEL_ASSIGNMENT_POLICY_2026-09-05.md`.
+For new work not explicitly covered by that document, classify the work as B1-B4 and record the selection rationale instead of guessing.
 
-親Agentは以下を担当してください。
+The parent Agent owns:
 
-- タスク選択
-- 依存確認
-- Agentへの作業境界提示
-- Agent成果のdiff/testレビュー
-- WBS完了条件との照合
-- Provisional resultと既存schema/test/fixtureの整合確認
-- Acceptedへ昇格可能かの判定
-- Progress Tracker更新
+- task selection;
+- dependency-gate checks;
+- delegation scope;
+- diff/test review of child results;
+- comparison against WBS completion conditions;
+- integration checks against provisional artifacts and existing schema/test/fixture behavior;
+- acceptance-state decisions;
+- Progress Tracker updates.
 
-子Agentの成果をそのまま採用しないでください。
-以下を確認してから統合してください。
+Never accept a child-Agent result without review. Before integration, verify:
 
-- WBSの完了条件を満たすこと
-- 上流契約を破壊していないこと
-- 後続タスクの前提を壊していないこと
-- 既存testと新規testが通ること
-- Secret/credential/provider raw bodyをGitへ追加していないこと
-- 変更範囲が対象タスクの境界を越えていないこと
+- WBS completion conditions are satisfied;
+- upstream contracts are preserved;
+- downstream assumptions are not broken;
+- existing and new tests pass;
+- no secrets, credentials, or provider raw bodies were added to Git;
+- changes remain inside the assigned task boundary.
 
-`Provisional result → Accepted`、Critical Path変更、複数laneに跨るschema変更、既存設計との矛盾が発生した場合は、通常実装を停止して高位レビューへ切り替えてください。
+If work would promote `Provisional result → Accepted`, change the Critical Path, alter schema across multiple lanes, or conflicts with existing design, stop normal implementation and escalate to higher-level review.
 
-作業完了後は、
+After the work cycle, update:
 `docs/work-management/local-corporate-intelligence/LOCAL_CORPORATE_INTELLIGENCE_PROGRESS_TRACKER_2026-09-05.md`
-へ以下を追記してください。
 
-- 実施タスクID
-- 使用モデル / reasoning effort
-- モデル選定理由
-- 変更ファイル
-- test結果
-- 完了条件への適合状況
-- 状態変更
-- 残作業
-- 次の安全な作業
-- 未解決事項
+Record at least:
 
-WBSやCritical Pathの完了条件・依存関係そのものは、実装都合だけで変更しないでください。
-不明な設計判断や未確定事項を推測で補完せず、Progress Trackerへ未解決事項として記録してください。
+- task ID;
+- model / reasoning effort used;
+- model-selection rationale;
+- changed files;
+- test results;
+- completion-condition check;
+- status transition;
+- remaining work;
+- next safe action;
+- unresolved items.
+
+Do not change WBS completion conditions or Critical Path dependencies merely for implementation convenience.
+Do not infer unresolved design decisions; record them as unresolved in the Progress Tracker.
 
 ## Recommended current execution profile
 
-2026-09-05時点の現在地:
+As of 2026-09-05:
 
 - Parent orchestrator: Sol low
 - Main task `I0-002`: Terra high + Sol acceptance review
 - Parallel `L0-002`: Luna medium
 - A0 dataset/source definition: Terra medium
 
-ハーネス未実装環境では、実際に複数Agentを同時起動できない場合でも、この分担を「作業境界とレビュー責任」のルールとして使用する。
+When no harness or multi-Agent launcher exists, use these assignments as responsibility and review boundaries even if the work is performed across separate Codex sessions manually.
