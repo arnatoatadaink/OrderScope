@@ -12,9 +12,8 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Any, Protocol
 
-
-class ContractViolation(ValueError):
-    """Raised when an adapter crosses the provider-neutral boundary incorrectly."""
+from .errors import ContractViolation
+from .provenance import ProviderRevision
 
 
 @dataclass(frozen=True)
@@ -45,7 +44,7 @@ class AdapterPage:
     partial: bool
     retrieved_at: datetime
     available_at: datetime
-    provider_revision: str | None = None
+    provider_revision: ProviderRevision | None = None
     error: ErrorInfo | None = None
 
 
@@ -73,6 +72,8 @@ def assert_page_contract(page: AdapterPage, request: AdapterRequest) -> None:
         raise ContractViolation("adapter returned more items than page_size")
     if page.available_at > page.retrieved_at:
         raise ContractViolation("available_at cannot be later than retrieved_at")
+    if page.provider_revision is not None and not isinstance(page.provider_revision, ProviderRevision):
+        raise ContractViolation("provider_revision must be a ProviderRevision")
     if page.error is not None and not page.partial and page.items:
         raise ContractViolation("an error page with items must be marked partial")
     if page.error is not None and page.error.retry_after is not None:

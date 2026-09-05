@@ -7,6 +7,7 @@ from orderscope_local.contracts import (
     AdapterRequest,
     ContractViolation,
     ErrorInfo,
+    ProviderRevision,
     assert_page_contract,
     assert_secret_free,
     collect_pages,
@@ -34,7 +35,7 @@ def page(items=(), *, cursor=None, partial=False, error=None, available=START):
         partial=partial,
         retrieved_at=available + timedelta(seconds=1),
         available_at=available,
-        provider_revision="fixture-v1",
+        provider_revision=ProviderRevision("fixture-v1"),
         error=error,
     )
 
@@ -88,4 +89,15 @@ def test_common_kit_rejects_unzoned_timestamp_and_unbounded_page():
     with pytest.raises(ContractViolation, match="page_size"):
         assert_page_contract(
             AdapterPage(({}, {}, {}), None, False, START + timedelta(seconds=1), START, None), REQUEST
+        )
+
+
+def test_common_kit_requires_typed_provider_revision():
+    valid = page()
+    assert valid.provider_revision == ProviderRevision("fixture-v1")
+
+    with pytest.raises(ContractViolation, match="ProviderRevision"):
+        assert_page_contract(
+            AdapterPage((), None, False, START + timedelta(seconds=1), START, "fixture-v1"),
+            REQUEST,
         )
