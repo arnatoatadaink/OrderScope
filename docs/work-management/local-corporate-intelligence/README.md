@@ -14,6 +14,8 @@ Date: 2026-09-05
 | Integrated Critical Path | `../../WORK_PLAN_LOCAL_CORPORATE_INTELLIGENCE_CRITICAL_PATH_2026-09-05.md` | Parent WBS と A0 拡張を重ね、現在の主CP、並列lane、再開優先順位を示す |
 | Local Progress Tracker | `LOCAL_CORPORATE_INTELLIGENCE_PROGRESS_TRACKER_2026-09-05.md` | WBS/CPのタスク状態、依存充足、先行成果、次の安全な作業を記録する |
 | Model / Agent Assignment Policy | `MODEL_ASSIGNMENT_POLICY_2026-09-05.md` | Luna/Terra/Solの役割、reasoning effort、全WBS/A0タスクのモデル適正、昇格条件を定義する |
+| Codex Local Resume Prompt | `CODEX_LOCAL_ORCHESTRATION_PROMPT_2026-09-05.md` | ローカルCodexで作業再開時に親Agentへ渡す標準プロンプト |
+| Codex Local Harness Setup Guide | `CODEX_LOCAL_HARNESS_SETUP_GUIDE_2026-09-05.md` | ハーネス未実装環境からH0〜H3で段階的に運用・自動化するための整備方針 |
 
 ## Extension / parallel management documents
 
@@ -33,6 +35,8 @@ Date: 2026-09-05
 - Critical Path は「どの依存順で進めると全体完了へ最短で到達するか」を示す。
 - Progress Tracker は「今どこまで終わったか、何がブロックされているか、次に何を安全に進めるか」を記録する。
 - Model / Agent Assignment Policy は「誰にどう委任するか」を定義する。モデル選択はWBSの完了条件を変更しない。
+- Codex Local Resume Prompt は「親Agentをどう再開させるか」を定義する。
+- Codex Local Harness Setup Guide は「手動構造化運用から必要な自動化へどう昇格するか」を定義する。
 - Report / Workstream は調査結果や特定laneの実行計画であり、Parent WBSの代替ではない。
 
 ## Current restart point
@@ -42,3 +46,5 @@ Date: 2026-09-05
 `I0-005`、`I0-007`、`S0-004` は先行成果を破棄せず、依存充足後に正式受入・整合を行う。
 
 モデル割当は `MODEL_ASSIGNMENT_POLICY_2026-09-05.md` を参照する。現在の推奨は、OrchestratorをSol、`I0-002`実装をTerra、`L0-002`をLuna、A0-002のdataset/source定義をTerraとする。
+
+ハーネス未実装の現在は `CODEX_LOCAL_HARNESS_SETUP_GUIDE_2026-09-05.md` の **H0 — Manual structured operation** を採用し、`CODEX_LOCAL_ORCHESTRATION_PROMPT_2026-09-05.md` を親Agentの標準再開プロンプトとして使う。
