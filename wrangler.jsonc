@@ -1,0 +1,99 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "orderscope-market-worker",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-28",
+  "compatibility_flags": ["nodejs_compat"],
+  "triggers": {
+    "crons": ["* * * * *"]
+  },
+  "vars": {
+    "WORKER_MODE": "shadow",
+    "PREDICTION_MODE": "shadow",
+    "PREDICTION_TARGET_PROFILE": "semiconductor-canary-v0.1",
+    "MARKET_TIMEZONE": "America/New_York",
+    "DISPLAY_TIMEZONE": "Asia/Tokyo",
+    "ALPACA_FEED": "iex",
+    "UNIVERSE_PROFILE": "canary-v0.1",
+    "ACQUISITION_RETENTION_MINUTES": "1440",
+    "ACQUISITION_OVERLAP_1MIN_MINUTES": "1",
+    "ACQUISITION_OVERLAP_15MIN_MINUTES": "15",
+    "ACQUISITION_OVERLAP_1DAY_MINUTES": "1440",
+    "ACQUISITION_FINALIZATION_LAG_1MIN_MINUTES": "1",
+    "ACQUISITION_FINALIZATION_LAG_15MIN_MINUTES": "2",
+    "ACQUISITION_FINALIZATION_LAG_1DAY_MINUTES": "30",
+    "ACQUISITION_MAX_JOBS_PER_TICK": "1",
+    "ACQUISITION_MAX_PAGES_PER_JOB": "10",
+    "ACQUISITION_MAX_BARS_PER_JOB": "100",
+    "ACQUISITION_STALE_ATTEMPT_MINUTES": "15",
+    "ACQUISITION_GAP_RETRY_MINUTES": "15",
+    "ACQUISITION_PROVIDER_MAX_ATTEMPTS": "3",
+    "ACQUISITION_PROVIDER_BASE_BACKOFF_MS": "250",
+    "ACQUISITION_PROVIDER_MAX_BACKOFF_MS": "2000",
+    "ACQUISITION_PROVIDER_MAX_RETRY_AFTER_MS": "5000",
+    "ACQUISITION_RETRY_POLICY": "NEXT_CRON"
+  },
+  "secrets": {
+    "required": ["ALPACA_API_KEY", "ALPACA_API_SECRET"]
+  },
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1
+    }
+  },
+  "d1_databases": [
+    {
+      "binding": "STATE_DB",
+      "database_name": "orderscope-state",
+      "database_id": "6c44adbe-d76e-491b-a66b-728144ee04dd",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "env": {
+    "live-canary": {
+      "name": "orderscope-market-worker-live-canary",
+      "vars": {
+        "WORKER_MODE": "shadow",
+        "PREDICTION_MODE": "shadow",
+        "PREDICTION_TARGET_PROFILE": "semiconductor-canary-v0.1",
+        "MARKET_TIMEZONE": "America/New_York",
+        "DISPLAY_TIMEZONE": "Asia/Tokyo",
+        "ALPACA_FEED": "iex",
+        "UNIVERSE_PROFILE": "canary-v0.1",
+        "ACQUISITION_RETENTION_MINUTES": "1440",
+        "ACQUISITION_OVERLAP_1MIN_MINUTES": "1",
+        "ACQUISITION_OVERLAP_15MIN_MINUTES": "15",
+        "ACQUISITION_OVERLAP_1DAY_MINUTES": "1440",
+        "ACQUISITION_FINALIZATION_LAG_1MIN_MINUTES": "1",
+        "ACQUISITION_FINALIZATION_LAG_15MIN_MINUTES": "2",
+        "ACQUISITION_FINALIZATION_LAG_1DAY_MINUTES": "30",
+        "ACQUISITION_MAX_JOBS_PER_TICK": "1",
+        "ACQUISITION_MAX_PAGES_PER_JOB": "10",
+        "ACQUISITION_MAX_BARS_PER_JOB": "100",
+        "ACQUISITION_STALE_ATTEMPT_MINUTES": "15",
+        "ACQUISITION_GAP_RETRY_MINUTES": "15",
+        "ACQUISITION_PROVIDER_MAX_ATTEMPTS": "3",
+        "ACQUISITION_PROVIDER_BASE_BACKOFF_MS": "250",
+        "ACQUISITION_PROVIDER_MAX_BACKOFF_MS": "2000",
+        "ACQUISITION_PROVIDER_MAX_RETRY_AFTER_MS": "5000",
+        "ACQUISITION_RETRY_POLICY": "NEXT_CRON"
+      },
+      "secrets": {
+        "required": ["ALPACA_API_KEY", "ALPACA_API_SECRET"]
+      },
+      "d1_databases": [
+        {
+          "binding": "STATE_DB",
+          "database_name": "orderscope-state-live-canary",
+          "database_id": "03c85865-1aa3-4b0c-b219-18987cd260a6",
+          "migrations_dir": "migrations"
+        }
+      ]
+    }
+  }
+
+  // Add BAR_ARCHIVE after the first shadow deployment when archival is enabled.
+  // Provider credentials are secrets named ALPACA_API_KEY and ALPACA_API_SECRET.
+}
