@@ -6,22 +6,22 @@ Scope: Local Corporate Intelligence work management
 
 ## 1. Purpose
 
-ローカルCodex環境に専用ハーネス実装が存在しない状態から、OrderScopeのWBS / Critical Path / Progress Tracker / Model Assignment Policyを使って安全に作業を委任・レビュー・記録できる最小構成を整備するための準備資料。
+Prepare the minimum structure required to delegate, review, and record OrderScope work safely in a local Codex environment that currently has no custom harness. The harness must use the existing WBS / Critical Path / Progress Tracker / Model Assignment Policy rather than inventing a separate source of truth.
 
-この文書は、特定のAgent frameworkや外部orchestratorへ固定しない。最初は手動運用可能な境界を作り、その後必要に応じて自動化する。
+This guide does not bind the project to a specific Agent framework or external orchestrator. Start with manual structured operation, then automate only repeated work.
 
 ## 2. Design principles
 
-1. WBS / CP / Trackerを正本とし、ハーネス内部に独自の作業状態を持たない。
-2. 1 Agent = 1 bounded change setを基本とする。
-3. 親Agentと実装Agentの責任を分離する。
-4. Model Assignment Policyを作業選択とは別のポリシー層として扱う。
-5. Agent成果はdiff/testを親が再確認する。
-6. Progress Tracker更新を作業完了条件の一部にする。
-7. Secret、provider response body、raw dumpをAgent間handoffへ含めない。
-8. 並列化は依存関係が明確なtaskだけに限定する。
-9. ハーネス障害時は手動再開可能であること。
-10. Codex固有機能へ依存しすぎず、将来CLI/IDE/別Agent harnessへ移行可能にする。
+1. WBS / CP / Tracker remain canonical; the harness must not maintain an independent task state.
+2. Default to one Agent = one bounded change set.
+3. Separate parent-orchestrator and execution-Agent responsibilities.
+4. Keep model assignment as a policy layer separate from task selection.
+5. Parent rechecks Agent output using actual diff/test evidence.
+6. Progress Tracker update is part of cycle completion.
+7. Never include secrets, provider response bodies, or raw dumps in Agent handoff data.
+8. Parallelize only tasks with explicit dependency safety.
+9. Manual recovery must remain possible after harness failure.
+10. Avoid unnecessary Codex lock-in; keep migration to CLI/IDE/other Agent harnesses possible.
 
 ## 3. Minimal operating architecture
 
@@ -52,13 +52,13 @@ Parent Orchestrator
   └─ update Progress Tracker
 ```
 
-ハーネス未実装の初期段階では、この構造を複数Codexセッションまたは同一セッション内の明示的なrole切替で模倣できる。
+Until a harness exists, emulate this structure with separate Codex sessions or explicit parent/executor role switching.
 
 ## 4. Required artifacts
 
 ### 4.1 Management input
 
-必須:
+Required:
 
 - `docs/WORK_PLAN_LOCAL_CORPORATE_INTELLIGENCE_CRITICAL_PATH_2026-09-05.md`
 - `docs/WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
@@ -68,7 +68,7 @@ Parent Orchestrator
 
 ### 4.2 Work packet
 
-親Agentは子Agentへ最低限次を渡す。
+Minimum parent-to-executor contract:
 
 ```yaml
 task_id: I0-002
@@ -97,56 +97,54 @@ return_contract:
   - suggested_tracker_update
 ```
 
-初期実装ではYAMLファイルを自動生成する必要はない。上記項目をprompt templateとして使えばよい。
+H0 does not require generated YAML files; the same fields can be used directly in prompts.
 
 ## 5. Parent orchestrator responsibilities
 
-親Agentだけが次を行う。
+Only the parent should own:
 
-- 現在の主タスク選択
-- dependency gate判定
-- model / reasoning effort選択
-- allowed/forbidden scope確定
-- Provisional resultとの統合判断
-- 子Agent成果の受入レビュー
-- Progress Trackerの状態変更
-- Critical Path変更提案
+- current main-task selection;
+- dependency-gate decisions;
+- model / reasoning-effort selection;
+- allowed/forbidden scope;
+- provisional-result integration decisions;
+- acceptance review of child output;
+- Progress Tracker status changes;
+- Critical Path change proposals.
 
-通常の親Agent推奨:
+Recommended parent profile:
 
-- Sol low: 通常cycle
-- Sol medium: 初回監査、矛盾、Accepted昇格
-- Sol high: CP変更、architecture境界、複数lane衝突
+- Sol low: normal cycle
+- Sol medium: first audit, conflicts, Accepted promotion
+- Sol high: CP changes, architecture boundaries, multi-lane conflicts
 
-Terraを親にする場合:
+If Terra is the parent:
 
-- medium: 通常cycle
+- medium: normal cycle
 - high: integration review
-- Sol review: Provisional→Accepted、CP変更、高影響schema変更
+- Sol review: Provisional→Accepted, CP changes, high-impact schema changes
 
-## 6. Execution agent responsibilities
+## 6. Execution Agent responsibilities
 
-子Agentは割り当てられたtask内だけを担当する。
+Execution Agents stay inside their assigned task.
 
-行うこと:
+Do:
+- read assigned paths and required dependencies;
+- implement the bounded change;
+- add fixtures/tests;
+- run tests;
+- return a structured result.
 
-- 指定pathと関連依存を読む
-- bounded implementation
-- fixture/test追加
-- test実行
-- structured result返却
-
-行わないこと:
-
-- 次タスクへ進む
-- WBS/CPを書き換える
-- dependencyを推測で解除する
-- Provisional resultを独断でAcceptedにする
-- 別laneのrefactorを便乗して行う
+Do not:
+- continue to the next task;
+- rewrite WBS/CP;
+- infer that a blocked dependency is satisfied;
+- independently promote a provisional result to Accepted;
+- perform unrelated refactors in another lane.
 
 ## 7. Result contract
 
-各実行Agentは最低限次を返す。
+Minimum executor result:
 
 ```text
 Task: I0-002
@@ -166,70 +164,63 @@ Recommended next state:
 - In progress / Provisional result / Accepted candidate
 ```
 
-親Agentがこの結果と実diff/testを照合する。
+The parent compares this report with the actual diff and test output.
 
 ## 8. Progress Tracker update contract
 
-Trackerには最低限以下を記録する。
+Record at least:
 
-- timestamp/date
-- task ID
-- previous status → new status
-- model / reasoning effort
-- model selection rationale
-- changed files
-- test evidence
-- acceptance evidence
-- unresolved items
-- next safe action
+- timestamp/date;
+- task ID;
+- previous status → new status;
+- model / reasoning effort;
+- model-selection rationale;
+- changed files;
+- test evidence;
+- acceptance evidence;
+- unresolved items;
+- next safe action.
 
-子AgentがTrackerを直接更新する運用も可能だが、初期段階では親Agentだけが更新する方が安全。
+A child may technically edit the Tracker, but during H0 only the parent should change task status.
 
 ## 9. Failure and recovery rules
 
 ### Agent failure
 
-- partial変更を勝手に次Agentへ継承しない
-- `git diff`とtest状態を確認
-- rollback可能ならtask boundary内で戻す
-- partial成果を残す場合はTrackerへProvisionalとして記録
+- Do not pass partial edits blindly to another Agent.
+- Inspect `git diff` and test state.
+- Roll back inside the task boundary when safe.
+- If partial work is preserved, record it as provisional.
 
-### Parent session interruption
+### Parent-session interruption
 
-再開時は必ず:
-
+On resume, recheck:
 1. Progress Tracker
 2. git status / diff
 3. last test result
 4. current task ID
 5. allowed scope
 
-を再確認する。
-
 ### Conflicting edits
 
-同一ファイルを複数Agentへ並列割当しない。
-同一schemaを触るtaskは原則直列化する。
+- Do not assign the same file to multiple Agents in parallel.
+- Serialize tasks that modify the same schema by default.
 
 ## 10. Concurrency policy
 
-初期段階の推奨最大並列数は2。
+Recommended initial maximum parallelism: 2.
 
-安全な例:
+Safe example:
+- I0-002 and L0-002
 
-- I0-002 と L0-002
+Avoid:
+- I0-002 and I0-005
+- I0-003 and I0-007 formal acceptance
+- S0-003 and S0-004 integration review while the same schema is changing
 
-避ける例:
+Parallelization requires both Critical Path independence and no unsafe file overlap.
 
-- I0-002 と I0-005
-- I0-003 と I0-007 formal acceptance
-- S0-003 と S0-004 integration review when same schema is changing
-
-並列化判断はCritical Pathとfile overlapの両方で行う。
-
-## 11. Suggested repository structure for future harness implementation
-
-実装する場合の候補:
+## 11. Candidate repository structure for future implementation
 
 ```text
 tools/
@@ -248,68 +239,67 @@ tools/
       └─ I0-002.yaml
 ```
 
-現時点では未実装。必要性が確認されるまではdocsのみで運用する。
+Do not implement this structure until repeated H0 work demonstrates a need.
 
-## 12. Harness implementation phases
+## 12. Harness maturity phases
 
 ### H0 — Manual structured operation
 
-- prompt template使用
-- work packetを手動作成
-- 子Agent結果をstructured formatで返す
-- Trackerは親Agentが手動更新
-
-追加コード不要。
+- Use prompt templates.
+- Build work packets manually.
+- Require structured executor results.
+- Parent updates the Tracker manually.
+- No additional code required.
 
 ### H1 — Validation helpers
 
-- task packet schema
-- result schema
-- path scope checker
-- test command recorder
-- Tracker追記helper
+Add only repeated mechanical checks:
+- task-packet schema;
+- result schema;
+- path-scope checker;
+- test-command recorder;
+- Tracker append helper.
 
-この段階でもAgent起動自体は手動。
+Agent launching remains manual.
 
 ### H2 — Local orchestration wrapper
 
-- task選択補助
-- model/effort mapping
-- 子Agent起動
-- result collection
-- diff/test validation
+Potential responsibilities:
+- task-selection assistance;
+- model/effort mapping;
+- child-Agent launch;
+- result collection;
+- diff/test validation.
 
-Codex CLI/Desktopで実際に利用可能なsub-agent invocation interfaceを確認してから設計する。
+Design H2 only after confirming the actual Codex CLI/Desktop sub-Agent interface.
 
 ### H3 — Parallel orchestration
 
-- dependency-aware scheduling
-- file overlap lock
-- retry / timeout
-- interrupted session recovery
+Potential additions:
+- dependency-aware scheduling;
+- file-overlap locks;
+- retry / timeout;
+- interrupted-session recovery.
 
-H0/H1で運用上の必要性が確認されるまで実装しない。
+Do not build H3 until H0/H1 proves an operational need.
 
 ## 13. Current recommendation
 
-現在はH0から開始する。
+Start at H0 because:
+- WBS/CP/Tracker already exist;
+- model assignment is already defined;
+- WBS task boundaries are sufficiently fine-grained;
+- building orchestration first would delay the actual I0/L0 work.
 
-理由:
-
-- Local Corporate IntelligenceのWBS/CP/Trackerは既に存在する
-- model assignment policyも定義済み
-- task境界はWBS上で十分細かい
-- 自動orchestrationを先に作ると、本体I0/L0作業よりハーネス開発が先行する
-
-まずI0-002/L0-002をH0運用で1〜2 cycle実施し、繰り返し手作業になった部分だけH1へ昇格する。
+Run one or two H0 cycles on I0-002/L0-002. Promote only repeated manual steps into H1 helpers.
 
 ## 14. Open questions before H1/H2
 
-- ローカルCodexが子Agentごとにmodelを明示指定できるか
-- 子Agentごとにreasoning effortを指定できるか
-- sub-agent invocationの標準interfaceが存在するか
-- session間でstructured resultを安全に受け渡す標準方法
-- Codex Desktop / CLIのどちらを主運用面とするか
-- allowed path enforcementをCodex側に任せられるか、外部validatorが必要か
+- Can local Codex select a model per child Agent?
+- Can reasoning effort be set per child Agent?
+- Is there a standard sub-Agent invocation interface?
+- What is the supported structured-result handoff mechanism between sessions?
+- Should Codex Desktop or CLI be the primary control surface?
+- Can Codex enforce allowed paths, or is an external validator required?
 
-これらは実環境を確認してから確定する。
+Resolve these from the actual local environment before implementation.
