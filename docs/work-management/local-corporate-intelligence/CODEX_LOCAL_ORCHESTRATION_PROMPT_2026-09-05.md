@@ -75,6 +75,12 @@ Record at least:
 
 Do not update the Critical Path merely because a task completed or the restart point changed. Update it only when dependency structure, permanent gates, or safe-parallelization rules change. Do not change WBS completion conditions merely for implementation convenience.
 
+## Technical language rule
+
+Use English for machine-facing technical artifacts and Agent handoffs, including management-file updates, task packets, structured results, ADR/schema/interface text, code comments, and test/fixture descriptions. If a machine-facing artifact being edited contains Japanese, translate the relevant Japanese text to English unless doing so would alter normative semantics or historical evidence.
+
+User-facing responses, analysis, and explanatory reports may remain in Japanese. Do not add instructions such as `think in English` or otherwise attempt to control hidden reasoning language; optimize only observable inputs and outputs.
+
 ## Execution profile rule
 
 Do not hard-code a current task or current model assignment in this prompt. Resolve both at session start from the Progress Tracker and Model Assignment Policy so this template does not become stale.
