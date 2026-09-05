@@ -5,40 +5,39 @@ Date: 2026-09-05
 
 ## Purpose
 
-Parent-agent prompt for safely resuming Local Corporate Intelligence work in a local Codex environment. It is designed to work even without a custom harness by enforcing management-document, model-selection, scope, review, and Progress Tracker rules.
+Parent-agent prompt for safely resuming Local Corporate Intelligence work in a local Codex environment. The Progress Tracker is the sole runtime-status authority; WBS and Critical Path provide task semantics and dependency structure only.
 
 ## Prompt
 
-Treat the following four files as the canonical work-management inputs:
+Treat the following four files as canonical management inputs with distinct responsibilities:
 
-- `docs/WORK_PLAN_LOCAL_CORPORATE_INTELLIGENCE_CRITICAL_PATH_2026-09-05.md`
-- `docs/WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
-- `docs/work-management/local-corporate-intelligence/LOCAL_CORPORATE_INTELLIGENCE_PROGRESS_TRACKER_2026-09-05.md`
-- `docs/work-management/local-corporate-intelligence/MODEL_ASSIGNMENT_POLICY_2026-09-05.md`
+- `docs/work-management/local-corporate-intelligence/LOCAL_CORPORATE_INTELLIGENCE_PROGRESS_TRACKER_2026-09-05.md` — current task state, restart point, blockers, evidence, next safe work
+- `docs/WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md` — task definitions, completion conditions, dependencies
+- `docs/WORK_PLAN_LOCAL_CORPORATE_INTELLIGENCE_CRITICAL_PATH_2026-09-05.md` — static dependency order, permanent gates, safe parallelization
+- `docs/work-management/local-corporate-intelligence/MODEL_ASSIGNMENT_POLICY_2026-09-05.md` — model/reasoning selection and escalation
 
-First inspect all four files and the current repository state. Identify:
+First inspect the Progress Tracker, then use the WBS, Critical Path, Model Assignment Policy, and current repository state to validate the selected work.
 
-1. the current main task in the Progress Tracker;
+Identify:
+
+1. the current main task from the Progress Tracker;
 2. its WBS completion conditions and dependencies;
-3. downstream and parallel tasks in the Critical Path;
+3. downstream and parallel dependency relationships from the Critical Path;
 4. alignment with existing implementation, fixtures, tests, prior artifacts, and provisional results;
 5. the recommended model and reasoning effort from the Model Assignment Policy.
 
-By default, work on only one main task selected by the Progress Tracker.
-Do not automatically continue to downstream tasks.
-Do not modify a parallel lane in the same work packet.
-Do not delete or reimplement existing provisional artifacts; treat them as integration targets.
+Do not infer current progress from the Critical Path. If the Critical Path and Progress Tracker appear to disagree about runtime state, the Progress Tracker owns runtime state; investigate whether the dependency plan itself is actually wrong before proposing a Critical Path change.
 
-Split the selected task into changes that can be reviewed, tested, and rolled back independently.
-When delegation is available, use one Agent per bounded change set by default.
+By default, work on only one main task selected by the Progress Tracker. Do not automatically continue to downstream tasks or modify a parallel lane in the same work packet. Preserve provisional artifacts and treat them as integration targets.
 
-Select models according to `MODEL_ASSIGNMENT_POLICY_2026-09-05.md`.
-For new work not explicitly covered by that document, classify the work as B1-B4 and record the selection rationale instead of guessing.
+Split the selected task into changes that can be reviewed, tested, and rolled back independently. When delegation is available, use one Agent per bounded change set by default.
+
+Select models according to `MODEL_ASSIGNMENT_POLICY_2026-09-05.md`. For new work not explicitly covered there, classify the work as B1-B4 and record the rationale instead of guessing.
 
 The parent Agent owns:
 
-- task selection;
-- dependency-gate checks;
+- task selection from the Progress Tracker;
+- dependency-gate checks against WBS/CP;
 - delegation scope;
 - diff/test review of child results;
 - comparison against WBS completion conditions;
@@ -55,9 +54,10 @@ Never accept a child-Agent result without review. Before integration, verify:
 - no secrets, credentials, or provider raw bodies were added to Git;
 - changes remain inside the assigned task boundary.
 
-If work would promote `Provisional result → Accepted`, change the Critical Path, alter schema across multiple lanes, or conflicts with existing design, stop normal implementation and escalate to higher-level review.
+Escalate when work would promote `Provisional result → Accepted`, alter schema across multiple lanes, conflict with existing design, or require changing dependency structure/permanent gates in the Critical Path.
 
-After the work cycle, update:
+After each normal work cycle, update only:
+
 `docs/work-management/local-corporate-intelligence/LOCAL_CORPORATE_INTELLIGENCE_PROGRESS_TRACKER_2026-09-05.md`
 
 Record at least:
@@ -73,16 +73,10 @@ Record at least:
 - next safe action;
 - unresolved items.
 
-Do not change WBS completion conditions or Critical Path dependencies merely for implementation convenience.
-Do not infer unresolved design decisions; record them as unresolved in the Progress Tracker.
+Do not update the Critical Path merely because a task completed or the restart point changed. Update it only when dependency structure, permanent gates, or safe-parallelization rules change. Do not change WBS completion conditions merely for implementation convenience.
 
-## Recommended current execution profile
+## Execution profile rule
 
-As of 2026-09-05:
+Do not hard-code a current task or current model assignment in this prompt. Resolve both at session start from the Progress Tracker and Model Assignment Policy so this template does not become stale.
 
-- Parent orchestrator: Sol low
-- Main task `I0-002`: Terra high + Sol acceptance review
-- Parallel `L0-002`: Luna medium
-- A0 dataset/source definition: Terra medium
-
-When no harness or multi-Agent launcher exists, use these assignments as responsibility and review boundaries even if the work is performed across separate Codex sessions manually.
+When no harness or multi-Agent launcher exists, use model assignments as responsibility and review boundaries even if work is performed across separate Codex sessions manually.
