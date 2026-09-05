@@ -1,32 +1,30 @@
-# OrderScope — Analyst Expectations / Cross-Market Context 作業分解
+# OrderScope — Analyst Expectations / Cross-Market Context Work Breakdown
 
 Status: non-normative execution backlog extension
 Date: 2026-09-05
 Parent: `WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
 Normative spec: `stock_monitoring_v0.1_spec.md`
 
-## 1. 目的
+## 1. Purpose
 
-既存のCorporate Intelligence作業分解に未収載だった、Analyst ConsensusとCross-Market Contextの検証作業を追加する。
+Add Analyst Consensus and Cross-Market Context validation work that was not present in the original Corporate Intelligence WBS.
 
-この拡張では、Fact / Derived Metric / Interpretation / Predictionの分離原則を維持し、直接観測できない資金移動をFactへ昇格させない。
+Preserve the separation of Fact / Derived Metric / Interpretation / Prediction. Do not promote unobserved capital movement to Fact.
 
 ## 2. A0 — Analyst Expectations / Allocation Context
 
-| ID | タスク | 完了条件 | 依存 |
+| ID | Task | Completion condition | Dependency |
 |---|---|---|---|
-| A0-001 | Cross-Market RotationのFX反証条件を定義 | source/destination、想定FX方向、support/contradiction evidence、`fx_direction_consistency`、confidence低下規則を仕様化し、FX単独で資金移動Factを確定しないことを固定 | `I0-005`論理schema。設計作業は先行可、実装受入は`I0-002/005`Accepted後 |
-| A0-002 | CBRS 2026-09-01〜09-04 Multi-Layer Flow Validation | CBRS/NVDA/市場・AI proxy/UST/JGB/USDJPY/BTCを同一時系列で比較し、Macro / Theme / Company-specific / Short-cover / Japan→US rotation仮説をSUPPORT/PARTIAL/CONTRADICT/UNKNOWNで評価 | A0-001、利用可能なmarket/macro/consensusデータ |
+| A0-001 | Define FX contradiction conditions for Cross-Market Rotation | Specify source/destination, expected FX direction, support/contradiction evidence, `fx_direction_consistency`, and confidence-degradation rules; FX alone must not establish capital movement as Fact | `I0-005` logical schema; design may proceed early, implementation acceptance waits for Accepted `I0-002/005` |
+| A0-002 | CBRS 2026-09-01..09-04 Multi-Layer Flow Validation | Align CBRS/NVDA/market + AI proxy/UST/JGB/USDJPY/BTC on one timeline and rate Macro / Theme / Company-specific / Short-cover / Japan→US rotation hypotheses as SUPPORT/PARTIAL/CONTRADICT/UNKNOWN | A0-001 plus available market/macro/consensus data |
 
-## 3. A0-001 設計境界
+## 3. A0-001 design boundary
 
-### 入力Context
+### Minimum input context
 
-最低限:
-
-- source market index / proxy
-- destination market index / proxy
-- source/destination volumeまたはflow proxy
+- source-market index / proxy
+- destination-market index / proxy
+- source/destination volume or flow proxy
 - source/destination sovereign yield
 - relevant FX pair
 - policy expectation
@@ -34,104 +32,100 @@ Normative spec: `stock_monitoring_v0.1_spec.md`
 
 ### Hypothesis Record
 
-資金移動はFactではなくInterpretation/Hypothesisとして保持する。
+Capital movement is stored as Interpretation/Hypothesis, not Fact.
 
-必須候補field:
+Candidate required fields:
 
-- hypothesis_type
-- source_region
-- destination_region
-- proposed_direction
-- observed_window_start
-- observed_window_end
-- supporting_evidence_refs
-- contradicting_evidence_refs
-- fx_direction_consistency
-- confidence
-- generated_at
-- model_or_rule_version
+- `hypothesis_type`
+- `source_region`
+- `destination_region`
+- `proposed_direction`
+- `observed_window_start`
+- `observed_window_end`
+- `supporting_evidence_refs`
+- `contradicting_evidence_refs`
+- `fx_direction_consistency`
+- `confidence`
+- `generated_at`
+- `model_or_rule_version`
 
 ### `fx_direction_consistency`
 
-値:
-
+Values:
 - `SUPPORT`
 - `NEUTRAL`
 - `CONTRADICT`
 - `UNKNOWN`
 
-日本→米国の直接的な新規資金移動を仮定する場合、単純化した期待方向はJPY売り/USD買いであり、USD/JPY上昇がsupport候補になる。
+For a simple direct Japan→US new-capital-flow hypothesis, the expected FX direction is JPY selling / USD buying; a rising USD/JPY is therefore a support candidate.
 
-USD/JPYが大幅低下している場合は`CONTRADICT`候補とする。ただし為替はcarry unwind、政策期待、hedging、介入警戒等でも動くため、FX単独で仮説を棄却またはFact確定してはならない。
+A material USD/JPY decline is a contradiction candidate. FX can also move because of carry unwind, policy expectations, hedging, intervention risk, and other factors, so FX alone must neither confirm the hypothesis as Fact nor fully reject it.
 
 ### Confidence rule
 
-v0.1では固定スコアをまだ定めない。まずordinal判定を採用する。
+v0.1 uses ordinal confidence rather than a precise probability:
 
-- `HIGH`: 複数独立Evidenceが方向一致し、重大なcontradictionなし
-- `MEDIUM`: support優勢だがcontradictionまたは欠測あり
-- `LOW`: 主要な方向整合性が崩れる、またはsupportが弱い
-- `UNKNOWN`: 必須Context不足
+- `HIGH`: multiple independent Evidence sources align and no major contradiction exists
+- `MEDIUM`: support dominates but contradiction or missing data remains
+- `LOW`: major directional inconsistency or weak support
+- `UNKNOWN`: required context missing
 
-FXが`CONTRADICT`の場合、他の独立Evidenceで強く支持されない限り`HIGH`にしない。
+If FX is `CONTRADICT`, do not assign `HIGH` unless other independent Evidence strongly supports the hypothesis.
 
-## 4. A0-002 Validation Case
+## 4. A0-002 validation case
 
-対象期間:
+Windows:
+- baseline: 2026-08-26..2026-08-31
+- primary: 2026-09-01..2026-09-04
 
-- baseline: 2026-08-26〜2026-08-31
-- primary: 2026-09-01〜2026-09-04
-
-最低比較系列:
-
+Minimum series:
 - CBRS
 - NVDA
-- Nasdaq CompositeまたはQQQ
+- Nasdaq Composite or QQQ
 - AI/Semiconductor proxy
 - U.S. 10Y Treasury yield
 - Japan 10Y JGB yield
 - USD/JPY
 - BTC
 
-仮説:
-
+Hypotheses:
 - H1 Global Macro Relief
 - H2 AI Theme Flow
 - H3 CBRS-specific Repricing
 - H4 Short Covering
 - H5 Japan → US Capital Rotation
 
-現在の既知反証材料として、USD/JPYが約160→155→156と推移した点をH5へ登録する。この為替方向は、単純な日本資産売却→円売り→ドル買い→米国資産購入の説明とは逆であるため、H5の初期confidenceを低く置く。
+Known contradiction candidate: USD/JPY moved roughly 160 → 155 → 156. That direction is opposite to a simple Japan-asset sale → JPY sale → USD purchase → U.S.-asset purchase explanation, so H5 starts with low confidence pending other Evidence.
 
-## 5. 完了の定義
+## 5. Definition of Done
 
 ### A0-001
 
-- FXを資金移動仮説のsupport/contradiction Evidenceとして扱える
-- `fx_direction_consistency`を定義
-- confidenceのordinal ruleを定義
-- FX単独で資金移動をFact化しない
-- as-of時点のEvidence参照を保持できる
+- FX can be represented as support/contradiction Evidence for a capital-movement hypothesis.
+- `fx_direction_consistency` is defined.
+- ordinal confidence rules are defined.
+- FX alone never turns capital movement into Fact.
+- Evidence references preserve as-of state.
 
 ### A0-002
 
-- 対象系列を同一時間軸で比較
-- CBRS relative return / relative volumeを計算
-- Consensus gapを評価
-- UST/JGB/USDJPYの方向を評価
-- 5仮説にSUPPORT/PARTIAL/CONTRADICT/UNKNOWNを付与
-- FactとInterpretationを分離したValidation Reportを保存
+- Target series are aligned to one timeline.
+- CBRS relative return / relative volume are calculated.
+- Consensus gap is evaluated.
+- UST/JGB/USDJPY direction is evaluated.
+- All five hypotheses receive SUPPORT/PARTIAL/CONTRADICT/UNKNOWN.
+- Validation report separates Fact from Interpretation.
 
-## 6. 着手順
+## 6. Execution order
 
-1. `A0-001` 設計仕様確定
-2. `I0-002/005`とfield整合確認
-3. `A0-002` データ取得・Validation
-4. Validation結果を受けてconfidence ruleの数値化要否を判断
+1. Finalize `A0-001` design.
+2. Align fields with `I0-002/005`.
+3. Acquire data and execute `A0-002` validation.
+4. Use validation results to decide whether confidence needs numeric scoring.
 
-## 7. 非目標
+## 7. Non-goals
 
-- 為替だけから国際資金フロー総額を推定しない
-- 単一ニュースから買い主体を機関投資家と断定しない
-- 無料集約サイトの現在値からConsensus過去履歴を再構築しない
-- v0.1で資金移動confidenceを精密確率として出力しない
+- Do not estimate total international capital flow from FX alone.
+- Do not identify institutional buyers from a single news item.
+- Do not reconstruct historical Consensus from current values on free aggregation sites.
+- Do not express capital-flow confidence as a precise probability in v0.1.
