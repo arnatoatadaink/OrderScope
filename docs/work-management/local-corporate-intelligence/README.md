@@ -3,48 +3,47 @@
 Status: active management index (non-normative)
 Date: 2026-09-05
 
-このディレクトリは、Local Corporate Intelligence 周辺の作業管理資料への入口を一元化する。
-既存文書は他資料から参照されているため、2026-09-05時点では破壊的な移動を行わず、正本の場所を明示して管理する。
+This directory is the single entry point for Local Corporate Intelligence work-management documents. Existing canonical files remain in place to avoid breaking references.
 
 ## Core management documents
 
 | Role | Canonical document | Purpose |
 |---|---|---|
-| Parent WBS | `../../WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md` | Local Corporate Intelligence 全体の作業分解、完了条件、依存関係を定義する実行バックログ |
-| Integrated Critical Path | `../../WORK_PLAN_LOCAL_CORPORATE_INTELLIGENCE_CRITICAL_PATH_2026-09-05.md` | Parent WBS と A0 拡張を重ね、現在の主CP、並列lane、再開優先順位を示す |
-| Local Progress Tracker | `LOCAL_CORPORATE_INTELLIGENCE_PROGRESS_TRACKER_2026-09-05.md` | WBS/CPのタスク状態、依存充足、先行成果、次の安全な作業を記録する |
-| Model / Agent Assignment Policy | `MODEL_ASSIGNMENT_POLICY_2026-09-05.md` | Luna/Terra/Solの役割、reasoning effort、全WBS/A0タスクのモデル適正、昇格条件を定義する |
-| Codex Local Resume Prompt | `CODEX_LOCAL_ORCHESTRATION_PROMPT_2026-09-05.md` | ローカルCodexで作業再開時に親Agentへ渡す標準プロンプト |
-| Codex Local Harness Setup Guide | `CODEX_LOCAL_HARNESS_SETUP_GUIDE_2026-09-05.md` | ハーネス未実装環境からH0〜H3で段階的に運用・自動化するための整備方針 |
+| Parent WBS | `../../WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md` | Defines tasks, completion conditions, and dependencies |
+| Integrated Critical Path | `../../WORK_PLAN_LOCAL_CORPORATE_INTELLIGENCE_CRITICAL_PATH_2026-09-05.md` | Defines the main CP, parallel lanes, and restart order |
+| Local Progress Tracker | `LOCAL_CORPORATE_INTELLIGENCE_PROGRESS_TRACKER_2026-09-05.md` | Records task state, gates, provisional artifacts, blockers, and next safe work |
+| Model / Agent Assignment Policy | `MODEL_ASSIGNMENT_POLICY_2026-09-05.md` | Defines model roles, reasoning effort, task suitability, and escalation rules |
+| Codex Local Resume Prompt | `CODEX_LOCAL_ORCHESTRATION_PROMPT_2026-09-05.md` | Standard parent-agent prompt for resuming local work |
+| Codex Local Harness Setup Guide | `CODEX_LOCAL_HARNESS_SETUP_GUIDE_2026-09-05.md` | Defines H0-H3 harness maturity and orchestration boundaries |
 
 ## Extension / parallel management documents
 
 | Role | Canonical document | Purpose |
 |---|---|---|
-| A0 extension WBS | `../../WORK_BREAKDOWN_ANALYST_CROSS_MARKET_2026-09-05.md` | Analyst Consensus / Macro / Cross-Market Context の追加WBS |
-| A0 progress tracker | `../../ANALYST_CROSS_MARKET_PROGRESS_TRACKER_2026-09-05.md` | A0-001/A0-002 の進捗・検証状態を管理 |
-| Web workstream plan | `../../REPORT_WEB_CORPORATE_INTELLIGENCE_WORKSTREAM_2026-09-03.md` | Web側で実施する調査タスクの作業ストリーム定義 |
-| Web progress tracker | `../../WEB_CORPORATE_INTELLIGENCE_PROGRESS_TRACKER_2026-09-03.md` | Web-xxx 調査タスクの実施状況・成果物を管理 |
-| Worker implementation plan | `../../WORK_PLAN_INITIAL_VALIDATION_AND_LONG_TERM_OPERATIONS_2026-09-01.md` | Market Workerの初期検証と長期運用の工程定義 |
-| Worker implementation tracker | `../../IMPLEMENTATION_PROGRESS_TRACKER_2026-09-01.md` | Market Workerの実装・運用証跡、外部依存、次操作を管理 |
-| Worker progress report | `../../PROGRESS_REPORT_2026-09-01.md` | 2026-09-01時点のWorker進捗を圧縮したスナップショット |
+| A0 extension WBS | `../../WORK_BREAKDOWN_ANALYST_CROSS_MARKET_2026-09-05.md` | Analyst Consensus / Macro / Cross-Market extension |
+| A0 progress tracker | `../../ANALYST_CROSS_MARKET_PROGRESS_TRACKER_2026-09-05.md` | Tracks A0-001/A0-002 |
+| Web workstream plan | `../../REPORT_WEB_CORPORATE_INTELLIGENCE_WORKSTREAM_2026-09-03.md` | Defines Web-side research work |
+| Web progress tracker | `../../WEB_CORPORATE_INTELLIGENCE_PROGRESS_TRACKER_2026-09-03.md` | Tracks Web-xxx tasks |
+| Worker implementation plan | `../../WORK_PLAN_INITIAL_VALIDATION_AND_LONG_TERM_OPERATIONS_2026-09-01.md` | Market Worker validation / operations plan |
+| Worker implementation tracker | `../../IMPLEMENTATION_PROGRESS_TRACKER_2026-09-01.md` | Worker implementation / operational evidence |
+| Worker progress report | `../../PROGRESS_REPORT_2026-09-01.md` | Worker status snapshot as of 2026-09-01 |
 
 ## Role boundaries
 
-- WBS は「何を完了させるか」を定義する。
-- Critical Path は「どの依存順で進めると全体完了へ最短で到達するか」を示す。
-- Progress Tracker は「今どこまで終わったか、何がブロックされているか、次に何を安全に進めるか」を記録する。
-- Model / Agent Assignment Policy は「誰にどう委任するか」を定義する。モデル選択はWBSの完了条件を変更しない。
-- Codex Local Resume Prompt は「親Agentをどう再開させるか」を定義する。
-- Codex Local Harness Setup Guide は「手動構造化運用から必要な自動化へどう昇格するか」を定義する。
-- Report / Workstream は調査結果や特定laneの実行計画であり、Parent WBSの代替ではない。
+- WBS: what must be completed.
+- Critical Path: dependency order toward completion.
+- Progress Tracker: current state, blockers, and next safe work.
+- Model Assignment Policy: execution/review ownership; it does not change WBS semantics.
+- Codex Local Resume Prompt: how the parent agent resumes work.
+- Codex Local Harness Setup Guide: how to move from structured manual operation to automation.
+- Reports / Workstreams: lane-specific plans or evidence; they do not replace the Parent WBS.
 
 ## Current restart point
 
-2026-09-05 integrated CP に従い、Local Corporate Intelligence の主作業は `I0-002`。
-並列laneは `L0-002`、A0側は `A0-002` のdataset/source定義まで先行可能。
-`I0-005`、`I0-007`、`S0-004` は先行成果を破棄せず、依存充足後に正式受入・整合を行う。
-
-モデル割当は `MODEL_ASSIGNMENT_POLICY_2026-09-05.md` を参照する。現在の推奨は、OrchestratorをSol、`I0-002`実装をTerra、`L0-002`をLuna、A0-002のdataset/source定義をTerraとする。
-
-ハーネス未実装の現在は `CODEX_LOCAL_HARNESS_SETUP_GUIDE_2026-09-05.md` の **H0 — Manual structured operation** を採用し、`CODEX_LOCAL_ORCHESTRATION_PROMPT_2026-09-05.md` を親Agentの標準再開プロンプトとして使う。
+- Main task: `I0-002`.
+- Parallel local lane: `L0-002`.
+- A0 may advance through `A0-002` dataset/source definition only.
+- Preserve provisional artifacts for `I0-005`, `I0-007`, and `S0-004`; reconcile them after dependencies are satisfied.
+- Use `MODEL_ASSIGNMENT_POLICY_2026-09-05.md` for model selection.
+- Current recommended assignments: Sol orchestrator, Terra for `I0-002`, Luna for `L0-002`, Terra for `A0-002` dataset/source definition.
+- Until a harness exists, use H0 manual structured operation and `CODEX_LOCAL_ORCHESTRATION_PROMPT_2026-09-05.md` as the standard resume prompt.
