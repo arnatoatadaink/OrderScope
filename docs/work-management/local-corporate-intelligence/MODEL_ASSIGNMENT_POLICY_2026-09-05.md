@@ -6,191 +6,184 @@ Scope: Local Corporate Intelligence parent WBS and A0 extension
 
 ## 1. Purpose
 
-この文書は、WBSの完了条件やCritical Pathを変更せず、各作業をどのモデルへ委任するのが適切かを判断するための運用ガイドである。
-モデル名は作業の正当性や完了条件を構成しない。モデル構成が将来変更された場合は、この文書だけを更新し、WBSの意味を変更しない。
+Operational guidance for assigning work to models without changing WBS completion conditions or the Critical Path. Model names are not part of task validity or acceptance semantics; if the model lineup changes, update this document rather than the WBS.
 
 ## 2. Model roles
 
 | Model | Primary role | Suitable work | Avoid as sole owner |
 |---|---|---|---|
-| GPT-5.6 Luna | bounded executor | 変更範囲が限定された実装、fixture/test追加、定型adapter、単一契約の機械的反映、既知仕様に沿う修正 | 複数管理資料の再解釈、曖昧な設計判断、複数先行成果の統合受入、Critical Path再計算 |
-| GPT-5.6 Terra | integration executor | 複数ファイル実装、schema/adapter/testの整合、既存実装との統合、中規模設計、受入前レビュー | WBS/CPそのものを再構成する高影響判断をレビューなしで確定 |
-| GPT-5.6 Sol | orchestrator / acceptance reviewer | WBS・CP・Tracker横断、作業分割、Agent割当、設計境界、Provisional resultの統合、受入判定、矛盾解消 | 小さな機械的修正を常に直接実装する必要はない。Luna/Terraへ委任可能 |
+| GPT-5.6 Luna | bounded executor | Narrow implementation, fixture/test additions, routine adapters, mechanical contract propagation, changes under a known specification | Reinterpreting multiple management docs, ambiguous design decisions, integrating several provisional artifacts, Critical Path recalculation |
+| GPT-5.6 Terra | integration executor | Multi-file implementation, schema/adapter/test alignment, integration with existing code, medium-scale design, pre-acceptance review | High-impact WBS/CP restructuring without review |
+| GPT-5.6 Sol | orchestrator / acceptance reviewer | Cross-reading WBS/CP/Tracker, decomposition, Agent assignment, design boundaries, provisional-result integration, acceptance decisions, conflict resolution | Small mechanical edits can be delegated to Luna/Terra |
 
 ## 3. Reasoning effort guidance
 
-reasoning effortはモデル適性とは別軸として扱う。
+Reasoning effort is independent from model suitability.
 
 | Work class | Sol | Terra | Luna |
 |---|---|---|---|
-| B1: bounded implementation | low | low〜medium | medium |
-| B2: multi-file implementation | low〜medium | medium | high only when scope is tightly specified |
-| B3: integration / acceptance | medium | high | 原則 sole owner にしない |
-| B4: architecture / CP / conflicting evidence | high | high〜xhigh | 委任しない |
-| Orchestrator cycle: task選択→Agent委任→結果レビュー→Tracker更新 | low可。初回監査・矛盾発生時はmedium | medium推奨。複数Provisional統合時はhigh | 非推奨 |
+| B1: bounded implementation | low | low-medium | medium |
+| B2: multi-file implementation | low-medium | medium | high only with tightly specified scope |
+| B3: integration / acceptance | medium | high | Do not use as sole owner by default |
+| B4: architecture / CP / conflicting evidence | high | high-xhigh | Do not delegate |
+| Orchestrator cycle: select task → delegate → review → update Tracker | low if stable; medium for initial audit/conflicts | medium; high when integrating multiple provisional artifacts | Not recommended |
 
-`low`を使う条件:
+Use `low` only when:
+- WBS, CP, and Tracker are already aligned.
+- One main task is selected per cycle.
+- Parent reviews child output using actual diff/test evidence.
+- No new design decision is introduced.
+- No provisional artifact is promoted to Accepted unless the gate is already mechanical and explicit.
 
-- WBS、CP、Trackerが既に整合している
-- 1 cycleで主タスクを1つに限定する
-- 子Agentの成果を親Agentがtest結果とdiffで再確認する
-- 新しい設計判断を作らない
-- Provisional resultの受入昇格を伴わない、または既定gateだけで判定できる
-
-上記を満たさない場合は1段階上げる。
+Otherwise raise effort by one level.
 
 ## 4. Assignment rules
 
-1. WBS/CP/Trackerを読み、最初に作業IDを1つ固定する。
-2. 完了条件・依存・既存成果を確認してからモデルを選ぶ。
-3. Lunaへは原則として1 Agent = 1 bounded change setとする。
-4. Terraへは関連するschema + implementation + test程度の複数ファイル変更をまとめてよい。
-5. Solは作業分割、依存確認、Agent成果の統合レビュー、Acceptedへの昇格判断を担当する。
-6. `Provisional result → Accepted`、Critical Path変更、複数laneを跨ぐschema変更はSol reviewを要求する。
-7. 外部契約・provider条件・データ解釈が未確定なら、モデル能力で推測補完しない。
-8. モデル選択理由をProgress Trackerへ1行で記録する。
+1. Read WBS/CP/Tracker and select one task ID first.
+2. Check completion conditions, dependencies, and existing artifacts before selecting a model.
+3. Luna: normally one Agent = one bounded change set.
+4. Terra: may own a coherent schema + implementation + test change across several files.
+5. Sol owns decomposition, dependency review, integration review, and Accepted promotion.
+6. `Provisional result → Accepted`, Critical Path changes, and schema changes crossing lanes require Sol review.
+7. Never fill unknown provider/contract/data semantics by model inference.
+8. Record model-selection rationale in the Progress Tracker.
 
 ## 5. Parent WBS task suitability
 
 Legend:
-
 - **L** = Luna primary
 - **T** = Terra primary
 - **S** = Sol primary/review owner
-- `L/T` = Lunaで実装可能、複数ファイル化したらTerra
-- `T+S` = Terra実装、Sol受入レビュー
-- `L/T+S` = bounded実装はLuna/Terra、受入はSol
+- `L/T` = Luna if bounded; Terra if multi-file
+- `T+S` = Terra implementation + Sol acceptance review
+- `L/T+S` = bounded implementation by Luna/Terra + Sol acceptance
 
 ### W0 — Boundary / Canary / provider governance
 
 | Task | Primary | Reasoning | Rationale |
 |---|---|---|---|
-| W0-001 | S | low | backlog境界とLocal開始条件の整合確認。管理資料横断だが判断は既定 |
-| W0-002 | T+S | medium | registry表現は実装可能だがinstrument/ticker/CIK/IR identityの整合レビューが必要 |
-| W0-003 | S | medium | v0.1 scope境界の設計判断 |
-| W0-004 | T+S | medium | checklist作成はTerra、契約条件の採否・例外はSolレビュー |
+| W0-001 | S | low | Cross-check backlog boundary and Local start gate; decision is already defined |
+| W0-002 | T+S | medium | Registry implementation is straightforward; instrument/ticker/CIK/IR identity needs review |
+| W0-003 | S | medium | v0.1 scope-boundary decision |
+| W0-004 | T+S | medium | Terra builds the checklist; Sol reviews contract exceptions/adoption decisions |
 
 ### L0 — Local foundation
 
 | Task | Primary | Reasoning | Rationale |
 |---|---|---|---|
-| L0-001 | S | medium | stack ADR。複数技術選択とWindows/WSL境界を確定 |
-| L0-002 | L | medium | scaffold/.gitignore中心のbounded change |
-| L0-003 | T | medium | config/schema/secret/logging testの複数ファイル整合 |
-| L0-004 | L/T | medium | localhost bind + test。小規模ならLuna |
-| L0-005 | T | medium | migration設計と再生成性の整合 |
-| L0-006 | T | medium | CLI command groupと既存config/migration/health統合 |
+| L0-001 | S | medium | Stack ADR across runtime/storage/API/test and Windows/WSL boundary |
+| L0-002 | L | medium | Bounded scaffold/.gitignore change |
+| L0-003 | T | medium | Multi-file config/schema/secret/logging-test alignment |
+| L0-004 | L/T | medium | Localhost bind + tests; Luna if small |
+| L0-005 | T | medium | Migration design and reproducibility |
+| L0-006 | T | medium | CLI integration across config/migration/health |
 
 ### L1 — Market import / quality
 
 | Task | Primary | Reasoning | Rationale |
 |---|---|---|---|
-| L1-001 | T | medium | manifest schema/provenance/checksum契約 |
-| L1-002 | L/T | medium | importer + idempotency fixture。境界明確ならLuna |
-| L1-003 | S | high | remote変更窓、停止/再開/catch-upを伴う運用判断 |
-| L1-004 | T | medium | bar/receipt provenance保持とParquet決定順生成 |
-| L1-005 | T+S | medium | 品質規則が複数dimensionを跨ぐ。閾値・gap解釈はSol review |
-| L1-006 | T | medium | read-only API統合 |
+| L1-001 | T | medium | Manifest/provenance/checksum contract |
+| L1-002 | L/T | medium | Importer + idempotency fixture; Luna if boundaries are explicit |
+| L1-003 | S | high | Remote change window and stop/resume/catch-up operations |
+| L1-004 | T | medium | Deterministic Parquet generation while preserving bar/receipt provenance |
+| L1-005 | T+S | medium | Quality rules span multiple dimensions; thresholds/gap semantics need Sol review |
+| L1-006 | T | medium | Read-only API integration |
 
 ### I0 — Common External Information / Fact contracts
 
 | Task | Primary | Reasoning | Rationale |
 |---|---|---|---|
-| I0-001 | T+S | medium | source/entity履歴registry。identity境界レビューが重要 |
-| I0-002 | T+S | high | provenanceと複数timestampの意味境界。後続多数に波及 |
-| I0-003 | T+S | medium | cursor/checkpoint/pagination/partial/error契約 |
-| I0-004 | T+S | high | stable ID、update、duplicate、conflictの意味境界 |
-| I0-005 | T+S | high | Fact/Evidence/Relationship/Derived/Interpretation分離。Provisional統合受入を含む |
-| I0-006 | T+S | medium | retention/expiry/delete proof/exception lifecycle |
-| I0-007 | L/T+S | high | test kit実装自体は委任可。正式受入は複数上流契約を横断するためSol |
+| I0-001 | T+S | medium | Historical source/entity registry; identity boundary matters |
+| I0-002 | T+S | high | Provenance and timestamp semantics affect many downstream tasks |
+| I0-003 | T+S | medium | Cursor/checkpoint/pagination/partial/error contract |
+| I0-004 | T+S | high | Stable IDs plus update/duplicate/conflict semantics |
+| I0-005 | T+S | high | Fact/Evidence/Relationship/Derived/Interpretation separation and provisional integration |
+| I0-006 | T+S | medium | Retention/expiry/delete-proof/exception lifecycle |
+| I0-007 | L/T+S | high | Test-kit coding can be delegated; formal acceptance spans several upstream contracts |
 
 ### S0 — SEC Filing
 
 | Task | Primary | Reasoning | Rationale |
 |---|---|---|---|
-| S0-001 | T+S | medium | 公式条件調査はTerra、採用条件はSol review |
-| S0-002 | T | medium | provider adapterのbounded incremental実装 |
-| S0-003 | T | medium | FilingRecord永続化とidempotency |
-| S0-004 | L/T+S | medium | form filterはbounded。既存Provisional接続時のみSol review |
-| S0-005 | T | medium | temporary content lifecycleとの統合 |
-| S0-006 | T+S | high | XBRL unit/period/dimension/provider-neutral正規化は意味整合が難しい |
-| S0-007 | T+S | high | new/duplicate/amendment/partialを含むCanary受入判定 |
+| S0-001 | T+S | medium | Terra researches official conditions; Sol reviews adoption constraints |
+| S0-002 | T | medium | Bounded incremental provider adapter |
+| S0-003 | T | medium | FilingRecord persistence and idempotency |
+| S0-004 | L/T+S | medium | Form filter is bounded; Sol only for provisional integration |
+| S0-005 | T | medium | Integration with temporary-content lifecycle |
+| S0-006 | T+S | high | XBRL unit/period/dimension normalization has difficult semantics |
+| S0-007 | T+S | high | Canary acceptance across new/duplicate/amendment/partial cases |
 
 ### E0 — Earnings / Fundamental
 
 | Task | Primary | Reasoning | Rationale |
 |---|---|---|---|
-| E0-001 | T+S | high | schedule/result、GAAP/non-GAAP、source時刻境界の契約 |
-| E0-002 | T | medium | SEC filingからcandidate生成 |
-| E0-003 | T+S | high | SEC/IR dedupとsource priorityの統合 |
-| E0-004 | T | medium | 明示Fact抽出。欠損推測禁止で境界明確 |
-| E0-005 | T+S | high | Company Facts→Dimension→Filing fallbackの意味・失敗理由統合 |
-| E0-006 | T+S | high | rename/merge/split/recast identity historyは意味判断が多い |
-| E0-007 | S | high | 複数四半期・複数sourceの品質受入と未解決差異判定 |
+| E0-001 | T+S | high | Schedule/result, GAAP/non-GAAP, source/timestamp contract |
+| E0-002 | T | medium | Generate candidates from SEC filings |
+| E0-003 | T+S | high | SEC/IR dedup and source-priority integration |
+| E0-004 | T | medium | Explicit Fact extraction with no gap guessing |
+| E0-005 | T+S | high | Company Facts → Dimension → Filing fallback semantics and failure reasons |
+| E0-006 | T+S | high | Rename/merge/split/recast identity history is semantically difficult |
+| E0-007 | S | high | Multi-quarter, multi-source quality acceptance and unresolved-difference review |
 
 ### N0/N1 — News acquisition / Fact extraction
 
 | Task | Primary | Reasoning | Rationale |
 |---|---|---|---|
-| N0-001 | S | high | 価格・権利・internal-use条件を比較して採否ADR化 |
-| N0-002 | T | medium | metadata adapter実装 |
-| N0-003 | T+S | high | canonical URL、syndication、update分類の意味境界 |
-| N0-004 | T | medium | temporary body accessを既定lifecycleへ接続 |
-| N1-001 | S | high | event taxonomyという意味論設計 |
-| N1-002 | L/T | medium | deterministic baseline。パターン境界が固定されれば委任しやすい |
-| N1-003 | T+S | high | evidence span/confidence/versionとLLM境界の設計 |
-| N1-004 | S | high | SEC/IR contradiction、ambiguity、pending reviewの判断 |
-| N1-005 | T+S | medium | retention controller実装 + compliance確認 |
-| N1-006 | S | high | recall/lag/misattributionの評価設計と結果解釈 |
+| N0-001 | S | high | Provider pricing/rights/internal-use comparison and ADR decision |
+| N0-002 | T | medium | Metadata adapter implementation |
+| N0-003 | T+S | high | Canonical URL, syndication, and update classification semantics |
+| N0-004 | T | medium | Temporary body access under the defined lifecycle |
+| N1-001 | S | high | Event-taxonomy semantic design |
+| N1-002 | L/T | medium | Deterministic baseline; easy to delegate once patterns are fixed |
+| N1-003 | T+S | high | Evidence-span/confidence/version and LLM boundary |
+| N1-004 | S | high | SEC/IR contradiction, ambiguity, pending-review decisions |
+| N1-005 | T+S | medium | Retention controller + compliance review |
+| N1-006 | S | high | Recall/lag/misattribution evaluation design and interpretation |
 
 ### O0 — Official / policy context
 
 | Task | Primary | Reasoning | Rationale |
 |---|---|---|---|
-| O0-001 | T+S | medium | actor/source identity registry |
-| O0-002 | T | medium | feed adapter実装 |
-| O0-003 | T+S | high | statement/proposalとsigned/implementedのFact type境界 |
-| O0-004 | S | high | direct instrument relationとtheme indirect relationのEvidence判断 |
-| O0-005 | T+S | high | update/delete/identity/relevanceを含む品質受入 |
+| O0-001 | T+S | medium | Actor/source identity registry |
+| O0-002 | T | medium | Feed adapter implementation |
+| O0-003 | T+S | high | Statement/proposal vs signed/implemented Fact-type boundary |
+| O0-004 | S | high | Evidence-based direct instrument vs indirect theme relation |
+| O0-005 | T+S | high | Quality acceptance across update/delete/identity/relevance |
 
 ### X0 — Integration / local observability
 
 | Task | Primary | Reasoning | Rationale |
 |---|---|---|---|
-| X0-001 | T+S | high | market/filing/earnings/news/officialのas-of統合timeline |
-| X0-002 | T | medium | coverage/health summaryの集約 |
-| X0-003 | T | medium | localhost read-only API統合 |
-| X0-004 | T+S | high | scheduler、lock、resume、dry-run、adapter横断 |
-| X0-005 | T+S | high | E2E deterministic regenerationの統合受入 |
-| X0-006 | S | high | credential/rate/recovery/delete/backupを跨ぐ運用runbook |
+| X0-001 | T+S | high | As-of integration of market/filing/earnings/news/official timeline |
+| X0-002 | T | medium | Coverage/health aggregation |
+| X0-003 | T | medium | Localhost read-only API integration |
+| X0-004 | T+S | high | Scheduler/lock/resume/dry-run across adapters |
+| X0-005 | T+S | high | End-to-end deterministic-regeneration acceptance |
+| X0-006 | S | high | Operational runbook across credentials/rate/recovery/delete/backup |
 
 ## 6. A0 extension task suitability
 
 | Task | Primary | Reasoning | Rationale |
 |---|---|---|---|
-| A0-001 | S | high | Cross-Market RotationをFact化しない境界、FX contradiction、confidence ruleの意味論設計 |
-| A0-002 | T+S | high | dataset整列・計算はTerra、5仮説のsupport/contradiction統合判断はSol |
+| A0-001 | S | high | Semantic boundary preventing Cross-Market Rotation from becoming Fact; FX contradiction/confidence rules |
+| A0-002 | T+S | high | Terra aligns datasets/calculations; Sol integrates support/contradiction across five hypotheses |
 
 ## 7. Current restart assignment
 
-2026-09-05のProgress Tracker/Integrated CPに対しては次を推奨する。
+Recommended as of 2026-09-05:
+- Orchestrator: **Sol low** for normal cycles.
+- Main `I0-002`: **Terra high** for implementation/code inspection, **Sol medium-high** for acceptance review.
+- Parallel `L0-002`: **Luna medium**.
+- `A0-002` dataset/source definition only: **Terra medium**; add Sol review when hypothesis evaluation begins.
 
-- Orchestrator: **Sol low** で開始可
-- Main task `I0-002`: **Terra high** で実装・既存コード調査、**Sol medium/high** で受入レビュー
-- Parallel `L0-002`: **Luna medium**
-- A0-002 dataset/source definition only: **Terra medium**。仮説評価開始時はSol reviewを追加
-
-Sol low orchestratorは、主タスク選択・bounded delegation・diff/test review・Tracker更新に限定する。
-I0-002の設計内容そのものをSolが直接確定するcycleではmedium以上へ上げる。
+Keep Sol-low orchestration limited to selecting the main task, bounded delegation, diff/test review, and Tracker updates. Raise to medium+ when Sol is making the design decision itself.
 
 ## 8. Escalation triggers
 
-以下のいずれかが発生したら、現在のAgentを停止せず成果を保存し、親Agentのreasoning/modelを1段階上げて再レビューする。
-
-- 3つ以上のdomain（例: provenance + Fact Store + A0）へschema影響が波及
-- 既存Provisional resultと新実装が矛盾
-- WBS完了条件の解釈が2通り以上成立
-- testは通るがsemantic invariantが確認できない
-- remote mutation / credential / retention / provider contractを伴う
-- `Accepted`昇格またはCritical Path変更を提案する
-
+Preserve current work and raise parent model/effort by one level if any of the following occurs:
+- Schema impact reaches three or more domains, e.g. provenance + Fact Store + A0.
+- New work conflicts with an existing provisional artifact.
+- WBS completion conditions admit multiple plausible interpretations.
+- Tests pass but semantic invariants cannot be established.
+- Work involves remote mutation, credentials, retention, or provider contracts.
+- An `Accepted` promotion or Critical Path change is proposed.
