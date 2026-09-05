@@ -6,10 +6,15 @@ Parent WBS: `../../WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
 Integrated CP: `../../WORK_PLAN_LOCAL_CORPORATE_INTELLIGENCE_CRITICAL_PATH_2026-09-05.md`
 Extension WBS: `../../WORK_BREAKDOWN_ANALYST_CROSS_MARKET_2026-09-05.md`
 Model assignment: `MODEL_ASSIGNMENT_POLICY_2026-09-05.md`
+Runtime-status authority: **this file**
 
-## 1. Purpose
+## 1. Purpose and authority
 
-Track Local Corporate Intelligence execution against the Parent WBS and Integrated Critical Path without changing WBS completion conditions. Record current status, dependencies, provisional artifacts, formal-acceptance work, and the next safe action. Model/Agent selection follows the Model Assignment Policy and must be recorded per cycle.
+This file is the sole integrated authority for Local Corporate Intelligence runtime progress. Track current status, accepted/provisional/ready/blocked state, restart point, execution evidence, unresolved items, and next safe action here.
+
+The Parent WBS defines what must be completed. The Integrated Critical Path defines static dependency structure, permanent gates, and safe parallelization. Neither should be updated merely because execution progressed.
+
+Model/Agent selection follows the Model Assignment Policy and must be recorded per cycle.
 
 ## 2. Status vocabulary
 
@@ -26,16 +31,16 @@ Track Local Corporate Intelligence execution against the Parent WBS and Integrat
 
 | Task | Status | Evidence / interpretation | Next action |
 |---|---|---|---|
-| I0-001 | Accepted | The Integrated CP selected `I0-002` as the main task, so the prerequisite is satisfied | No change; reference only during downstream reconciliation |
-| I0-002 | Accepted | Immutable types and contract tests fix the source ref/hash, source timestamp, retrieved/available/internal-accepted timestamps, and provider revision; parent diff/test/semantic review completed in the 2026-09-05 execution cycle | No change; reference only during downstream reconciliation |
-| I0-003 | Accepted | Persistable types and tests fix provider/source scope, bounded windows, opaque cursors, and resumable partial/error states; parent diff/test/semantic review completed in the 2026-09-05 execution cycle | No change; reference only when connecting I0-007 |
-| I0-004 | Ready | Dependency satisfied by `I0-002` acceptance | Implement separately from I0-003 in a later cycle |
-| I0-005 | Provisional result | Fact Store logical schema exists; alignment to I0-002 provenance types and formal acceptance remain | Reconcile the schema and formally accept it after I0-002 |
+| I0-001 | Accepted | The prerequisite for I0-002 was satisfied before the current execution cycles | Reference only during downstream reconciliation |
+| I0-002 | Accepted | Immutable types and contract tests fix the source ref/hash, source timestamp, retrieved/available/internal-accepted timestamps, and provider revision; parent diff/test/semantic review completed in the 2026-09-05 execution cycle | Reference only during downstream reconciliation |
+| I0-003 | Accepted | Persistable types and tests fix provider/source scope, bounded windows, opaque cursors, and resumable partial/error states; parent diff/test/semantic review completed in the 2026-09-05 execution cycle | Reference only when connecting I0-007 |
+| I0-004 | Ready | Dependency satisfied by `I0-002` acceptance | Implement as a separate cycle |
+| I0-005 | Provisional result | Fact Store logical schema exists; alignment to I0-002 provenance types and formal acceptance remain | Reconcile and formally accept in a separate cycle |
 | I0-006 | Not started | Depends on `I0-005` | Define the temporary-content lifecycle after I0-005 is Accepted |
-| I0-007 | Provisional result | Common contract-test kit exists; formal acceptance waits for I0-003/004/006 | Connect the three upstream contracts and formally accept |
+| I0-007 | Provisional result | Common contract-test kit exists; formal acceptance waits for I0-003/004/006 | Connect the upstream contracts and formally accept |
 | S0-002 | Not started | Gated by I0-007 formal acceptance and S0-001 | Start the SEC adapter after I0-007 is Accepted |
 | S0-003 | Not started | Depends on `S0-002` | Implement FilingRecord persistence |
-| S0-004 | Provisional result | Form-filter implementation/report exists and is complete in the CP, but is not yet connected to S0-003 | Confirm integration after S0-003 and preserve acceptance status |
+| S0-004 | Provisional result | Form-filter implementation/report exists but is not yet connected to S0-003 | Confirm integration after S0-003 and preserve acceptance evidence |
 | S0-005 | Not started | Depends on `S0-003` + `I0-006` | Implement temporary filing-document content handling |
 | S0-006 | Not started | Depends on `S0-003` | Implement the Company Facts/XBRL adapter |
 | S0-007 | Provisional result | Early validation evidence may exist; WBS acceptance testing follows S0-004..006 integration | Run formal Canary acceptance after integration |
@@ -46,42 +51,35 @@ Track Local Corporate Intelligence execution against the Parent WBS and Integrat
 
 ### Lane A — Core contracts
 
-Latest accepted task: `I0-003`. Next safe task: `I0-004`.
+Latest accepted task: `I0-003`. Next safe main task: `I0-004`.
 
-1. I0-002
-2. I0-003 / I0-004 in parallel
-3. I0-005 alignment and acceptance
-4. I0-006
-5. I0-007 formal acceptance
+Static dependency order is defined in the Critical Path; this section records only the current runtime position.
 
 ### Lane B — Local foundation
 
-Current next task: `L0-002`
+`L0-002` is Accepted. Next safe dependent work is one of `L0-003`, `L0-004`, or `L0-005`, subject to task/file-overlap review.
 
-- `L0-002 → L0-003/L0-004/L0-005 → L0-006`
-- `L1-001 → L1-002 → L1-004 → L1-005` via fixture path
-- `L1-003` remains blocked by the separately approved `SMOKE-007` change window and must not block fixture work.
+`L1-003` remains blocked by the separately approved `SMOKE-007` change window and does not block fixture work.
 
 ### Lane C — Cross-Market extension
 
 | Task | Status | Next action |
 |---|---|---|
-| A0-001 | Provisional result | Design complete; wait for I0-002/I0-005 acceptance, then reflect fields/schema/fixtures |
+| A0-001 | Provisional result | Design complete; wait for I0-005 acceptance, then reflect fields/schema/fixtures |
 | A0-002 | Not started | Dataset/source definition may proceed before final schema write |
 
 ### Lane D — SEC / Earnings
 
 Blocked until `I0-007` formal acceptance.
-Then: `S0-002 → S0-003 → (S0-005 || S0-006) → S0-007 → E0-001..007`.
 
 ## 5. Current model / Agent assignment
 
 | Role / task | Assignment | Reasoning | Note |
 |---|---|---|---|
-| Orchestrator | Sol | low | Normal cycle while WBS/CP/Tracker are already aligned; raise to medium+ for design or Accepted promotion |
-| I0-002 implementation | Terra | high | Provenance/timestamp/source-revision contract affects many downstream tasks |
-| I0-002 acceptance review | Sol | medium-high | Verify semantic alignment with I0-005/A0-001 and downstream contracts |
-| L0-002 | Luna | medium | Bounded scaffold change |
+| Orchestrator | Sol | low | Normal cycle while WBS/CP/Tracker are aligned; raise to medium+ for design or Accepted promotion |
+| I0-004 implementation | Terra | high | Stable identity/update/duplicate/conflict semantics affect downstream contracts |
+| I0-004 acceptance review | Sol | medium-high | Verify semantic boundary and downstream compatibility |
+| Local-foundation bounded work | Luna/Terra | per Model Assignment Policy | Select one Ready task only |
 | A0-002 dataset/source definition | Terra | medium | No final schema write or hypothesis integration yet |
 
 Record the actual model, reasoning effort, delegation rationale, and review result at the end of each cycle.
@@ -95,8 +93,8 @@ Record the actual model, reasoning effort, delegation rationale, and review resu
 ## 7. Current restart rule
 
 - Main local session: `I0-004`
-- Second parallel local session: `L0-002`
-- Cross-Market session: `A0-002` dataset/source definition only until `I0-002/I0-005` are Accepted
+- Second parallel local session: choose one Ready Local-foundation task (`L0-003`, `L0-004`, or `L0-005`) after overlap review
+- Cross-Market session: `A0-002` dataset/source definition only until `I0-005` is Accepted
 - SEC implementation waits for `I0-007` formal acceptance
 
 ## 8. Unresolved items
@@ -120,8 +118,8 @@ Do not infer unresolved values; update this tracker only from repository evidenc
 | Tests / checks | Executor and parent review each ran `uv sync --locked` and `uv run pytest -q` — **58 passed**. Parent review also verified the three scaffold directories, `var/` exclusion, and `git diff --check`. |
 | Completion criteria | WBS L0-002 criteria satisfied: all three analysis scaffold directories are present and `var/` is outside Git scope. ADR L0-002 scaffold items satisfied: Python 3.13 marker retained, direct runtime/test dependencies are declared, and the locked dependency graph is updated. |
 | State | **Accepted** — parent diff/test review confirmed the bounded L0-002 change and WBS/ADR completion criteria. |
-| Remaining work | None for L0-002. L0-003, L0-004, and L0-005 remain separate downstream tasks and were not started in this cycle. |
-| Next safe action | In a later cycle, begin one dependent task such as `L0-003` (configuration/secret boundary); do not continue within this L0-002 session. |
+| Remaining work | None for L0-002. L0-003, L0-004, and L0-005 remain separate downstream tasks. |
+| Next safe action | Begin one dependent task in a later cycle; do not continue automatically. |
 | Unresolved | No new unresolved item introduced. Existing tracker unresolved items remain unchanged. |
 
 ## 10. I0-002 execution cycle (2026-09-05)
@@ -135,8 +133,8 @@ Do not infer unresolved values; update this tracker only from repository evidenc
 | Tests / checks | Executor: contract tests **21 passed**, full suite **72 passed**, `git diff --check` clean. Parent: `UV_CACHE_DIR=/tmp/orderscope-parent-i0-002-uv-cache uv run pytest -q` — **72 passed**; `git diff --check` clean. |
 | Completion criteria | WBS I0-002 criteria satisfied: canonical source reference, normalized-source SHA-256 hash, opaque provider revision, distinct event/published/filed/source-accepted timestamps, required retrieved/available/internal-accepted timestamps, UTC normalization, and `available_at <= retrieved_at <= accepted_at` are fixed by immutable types and tests. Unknown/date-only source times are not fabricated. |
 | State | **Accepted** — parent review confirmed WBS completion, I0-001 dependency, existing I0-007 adapter-page integration, Proposed I0-005 provenance semantics, and secret/raw-body boundaries. |
-| Remaining work | I0-003 and I0-004 are now Ready but were not started. I0-005 remains Provisional and requires a separate alignment/acceptance cycle after those bounded tasks are handled according to the Critical Path. |
-| Next safe action | Start exactly one downstream task in a new cycle: `I0-003` cursor/checkpoint contract or `I0-004` idempotency/duplicate boundary. |
+| Remaining work | Downstream tasks remain separate cycles. |
+| Next safe action | Continue according to the current snapshot above rather than this historical cycle entry. |
 | Unresolved | No new unresolved item introduced. Existing provider/A0 and provisional-artifact acceptance questions remain unchanged. |
 
 ## 11. I0-003 execution cycle (2026-09-05)
@@ -150,6 +148,10 @@ Do not infer unresolved values; update this tracker only from repository evidenc
 | Tests / checks | Executor: contract tests **33 passed**, full suite **84 passed**, `git diff --check` clean. Parent after invalid-record hardening: contract tests **34 passed**, full suite **85 passed**, `git diff --check` clean. |
 | Completion criteria | WBS I0-003 criteria satisfied: checkpoints are scoped by provider and source; UTC half-open windows remain bounded across resume; opaque cursors, partial/error state, retry metadata, and observation time round-trip through a storage-neutral record; complete checkpoints cannot resume; provider raw error text/body and credentials are outside the durable schema. |
 | State | **Accepted** — parent diff/test/semantic review confirmed I0-002 compatibility and the I0-007 bounded pagination/partial/error contract boundary. |
-| Remaining work | I0-004 remains Ready and was not started. I0-005 remains Provisional; I0-006 and formal I0-007 acceptance remain gated by their documented dependencies. |
-| Next safe action | Start `I0-004` as a separate cycle for stable IDs and duplicate/update/conflict classification. Do not begin I0-005 alignment in this cycle. |
+| Remaining work | I0-004 remains Ready. I0-005 remains Provisional; I0-006 and formal I0-007 acceptance remain gated by their documented dependencies. |
+| Next safe action | Start `I0-004` as a separate cycle for stable IDs and duplicate/update/conflict classification. |
 | Unresolved | No new unresolved item introduced. Existing provider/A0 and provisional-artifact acceptance questions remain unchanged. |
+
+## 12. Progress-update rule
+
+After normal implementation progress, update this file and do not mirror runtime state into the Critical Path or WBS. Update the Critical Path only when dependency structure, permanent gates, or safe-parallelization rules change.
