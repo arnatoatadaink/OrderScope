@@ -1,4 +1,4 @@
-# OrderScope — Local Corporate Intelligence 統合クリティカルパス
+# OrderScope — Local Corporate Intelligence Integrated Critical Path
 
 Status: non-normative execution plan
 Date: 2026-09-05
@@ -6,35 +6,35 @@ Parent WBS: `WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
 Extension WBS: `WORK_BREAKDOWN_ANALYST_CROSS_MARKET_2026-09-05.md`
 Normative spec: `stock_monitoring_v0.1_spec.md`
 
-## 1. 目的
+## 1. Purpose
 
-2026-09-04に確定したLocal Corporate Intelligenceクリティカルパスへ、その後追加されたAnalyst Consensus / Cross-Market Contextの`A0`作業を統合する。
+Integrate the Analyst Consensus / Cross-Market Context `A0` extension into the Local Corporate Intelligence critical path established on 2026-09-04.
 
-この文書は完了条件を変更しない。親WBS、拡張WBS、統合仕様の依存関係と2026-09-05時点の実装状態を重ね、次にどの作業を進めるべきかを一枚で示す。
+This document does not change completion conditions. It overlays Parent WBS dependencies, extension-WBS dependencies, and current repository state to define the next safe execution order.
 
-## 2. 2026-09-04 CP確定後の追加差分
+## 2. Delta since the 2026-09-04 CP baseline
 
-基準commit `b60f562d027fb4226baf82162ec5e21a447ca7a1` 以降、2026-09-05統合時点までの追加は4 commitsで、変更対象は次の3ファイルに限定される。
+Since baseline commit `b60f562d027fb4226baf82162ec5e21a447ca7a1`, the newly WBS-defined package is `A0`, introduced through:
 
-- `docs/WORK_BREAKDOWN_ANALYST_CROSS_MARKET_2026-09-05.md` — 新規
-- `docs/ANALYST_CROSS_MARKET_PROGRESS_TRACKER_2026-09-05.md` — 新規
-- `docs/stock_monitoring_v0.1_spec.md` — Analyst Consensus / Macro・Cross-Market Contextを追加
+- `docs/WORK_BREAKDOWN_ANALYST_CROSS_MARKET_2026-09-05.md`
+- `docs/ANALYST_CROSS_MARKET_PROGRESS_TRACKER_2026-09-05.md`
+- updates to `docs/stock_monitoring_v0.1_spec.md`
 
-したがって、CP確定後にrepository上で新しくWBS化された作業パッケージは`A0`である。現時点で他の新規WBSパッケージは確認されない。
+No other new WBS package was identified in that repository delta.
 
-## 3. 統合依存グラフ
+## 3. Integrated dependency graph
 
 ```text
 I0-001
   ↓
-I0-002  ← 現在の主作業
+I0-002  ← current main task
   ├─→ I0-003 ─┐
-  ├─→ I0-004 ─┼─→ I0-007 正式受入
+  ├─→ I0-004 ─┼─→ I0-007 formal acceptance
   └─→ I0-005 ─┤
         │       │
         │       └─→ I0-006 ───────┘
         │
-        └─→ A0-001 設計済み / 実装受入待ち
+        └─→ A0-001 design complete / implementation acceptance pending
                   ↓
                A0-002 Validation
 
@@ -43,117 +43,114 @@ I0-007
 S0-002
   ↓
 S0-003
-  ├─→ S0-004 完了済み
+  ├─→ S0-004 provisional/completed artifact
   ├─→ S0-005
   └─→ S0-006
         ↓
       S0-007
         ↓
-   E0-001〜007
+   E0-001..007
         ↓
    N1 / O0 / X0
 ```
 
-`A0-001`は`I0-002`と`I0-005`のAccepted化を実装受入ゲートとする。`A0-002`は`A0-001`およびmarket/macro/consensusのas-of datasetに依存する。
+`A0-001` implementation acceptance is gated by Accepted `I0-002` and `I0-005`. `A0-002` depends on A0-001 plus available as-of market/macro/consensus datasets.
 
-## 4. クリティカルパス判定
+## 4. Critical-path decisions
 
 ### 4.1 Core Corporate Intelligence delivery CP
 
-Coreの取得・Fact保存・SEC・Earnings・News/Official統合を完成させる主経路は従来どおりである。
+The primary delivery path remains:
 
 1. `I0-002`
 2. `I0-003` / `I0-004`
-3. `I0-005` Accepted化
+3. `I0-005` acceptance
 4. `I0-006`
-5. `I0-007` 正式受入
+5. `I0-007` formal acceptance
 6. `S0-002 → S0-003 → S0-005/S0-006 → S0-007`
-7. `E0-001〜007`
+7. `E0-001..007`
 8. `N1 / O0 / X0`
 
-`A0`追加によって、この主経路を直列に延長しない。
+The A0 extension does not serially extend this core path.
 
 ### 4.2 v0.1 Cross-Market acceptance lane
 
-統合仕様のDefinition of DoneにはCross-Market Rotation仮説でsupport/contradiction EvidenceとFX方向整合性を保持することが含まれる。そのため`A0-001`のschema/contract実装受入はv0.1全体のacceptance laneに含める。
+The integrated Definition of Done requires Cross-Market Rotation hypotheses to preserve support/contradiction evidence and FX-direction consistency. Therefore A0-001 schema/contract acceptance is part of the v0.1 acceptance lane.
 
-`A0-001`は`I0-002/I0-005`が整った時点でCore SEC実装と並列化する。これによりA0を追加しても、SEC/Earningsの主経路を不要に停止させない。
+Once `I0-002/I0-005` are Accepted, A0-001 implementation may proceed in parallel with Core SEC work.
 
-### 4.3 A0-002の扱い
+### 4.3 A0-002 treatment
 
-`A0-002`はCBRSを用いた具体的Validation Caseである。現行の統合仕様Definition of Doneには、CBRS 2026-09-01〜09-04のケースそのものを完了条件とする記述はない。
+`A0-002` is a concrete CBRS validation case, not currently a serial Core implementation blocker. Treat it as a validation gate for Cross-Market rule quality. Decide later, from validation evidence, whether it becomes mandatory for v0.1 release acceptance.
 
-したがって現時点では、`A0-002`をCore実装の直列ブロッカーにはしない。ただしCross-Market ruleの実測妥当性を確認するvalidation gateとして扱い、v0.1 release acceptanceへ必須化するかはValidation結果を見て判断する。
+## 5. Parallel execution plan
 
-## 5. 並列実行計画
-
-### Lane A — 共通契約 / 主CP
+### Lane A — Common contracts / main CP
 
 - `I0-002`
 - `I0-003` / `I0-004`
-- `I0-005` Accepted化
+- `I0-005` acceptance
 - `I0-006`
-- `I0-007` 正式受入
+- `I0-007` formal acceptance
 
 ### Lane B — Local foundation
 
 - `L0-002 → L0-003/L0-004/L0-005 → L0-006`
-- `L1-001 → L1-002 → L1-004 → L1-005` fixture経路
+- `L1-001 → L1-002 → L1-004 → L1-005` via fixture path
 
-`L1-003`は`SMOKE-007`変更窓待ちであり、他laneのブロッカーにしない。
+`L1-003` waits for the `SMOKE-007` change window and must not block other lanes.
 
 ### Lane C — Cross-Market extension
 
-- `A0-001`: 設計完了状態を維持
-- `I0-002/I0-005` Accepted後にfield/schema/fixtureへ反映
-- `A0-002`: as-of dataset定義・データソース確認を先行可能。ただしHypothesis recordの最終形状はA0-001実装contractに合わせる
+- Keep `A0-001` design complete.
+- After `I0-002/I0-005` acceptance, apply its fields/schema/fixtures.
+- `A0-002` may advance through as-of dataset definition and source availability checks before final Hypothesis-record schema write.
 
 ### Lane D — SEC / Earnings
 
-`I0-007`受入後に開始する。
+Start after `I0-007` acceptance:
 
 - `S0-002 → S0-003`
-- `S0-005` / `S0-006`を並列化
-- 完了済み`S0-004`を接続
+- run `S0-005` / `S0-006` in parallel
+- connect existing `S0-004`
 - `S0-007`
-- `E0-001〜007`
+- `E0-001..007`
 
-## 6. 追加タスク反映監査
+## 6. Added-task integration audit
 
-| 追加内容 | 仕様反映 | WBS収載 | CP統合 | 実装/検証状態 |
+| Addition | Spec | WBS | CP | State |
 |---|---|---|---|---|
-| Analyst Consensus tracking | 済み (`stock_monitoring_v0.1_spec.md` §13) | A0のValidation入力として収載 | 統合済み。A0 laneとして扱う | Provider/as-of datasetは未確定 |
-| Macro / Cross-Market Context | 済み (§14) | `A0-001/002` | 統合済み | A0-001設計完了、実装受入待ち |
-| FX contradiction rule | 済み (§14) | `A0-001` | `I0-002/I0-005`から分岐 | 設計完了 |
-| CBRS Multi-Layer Flow Validation | 仕様の一般要件とは分離 | `A0-002` | validation laneへ統合 | 未着手 |
+| Analyst Consensus tracking | Included | A0 validation input | Integrated as A0 lane | Provider/as-of dataset unresolved |
+| Macro / Cross-Market Context | Included | `A0-001/002` | Integrated | A0-001 design complete; acceptance pending |
+| FX contradiction rule | Included | `A0-001` | Branches from `I0-002/I0-005` | Design complete |
+| CBRS Multi-Layer Flow Validation | Separate validation case | `A0-002` | Validation lane | Not started |
 
-区分結果:
+Classification:
+- Spec + WBS + CP integrated: `A0-001`
+- WBS + CP integrated, validation not started: `A0-002`
+- No additional untracked WBS package found in the post-baseline repository delta
 
-- 仕様反映済み / WBS済み / CP統合済み: `A0-001`
-- WBS済み / CP統合済み / 検証未着手: `A0-002`
-- WBS未収載の追加パッケージ: 2026-09-04 CP基準commit以降のrepository差分では確認されない
+## 7. Current execution priority
 
-## 7. 現在の実行優先順位
+1. Finish `I0-002` as the main task.
+2. Run `I0-003` and `I0-004` in parallel.
+3. Align `I0-005` to I0-002 provenance types and make it Accepted.
+4. At the same point, apply A0-001 fields (`fx_direction_consistency`, evidence refs, confidence ordinal) to Interpretation/Hypothesis schema.
+5. Finish `I0-006` and formal acceptance of `I0-007`.
+6. In parallel with SEC work, finalize A0-002 as-of dataset definitions and source availability.
 
-1. `I0-002`を主作業として完了させる。
-2. `I0-003`と`I0-004`を並列化する。
-3. `I0-005`をI0-002 provenance型へ適合させAccepted化する。
-4. 同時点で`A0-001`の`fx_direction_consistency`、evidence refs、confidence ordinalをInterpretation/Hypothesis schemaへ反映する。
-5. `I0-006`と`I0-007`正式受入を完了する。
-6. SEC laneと並列して`A0-002`用as-of dataset定義・取得可能性を確定する。
+## 8. Restart rules
 
-## 8. 次回再開規則
+- Main session: `I0-002`
+- Second parallel session: `L0-002`
+- A0 session: dataset/source definition for `A0-002` may proceed; schema writes wait for Accepted `I0-002/I0-005`
+- Preserve provisional artifacts for `I0-005`, `I0-007`, and `S0-004`; reconcile and formally accept after dependencies are satisfied
 
-- 主セッション: `I0-002`
-- 第2並列セッション: `L0-002`
-- A0側セッション: まず`A0-002` dataset/source定義まで進めてよい。schema書込みは`I0-002/I0-005` Accepted後
-- `I0-005`、`I0-007`、`S0-004`は先行成果を破棄せず、依存充足後の整合・正式受入として扱う
+## 9. Unresolved items
 
-## 9. 未確定事項
+- Provider and contract conditions for Analyst Consensus as-of history
+- Final AI/Semiconductor proxy for A0-002
+- short/borrow provider for H4 validation
+- whether A0-002 becomes mandatory for v0.1 release acceptance
 
-- Analyst Consensusのas-of履歴を取得できるProviderと契約条件
-- A0-002で採用するAI/Semiconductor proxyの確定値
-- short/borrow dataをH4検証へ含めるProvider
-- A0-002をv0.1 release acceptanceの必須gateへ昇格させるか
-
-これらは推測で補完せず、source/contractまたはValidation evidence取得後に確定する。
+Do not infer these values. Resolve them only from confirmed source/contract information or validation evidence.
