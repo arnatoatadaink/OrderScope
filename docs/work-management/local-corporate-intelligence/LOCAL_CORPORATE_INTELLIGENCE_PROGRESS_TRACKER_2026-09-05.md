@@ -37,8 +37,8 @@ Model/Agent selection follows the Model Assignment Policy and must be recorded p
 | I0-004 | Accepted | Stable filing/article/signal identities and immutable new/duplicate/update/conflict classification are fixed by contract tests; parent diff/test/semantic review completed in the 2026-09-06 execution cycle | Reference when connecting I0-007 and downstream adapters |
 | I0-005 | Accepted | Immutable Fact Store contracts and fixtures separate Fact, Evidence, Relationship, DerivedMetric, and Interpretation while using I0-002 provenance; parent semantic/diff/test review completed in the 2026-09-06 execution cycle | Reference when implementing I0-006 and reconciling downstream provisional artifacts |
 | I0-006 | Accepted | Immutable temporary-content lifecycle types, expiry/deletion/exception invariants, and contract tests were reviewed and accepted in the 2026-09-06 execution cycle | Reference when connecting I0-007 and downstream content adapters |
-| I0-007 | Provisional result | Common contract-test kit exists; formal acceptance waits for I0-003/004/006 | Connect the upstream contracts and formally accept |
-| S0-002 | Not started | Gated by I0-007 formal acceptance and S0-001 | Start the SEC adapter after I0-007 is Accepted |
+| I0-007 | Accepted | The common contract-test kit connects the accepted checkpoint, stable-identity, and temporary-content contracts; parent semantic/diff/test review completed in the 2026-09-06 execution cycle | Reference when implementing provider adapters |
+| S0-002 | Not started | The I0-007 gate is satisfied; S0-001 still requires local acceptance from its handed-off Web evidence | Reconcile S0-001 before starting the SEC adapter |
 | S0-003 | Not started | Depends on `S0-002` | Implement FilingRecord persistence |
 | S0-004 | Provisional result | Form-filter implementation/report exists but is not yet connected to S0-003 | Confirm integration after S0-003 and preserve acceptance evidence |
 | S0-005 | Not started | Depends on `S0-003` + `I0-006` | Implement temporary filing-document content handling |
@@ -51,7 +51,7 @@ Model/Agent selection follows the Model Assignment Policy and must be recorded p
 
 ### Lane A — Core contracts
 
-Latest accepted task: `I0-006`. Next safe main task: reconcile and formally accept `I0-007` in a separate cycle.
+Latest accepted task: `I0-007`. The Core contract lane is complete; select the next task only in a separate cycle after checking its remaining gates.
 
 Static dependency order is defined in the Critical Path; this section records only the current runtime position.
 
@@ -70,15 +70,15 @@ Static dependency order is defined in the Critical Path; this section records on
 
 ### Lane D — SEC / Earnings
 
-Blocked until `I0-007` formal acceptance.
+The I0-007 gate is open. S0-002 remains gated by local S0-001 acceptance.
 
 ## 5. Current model / Agent assignment
 
 | Role / task | Assignment | Reasoning | Note |
 |---|---|---|---|
-| Orchestrator | Sol | low | Normal cycle while WBS/CP/Tracker are aligned; raise to medium+ for design or Accepted promotion |
-| I0-006 implementation | Terra | medium | Retention/expiry/delete-proof/exception lifecycle extends the accepted Fact Store boundary |
-| I0-006 acceptance review | Sol | medium | Review retention semantics, secret/raw-content boundaries, and I0-007 compatibility |
+| Orchestrator | Sol | medium | I0-007 promotion from Provisional result to Accepted requires integration and acceptance review |
+| I0-007 implementation | Terra | high | Reconcile the common kit across accepted checkpoint, identity, and temporary-content contracts |
+| I0-007 acceptance review | Sol | medium | Review cross-contract semantics, compatibility, secret/raw-content boundaries, and downstream adapter readiness |
 | Local-foundation bounded work | Luna/Terra | per Model Assignment Policy | Select one Ready task only |
 | A0-002 dataset/source definition | Terra | medium | No final schema write or hypothesis integration yet |
 
@@ -92,10 +92,10 @@ Record the actual model, reasoning effort, delegation rationale, and review resu
 
 ## 7. Current restart rule
 
-- Main local session: `I0-006` temporary-content lifecycle implementation and acceptance
+- Main local session: select the next task in a separate cycle; the Core contract lane through `I0-007` is Accepted
 - Second parallel local session: choose one Ready Local-foundation task (`L0-003`, `L0-004`, or `L0-005`) after overlap review
 - Cross-Market session: A0-001 implementation integration or `A0-002` dataset/source definition, with one task selected per cycle
-- SEC implementation waits for `I0-007` formal acceptance
+- SEC implementation waits for local `S0-001` acceptance; the `I0-007` gate is satisfied
 
 ## 8. Unresolved items
 
@@ -197,6 +197,21 @@ Do not infer unresolved values; update this tracker only from repository evidenc
 | Next safe action | Start I0-007 reconciliation and formal acceptance as a separate cycle; do not automatically continue to SEC or parallel lanes. |
 | Unresolved | No new unresolved item introduced. The exact physical retention worker, storage layout, and provider-specific body-access behavior remain downstream task scope. |
 
-## 15. Progress-update rule
+## 15. I0-007 execution cycle (2026-09-06)
+
+| Item | Result |
+|---|---|
+| Task ID | `I0-007` |
+| Model / reasoning | GPT-5 Codex delegated implementation / Terra-high responsibility; parent Sol-equivalent acceptance review / medium |
+| Selection rationale | The Model Assignment Policy classifies I0-007 as B3 `L/T+S` with high implementation reasoning because it promotes a provisional cross-contract test kit after integrating three accepted upstream contracts. One bounded implementation change set was delegated, then independently reviewed by the parent. |
+| Changed files | `analysis/app/orderscope_local/contracts/provider.py`, `analysis/app/orderscope_local/contracts/__init__.py`, `analysis/tests/contracts/test_provider_contract.py`, and this Progress Tracker. WBS and Critical Path were unchanged because no completion condition or dependency structure changed. |
+| Tests / checks | Executor: focused upstream/common contract tests **52 passed**, full suite **124 passed**, compileall passed, and `git diff --check` clean. Parent: focused provider tests **14 passed** during review; final full suite **124 passed**; `python3 -m compileall -q analysis/app analysis/tests` passed; `git diff --check` clean. |
+| Completion criteria | WBS I0-007 criteria satisfied: the common kit validates UTC availability/retrieval timestamp order, bounded cursor pagination, safe partial/error replay, bounded retry metadata, stable new/duplicate/update/conflict classification, optional temporary-content lifecycle handoff, and recursive credential/provider-body non-exposure. It delegates durable state and identity semantics to the accepted I0-003/I0-004 contracts and validates I0-006 content metadata without fabricating downstream acceptance timestamps. |
+| State | **Accepted** — all I0-003/I0-004/I0-006 dependency gates are Accepted, and parent diff/test/semantic review confirmed compatibility with legacy normalized mappings and downstream adapter use. |
+| Remaining work | No I0-007 work remains. S0-002 is no longer gated by I0-007, but S0-001 still requires local acceptance from the existing Web handoff before SEC adapter implementation starts. |
+| Next safe action | Reconcile and formally accept S0-001 in a separate cycle; do not automatically begin S0-002 or another lane. |
+| Unresolved | Provider-specific schemas and operational error messages remain outside durable Core contracts. Physical retention workers and provider-specific body access remain downstream scope. Existing provider/A0 unresolved items remain unchanged. |
+
+## 16. Progress-update rule
 
 After normal implementation progress, update this file and do not mirror runtime state into the Critical Path or WBS. Update the Critical Path only when dependency structure, permanent gates, or safe-parallelization rules change.

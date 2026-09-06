@@ -39,11 +39,15 @@ from .checkpoint import (
     OpaqueCursor,
 )
 from .provider import (
+    AdapterItem,
     AdapterPage,
     AdapterRequest,
     ErrorInfo,
     assert_page_contract,
+    assert_adapter_item_contract,
     assert_secret_free,
+    checkpoint_for_page,
+    classify_adapter_item,
     collect_pages,
 )
 from .provenance import (
@@ -59,6 +63,7 @@ from .temporary_content import TemporaryContent, TemporaryContentState, validate
 __all__ = [
     "AcquisitionCheckpoint",
     "AdapterPage",
+    "AdapterItem",
     "AdapterRequest",
     "BoundedWindow",
     "ContentIdentity",
@@ -78,7 +83,10 @@ __all__ = [
     "InterpretationAssertionKind",
     "OpaqueCursor",
     "assert_page_contract",
+    "assert_adapter_item_contract",
     "assert_secret_free",
+    "checkpoint_for_page",
+    "classify_adapter_item",
     "collect_pages",
     "ContentHash",
     "Provenance",
