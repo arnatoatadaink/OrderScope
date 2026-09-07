@@ -7,6 +7,12 @@ from .filing_records import (
     SqliteFilingRecordRepository,
     filing_record_from_adapter,
 )
+from .filing_documents import (
+    FilingDocumentAcquisition,
+    SecDocumentTransport,
+    SecFilingDocumentAcquirer,
+    TemporaryContentStore,
+)
 from .form_filter import (
     SecFormDecision,
     SecFormFamily,
@@ -29,6 +35,10 @@ __all__ = [
     "FilingWriteResult",
     "SqliteFilingRecordRepository",
     "filing_record_from_adapter",
+    "FilingDocumentAcquisition",
+    "SecDocumentTransport",
+    "SecFilingDocumentAcquirer",
+    "TemporaryContentStore",
     "SecFormDecision",
     "SecFormFamily",
     "SecFormRejectionReason",

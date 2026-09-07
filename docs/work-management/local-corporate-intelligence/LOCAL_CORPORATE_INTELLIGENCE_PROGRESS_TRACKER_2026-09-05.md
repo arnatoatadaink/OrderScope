@@ -42,7 +42,7 @@ Model/Agent selection follows the Model Assignment Policy and must be recorded p
 | S0-002 | Accepted | The bounded AMD/NVDA Submissions adapter, recent/history fixtures, common-contract integration, and parent semantic/test review completed in the 2026-09-08 execution cycle | Reference when implementing FilingRecord persistence |
 | S0-003 | Accepted | Immutable FilingRecord conversion and SQLite repository persist accession-keyed metadata idempotently; parent semantic/diff/test review completed in the 2026-09-08 execution cycle | Reference when integrating the provisional form filter and implementing document/XBRL adapters |
 | S0-004 | Accepted | The strict target-form filter is connected to Accepted S0-003 FilingRecord output; parent semantic/diff/test review completed in the 2026-09-08 execution cycle | Reference when implementing S0-007 acceptance |
-| S0-005 | Ready | Depends on Accepted `S0-003` + `I0-006` | Implement temporary filing-document content handling in a separate cycle |
+| S0-005 | Accepted | The canonical primary-document acquirer stages SHA-256-addressed temporary content and returns sanitized retryable failures; parent semantic/diff/test review completed in the 2026-09-08 execution cycle | Reference when integrating S0-007 and the downstream retention worker |
 | S0-006 | Ready | Depends on Accepted `S0-003` | Implement the Company Facts/XBRL adapter in a separate cycle |
 | S0-007 | Provisional result | Early validation evidence may exist; WBS acceptance testing follows S0-004..006 integration | Run formal Canary acceptance after integration |
 | E0-001..007 | Not started | Depends on the S0 lane and I0-005 | Start sequentially after S0-007 |
@@ -71,7 +71,7 @@ Static dependency order is defined in the Critical Path; this section records on
 
 ### Lane D — SEC / Earnings
 
-S0-004 is Accepted. S0-005 and S0-006 are dependency-ready but remain separate cycles.
+S0-005 is Accepted. S0-006 remains Ready as a separate cycle; S0-007 remains Provisional until S0-006 is Accepted and formal acceptance integration is completed.
 
 ## 5. Current model / Agent assignment
 
@@ -92,10 +92,10 @@ Record the actual model, reasoning effort, delegation rationale, and review resu
 
 ## 7. Current restart rule
 
-- Main local session: select one Ready SEC task, `S0-005` or `S0-006`, in a separate cycle; `S0-004` is Accepted
+- Main local session: start Ready `S0-006` as a separate cycle; `S0-005` is Accepted
 - Second parallel local session: choose one Ready Local-foundation task (`L0-003`, `L0-004`, or `L0-005`) after overlap review
 - Cross-Market session: A0-001 implementation integration or `A0-002` dataset/source definition, with one task selected per cycle
-- SEC implementation may continue with one of `S0-005` or `S0-006`; select only one per cycle
+- SEC implementation may continue with `S0-006`; keep formal `S0-007` acceptance in a later separate cycle
 
 ## 8. Unresolved items
 
@@ -272,6 +272,21 @@ Do not infer unresolved values; update this tracker only from repository evidenc
 | Next safe action | Select either `S0-005` or `S0-006` as the next main SEC cycle; do not automatically begin both or promote S0-007. |
 | Unresolved | No new provider semantics were inferred. Existing provider/A0 questions and the exact remaining S0-007 live/partial evidence remain unresolved. |
 
-## 20. Progress-update rule
+## 20. S0-005 execution cycle (2026-09-08)
+
+| Item | Result |
+|---|---|
+| Task ID | `S0-005` |
+| Model / reasoning | Parent GPT-5 Codex / Terra-medium-equivalent implementation and Sol-equivalent acceptance review / medium |
+| Selection rationale | The Model Assignment Policy classifies S0-005 as Terra/medium because it integrates a bounded SEC acquisition adapter with the Accepted I0-006 lifecycle contract. Session rules did not permit unsolicited sub-Agent delegation, so the parent preserved implementation and semantic-review responsibilities within one bounded task. |
+| Changed files | `analysis/app/orderscope_local/sec/filing_documents.py`, `analysis/app/orderscope_local/sec/__init__.py`, `analysis/tests/sec/test_filing_documents.py`, and this Progress Tracker. WBS and Critical Path were unchanged because no completion condition or dependency structure changed. |
+| Tests / checks | Focused S0-003/I0-006/provider integration tests **38 passed**; the full suite **152 passed**. `python3 -m compileall -q analysis/app analysis/tests` passed and `git diff --check` was clean. Remote comparison after `git fetch origin --prune` confirmed the starting branch was **0 ahead / 0 behind** its upstream. |
+| Completion criteria | WBS S0-005 criteria satisfied: acquisition accepts only the canonical primary-document reference derived from an Accepted S0-003 FilingRecord, applies the shared SEC rate-limiter and declared contact-bearing User-Agent, hashes the returned bytes with SHA-256, and stages them outside durable metadata under a hash-derived I0-006 TemporaryContent reference with bounded expiry. Known provider failures preserve retryability and bounded retry delay; unknown transport/storage failures are sanitized and retryable; invalid or oversized documents are non-retryable and are not stored. |
+| State | **Accepted** — the S0-003 and I0-006 dependency gates were Accepted, and parent diff/test/semantic review confirmed canonical SEC Archives scoping, content hash/reference alignment, temporary-success lifecycle compatibility, bounded content and retention, and no document body, provider exception text, or credential exposure in the result. |
+| Remaining work | No S0-005 work remains. Physical temporary-storage implementation and retention-worker deletion remain L0-005/N1-005 integration scope. S0-006 remains Ready, and S0-007 remains Provisional until S0-006 and formal new/duplicate/amendment/partial acceptance integration are complete. |
+| Next safe action | Start `S0-006` as a separate main cycle; do not automatically promote S0-007. |
+| Unresolved | No provider semantics were inferred. Production transport/storage wiring and the exact S0-007 limited-live evidence remain unresolved downstream integration details. |
+
+## 21. Progress-update rule
 
 After normal implementation progress, update this file and do not mirror runtime state into the Critical Path or WBS. Update the Critical Path only when dependency structure, permanent gates, or safe-parallelization rules change.
