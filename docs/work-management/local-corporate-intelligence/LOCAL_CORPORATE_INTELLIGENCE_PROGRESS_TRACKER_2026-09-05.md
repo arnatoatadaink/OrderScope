@@ -39,8 +39,8 @@ Model/Agent selection follows the Model Assignment Policy and must be recorded p
 | I0-006 | Accepted | Immutable temporary-content lifecycle types, expiry/deletion/exception invariants, and contract tests were reviewed and accepted in the 2026-09-06 execution cycle | Reference when connecting I0-007 and downstream content adapters |
 | I0-007 | Accepted | The common contract-test kit connects the accepted checkpoint, stable-identity, and temporary-content contracts; parent semantic/diff/test review completed in the 2026-09-06 execution cycle | Reference when implementing provider adapters |
 | S0-001 | Accepted | The WEB-005 handoff was reconciled against the W0-004 checklist and current SEC primary sources; parent evidence and semantic review completed in the 2026-09-08 execution cycle | Reference when implementing SEC adapters and recheck before live deployment or after policy changes |
-| S0-002 | Ready | Both `I0-007` and `S0-001` are Accepted | Implement the bounded CIK/submissions adapter in a separate cycle |
-| S0-003 | Not started | Depends on `S0-002` | Implement FilingRecord persistence |
+| S0-002 | Accepted | The bounded AMD/NVDA Submissions adapter, recent/history fixtures, common-contract integration, and parent semantic/test review completed in the 2026-09-08 execution cycle | Reference when implementing FilingRecord persistence |
+| S0-003 | Ready | Depends on Accepted `S0-002` | Implement FilingRecord persistence in a separate cycle |
 | S0-004 | Provisional result | Form-filter implementation/report exists but is not yet connected to S0-003 | Confirm integration after S0-003 and preserve acceptance evidence |
 | S0-005 | Not started | Depends on `S0-003` + `I0-006` | Implement temporary filing-document content handling |
 | S0-006 | Not started | Depends on `S0-003` | Implement the Company Facts/XBRL adapter |
@@ -71,15 +71,14 @@ Static dependency order is defined in the Critical Path; this section records on
 
 ### Lane D — SEC / Earnings
 
-The I0-007 and S0-001 gates are open. S0-002 is Ready.
+S0-002 is Accepted. S0-003 is Ready; do not start its persistence work in the S0-002 cycle.
 
 ## 5. Current model / Agent assignment
 
 | Role / task | Assignment | Reasoning | Note |
 |---|---|---|---|
-| Orchestrator | Sol | medium | S0-001 acceptance requires management-input reconciliation and current official-source review |
-| S0-001 official-source audit | Terra | medium | Reconcile the bounded WEB-005 handoff against current SEC primary sources and the W0-004 checklist |
-| S0-001 acceptance review | Sol | medium | Review evidence currency, public-data/EDGAR Next scope, unresolved conditions, and the downstream adapter gate |
+| Orchestrator | Sol | medium | Select and review one task against the Tracker, WBS, Critical Path, and repository evidence |
+| S0-003 implementation | Terra | medium | FilingRecord persistence is a multi-file provider-neutral integration task |
 | Local-foundation bounded work | Luna/Terra | per Model Assignment Policy | Select one Ready task only |
 | A0-002 dataset/source definition | Terra | medium | No final schema write or hypothesis integration yet |
 
@@ -93,10 +92,10 @@ Record the actual model, reasoning effort, delegation rationale, and review resu
 
 ## 7. Current restart rule
 
-- Main local session: start `S0-002` in a separate cycle; both `I0-007` and `S0-001` are Accepted
+- Main local session: start `S0-003` in a separate cycle; `S0-002` is Accepted
 - Second parallel local session: choose one Ready Local-foundation task (`L0-003`, `L0-004`, or `L0-005`) after overlap review
 - Cross-Market session: A0-001 implementation integration or `A0-002` dataset/source definition, with one task selected per cycle
-- SEC implementation may begin with `S0-002`; do not automatically continue to `S0-003`
+- SEC implementation may continue with `S0-003`; do not automatically continue to its downstream tasks
 
 ## 8. Unresolved items
 
@@ -228,6 +227,21 @@ Do not infer unresolved values; update this tracker only from repository evidenc
 | Next safe action | Start S0-002 as a separate cycle; do not automatically begin another SEC task. |
 | Unresolved | SEC publishes no formal User-Agent grammar, exact block HTTP status/header behavior is not guaranteed, and no explicit local-retention duration was found. Recheck official conditions before live deployment and when SEC pages or policy change. |
 
-## 17. Progress-update rule
+## 17. S0-002 execution cycle (2026-09-08)
+
+| Item | Result |
+|---|---|
+| Task ID | `S0-002` |
+| Model / reasoning | Parent GPT-5 Codex / Terra-medium-equivalent implementation and Sol-equivalent acceptance review / medium |
+| Selection rationale | The Model Assignment Policy classifies S0-002 as a bounded multi-file provider adapter for Terra/medium. Session rules did not permit unsolicited sub-Agent delegation, so the parent preserved implementation and acceptance-review responsibilities while completing one bounded S0-002 change set. |
+| Changed files | `analysis/app/orderscope_local/sec/submissions.py`, `analysis/app/orderscope_local/sec/__init__.py`, `analysis/tests/sec/test_submissions.py`, and this Progress Tracker. WBS and Critical Path were unchanged because no completion condition or dependency structure changed. |
+| Tests / checks | Focused Submissions adapter tests **9 passed** after acceptance hardening; the full suite **133 passed**. `python3 -m compileall -q analysis/app analysis/tests` passed and `git diff --check` was clean. Remote comparison after `git fetch origin --prune` confirmed the starting branch was **0 ahead / 0 behind** its upstream. |
+| Completion criteria | WBS S0-002 criteria satisfied: the adapter accepts only the fixed AMD/NVDA canary sources, reads current and intersecting historical Submissions files inside a UTC half-open window, paginates with an opaque cursor, and emits provider-neutral accession identities plus bounded filing metadata. SEC columnar JSON and transport exception bodies do not cross the adapter boundary. Tests cover declared contact-bearing User-Agent configuration, a shareable fixed-interval limiter capped at the SEC public ceiling, history-window selection, cursor resume, malformed provider responses, retryable sanitized failures, CIK/history-file cross-company rejection, and common page/checkpoint contracts. |
+| State | **Accepted** — both upstream gates were Accepted, and parent diff/test/semantic review confirmed I0-003/I0-004/I0-007 compatibility, stable accession identity, deterministic content hashing, bounded AMD/NVDA scope, and no credential or raw-provider-body fields. |
+| Remaining work | S0-003 FilingRecord persistence remains a separate task. Production HTTP transport wiring, deployment-level shared-limiter configuration, operational cooldown behavior, and controlled live fetching remain downstream local-foundation/S0-007 integration scope; S0-004 and S0-007 provisional artifacts were preserved. |
+| Next safe action | Start `S0-003` in a separate cycle and connect these normalized adapter items to idempotent FilingRecord persistence; do not automatically continue to S0-004/S0-005/S0-006. |
+| Unresolved | The exact SEC block status/header behavior remains provider-dependent and must not be inferred. Offset cursors are stable for the adapter's deterministic oldest-first snapshot ordering, while persistence must still deduplicate by accession when a later provider snapshot changes. Existing tracker unresolved items remain unchanged. |
+
+## 18. Progress-update rule
 
 After normal implementation progress, update this file and do not mirror runtime state into the Critical Path or WBS. Update the Critical Path only when dependency structure, permanent gates, or safe-parallelization rules change.
