@@ -1,5 +1,12 @@
 """Provider-neutral SEC filing contracts."""
 
+from .filing_records import (
+    FilingRecord,
+    FilingWrite,
+    FilingWriteResult,
+    SqliteFilingRecordRepository,
+    filing_record_from_adapter,
+)
 from .form_filter import (
     SecFormDecision,
     SecFormFamily,
@@ -16,6 +23,11 @@ from .submissions import (
 )
 
 __all__ = [
+    "FilingRecord",
+    "FilingWrite",
+    "FilingWriteResult",
+    "SqliteFilingRecordRepository",
+    "filing_record_from_adapter",
     "SecFormDecision",
     "SecFormFamily",
     "SecFormRejectionReason",

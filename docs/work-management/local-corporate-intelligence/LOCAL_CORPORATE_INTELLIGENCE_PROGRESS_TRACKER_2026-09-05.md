@@ -40,10 +40,10 @@ Model/Agent selection follows the Model Assignment Policy and must be recorded p
 | I0-007 | Accepted | The common contract-test kit connects the accepted checkpoint, stable-identity, and temporary-content contracts; parent semantic/diff/test review completed in the 2026-09-06 execution cycle | Reference when implementing provider adapters |
 | S0-001 | Accepted | The WEB-005 handoff was reconciled against the W0-004 checklist and current SEC primary sources; parent evidence and semantic review completed in the 2026-09-08 execution cycle | Reference when implementing SEC adapters and recheck before live deployment or after policy changes |
 | S0-002 | Accepted | The bounded AMD/NVDA Submissions adapter, recent/history fixtures, common-contract integration, and parent semantic/test review completed in the 2026-09-08 execution cycle | Reference when implementing FilingRecord persistence |
-| S0-003 | Ready | Depends on Accepted `S0-002` | Implement FilingRecord persistence in a separate cycle |
-| S0-004 | Provisional result | Form-filter implementation/report exists but is not yet connected to S0-003 | Confirm integration after S0-003 and preserve acceptance evidence |
-| S0-005 | Not started | Depends on `S0-003` + `I0-006` | Implement temporary filing-document content handling |
-| S0-006 | Not started | Depends on `S0-003` | Implement the Company Facts/XBRL adapter |
+| S0-003 | Accepted | Immutable FilingRecord conversion and SQLite repository persist accession-keyed metadata idempotently; parent semantic/diff/test review completed in the 2026-09-08 execution cycle | Reference when integrating the provisional form filter and implementing document/XBRL adapters |
+| S0-004 | Provisional result | Form-filter implementation/report exists and its S0-003 dependency is now Accepted | Reconcile and formally accept the provisional artifact in a separate cycle |
+| S0-005 | Ready | Depends on Accepted `S0-003` + `I0-006` | Implement temporary filing-document content handling in a separate cycle |
+| S0-006 | Ready | Depends on Accepted `S0-003` | Implement the Company Facts/XBRL adapter in a separate cycle |
 | S0-007 | Provisional result | Early validation evidence may exist; WBS acceptance testing follows S0-004..006 integration | Run formal Canary acceptance after integration |
 | E0-001..007 | Not started | Depends on the S0 lane and I0-005 | Start sequentially after S0-007 |
 | N1 / O0 / X0 | Not started | Depends on the Core Fact/SEC/Earnings lanes | Start later on the Core CP |
@@ -71,14 +71,14 @@ Static dependency order is defined in the Critical Path; this section records on
 
 ### Lane D — SEC / Earnings
 
-S0-002 is Accepted. S0-003 is Ready; do not start its persistence work in the S0-002 cycle.
+S0-003 is Accepted. S0-004 reconciliation, S0-005, and S0-006 are dependency-ready but remain separate cycles.
 
 ## 5. Current model / Agent assignment
 
 | Role / task | Assignment | Reasoning | Note |
 |---|---|---|---|
 | Orchestrator | Sol | medium | Select and review one task against the Tracker, WBS, Critical Path, and repository evidence |
-| S0-003 implementation | Terra | medium | FilingRecord persistence is a multi-file provider-neutral integration task |
+| S0-004 reconciliation | Luna/Terra + Sol review | medium | Reconcile the bounded provisional form filter with Accepted S0-003 before promotion |
 | Local-foundation bounded work | Luna/Terra | per Model Assignment Policy | Select one Ready task only |
 | A0-002 dataset/source definition | Terra | medium | No final schema write or hypothesis integration yet |
 
@@ -88,14 +88,14 @@ Record the actual model, reasoning effort, delegation rationale, and review resu
 
 - `L1-003` remote D1 export change window is deferred and does not block local fixture work.
 - `A0-002` is a validation lane and is not currently a serial blocker for Core Corporate Intelligence.
-- Preserve and reconcile provisional artifacts for `I0-007` and `S0-004`; do not discard them.
+- Preserve and reconcile provisional artifacts for `S0-004` and `S0-007`; do not discard them.
 
 ## 7. Current restart rule
 
-- Main local session: start `S0-003` in a separate cycle; `S0-002` is Accepted
+- Main local session: reconcile and formally accept provisional `S0-004` in a separate cycle; `S0-003` is Accepted
 - Second parallel local session: choose one Ready Local-foundation task (`L0-003`, `L0-004`, or `L0-005`) after overlap review
 - Cross-Market session: A0-001 implementation integration or `A0-002` dataset/source definition, with one task selected per cycle
-- SEC implementation may continue with `S0-003`; do not automatically continue to its downstream tasks
+- SEC implementation may continue with one of `S0-004`, `S0-005`, or `S0-006`; select only one per cycle
 
 ## 8. Unresolved items
 
@@ -242,6 +242,21 @@ Do not infer unresolved values; update this tracker only from repository evidenc
 | Next safe action | Start `S0-003` in a separate cycle and connect these normalized adapter items to idempotent FilingRecord persistence; do not automatically continue to S0-004/S0-005/S0-006. |
 | Unresolved | The exact SEC block status/header behavior remains provider-dependent and must not be inferred. Offset cursors are stable for the adapter's deterministic oldest-first snapshot ordering, while persistence must still deduplicate by accession when a later provider snapshot changes. Existing tracker unresolved items remain unchanged. |
 
-## 18. Progress-update rule
+## 18. S0-003 execution cycle (2026-09-08)
+
+| Item | Result |
+|---|---|
+| Task ID | `S0-003` |
+| Model / reasoning | Parent GPT-5 Codex / Terra-medium-equivalent implementation and Sol-equivalent acceptance review / medium |
+| Selection rationale | The Model Assignment Policy classifies S0-003 as Terra/medium because it is a multi-file provider-neutral persistence integration. Session rules did not permit unsolicited sub-Agent delegation, so the parent preserved implementation and acceptance-review responsibilities while completing one bounded S0-003 change set. |
+| Changed files | `analysis/app/orderscope_local/sec/filing_records.py`, `analysis/app/orderscope_local/sec/__init__.py`, `analysis/tests/sec/test_filing_records.py`, and this Progress Tracker. WBS and Critical Path were unchanged because no completion condition or dependency structure changed. |
+| Tests / checks | Focused FilingRecord persistence tests **10 passed**; the full suite **143 passed**. `python3 -m compileall -q analysis/app analysis/tests` passed and `git diff --check` was clean. |
+| Completion criteria | WBS S0-003 criteria satisfied: normalized S0-002 items are validated against their global accession identity and AMD/NVDA CIK/ticker scope, then accession, form, date-precision `filed_at`, optional `period_end`, canonical primary-document reference, source reference, content hash, and UTC `retrieved_at` are persisted in SQLite. First insertion is `new`; the same accession/hash is an idempotent `duplicate` that preserves the first retrieval; a changed hash for the same accession is an explicit conflict rather than an inferred update. |
+| State | **Accepted** — the S0-002 dependency was Accepted, and parent diff/test/semantic review confirmed compatibility with I0-004 identity rules, S0-004 amendment-as-distinct-accession assumptions, unknown optional dates/document references, and the provider-body/credential exclusion boundary. |
+| Remaining work | Versioned creation of the `filing_records` table remains L0-005 scope; the repository intentionally requires a pre-migrated SQLite connection. S0-004 remains Provisional pending a separate reconciliation cycle. S0-005 and S0-006 are now Ready, and S0-007 remains gated by S0-004..006. |
+| Next safe action | Reconcile and formally accept provisional `S0-004` as a separate main cycle, or select one Ready S0-005/S0-006 task after overlap review; do not automatically continue in this cycle. |
+| Unresolved | No provider semantics were inferred. An accession with a changed normalized content hash remains a conflict unless a later accepted contract supplies an explicit revision relationship. |
+
+## 19. Progress-update rule
 
 After normal implementation progress, update this file and do not mirror runtime state into the Critical Path or WBS. Update the Critical Path only when dependency structure, permanent gates, or safe-parallelization rules change.
