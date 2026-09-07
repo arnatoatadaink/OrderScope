@@ -43,8 +43,8 @@ Model/Agent selection follows the Model Assignment Policy and must be recorded p
 | S0-003 | Accepted | Immutable FilingRecord conversion and SQLite repository persist accession-keyed metadata idempotently; parent semantic/diff/test review completed in the 2026-09-08 execution cycle | Reference when integrating the provisional form filter and implementing document/XBRL adapters |
 | S0-004 | Accepted | The strict target-form filter is connected to Accepted S0-003 FilingRecord output; parent semantic/diff/test review completed in the 2026-09-08 execution cycle | Reference when implementing S0-007 acceptance |
 | S0-005 | Accepted | The canonical primary-document acquirer stages SHA-256-addressed temporary content and returns sanitized retryable failures; parent semantic/diff/test review completed in the 2026-09-08 execution cycle | Reference when integrating S0-007 and the downstream retention worker |
-| S0-006 | Ready | Depends on Accepted `S0-003` | Implement the Company Facts/XBRL adapter in a separate cycle |
-| S0-007 | Provisional result | Early validation evidence may exist; WBS acceptance testing follows S0-004..006 integration | Run formal Canary acceptance after integration |
+| S0-006 | Accepted | Provider-neutral Company Facts/XBRL types preserve unit, period, dimensions, filing/API source, and bounded AMD/NVDA acquisition behavior; parent semantic/diff/test review completed in the 2026-09-08 execution cycle | Reference when integrating S0-007 and later fundamental extraction |
+| S0-007 | Provisional result | Early validation evidence may exist; all S0-004..006 dependency gates are now Accepted | Reconcile the provisional artifact and run formal Canary acceptance in a separate cycle |
 | E0-001..007 | Not started | Depends on the S0 lane and I0-005 | Start sequentially after S0-007 |
 | N1 / O0 / X0 | Not started | Depends on the Core Fact/SEC/Earnings lanes | Start later on the Core CP |
 
@@ -71,14 +71,14 @@ Static dependency order is defined in the Critical Path; this section records on
 
 ### Lane D — SEC / Earnings
 
-S0-005 is Accepted. S0-006 remains Ready as a separate cycle; S0-007 remains Provisional until S0-006 is Accepted and formal acceptance integration is completed.
+S0-006 is Accepted. S0-007 remains Provisional until formal fixture and limited-live Canary acceptance integration is completed in a separate cycle.
 
 ## 5. Current model / Agent assignment
 
 | Role / task | Assignment | Reasoning | Note |
 |---|---|---|---|
 | Orchestrator | Sol | medium | Select and review one task against the Tracker, WBS, Critical Path, and repository evidence |
-| Next SEC task | Terra + Sol review | medium-high by task | Select one of S0-005 or S0-006; keep implementation and acceptance bounded to one task |
+| Next SEC task | Terra + Sol review | high | Reconcile and formally accept S0-007 as one bounded acceptance cycle |
 | Local-foundation bounded work | Luna/Terra | per Model Assignment Policy | Select one Ready task only |
 | A0-002 dataset/source definition | Terra | medium | No final schema write or hypothesis integration yet |
 
@@ -92,10 +92,10 @@ Record the actual model, reasoning effort, delegation rationale, and review resu
 
 ## 7. Current restart rule
 
-- Main local session: start Ready `S0-006` as a separate cycle; `S0-005` is Accepted
+- Main local session: reconcile provisional `S0-007` and run its formal acceptance as a separate cycle; `S0-004..006` are Accepted
 - Second parallel local session: choose one Ready Local-foundation task (`L0-003`, `L0-004`, or `L0-005`) after overlap review
 - Cross-Market session: A0-001 implementation integration or `A0-002` dataset/source definition, with one task selected per cycle
-- SEC implementation may continue with `S0-006`; keep formal `S0-007` acceptance in a later separate cycle
+- SEC implementation may continue with formal `S0-007` acceptance; do not start E0 in the same cycle
 
 ## 8. Unresolved items
 
@@ -287,6 +287,21 @@ Do not infer unresolved values; update this tracker only from repository evidenc
 | Next safe action | Start `S0-006` as a separate main cycle; do not automatically promote S0-007. |
 | Unresolved | No provider semantics were inferred. Production transport/storage wiring and the exact S0-007 limited-live evidence remain unresolved downstream integration details. |
 
-## 21. Progress-update rule
+## 21. S0-006 execution cycle (2026-09-08)
+
+| Item | Result |
+|---|---|
+| Task ID | `S0-006` |
+| Model / reasoning | GPT-5 Codex delegated implementation / Terra-high responsibility; parent Sol-equivalent acceptance review / medium |
+| Selection rationale | The Model Assignment Policy classifies S0-006 as difficult XBRL normalization requiring Terra/high implementation plus Sol review. One bounded adapter/type/test change set was delegated, then independently reviewed and hardened before acceptance. |
+| Changed files | `analysis/app/orderscope_local/sec/company_facts.py`, `analysis/app/orderscope_local/sec/__init__.py`, `analysis/tests/sec/test_company_facts.py`, and this Progress Tracker. WBS and Critical Path were unchanged because no completion condition or dependency structure changed. |
+| Tests / checks | Executor focused tests **6 passed** and full suite **158 passed**. Parent review added malformed-source and cross-company hardening; focused S0-006/S0-003/provider integration tests **32 passed**, final full suite **160 passed**, `python3 -m compileall -q analysis/app analysis/tests` passed, and `git diff --check` was clean. Remote comparison after `git fetch origin --prune` confirmed the starting branch was **0 ahead / 0 behind** its upstream. |
+| Completion criteria | WBS S0-006 criteria satisfied: immutable provider-neutral XBRL types preserve canonical concept QName, exact finite decimal value, unit, instant or duration period, ordered axis/member dimensions, accession/form/filed date, canonical filing reference, and API source reference. The bounded AMD/NVDA Company Facts adapter applies the shared SEC limiter and declared User-Agent, filters a half-open filed-date window, paginates with an opaque cursor, rejects cross-company accessions, and converts malformed payloads or transport failures into sanitized errors. SEC response-only fields do not cross the adapter boundary, and empty Company Facts dimensions are not misrepresented as proof that segment facts are absent. |
+| State | **Accepted** — the S0-003 dependency was Accepted, and parent semantic/diff/test review confirmed compatibility with the existing filing identity/source boundary, WBS normalization requirements, WEB-009 fallback assumptions, and provider-body/credential exclusion. |
+| Remaining work | No S0-006 work remains. Filing-instance dimension parsing and the Company Facts → XBRL Dimension → Filing Fallback chain remain E0-005 scope. S0-007 still requires a separate formal fixture and limited AMD/NVDA Canary acceptance cycle covering new, duplicate, amendment, and partial cases. |
+| Next safe action | Reconcile and formally accept provisional `S0-007` in a separate main cycle; do not automatically begin E0. |
+| Unresolved | The exact limited-live evidence needed for S0-007 remains to be fixed from repository and controlled-run evidence. No missing segment fact is converted to zero or interpreted as nonexistence. Existing provider/A0 unresolved items remain unchanged. |
+
+## 22. Progress-update rule
 
 After normal implementation progress, update this file and do not mirror runtime state into the Critical Path or WBS. Update the Critical Path only when dependency structure, permanent gates, or safe-parallelization rules change.

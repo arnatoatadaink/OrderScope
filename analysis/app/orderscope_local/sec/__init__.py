@@ -28,6 +28,14 @@ from .submissions import (
     SecRequestFailure,
     SecSubmissionsAdapter,
 )
+from .company_facts import (
+    SecCompanyFactsAdapter,
+    XbrlDimension,
+    XbrlFact,
+    XbrlFactPage,
+    XbrlPeriod,
+    normalize_xbrl_fact,
+)
 
 __all__ = [
     "FilingRecord",
@@ -50,4 +58,10 @@ __all__ = [
     "SecCanaryCompany",
     "SecRequestFailure",
     "SecSubmissionsAdapter",
+    "SecCompanyFactsAdapter",
+    "XbrlDimension",
+    "XbrlFact",
+    "XbrlFactPage",
+    "XbrlPeriod",
+    "normalize_xbrl_fact",
 ]
