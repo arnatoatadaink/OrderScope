@@ -1,10 +1,21 @@
 import json
+from datetime import datetime, timezone
 from pathlib import Path
+import sqlite3
 
 import pytest
 
+from orderscope_local.contracts import (
+    AdapterItem,
+    ContentHash,
+    ContentIdentity,
+    StableIdentity,
+)
 from orderscope_local.sec import (
+    FilingWriteResult,
     SecFormRejectionReason,
+    SqliteFilingRecordRepository,
+    classify_filing_record,
     classify_sec_form,
 )
 
@@ -110,3 +121,64 @@ def test_replay_preserves_base_amendment_and_duplicate_filing_identity() -> None
     assert classified[0][1].is_amendment is False
     assert classified[1][1].is_amendment is True
     assert classified[1] == classified[2]
+
+
+def test_classifies_persisted_filing_records_without_changing_accession_identity() -> None:
+    connection = sqlite3.connect(":memory:")
+    connection.execute(
+        """
+        CREATE TABLE filing_records (
+            accession TEXT PRIMARY KEY,
+            content_hash TEXT NOT NULL,
+            cik TEXT NOT NULL,
+            ticker TEXT NOT NULL,
+            form TEXT NOT NULL,
+            filed_at TEXT NOT NULL,
+            period_end TEXT,
+            primary_document_ref TEXT,
+            source_ref TEXT NOT NULL,
+            retrieved_at TEXT NOT NULL
+        )
+        """
+    )
+    store = SqliteFilingRecordRepository(connection)
+    retrieved_at = datetime(2026, 9, 8, 1, tzinfo=timezone.utc)
+
+    def filing_item(accession: str, form: str, primary_document: str) -> AdapterItem:
+        return AdapterItem(
+            normalized={
+                "cik": "0000002488",
+                "ticker": "AMD",
+                "accession": accession,
+                "form": form,
+                "filed_on": "2026-08-04",
+                "period_end": "2026-06-27",
+                "source_accepted_at": "20260804161624",
+                "primary_document": primary_document,
+            },
+            content_identity=ContentIdentity(
+                StableIdentity.filing_accession(accession), ContentHash("a" * 64)
+            ),
+        )
+
+    base_item = filing_item(
+        "0000002488-26-000121", "10-K", "amd-202610k.htm"
+    )
+    base = store.put(base_item, retrieved_at=retrieved_at)
+    duplicate = store.put(base_item, retrieved_at=retrieved_at)
+    amendment = store.put(
+        filing_item(
+            "0000002488-26-000122", "10-K/A", "amd-202610k-amendment.htm"
+        ),
+        retrieved_at=retrieved_at,
+    )
+
+    assert base.result is FilingWriteResult.NEW
+    assert duplicate.result is FilingWriteResult.DUPLICATE
+    assert amendment.result is FilingWriteResult.NEW
+    assert base.record.accession != amendment.record.accession
+    assert classify_filing_record(base.record).family == "10-K"
+    assert classify_filing_record(base.record).is_amendment is False
+    assert classify_filing_record(duplicate.record) == classify_filing_record(base.record)
+    assert classify_filing_record(amendment.record).family == "10-K"
+    assert classify_filing_record(amendment.record).is_amendment is True

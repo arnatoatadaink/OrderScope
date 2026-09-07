@@ -11,6 +11,7 @@ from .form_filter import (
     SecFormDecision,
     SecFormFamily,
     SecFormRejectionReason,
+    classify_filing_record,
     classify_sec_form,
 )
 from .submissions import (
@@ -31,6 +32,7 @@ __all__ = [
     "SecFormDecision",
     "SecFormFamily",
     "SecFormRejectionReason",
+    "classify_filing_record",
     "classify_sec_form",
     "CANARY_COMPANIES",
     "FixedIntervalSecRateLimiter",

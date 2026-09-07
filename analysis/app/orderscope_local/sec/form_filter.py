@@ -10,6 +10,8 @@ from enum import StrEnum
 from types import MappingProxyType
 from typing import Final
 
+from .filing_records import FilingRecord
+
 
 class SecFormFamily(StrEnum):
     CURRENT_REPORT = "8-K"
@@ -119,3 +121,11 @@ def classify_sec_form(raw_form: str) -> SecFormDecision:
         is_amendment=accepted_form.is_amendment,
         rejection_reason=None,
     )
+
+
+def classify_filing_record(record: FilingRecord) -> SecFormDecision:
+    """Classify the exact form preserved by an accepted S0-003 record."""
+
+    if not isinstance(record, FilingRecord):
+        raise TypeError("form filtering requires a FilingRecord")
+    return classify_sec_form(record.form)

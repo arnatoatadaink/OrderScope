@@ -41,7 +41,7 @@ Model/Agent selection follows the Model Assignment Policy and must be recorded p
 | S0-001 | Accepted | The WEB-005 handoff was reconciled against the W0-004 checklist and current SEC primary sources; parent evidence and semantic review completed in the 2026-09-08 execution cycle | Reference when implementing SEC adapters and recheck before live deployment or after policy changes |
 | S0-002 | Accepted | The bounded AMD/NVDA Submissions adapter, recent/history fixtures, common-contract integration, and parent semantic/test review completed in the 2026-09-08 execution cycle | Reference when implementing FilingRecord persistence |
 | S0-003 | Accepted | Immutable FilingRecord conversion and SQLite repository persist accession-keyed metadata idempotently; parent semantic/diff/test review completed in the 2026-09-08 execution cycle | Reference when integrating the provisional form filter and implementing document/XBRL adapters |
-| S0-004 | Provisional result | Form-filter implementation/report exists and its S0-003 dependency is now Accepted | Reconcile and formally accept the provisional artifact in a separate cycle |
+| S0-004 | Accepted | The strict target-form filter is connected to Accepted S0-003 FilingRecord output; parent semantic/diff/test review completed in the 2026-09-08 execution cycle | Reference when implementing S0-007 acceptance |
 | S0-005 | Ready | Depends on Accepted `S0-003` + `I0-006` | Implement temporary filing-document content handling in a separate cycle |
 | S0-006 | Ready | Depends on Accepted `S0-003` | Implement the Company Facts/XBRL adapter in a separate cycle |
 | S0-007 | Provisional result | Early validation evidence may exist; WBS acceptance testing follows S0-004..006 integration | Run formal Canary acceptance after integration |
@@ -71,14 +71,14 @@ Static dependency order is defined in the Critical Path; this section records on
 
 ### Lane D — SEC / Earnings
 
-S0-003 is Accepted. S0-004 reconciliation, S0-005, and S0-006 are dependency-ready but remain separate cycles.
+S0-004 is Accepted. S0-005 and S0-006 are dependency-ready but remain separate cycles.
 
 ## 5. Current model / Agent assignment
 
 | Role / task | Assignment | Reasoning | Note |
 |---|---|---|---|
 | Orchestrator | Sol | medium | Select and review one task against the Tracker, WBS, Critical Path, and repository evidence |
-| S0-004 reconciliation | Luna/Terra + Sol review | medium | Reconcile the bounded provisional form filter with Accepted S0-003 before promotion |
+| Next SEC task | Terra + Sol review | medium-high by task | Select one of S0-005 or S0-006; keep implementation and acceptance bounded to one task |
 | Local-foundation bounded work | Luna/Terra | per Model Assignment Policy | Select one Ready task only |
 | A0-002 dataset/source definition | Terra | medium | No final schema write or hypothesis integration yet |
 
@@ -88,14 +88,14 @@ Record the actual model, reasoning effort, delegation rationale, and review resu
 
 - `L1-003` remote D1 export change window is deferred and does not block local fixture work.
 - `A0-002` is a validation lane and is not currently a serial blocker for Core Corporate Intelligence.
-- Preserve and reconcile provisional artifacts for `S0-004` and `S0-007`; do not discard them.
+- Preserve and reconcile the provisional `S0-007` artifact; do not discard it.
 
 ## 7. Current restart rule
 
-- Main local session: reconcile and formally accept provisional `S0-004` in a separate cycle; `S0-003` is Accepted
+- Main local session: select one Ready SEC task, `S0-005` or `S0-006`, in a separate cycle; `S0-004` is Accepted
 - Second parallel local session: choose one Ready Local-foundation task (`L0-003`, `L0-004`, or `L0-005`) after overlap review
 - Cross-Market session: A0-001 implementation integration or `A0-002` dataset/source definition, with one task selected per cycle
-- SEC implementation may continue with one of `S0-004`, `S0-005`, or `S0-006`; select only one per cycle
+- SEC implementation may continue with one of `S0-005` or `S0-006`; select only one per cycle
 
 ## 8. Unresolved items
 
@@ -103,7 +103,7 @@ Record the actual model, reasoning effort, delegation rationale, and review resu
 - AI/Semiconductor proxy definition for A0-002
 - short/borrow data provider for H4 validation
 - whether A0-002 becomes mandatory for v0.1 release acceptance
-- exact evidence needed to promote provisional `S0-004/S0-007` artifacts after dependency integration
+- exact evidence needed to promote the provisional `S0-007` artifact after S0-005/S0-006 integration
 
 Do not infer unresolved values; update this tracker only from repository evidence, test results, or confirmed external contract/source information.
 
@@ -257,6 +257,21 @@ Do not infer unresolved values; update this tracker only from repository evidenc
 | Next safe action | Reconcile and formally accept provisional `S0-004` as a separate main cycle, or select one Ready S0-005/S0-006 task after overlap review; do not automatically continue in this cycle. |
 | Unresolved | No provider semantics were inferred. An accession with a changed normalized content hash remains a conflict unless a later accepted contract supplies an explicit revision relationship. |
 
-## 19. Progress-update rule
+## 19. S0-004 execution cycle (2026-09-08)
+
+| Item | Result |
+|---|---|
+| Task ID | `S0-004` |
+| Model / reasoning | Parent GPT-5 Codex / Terra-medium-equivalent bounded integration and Sol-equivalent acceptance review / medium |
+| Selection rationale | The Model Assignment Policy classifies S0-004 as bounded Luna/Terra implementation plus Sol acceptance review because this cycle promotes a provisional artifact. Session rules did not permit unsolicited sub-Agent delegation, so the parent preserved the implementation and independent semantic-review responsibilities within one bounded task. |
+| Changed files | `analysis/app/orderscope_local/sec/form_filter.py`, `analysis/app/orderscope_local/sec/__init__.py`, `analysis/tests/sec/test_form_filter.py`, and this Progress Tracker. WBS and Critical Path were unchanged because no completion condition, dependency structure, permanent gate, or safe-parallelization rule changed. |
+| Tests / checks | Focused S0-003/S0-004 integration tests **62 passed**; the full suite **144 passed**. `python3 -m compileall -q analysis/app analysis/tests` passed and `git diff --check` was clean. Remote comparison after `git fetch --all --prune` confirmed the starting branch was **0 ahead / 0 behind** its upstream. |
+| Completion criteria | WBS S0-004 criteria satisfied: the strict exact-value allowlist identifies 8-K, 10-Q, 10-K, S-1, S-3, reviewed 424B variants, DEF 14A, legacy/current Schedule 13D/G, and Form 4, including reviewed amendments. The filter now consumes the exact form preserved by an Accepted S0-003 FilingRecord. Integration tests confirm a base filing and amendment remain distinct accessions in the same family, while an idempotent duplicate preserves the same decision. Near-miss and unknown forms remain observable rejections without trimming, case-folding, or prefix coercion. |
+| State | **Accepted** — the S0-003 dependency was Accepted, and parent diff/test/semantic review confirmed the WEB-006 handoff, existing fixture coverage, FilingRecord integration, amendment identity boundary, and no credential, raw-provider-body, or document-body exposure. |
+| Remaining work | No S0-004 work remains. S0-005 and S0-006 remain separate Ready tasks. S0-007 remains Provisional until both are Accepted and the full new/duplicate/amendment/partial acceptance cases are integrated. |
+| Next safe action | Select either `S0-005` or `S0-006` as the next main SEC cycle; do not automatically begin both or promote S0-007. |
+| Unresolved | No new provider semantics were inferred. Existing provider/A0 questions and the exact remaining S0-007 live/partial evidence remain unresolved. |
+
+## 20. Progress-update rule
 
 After normal implementation progress, update this file and do not mirror runtime state into the Critical Path or WBS. Update the Critical Path only when dependency structure, permanent gates, or safe-parallelization rules change.
