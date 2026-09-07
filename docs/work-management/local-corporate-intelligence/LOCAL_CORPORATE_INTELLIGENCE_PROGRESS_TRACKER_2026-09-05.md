@@ -38,7 +38,8 @@ Model/Agent selection follows the Model Assignment Policy and must be recorded p
 | I0-005 | Accepted | Immutable Fact Store contracts and fixtures separate Fact, Evidence, Relationship, DerivedMetric, and Interpretation while using I0-002 provenance; parent semantic/diff/test review completed in the 2026-09-06 execution cycle | Reference when implementing I0-006 and reconciling downstream provisional artifacts |
 | I0-006 | Accepted | Immutable temporary-content lifecycle types, expiry/deletion/exception invariants, and contract tests were reviewed and accepted in the 2026-09-06 execution cycle | Reference when connecting I0-007 and downstream content adapters |
 | I0-007 | Accepted | The common contract-test kit connects the accepted checkpoint, stable-identity, and temporary-content contracts; parent semantic/diff/test review completed in the 2026-09-06 execution cycle | Reference when implementing provider adapters |
-| S0-002 | Not started | The I0-007 gate is satisfied; S0-001 still requires local acceptance from its handed-off Web evidence | Reconcile S0-001 before starting the SEC adapter |
+| S0-001 | Accepted | The WEB-005 handoff was reconciled against the W0-004 checklist and current SEC primary sources; parent evidence and semantic review completed in the 2026-09-08 execution cycle | Reference when implementing SEC adapters and recheck before live deployment or after policy changes |
+| S0-002 | Ready | Both `I0-007` and `S0-001` are Accepted | Implement the bounded CIK/submissions adapter in a separate cycle |
 | S0-003 | Not started | Depends on `S0-002` | Implement FilingRecord persistence |
 | S0-004 | Provisional result | Form-filter implementation/report exists but is not yet connected to S0-003 | Confirm integration after S0-003 and preserve acceptance evidence |
 | S0-005 | Not started | Depends on `S0-003` + `I0-006` | Implement temporary filing-document content handling |
@@ -70,15 +71,15 @@ Static dependency order is defined in the Critical Path; this section records on
 
 ### Lane D — SEC / Earnings
 
-The I0-007 gate is open. S0-002 remains gated by local S0-001 acceptance.
+The I0-007 and S0-001 gates are open. S0-002 is Ready.
 
 ## 5. Current model / Agent assignment
 
 | Role / task | Assignment | Reasoning | Note |
 |---|---|---|---|
-| Orchestrator | Sol | medium | I0-007 promotion from Provisional result to Accepted requires integration and acceptance review |
-| I0-007 implementation | Terra | high | Reconcile the common kit across accepted checkpoint, identity, and temporary-content contracts |
-| I0-007 acceptance review | Sol | medium | Review cross-contract semantics, compatibility, secret/raw-content boundaries, and downstream adapter readiness |
+| Orchestrator | Sol | medium | S0-001 acceptance requires management-input reconciliation and current official-source review |
+| S0-001 official-source audit | Terra | medium | Reconcile the bounded WEB-005 handoff against current SEC primary sources and the W0-004 checklist |
+| S0-001 acceptance review | Sol | medium | Review evidence currency, public-data/EDGAR Next scope, unresolved conditions, and the downstream adapter gate |
 | Local-foundation bounded work | Luna/Terra | per Model Assignment Policy | Select one Ready task only |
 | A0-002 dataset/source definition | Terra | medium | No final schema write or hypothesis integration yet |
 
@@ -92,10 +93,10 @@ Record the actual model, reasoning effort, delegation rationale, and review resu
 
 ## 7. Current restart rule
 
-- Main local session: select the next task in a separate cycle; the Core contract lane through `I0-007` is Accepted
+- Main local session: start `S0-002` in a separate cycle; both `I0-007` and `S0-001` are Accepted
 - Second parallel local session: choose one Ready Local-foundation task (`L0-003`, `L0-004`, or `L0-005`) after overlap review
 - Cross-Market session: A0-001 implementation integration or `A0-002` dataset/source definition, with one task selected per cycle
-- SEC implementation waits for local `S0-001` acceptance; the `I0-007` gate is satisfied
+- SEC implementation may begin with `S0-002`; do not automatically continue to `S0-003`
 
 ## 8. Unresolved items
 
@@ -103,7 +104,7 @@ Record the actual model, reasoning effort, delegation rationale, and review resu
 - AI/Semiconductor proxy definition for A0-002
 - short/borrow data provider for H4 validation
 - whether A0-002 becomes mandatory for v0.1 release acceptance
-- exact evidence needed to promote provisional `I0-007` and `S0-004/S0-007` artifacts after dependency integration
+- exact evidence needed to promote provisional `S0-004/S0-007` artifacts after dependency integration
 
 Do not infer unresolved values; update this tracker only from repository evidence, test results, or confirmed external contract/source information.
 
@@ -212,6 +213,21 @@ Do not infer unresolved values; update this tracker only from repository evidenc
 | Next safe action | Reconcile and formally accept S0-001 in a separate cycle; do not automatically begin S0-002 or another lane. |
 | Unresolved | Provider-specific schemas and operational error messages remain outside durable Core contracts. Physical retention workers and provider-specific body access remain downstream scope. Existing provider/A0 unresolved items remain unchanged. |
 
-## 16. Progress-update rule
+## 16. S0-001 execution cycle (2026-09-08)
+
+| Item | Result |
+|---|---|
+| Task ID | `S0-001` |
+| Model / reasoning | Terra-equivalent bounded official-source research / medium; parent Sol-equivalent acceptance review / medium |
+| Selection rationale | The Model Assignment Policy assigns S0-001 to Terra research plus Sol review. The cycle reconciled the existing WEB-005 handoff against the W0-004/WEB-003 checklist and current SEC primary sources without starting adapter implementation. |
+| Changed files | This Progress Tracker only. WBS and Critical Path were unchanged because no completion condition, dependency structure, permanent gate, or safe-parallelization rule changed. |
+| Evidence / checks | Rechecked SEC Developer Resources, Webmaster FAQ, EDGAR Data APIs, Accessing EDGAR Data, and Privacy Information on 2026-09-08. Official conditions remain: a declared organization/contact User-Agent; an aggregate maximum of 10 requests/second regardless of machine count; efficient/bounded access and a 10-minute below-threshold recovery condition; no authentication or API key for the public Submissions/XBRL data APIs; no CORS support on `data.sec.gov`; documented Submissions, XBRL, bulk, index, and Archives routes; reusable public EDGAR filing content with third-party artwork/logo/trademark exceptions; and no explicit public-filing local-retention limit, whose absence is not treated as permission. Parent review independently checked the official sources and `git diff --check`. |
+| Completion criteria | WBS S0-001 criteria satisfied: current official User-Agent, fair-access/rate rules, endpoints, and storage/reuse conditions are recorded using the W0-004 checklist. The 2026-09-08 refresh found no material change from WEB-005. |
+| State | **Accepted** — parent review confirmed the W0-004 dependency, current official evidence, public-data-versus-EDGAR-Next authentication boundary, CORS constraint, and separation of SEC reuse permission from OrderScope retention policy. |
+| Remaining work | No S0-001 work remains. Rate limiting, User-Agent configuration, backoff/cooldown behavior, controlled live checks, and temporary-content persistence are downstream S0-002/S0-005/S0-007 implementation and test scope. |
+| Next safe action | Start S0-002 as a separate cycle; do not automatically begin another SEC task. |
+| Unresolved | SEC publishes no formal User-Agent grammar, exact block HTTP status/header behavior is not guaranteed, and no explicit local-retention duration was found. Recheck official conditions before live deployment and when SEC pages or policy change. |
+
+## 17. Progress-update rule
 
 After normal implementation progress, update this file and do not mirror runtime state into the Critical Path or WBS. Update the Critical Path only when dependency structure, permanent gates, or safe-parallelization rules change.
