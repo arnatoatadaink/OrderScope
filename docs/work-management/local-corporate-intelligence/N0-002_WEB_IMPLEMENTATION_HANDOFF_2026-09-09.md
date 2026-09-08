@@ -1,6 +1,6 @@
 # OrderScope — N0-002 Web Implementation Handoff
 
-Status: **Provisional result — Web implementation complete / local test pending**
+Status: **Provisional result — cursor-loop fix applied / local recheck pending**
 Date: 2026-09-09
 Task: `N0-002`
 Parent WBS: `WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
@@ -93,29 +93,56 @@ The adapter converts it to the common `ErrorInfo` contract without provider body
 - error pages never advance the cursor;
 - generic transport exceptions become sanitized retryable `transport_error`;
 - malformed provider responses become non-retryable `invalid_response`;
-- a repeated next-page token is rejected as `cursor_loop`.
+- a repeated **non-null** next-page token is rejected as `cursor_loop`;
+- `next_page_token=None` with `request.cursor=None` is a normal terminal page, not a cursor loop.
 
 No permanent Alpaca RPM constant is embedded in the adapter.
 
-## 9. Focused fixtures encoded
+## 9. Local failure and fix
 
-The focused test module currently contains 11 tests covering:
+The first local focused run reported:
+
+```text
+7 failed, 4 passed
+```
+
+All seven failures shared one root cause: the adapter compared `next_cursor == request.cursor` without excluding the normal `None == None` terminal state. A successful first/last page with no next token was therefore incorrectly converted to `cursor_loop` before article normalization.
+
+Repository fix:
+
+```python
+if next_cursor is not None and request.cursor is not None and next_cursor == request.cursor:
+    raise AlpacaNewsRequestFailure("cursor_loop", False)
+```
+
+Regression fixtures now separately cover:
+
+- terminal `None` cursor is accepted;
+- repeated non-null opaque token is rejected as `cursor_loop`.
+
+The failure was pagination-state logic only; it did not indicate a metadata normalization/body-boundary defect.
+
+## 10. Focused fixtures encoded
+
+The focused test module now contains 13 tests covering:
 
 1. AMD bounded metadata acquisition with `include_content=false`;
 2. opaque page-token forwarding/return;
-3. provider symbol tags remain observations rather than query identity truth;
-4. article created before the window is retained when returned as an updated article;
-5. missing provider article URL remains nullable metadata;
-6. body field rejection at the N0-002 boundary;
-7. retryable 429-style failure with no cursor advance;
-8. generic transport failure sanitization;
-9. AMD/NVDA source scope and provider page-size enforcement;
-10. invalid updated-before-created timestamp rejection;
-11. deterministic ContentIdentity for repeated identical metadata.
+3. terminal `None` token is a valid completion state;
+4. repeated non-null page token is a cursor loop;
+5. provider symbol tags remain observations rather than query identity truth;
+6. article created before the window is retained when returned as an updated article;
+7. missing provider article URL remains nullable metadata;
+8. body field rejection at the N0-002 boundary;
+9. retryable 429-style failure with no cursor advance;
+10. generic transport failure sanitization;
+11. AMD/NVDA source scope and provider page-size enforcement;
+12. invalid updated-before-created timestamp rejection;
+13. deterministic ContentIdentity for repeated identical metadata.
 
 Fixtures are provider-contract cases only and make no live claim about current AMD/NVDA News coverage.
 
-## 10. Explicit non-scope
+## 11. Explicit non-scope
 
 N0-002 does not yet:
 
@@ -130,7 +157,7 @@ N0-002 does not yet:
 
 Canonical URL / duplicate / syndication handling is N0-003. Temporary body access is N0-004.
 
-## 11. Current official provider documentation checked during implementation
+## 12. Current official provider documentation checked during implementation
 
 The current Alpaca REST News reference documents:
 
@@ -143,9 +170,9 @@ The current real-time News schema documents article ID, headline, summary, autho
 
 These provider-specific fields remain isolated to the Alpaca adapter.
 
-## 12. Local verification boundary
+## 13. Local verification boundary
 
-Before promoting N0-002 to Accepted, run:
+Before promoting N0-002 to Accepted, rerun:
 
 ```bash
 uv run pytest -q analysis/tests/news/test_alpaca_news_metadata_adapter.py
@@ -153,18 +180,18 @@ uv run pytest -q
 git diff --check
 ```
 
-Acceptance requires focused tests, full regression, and clean diff check. Semantic review should confirm that News body content never crosses N0-002, provider ticker tags do not become identity truth, and cursor/error behavior remains compatible with I0-007.
+Acceptance requires focused tests, full regression, and clean diff check. Semantic review should confirm that News body content never crosses N0-002, provider ticker tags do not become identity truth, and terminal/repeated cursor behavior remains compatible with I0-007.
 
-## 13. News lane state
+## 14. News lane state
 
 ```text
 N0-001 Accepted
-N0-002 Provisional result — local test pending
+N0-002 Provisional result — cursor fix applied / local recheck pending
 N0-003 gated by N0-002 acceptance
 N0-004 gated by N0-002 acceptance
 N1-001 Ready independently
 ```
 
-## 14. Next action after acceptance
+## 15. Next action after acceptance
 
 After N0-002 acceptance, the shortest News critical path is N0-003 — canonical URL / duplicate handling. N0-004 may then proceed in parallel where file overlap is controlled. N1-001 remains a safe independent parallel task.
