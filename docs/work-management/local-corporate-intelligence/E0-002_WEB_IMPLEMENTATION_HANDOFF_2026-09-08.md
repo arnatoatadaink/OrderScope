@@ -1,6 +1,6 @@
 # OrderScope — E0-002 Web Implementation Handoff
 
-Status: **Provisional result — Web implementation complete / local test pending**
+Status: **Accepted — local verification complete**
 Date: 2026-09-08
 Task: `E0-002`
 Parent WBS: `WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
@@ -8,7 +8,7 @@ Depends on: Accepted `S0-007`, Accepted `E0-001`
 
 ## 1. Web implementation scope
 
-Implemented deterministic SEC earnings-candidate detection and focused tests without running the local suite.
+Implemented deterministic SEC earnings-candidate detection and focused tests.
 
 Changed/added files:
 
@@ -47,18 +47,18 @@ Focused tests cover:
 
 E0-002 intentionally requires explicit filing-index/document metadata for 8-K attachment relevance. Parsing filing bodies or extracting earnings values remains downstream work. This keeps the S0 temporary-content boundary intact and prevents E0-002 from inventing earnings semantics from provider payload shape.
 
-## 5. Local verification boundary
+## 5. Local verification evidence
 
-Before promoting `E0-002` to Accepted, run:
+Local verification completed after fetch/pull:
 
-```bash
-uv run pytest -q analysis/tests/sec/test_earnings_detection.py
-uv run pytest -q
-git diff --check
-```
+- focused `analysis/tests/sec/test_earnings_detection.py`: **10 passed**
+- full suite: **180 passed**
+- `git diff --check`: **clean / no diff errors**
 
-If focused and full tests pass, review the 8-K Item 2.02 / Exhibit 99.x boundary and then promote E0-002 to Accepted.
+The 8-K Item 2.02 / Exhibit 99.x boundary therefore has implementation, focused-test, full-regression, and diff-check evidence.
 
-## 6. Next action after acceptance
+## 6. State and next action
+
+`E0-002 = Accepted`.
 
 The next Core task is `E0-003` company-IR fallback. Reuse the existing `WEB-008` IR fallback research; preserve stable IR URL/hash, retain source priority, and deduplicate SEC/IR evidence without discarding provenance.
