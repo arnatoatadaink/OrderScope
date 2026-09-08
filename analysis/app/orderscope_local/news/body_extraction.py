@@ -259,7 +259,7 @@ def _build_candidate(
         provenance=provenance,
         evidence_kind=EvidenceKind.EXTRACTION_SPAN,
         target_record_ids=(fact_id,),
-        locator=f"{source_ref.value}#char={span.start}-{span.end}",
+        locator=_span_locator(source_ref, metadata.provider_article_id, span),
         quality_class=EvidenceQuality.PROVIDER,
         retention_class=RetentionClass.DURABLE_METADATA,
         excerpt_hash=span_hash,
@@ -275,6 +275,17 @@ def _build_candidate(
         source_ref=source_ref,
         evidence_span=span,
     )
+
+
+def _span_locator(source_ref: SourceReference, article_id: str, span: BodyEvidenceSpan) -> str:
+    suffix = f"#char={span.start}-{span.end}"
+    preferred = f"{source_ref.value}{suffix}"
+    if len(preferred) <= 2048:
+        return preferred
+    fallback = f"{ALPACA_NEWS_PROVIDER_KEY}:article:{article_id}{suffix}"
+    if len(fallback) > 2048:
+        raise ContractViolation("body evidence span locator exceeds durable bound")
+    return fallback
 
 
 def _validate_inputs(
