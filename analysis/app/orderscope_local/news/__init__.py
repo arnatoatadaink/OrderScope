@@ -1,4 +1,4 @@
-"""Provider-neutral News acquisition helpers for the local Corporate Canary."""
+"""Provider-neutral News acquisition and extraction helpers for the local Corporate Canary."""
 
 from .alpaca import (
     ALPACA_NEWS_PROVIDER_KEY,
@@ -21,6 +21,13 @@ from .duplicate import (
     canonicalize_news_url,
     compare_news_articles,
 )
+from .event_taxonomy import (
+    NEWS_EVENT_TAXONOMY_VERSION,
+    EventTaxonomyEntry,
+    NewsEventType,
+    event_taxonomy_entry,
+    news_event_taxonomy,
+)
 
 __all__ = [
     "ALPACA_NEWS_PROVIDER_KEY",
@@ -28,14 +35,19 @@ __all__ = [
     "AlpacaNewsBodyAccessor",
     "AlpacaNewsRequestFailure",
     "AlpacaNewsTransport",
+    "EventTaxonomyEntry",
+    "NEWS_EVENT_TAXONOMY_VERSION",
     "NewsArticleComparison",
     "NewsArticleComparisonKind",
     "NewsArticleMetadata",
     "NewsBodyAcquisition",
     "NewsBodyTransport",
+    "NewsEventType",
     "TemporaryBodyStore",
     "canonicalize_news_url",
     "compare_news_articles",
     "decode_alpaca_news_timestamp",
+    "event_taxonomy_entry",
     "exception_record",
+    "news_event_taxonomy",
 ]
