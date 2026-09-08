@@ -1,6 +1,6 @@
 # OrderScope — O0-001 Web Implementation Handoff
 
-Status: **Provisional result — Web implementation complete / local test pending**
+Status: **Accepted — local verification complete**
 Date: 2026-09-09
 Task: `O0-001`
 Parent WBS: `WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
@@ -99,18 +99,18 @@ O0-001 does not yet:
 
 Those remain O0-002 through O0-005. WEB-016 is the existing research input for O0-002 feed behavior.
 
-## 8. Local verification boundary
+## 8. Local verification evidence
 
-Before promoting O0-001 to Accepted, run:
+Local verification completed after pulling the Web implementation:
 
-```bash
-uv run pytest -q analysis/tests/official/test_registry.py
-uv run pytest -q
-git diff --check
-```
+- focused registry tests: **7 passed**
+- full regression suite: **222 passed**
+- `git diff --check`: **clean / no diff issues**
 
-Acceptance requires focused tests, the full regression suite, and clean diff check. Semantic review should confirm that owner/publisher identity is not treated as automatic item content-actor identity and that SEC Agency remains separate from SEC EDGAR.
+Semantic acceptance: owner/publisher identity remains distinct from item content-actor identity, FOMC remains distinct from Fed Board, and SEC Agency remains separate from SEC EDGAR.
 
-## 9. Next action after acceptance
+## 9. Accepted state and next action
 
-If local verification passes, promote O0-001 to Accepted and begin `O0-002 — official-feed adapter` as a separate cycle, reconciling the registry against `REPORT_OFFICIAL_FEED_BEHAVIOR_WEB_016_2026-09-04.md` and the accepted I0-007 adapter contracts.
+`O0-001 = Accepted`.
+
+The next separate cycle is `O0-002 — official-feed adapter`, reconciling this registry against `REPORT_OFFICIAL_FEED_BEHAVIOR_WEB_016_2026-09-04.md` and the accepted I0-007 adapter contracts.
