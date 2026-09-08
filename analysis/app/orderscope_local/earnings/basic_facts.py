@@ -1,7 +1,7 @@
 """Basic source-grounded earnings Fact extraction for E0-004.
 
 This module converts already-observed issuer/SEC earnings metrics into the
-accepted Fact Store boundary.  It does not parse raw filing bodies, infer
+accepted Fact Store boundary. It does not parse raw filing bodies, infer
 missing values, reconcile disagreements across sources, or manufacture fiscal
 period/timestamp semantics.
 """
@@ -42,7 +42,10 @@ class BasicEarningsMetricType(StrEnum):
 
     @property
     def is_per_share(self) -> bool:
-        return self in (self.BASIC_EPS, self.DILUTED_EPS)
+        return self in (
+            BasicEarningsMetricType.BASIC_EPS,
+            BasicEarningsMetricType.DILUTED_EPS,
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -50,7 +53,7 @@ class ObservedEarningsMetric:
     """One explicitly observed basic earnings value from one durable source.
 
     All semantic values must already be established by the source or upstream
-    adapter.  In particular, callers must not pass inferred fiscal labels,
+    adapter. In particular, callers must not pass inferred fiscal labels,
     periods, currencies, values, or source timestamps.
     """
 
@@ -104,10 +107,10 @@ def extract_basic_earnings_records(
 ) -> tuple[Fact | Evidence, ...]:
     """Create deterministic source-grounded Fact/Evidence records.
 
-    Exact duplicate observations collapse by deterministic extraction identity.
-    Different source references/hashes remain independent Fact/Evidence pairs,
-    even when their semantic values match; cross-source reconciliation belongs
-    to E0-007 rather than extraction.
+    Repeated retrieval of the same source/hash and source-established semantics
+    collapses idempotently even if operational retrieval/acceptance timestamps
+    differ. Different source references/hashes remain independent Fact/Evidence
+    pairs; cross-source reconciliation belongs to E0-007 rather than extraction.
     """
 
     if not isinstance(observations, tuple) or not observations:
@@ -119,9 +122,13 @@ def extract_basic_earnings_records(
     for observation in observations:
         identity = _observation_identity(observation)
         existing = unique.get(identity)
-        if existing is not None and existing != observation:
-            raise ContractViolation("basic earnings extraction identity has conflicting semantics")
-        unique[identity] = observation
+        if existing is None:
+            unique[identity] = observation
+            continue
+        if _source_semantics(existing.provenance) != _source_semantics(observation.provenance):
+            raise ContractViolation("basic earnings extraction identity has conflicting source semantics")
+        if _operational_order(observation.provenance) < _operational_order(existing.provenance):
+            unique[identity] = observation
 
     records: list[Fact | Evidence] = []
     for identity in sorted(unique):
@@ -199,3 +206,21 @@ def _observation_identity(observation: ObservedEarningsMetric) -> str:
     )
     payload = "\x1f".join(fields).encode("utf-8")
     return hashlib.sha256(payload).hexdigest()[:32]
+
+
+def _source_semantics(provenance: Provenance) -> tuple[object, ...]:
+    return (
+        provenance.provider_revision,
+        provenance.event_time,
+        provenance.published_at,
+        provenance.filed_at,
+        provenance.source_accepted_at,
+    )
+
+
+def _operational_order(provenance: Provenance) -> tuple[object, ...]:
+    return (
+        provenance.accepted_at,
+        provenance.retrieved_at,
+        provenance.available_at,
+    )
