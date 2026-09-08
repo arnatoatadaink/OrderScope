@@ -1,6 +1,6 @@
 """Source-grounded OfficialStatement semantic Facts for O0-003.
 
-One official document may produce multiple semantic Facts.  Statement, proposal,
+One official document may produce multiple semantic Facts. Statement, proposal,
 formal decision, and implementation are never collapsed into a document-level
 classification, and missing source timestamps are never synthesized.
 """
@@ -20,12 +20,13 @@ from orderscope_local.contracts import (
     FactAssertionKind,
     Provenance,
     RetentionClass,
+    SourceReference,
     SourceTimestamp,
     TimestampPrecision,
 )
 
 from .feed_adapter import OfficialDiscoveredItem, OfficialItemAvailability
-from .registry import get_official_actor, get_official_source
+from .registry import get_official_source
 
 
 class OfficialPolicyFactKind(StrEnum):
@@ -67,7 +68,6 @@ class OfficialPolicyObservation:
             raise ContractViolation("official policy Fact requires a present canonical source item")
         if not isinstance(self.fact_kind, OfficialPolicyFactKind):
             raise ContractViolation("official policy fact_kind is invalid")
-        get_official_actor(self.actor_id)
         get_official_source(self.item.source_id)
         for field, value in (("decision_at", self.decision_at), ("effective_at", self.effective_at), ("event_at", self.event_at)):
             if value is not None and not isinstance(value, SourceTimestamp):
@@ -118,9 +118,7 @@ def build_official_policy_fact(observation: OfficialPolicyObservation) -> Offici
     """Build one Fact/Evidence pair without synthesizing source semantics."""
 
     provenance = Provenance(
-        source_ref=__import__("orderscope_local.contracts", fromlist=["SourceReference"]).SourceReference(
-            observation.item.canonical_item_url
-        ),
+        source_ref=SourceReference(observation.item.canonical_item_url),
         content_hash=observation.item.content_hash,
         retrieved_at=observation.item.retrieved_at,
         available_at=observation.available_at,
@@ -128,7 +126,7 @@ def build_official_policy_fact(observation: OfficialPolicyObservation) -> Offici
         event_time=observation.item.event_time,
         published_at=observation.item.published_at,
     )
-    value = {
+    value: dict[str, object] = {
         "policy_thread_id": observation.policy_thread_id,
         "actor_id": observation.actor_id,
         "source_id": observation.item.source_id,
