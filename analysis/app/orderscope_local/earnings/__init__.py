@@ -1,5 +1,10 @@
 """Provider-neutral earnings integration helpers."""
 
+from .basic_facts import (
+    BasicEarningsMetricType,
+    ObservedEarningsMetric,
+    extract_basic_earnings_records,
+)
 from .ir_fallback import (
     EarningsEvidenceBundle,
     EarningsSourcePriority,
@@ -9,6 +14,9 @@ from .ir_fallback import (
 )
 
 __all__ = [
+    "BasicEarningsMetricType",
+    "ObservedEarningsMetric",
+    "extract_basic_earnings_records",
     "EarningsEvidenceBundle",
     "EarningsSourcePriority",
     "IrReleaseRecord",
