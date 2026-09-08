@@ -12,6 +12,13 @@ from .feed_adapter import (
     classify_item_change,
     get_official_feed_profile,
 )
+from .official_statement import (
+    OfficialPolicyFactBundle,
+    OfficialPolicyFactKind,
+    OfficialPolicyObservation,
+    build_official_policy_fact,
+    build_official_policy_facts,
+)
 from .registry import (
     OFFICIAL_ACTORS,
     OFFICIAL_SOURCES,
@@ -43,6 +50,11 @@ __all__ = [
     "OfficialFeedProfile",
     "OfficialFeedStatus",
     "OfficialItemAvailability",
+    "OfficialPolicyFactBundle",
+    "OfficialPolicyFactKind",
+    "OfficialPolicyObservation",
+    "build_official_policy_fact",
+    "build_official_policy_facts",
     "classify_item_change",
     "get_official_actor",
     "get_official_source",
