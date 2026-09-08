@@ -1,6 +1,6 @@
 # OrderScope — N1-001 Web Implementation Handoff
 
-Status: **Provisional result — Web implementation complete / local test pending**
+Status: **Accepted — local verification complete**
 Date: 2026-09-09
 Task: `N1-001`
 Parent WBS: `WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
@@ -140,7 +140,19 @@ The focused test module contains 10 tests covering:
 9. invalid/blank taxonomy entries rejected;
 10. lookup requires the versioned enum rather than arbitrary strings.
 
-## 10. Explicit non-scope
+## 10. Local verification evidence
+
+User-reported local verification on 2026-09-09:
+
+```text
+focused N1-001 tests -> 10 passed
+full pytest suite     -> 297 passed
+git diff --check      -> clean / no findings
+```
+
+The acceptance evidence confirms the frozen taxonomy and its boundary fixtures against the current full local regression suite.
+
+## 11. Explicit non-scope
 
 N1-001 does not yet:
 
@@ -155,29 +167,17 @@ N1-001 does not yet:
 
 N1-002 owns deterministic headline/metadata extraction. N1-003 owns body extraction provenance and evidence-span boundaries.
 
-## 11. Local verification boundary
-
-Before promoting N1-001 to Accepted, run:
-
-```bash
-uv run pytest -q analysis/tests/news/test_news_event_taxonomy.py
-uv run pytest -q
-git diff --check
-```
-
-Acceptance requires focused tests, full regression, and clean diff check.
-
 ## 12. News lane state
 
 ```text
 N0-001..004 Accepted
-N1-001 Provisional result — local test pending
-N1-002 waits for N1-001 (N0-003 already Accepted)
+N1-001 Accepted
+N1-002 Ready (N0-003 and N1-001 Accepted)
 N1-003 waits for N1-002 (N0-004 already Accepted)
 N1-004 waits for N1-003
 N1-005 waits for N1-004
 ```
 
-## 13. Next action after acceptance
+## 13. Next action
 
-After N1-001 acceptance, proceed to `N1-002 — deterministic extraction baseline`. That implementation should use headline/metadata and explicit source language only, produce versioned Fact candidates with Evidence, and leave absent amounts, counterparties, dates, or event kinds unknown rather than inferred.
+Proceed to `N1-002 — deterministic extraction baseline`. The implementation must use headline/metadata and explicit source language only, produce versioned Fact candidates with reciprocal Evidence, and leave absent amounts, counterparties, dates, or event kinds unknown rather than inferred.
