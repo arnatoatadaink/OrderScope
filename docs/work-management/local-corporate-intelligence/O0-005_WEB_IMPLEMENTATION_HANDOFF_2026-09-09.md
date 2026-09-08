@@ -1,6 +1,6 @@
 # OrderScope — O0-005 Web Implementation Handoff
 
-Status: **Provisional result — focused tests pass / full-suite collection fix pending recheck**
+Status: **Accepted**
 Date: 2026-09-09
 Task: `O0-005`
 Parent WBS: `WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
@@ -19,7 +19,7 @@ git diff --check         -> clean / no findings
 
 ## 2. WBS completion boundary
 
-O0-005 must verify Official Signal quality across:
+O0-005 verifies Official Signal quality across:
 
 - update / duplicate / missing / availability observations;
 - timestamp precision;
@@ -27,7 +27,7 @@ O0-005 must verify Official Signal quality across:
 - direct-instrument / theme / mention / unresolved relevance errors;
 - durable source/evidence behavior.
 
-The implementation combines the already accepted O0 contracts instead of introducing a new source parser.
+The implementation combines the accepted O0 contracts instead of introducing a new source parser.
 
 ## 3. Changed/added files
 
@@ -106,28 +106,19 @@ Tests cover:
 
 These are deterministic contract fixtures, not a live-policy precision/recall benchmark.
 
-## 10. Local verification evidence / collection issue
+## 10. Accepted local verification evidence
 
-User-reported local verification after the initial implementation:
-
-```text
-focused O0-005 tests -> 7 passed in 0.77s
-full pytest suite     -> collection error before execution
-```
-
-The full-suite failure was not a production-code or assertion failure. Pytest imported the earnings module as top-level `test_quality_report`, then attempted to collect the official file with the same basename and raised an import-file mismatch:
+After the collection-name fix, user-reported local verification passed:
 
 ```text
-analysis/tests/earnings/test_quality_report.py
-analysis/tests/official/test_quality_report.py
+focused O0-005 tests -> 7 passed
+full pytest suite     -> 255 passed
+git diff --check      -> clean / no findings
 ```
 
-Repository fix applied:
+The earlier full-suite collection failure was caused solely by the duplicate pytest module basename. Renaming the official test file resolved the issue permanently; there was no production-code or assertion failure.
 
-- created `analysis/tests/official/test_official_quality_report.py` with the same seven fixtures;
-- removed `analysis/tests/official/test_quality_report.py`.
-
-O0-005 remains Provisional until the renamed focused test, full suite, and diff check are rerun locally.
+Semantic acceptance review confirms that review-level update/missing/unresolved cases remain visible but are never silently interpreted as deletion, implementation, or direct AMD/NVDA relevance.
 
 ## 11. Explicit non-scope
 
@@ -142,30 +133,18 @@ O0-005 does not yet:
 
 Those belong to later integration/runtime or N1 work.
 
-## 12. Local verification boundary
-
-Before promoting O0-005 to Accepted, run:
-
-```bash
-uv run pytest -q analysis/tests/official/test_official_quality_report.py
-uv run pytest -q
-git diff --check
-```
-
-Acceptance requires focused tests, full regression, and clean diff check. Semantic review should confirm that review-level update/missing/unresolved cases are visible but never silently interpreted as deletion, implementation, or direct AMD/NVDA relevance.
-
-## 13. Official Context lane state
+## 12. Official Context lane state
 
 ```text
 O0-001 Accepted
 O0-002 Accepted
 O0-003 Accepted
 O0-004 Accepted
-O0-005 Provisional result — collection fix applied / local recheck pending
+O0-005 Accepted
 ```
 
-If local verification passes, the O0 Official Context lane is complete for the v0.1 Corporate Canary fixture boundary.
+The O0 Official Context lane is complete for the v0.1 Corporate Canary fixture boundary.
 
-## 14. Next action after acceptance
+## 13. Next action after acceptance
 
-After O0-005 acceptance, return to the integrated Critical Path and select the next safe branch. X0-001 remains gated on the News/Interpretation side (`N1-005`) and local foundation dependencies, so do not start X0 merely because E0/O0 are complete. Reconcile the runtime tracker, then select the next Ready N0/N1 or Local-foundation task according to dependency state.
+Return to the integrated Critical Path and select the next safe branch. X0-001 remains gated on the News/Interpretation side (`N1-005`) and local foundation dependencies, so do not start X0 merely because E0/O0 are complete. Reconcile the runtime tracker, then select the next Ready N0/N1 or Local-foundation task according to dependency state.
