@@ -1,6 +1,6 @@
 # OrderScope — E0-003 Web Implementation Handoff
 
-Status: **Provisional result — Web implementation complete / local test pending**
+Status: **Accepted — Web implementation + local verification complete**
 Date: 2026-09-08
 Task: `E0-003`
 Parent WBS: `WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
@@ -9,7 +9,7 @@ Depends on: Accepted `E0-002`
 
 ## 1. Web implementation scope
 
-Implemented provider-neutral issuer-IR fallback reconciliation and focused fixture tests without running the local test suite.
+Implemented provider-neutral issuer-IR fallback reconciliation and focused fixture tests.
 
 Changed/added files:
 
@@ -55,19 +55,30 @@ Focused tests cover:
 - missing SEC period rejection;
 - official issuer-host and issuer/source identity boundaries.
 
-## 5. Local verification boundary
+## 5. Local verification evidence
 
-Before promoting `E0-003` to Accepted, run:
+Local verification completed after pull:
 
-```bash
+```text
 uv run pytest -q analysis/tests/earnings/test_ir_fallback.py
+7 passed
+
 uv run pytest -q
+187 passed
+
 git diff --check
+clean / no diff errors
 ```
 
-Acceptance requires focused tests, full suite, and diff check to pass. A semantic review should confirm that source priority means discovery/reference order only and does not discard either SEC or IR evidence.
+Acceptance review confirms that source priority means discovery/reference order only and does not discard either SEC or IR evidence.
 
-## 6. Explicit non-scope
+## 6. State
+
+`E0-003 = Accepted`
+
+The completion condition is satisfied: stable IR URL/hash semantics are preserved, SEC/IR evidence is deduplicated without source loss, and local focused/full regression tests pass.
+
+## 7. Explicit non-scope
 
 E0-003 does not yet:
 
@@ -78,8 +89,8 @@ E0-003 does not yet:
 - infer fiscal labels or release timestamps;
 - persist raw IR bodies long term.
 
-Those concerns remain later extraction/quality or adapter-runtime work. This cycle fixes the provider-neutral fallback and reconciliation boundary needed by E0-004.
+Those concerns remain later extraction/quality or adapter-runtime work.
 
-## 7. Next action after acceptance
+## 8. Next action
 
-If local verification passes, promote `E0-003` to Accepted and begin `E0-004` basic earnings Fact extraction as a separate cycle. E0-004 may consume SEC/IR evidence but must keep period, unit, accounting basis, and source explicit and must never invent missing values.
+Begin `E0-004` basic earnings Fact extraction as a separate cycle. E0-004 may consume SEC/IR evidence but must keep period, unit, accounting basis, and source explicit and must never invent missing values.
