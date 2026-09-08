@@ -117,6 +117,19 @@ def test_article_created_before_window_can_be_retained_when_provider_returns_upd
     assert page.items[0].normalized["provider_updated_at"].instant == datetime(2026, 9, 1, 12, 1, tzinfo=UTC)
 
 
+def test_missing_article_url_is_retained_as_nullable_metadata():
+    article = _article()
+    article.pop("url")
+    transport = FakeTransport({"news": [article], "next_page_token": None})
+    adapter = AlpacaNewsAdapter(transport=transport, clock=lambda: RETRIEVED)
+
+    page = adapter.fetch(_request())
+
+    assert page.error is None
+    assert page.items[0].normalized["article_url"] is None
+    assert page.items[0].normalized["provider_article_id"] == "12345"
+
+
 def test_body_field_is_rejected_at_n0_002_boundary():
     transport = FakeTransport({"news": [_article(content="raw body must not cross")], "next_page_token": None})
     adapter = AlpacaNewsAdapter(transport=transport, clock=lambda: RETRIEVED)
