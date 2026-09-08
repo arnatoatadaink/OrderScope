@@ -1,6 +1,6 @@
 # OrderScope — E0-004 Web Implementation Handoff
 
-Status: **Provisional result — Web implementation complete / local test pending**
+Status: **Accepted — local verification complete**
 Date: 2026-09-08
 Task: `E0-004`
 Parent WBS: `WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
@@ -97,18 +97,20 @@ E0-004 does not:
 
 Those remain later tasks. E0-005 consumes the E0-004 Fact boundary for segment-revenue fallback.
 
-## 7. Local verification boundary
+## 7. Local verification evidence
 
-Before promoting `E0-004` to Accepted, run:
+Local verification completed on 2026-09-08 after fetching/pulling the Web implementation:
 
-```bash
-uv run pytest -q analysis/tests/earnings/test_basic_facts.py analysis/tests/earnings/test_basic_facts_idempotency.py
-uv run pytest -q
-git diff --check
+```text
+focused E0-004 tests: 10 passed
+full regression suite: 197 passed
+git diff --check: clean
 ```
 
-Acceptance requires focused tests, full regression suite, and clean diff check. Semantic review should confirm that source-specific Facts are retained and that no absent value/time/period is synthesized.
+This satisfies the task acceptance boundary. Semantic acceptance retains source-specific Facts and does not synthesize absent value/time/period data.
 
-## 8. Next action after acceptance
+## 8. Runtime state and next action
 
-If local verification passes, promote `E0-004` to Accepted and begin `E0-005` segment-revenue fallback chain as a separate cycle using the existing WEB-009 research input.
+`E0-004 = Accepted`.
+
+Next Core task: `E0-005` segment-revenue fallback chain using the existing `WEB-009` research input. Preserve method and failure reason for `Company Facts → XBRL Dimension → Filing Fallback` and do not fabricate a segment value when all methods fail.
