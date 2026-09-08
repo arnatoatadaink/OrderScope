@@ -84,6 +84,33 @@ def test_page_token_is_forwarded_and_returned_without_provider_payload_leak():
     assert "news" not in page.items[0].normalized
 
 
+def test_terminal_none_cursor_is_not_a_loop():
+    adapter = AlpacaNewsAdapter(
+        transport=FakeTransport({"news": [_article()], "next_page_token": None}),
+        clock=lambda: RETRIEVED,
+    )
+
+    page = adapter.fetch(_request(cursor=None))
+
+    assert page.error is None
+    assert page.next_cursor is None
+    assert len(page.items) == 1
+
+
+def test_same_non_null_page_token_is_rejected_as_cursor_loop():
+    adapter = AlpacaNewsAdapter(
+        transport=FakeTransport({"news": [_article()], "next_page_token": "same-token"}),
+        clock=lambda: RETRIEVED,
+    )
+
+    page = adapter.fetch(_request(cursor="same-token"))
+
+    assert page.items == ()
+    assert page.error is not None
+    assert page.error.category == "cursor_loop"
+    assert page.error.retryable is False
+
+
 def test_provider_symbols_are_observations_not_query_identity_truth():
     transport = FakeTransport({"news": [_article(symbols=["NVDA"])], "next_page_token": None})
     adapter = AlpacaNewsAdapter(transport=transport, clock=lambda: RETRIEVED)
