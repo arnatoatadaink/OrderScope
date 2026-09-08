@@ -1,6 +1,6 @@
 # OrderScope — E0-001 Web Implementation Handoff
 
-Status: **Provisional result — Web implementation complete / local test pending**
+Status: **Accepted — local verification complete**
 Date: 2026-09-08
 Task: `E0-001`
 Parent WBS: `WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
@@ -9,7 +9,7 @@ Depends on: Accepted `I0-005`; SEC lane `S0-001..007` Accepted
 
 ## 1. Web implementation scope
 
-Implemented the provider-neutral Earnings event/result contract and contract tests without running the local test suite.
+Implemented the provider-neutral Earnings event/result contract and contract tests.
 
 Changed/added files:
 
@@ -42,33 +42,27 @@ Contract tests encode the WEB-007 AMD/NVIDIA cases:
 - NVIDIA Q2 FY2027: issuer fiscal label remains `FY2027` while `period_end` remains in calendar year 2026
 - SEC source acceptance timestamp remains provenance and does not populate `actual_release_at`
 
-Negative tests reject:
+Negative tests reject invented release timestamps, invalid currency normalization, release semantics on call records, and duplicate evidence references.
 
-- date-only values used as an exact `actual_release_at`
-- date-only call schedule where an exact call instant is required
-- release-window semantics attached to a call
-- actual-release semantics attached to a call
-- lowercase/implicit currency codes
-- duplicate evidence references
+## 4. Local verification evidence
 
-## 4. Local verification boundary
+Local synchronized checkout executed the required checks after fetch/pull:
 
-No local execution result is claimed by this Web cycle. Before promoting `E0-001` to Accepted, run at minimum:
-
-```bash
+```text
 uv run pytest -q analysis/tests/contracts/test_earnings_contract.py
+7 passed
+
 uv run pytest -q
+170 passed
+
 git diff --check
+clean / no diff-check findings
 ```
 
-Acceptance requires the focused tests and full suite to pass and a semantic review confirming compatibility with I0-002/I0-005 and the E0-002 detection boundary.
+The user reported these results on 2026-09-08 after synchronizing local and remote state.
 
 ## 5. State and next action
 
-Current recommended runtime state: `E0-001 = Provisional result` until local test evidence is recorded in the integrated Progress Tracker.
+`E0-001 = Accepted`.
 
-After local verification:
-
-1. promote `E0-001` to Accepted if all checks pass;
-2. start `E0-002` as a separate cycle;
-3. do not infer missing release timestamps or consensus values during E0-002.
+The next Core critical-path task is `E0-002` SEC earnings detection. E0-002 must remain a candidate-detection boundary: it may identify 10-Q/10-K and explicitly relevant 8-K/attachments, but it must not infer missing earnings values, release timestamps, fiscal labels, or consensus data.
