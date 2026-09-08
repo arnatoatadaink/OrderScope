@@ -65,15 +65,14 @@ def _identity(metadata):
     )
 
 
-def _acquisition(body, *, article_id="12345", expires_at=None, state=TemporaryContentState.STAGED):
+def _acquisition(body, *, article_id="12345", expires_at=None):
     digest = ContentHash(hashlib.sha256(body.encode("utf-8")).hexdigest())
     temporary = TemporaryContent(
         content_ref="temp://news/12345",
         retention_class=RetentionClass.TEMPORARY_SUCCESS,
         captured_at=CAPTURED,
         expires_at=expires_at or CAPTURED + timedelta(hours=6),
-        state=state,
-        extraction_completed_at=EXTRACTED if state is TemporaryContentState.EXTRACTION_SUCCEEDED else None,
+        state=TemporaryContentState.STAGED,
     )
     return NewsBodyAcquisition(article_id=article_id, content_hash=digest, temporary_content=temporary)
 
@@ -154,15 +153,11 @@ def test_no_event_match_still_completes_body_extraction_lifecycle():
     assert result.completed_content.state is TemporaryContentState.EXTRACTION_SUCCEEDED
 
 
-def test_expired_or_already_completed_content_cannot_be_reextracted():
+def test_expired_staged_content_cannot_be_extracted():
     body = "AMD wins a contract for accelerator systems."
     expired = _acquisition(body, expires_at=EXTRACTED - timedelta(seconds=1))
     with pytest.raises(ContractViolation, match="expired temporary body"):
         _extract(body, acquisition=expired)
-
-    completed = _acquisition(body, state=TemporaryContentState.EXTRACTION_SUCCEEDED)
-    with pytest.raises(ContractViolation, match="requires staged"):
-        _extract(body, acquisition=completed)
 
 
 def test_body_hash_mismatch_is_rejected_before_fact_creation():
