@@ -1,6 +1,6 @@
 # OrderScope — O0-002 Web Implementation Handoff
 
-Status: **Provisional result — Web implementation complete / local test pending**
+Status: **Accepted — local verification complete**
 Date: 2026-09-09
 Task: `O0-002`
 Parent WBS: `WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
@@ -9,7 +9,7 @@ Depends on: Accepted `O0-001`, Accepted common checkpoint/provenance contracts
 
 ## 1. Web implementation scope
 
-Implemented a provider-neutral bounded official-feed adapter contract from WEB-016 without executing the local suite.
+Implemented a provider-neutral bounded official-feed adapter contract from WEB-016.
 
 Changed/added files:
 
@@ -116,18 +116,20 @@ O0-002 does not yet:
 
 Those belong to runtime adapters and O0-003+ semantic work. WEB-017 is the existing research input for the next OfficialStatement implementation task.
 
-## 9. Local verification boundary
+## 9. Local verification evidence
 
-Before promoting O0-002 to Accepted, run:
+Local verification completed on 2026-09-09:
 
-```bash
-uv run pytest -q analysis/tests/official/test_feed_adapter.py
-uv run pytest -q
-git diff --check
+```text
+uv run pytest -q analysis/tests/official/test_feed_adapter.py  -> 9 passed
+uv run pytest -q                                             -> 231 passed
+git diff --check                                             -> clean / no findings
 ```
 
-Acceptance requires focused tests, full regression suite, and clean diff check. Semantic review should confirm that source timestamp precision is preserved, HTML/RSS routes are not guessed, and listing disappearance is never silently converted into deletion.
+Semantic acceptance confirms that source timestamp precision is preserved, HTML/RSS routes are not guessed, and listing disappearance is never silently converted into deletion.
 
-## 10. Next action after acceptance
+## 10. Acceptance and next action
 
-If local verification passes, promote `O0-002` to Accepted and begin `O0-003` as a separate cycle using `REPORT_OFFICIAL_STATEMENT_IMPLEMENTATION_WEB_017_2026-09-04.md`.
+`O0-002` is **Accepted** and is safe as the dependency for `O0-003`.
+
+Next Core action: begin `O0-003 — Separate statement from implementation` using `REPORT_OFFICIAL_STATEMENT_IMPLEMENTATION_WEB_017_2026-09-04.md`, preserving statement/proposal/decision/implementation as distinct source-grounded Facts.
