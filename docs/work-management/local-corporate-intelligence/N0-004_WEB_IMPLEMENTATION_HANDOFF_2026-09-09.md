@@ -1,6 +1,6 @@
 # OrderScope — N0-004 Web Implementation Handoff
 
-Status: **Provisional result — Web implementation complete / local test pending**
+Status: **Accepted — local verification complete**
 Date: 2026-09-09
 Task: `N0-004`
 Parent WBS: `WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
@@ -18,9 +18,9 @@ git diff --check      -> clean / no findings
 
 ## 2. WBS completion boundary
 
-N0-004 must keep News body content outside durable metadata and allow only extraction-time access through expiring content references.
+N0-004 keeps News body content outside durable metadata and allows only extraction-time access through expiring content references.
 
-This implementation connects Alpaca News body capability to the Accepted I0-006 TemporaryContent lifecycle without changing Fact Store or N0-002 durable metadata.
+The implementation connects Alpaca News body capability to the Accepted I0-006 TemporaryContent lifecycle without changing Fact Store or N0-002 durable metadata.
 
 ## 3. Changed/added files
 
@@ -95,7 +95,19 @@ The focused test module contains 8 tests covering:
 
 These tests use in-memory injected fixtures. They do not perform live Alpaca requests or write body content to the repository.
 
-## 10. Explicit non-scope
+## 10. Local acceptance evidence
+
+User-reported local verification after implementation:
+
+```text
+focused N0-004 tests -> 8 passed
+full pytest suite     -> 287 passed
+git diff --check      -> clean / no findings
+```
+
+This satisfies the N0-004 local acceptance boundary.
+
+## 11. Explicit non-scope
 
 N0-004 does not yet:
 
@@ -110,31 +122,19 @@ N0-004 does not yet:
 
 N1-003 owns the extraction boundary and N1-005 owns retention/deletion control.
 
-## 11. Local verification boundary
-
-Before promoting N0-004 to Accepted, run:
-
-```bash
-uv run pytest -q analysis/tests/news/test_news_temporary_body_access.py
-uv run pytest -q
-git diff --check
-```
-
-Acceptance requires focused tests, full regression, and clean diff check.
-
 ## 12. News lane state
 
 ```text
 N0-001 Accepted
 N0-002 Accepted
 N0-003 Accepted
-N0-004 Provisional result — local test pending
+N0-004 Accepted
 
 N1-001 Ready
 N1-002 waits for N1-001 (N0-003 already Accepted)
 N1-003 waits for N0-004 + N1-002
 ```
 
-## 13. Next action after acceptance
+## 13. Next action
 
-After N0-004 acceptance, the News acquisition lane is complete at the contract/fixture boundary. The shortest path toward N1-005/X0 then moves to `N1-001 — freeze event taxonomy`, followed by deterministic N1-002 extraction.
+The News acquisition lane is complete at the contract/fixture boundary. The shortest path toward N1-005/X0 now moves to `N1-001 — freeze event taxonomy`, followed by deterministic N1-002 extraction.
