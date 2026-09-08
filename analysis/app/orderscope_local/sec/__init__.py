@@ -36,6 +36,12 @@ from .company_facts import (
     XbrlPeriod,
     normalize_xbrl_fact,
 )
+from .earnings_detection import (
+    SecEarningsCandidate,
+    SecEarningsDetectionReason,
+    SecFilingAttachmentHint,
+    detect_sec_earnings_candidate,
+)
 
 __all__ = [
     "FilingRecord",
@@ -64,4 +70,8 @@ __all__ = [
     "XbrlFactPage",
     "XbrlPeriod",
     "normalize_xbrl_fact",
+    "SecEarningsCandidate",
+    "SecEarningsDetectionReason",
+    "SecFilingAttachmentHint",
+    "detect_sec_earnings_candidate",
 ]
