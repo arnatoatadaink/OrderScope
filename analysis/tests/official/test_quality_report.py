@@ -121,27 +121,20 @@ def test_same_url_changed_hash_is_review_not_error():
 def test_listing_missing_is_review_and_never_deletion():
     present = _item()
     missing = _item(availability=OfficialItemAvailability.LISTING_MISSING)
-    decision = _policy(present)
     case = OfficialSignalQualityCase(
         case_id="listing-missing",
         item=missing,
         previous_item=present,
-        policy_observations=(decision,),
+        policy_observations=(_policy(present),),
         relevance_observations=(_theme_relevance(present),),
     )
 
-    # The case contract requires semantic observations to point to the same canonical item,
-    # not the same availability observation object. Rebuild against the missing item is invalid
-    # because semantic Facts require PRESENT, so use a present current observation and exercise
-    # listing-missing directly in a second item-independent quality input is intentionally blocked.
-    with pytest.raises(ContractViolation):
-        OfficialSignalQualityCase(
-            case_id="bad-cross-item",
-            item=missing,
-            previous_item=present,
-            policy_observations=(decision,),
-            relevance_observations=(_theme_relevance(present),),
-        )
+    report = assess_official_signal_quality((case,))
+
+    assert report.accepted is True
+    finding = next(f for f in report.findings if f.check == "availability")
+    assert finding.severity is OfficialQualitySeverity.REVIEW
+    assert "not deletion" in finding.detail
 
 
 def test_unresolved_relevance_remains_review():
