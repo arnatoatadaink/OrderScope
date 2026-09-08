@@ -1,5 +1,17 @@
 """Official-source registry and downstream official-context helpers."""
 
+from .feed_adapter import (
+    OFFICIAL_FEED_PROFILES,
+    OfficialAcquisitionRoute,
+    OfficialDiscoveredItem,
+    OfficialFeedCheckpoint,
+    OfficialFeedPage,
+    OfficialFeedProfile,
+    OfficialFeedStatus,
+    OfficialItemAvailability,
+    classify_item_change,
+    get_official_feed_profile,
+)
 from .registry import (
     OFFICIAL_ACTORS,
     OFFICIAL_SOURCES,
@@ -17,13 +29,23 @@ from .registry import (
 __all__ = [
     "OFFICIAL_ACTORS",
     "OFFICIAL_SOURCES",
+    "OFFICIAL_FEED_PROFILES",
     "ContentActorMode",
     "OfficialActor",
     "OfficialActorKind",
     "OfficialSource",
     "OfficialSourceLane",
     "OfficialSourceType",
+    "OfficialAcquisitionRoute",
+    "OfficialDiscoveredItem",
+    "OfficialFeedCheckpoint",
+    "OfficialFeedPage",
+    "OfficialFeedProfile",
+    "OfficialFeedStatus",
+    "OfficialItemAvailability",
+    "classify_item_change",
     "get_official_actor",
     "get_official_source",
+    "get_official_feed_profile",
     "validate_official_registry",
 ]
