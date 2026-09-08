@@ -107,23 +107,24 @@ def open_news_review_case(
         raise ContractViolation("source_facts must be a non-empty immutable tuple")
     if any(not isinstance(fact, Fact) for fact in source_facts):
         raise ContractViolation("source_facts contains a non-Fact record")
-    source_ids = tuple(fact.record_id for fact in source_facts)
+    ordered_facts = tuple(sorted(source_facts, key=lambda fact: fact.record_id))
+    source_ids = tuple(fact.record_id for fact in ordered_facts)
     if len(source_ids) != len(set(source_ids)):
         raise ContractViolation("source_facts cannot contain duplicate record IDs")
-    subjects = {fact.subject_ref for fact in source_facts}
+    subjects = {fact.subject_ref for fact in ordered_facts}
     if len(subjects) != 1:
         raise ContractViolation("review case source Facts must share one resolved subject")
-    if any(fact.assertion_kind is FactAssertionKind.PENDING_REVIEW for fact in source_facts):
+    if any(fact.assertion_kind is FactAssertionKind.PENDING_REVIEW for fact in ordered_facts):
         raise ContractViolation("review case source Facts must be source-grounded assertions, not review records")
-    if any(fact.accepted_at > opened_at for fact in source_facts):
+    if any(fact.accepted_at > opened_at for fact in ordered_facts):
         raise ContractViolation("review case cannot open before a source Fact is accepted")
 
     digest = hashlib.sha256(
-        ("|".join(sorted(source_ids)) + "|" + reason_kind.value + "|" + exception_reason).encode("utf-8")
+        ("|".join(source_ids) + "|" + reason_kind.value + "|" + exception_reason).encode("utf-8")
     ).hexdigest()[:20]
     record_id = f"news-review-{digest}"
-    subject_ref = source_facts[0].subject_ref
-    source_provenance = source_facts[0].provenance
+    subject_ref = ordered_facts[0].subject_ref
+    source_provenance = ordered_facts[0].provenance
     review_provenance = Provenance(
         source_ref=source_provenance.source_ref,
         content_hash=source_provenance.content_hash,
