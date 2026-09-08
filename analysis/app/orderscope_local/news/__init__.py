@@ -15,6 +15,15 @@ from .body import (
     TemporaryBodyStore,
     exception_record,
 )
+from .deterministic_extraction import (
+    NEWS_DETERMINISTIC_EXTRACTOR_VERSION,
+    NEWS_EVENT_EVIDENCE_SCHEMA_VERSION,
+    NEWS_EVENT_FACT_SCHEMA_VERSION,
+    HeadlinePattern,
+    NewsFactCandidate,
+    extract_headline_fact_candidates,
+    headline_patterns,
+)
 from .duplicate import (
     NewsArticleComparison,
     NewsArticleComparisonKind,
@@ -36,6 +45,10 @@ __all__ = [
     "AlpacaNewsRequestFailure",
     "AlpacaNewsTransport",
     "EventTaxonomyEntry",
+    "HeadlinePattern",
+    "NEWS_DETERMINISTIC_EXTRACTOR_VERSION",
+    "NEWS_EVENT_EVIDENCE_SCHEMA_VERSION",
+    "NEWS_EVENT_FACT_SCHEMA_VERSION",
     "NEWS_EVENT_TAXONOMY_VERSION",
     "NewsArticleComparison",
     "NewsArticleComparisonKind",
@@ -43,11 +56,14 @@ __all__ = [
     "NewsBodyAcquisition",
     "NewsBodyTransport",
     "NewsEventType",
+    "NewsFactCandidate",
     "TemporaryBodyStore",
     "canonicalize_news_url",
     "compare_news_articles",
     "decode_alpaca_news_timestamp",
     "event_taxonomy_entry",
     "exception_record",
+    "extract_headline_fact_candidates",
+    "headline_patterns",
     "news_event_taxonomy",
 ]
