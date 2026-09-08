@@ -12,6 +12,14 @@ from .ir_fallback import (
     IrReleaseSource,
     reconcile_sec_ir_evidence,
 )
+from .segment_identity import (
+    SegmentClassificationRole,
+    SegmentHistoryChange,
+    SegmentHistoryEdge,
+    SegmentIdentityHistory,
+    SegmentIdentityVersion,
+    resolve_segment_version,
+)
 from .segment_revenue import (
     SegmentRevenueAttempt,
     SegmentRevenueFailureReason,
@@ -31,6 +39,12 @@ __all__ = [
     "IrReleaseRecord",
     "IrReleaseSource",
     "reconcile_sec_ir_evidence",
+    "SegmentClassificationRole",
+    "SegmentHistoryChange",
+    "SegmentHistoryEdge",
+    "SegmentIdentityHistory",
+    "SegmentIdentityVersion",
+    "resolve_segment_version",
     "SegmentRevenueAttempt",
     "SegmentRevenueFailureReason",
     "SegmentRevenueMethod",
