@@ -12,6 +12,15 @@ from .ir_fallback import (
     IrReleaseSource,
     reconcile_sec_ir_evidence,
 )
+from .segment_revenue import (
+    SegmentRevenueAttempt,
+    SegmentRevenueFailureReason,
+    SegmentRevenueMethod,
+    SegmentRevenueObservation,
+    SegmentRevenueResolution,
+    SegmentRevenueStatus,
+    resolve_segment_revenue,
+)
 
 __all__ = [
     "BasicEarningsMetricType",
@@ -22,4 +31,11 @@ __all__ = [
     "IrReleaseRecord",
     "IrReleaseSource",
     "reconcile_sec_ir_evidence",
+    "SegmentRevenueAttempt",
+    "SegmentRevenueFailureReason",
+    "SegmentRevenueMethod",
+    "SegmentRevenueObservation",
+    "SegmentRevenueResolution",
+    "SegmentRevenueStatus",
+    "resolve_segment_revenue",
 ]
