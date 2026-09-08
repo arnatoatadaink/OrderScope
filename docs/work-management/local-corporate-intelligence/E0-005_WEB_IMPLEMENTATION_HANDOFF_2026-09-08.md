@@ -1,6 +1,6 @@
 # OrderScope — E0-005 Web Implementation Handoff
 
-Status: **Provisional result — Web implementation complete / local test pending**
+Status: **Accepted — local verification complete**
 Date: 2026-09-08
 Task: `E0-005`
 Parent WBS: `WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
@@ -9,7 +9,7 @@ Depends on: Accepted `S0-006`, Accepted `E0-004`
 
 ## 1. Web implementation scope
 
-Implemented the bounded segment-revenue fallback chain and focused tests without running the local suite.
+Implemented the bounded segment-revenue fallback chain and focused tests.
 
 Changed/added files:
 
@@ -86,29 +86,18 @@ Tests cover:
 - ambiguous XBRL match rejection
 - axis/member preservation
 
-## 7. Explicit non-scope
+## 7. Local verification evidence
 
-E0-005 does not yet:
+Local verification reported on 2026-09-08:
 
-- parse live filing HTML
-- discover XBRL contexts/linkbases from raw filings
-- normalize or merge segment identities
-- infer missing period/unit/segment values
-- reconcile restated/recast segment histories
-- calculate segment growth or Regime strength
+- focused `analysis/tests/earnings/test_segment_revenue.py`: **7 passed**
+- full regression suite: **204 passed**
+- `git diff --check`: **clean**
 
-## 8. Local verification boundary
+This satisfies the E0-005 acceptance boundary. Semantic review preserves the fixed fallback order, explicit failure reasons, and no-inference rule.
 
-Before promoting `E0-005` to Accepted, run:
+## 8. Accepted state and next action
 
-```bash
-uv run pytest -q analysis/tests/earnings/test_segment_revenue.py
-uv run pytest -q
-git diff --check
-```
+`E0-005 = Accepted`.
 
-Acceptance requires focused tests, full regression suite, and clean diff check. Semantic review should confirm that the fixed fallback order and explicit failure reasons are preserved and that no missing source/provenance/value semantics are invented.
-
-## 9. Next action after acceptance
-
-If local verification passes, promote `E0-005` to Accepted and begin `E0-006` SegmentIdentityHistory as a separate cycle. That task must model rename/merge/split/recast history without equating segments by name alone.
+Begin `E0-006` SegmentIdentityHistory as a separate cycle. That task must model rename/merge/split/recast history without equating segments by name alone.
