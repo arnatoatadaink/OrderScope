@@ -1,7 +1,7 @@
 # OrderScope — E0-006 Web Implementation Handoff
 
-Status: **Provisional result — Web implementation complete / local test pending**
-Date: 2026-09-08
+Status: **Accepted — local verification passed**
+Date: 2026-09-09
 Task: `E0-006`
 Parent WBS: `WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
 Research input: `REPORT_SEGMENT_REVENUE_FALLBACK_WEB_009_2026-09-04.md`
@@ -9,7 +9,7 @@ Depends on: Accepted `E0-005`
 
 ## 1. Web implementation scope
 
-Implemented immutable SegmentIdentityHistory contracts and focused Canary fixtures without running the local suite.
+Implemented immutable SegmentIdentityHistory contracts and focused Canary fixtures.
 
 Changed/added files:
 
@@ -86,18 +86,16 @@ E0-006 does not yet:
 
 Those concerns belong to ingestion/reconciliation and E0-007 quality reporting.
 
-## 7. Local verification boundary
+## 7. Local verification evidence
 
-Before promoting `E0-006` to Accepted, run:
+Local verification completed after fetch/pull:
 
-```bash
-uv run pytest -q analysis/tests/earnings/test_segment_identity.py
-uv run pytest -q
-git diff --check
-```
+- focused SegmentIdentityHistory tests: **6 passed**
+- full regression suite: **210 passed**
+- `git diff --check`: **clean**
 
-Acceptance requires focused tests, full regression suite, and clean diff check. Semantic review should confirm that label equality never creates identity equality and that role/recast/history provenance remain explicit.
+The result is therefore Accepted and safe as the E0-007 prerequisite.
 
-## 8. Next action after acceptance
+## 8. Next action
 
-If local verification passes, promote `E0-006` to Accepted and start `E0-007` earnings Canary quality report. E0-007 should reconcile multiple AMD/NVDA quarters across SEC/IR/basic earnings/segment sources and report extraction success plus unresolved differences rather than silently choosing one source.
+Begin `E0-007` earnings Canary quality report as a separate cycle. Reconcile multiple AMD/NVDA quarters across SEC/IR/basic earnings/segment sources and report extraction success plus unresolved differences rather than silently choosing one source.
