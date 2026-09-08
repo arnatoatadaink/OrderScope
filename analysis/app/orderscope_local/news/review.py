@@ -21,6 +21,7 @@ from orderscope_local.contracts import (
     FactAssertionKind,
     Interpretation,
     InterpretationAssertionKind,
+    Provenance,
 )
 
 
@@ -114,19 +115,34 @@ def open_news_review_case(
         raise ContractViolation("review case source Facts must share one resolved subject")
     if any(fact.assertion_kind is FactAssertionKind.PENDING_REVIEW for fact in source_facts):
         raise ContractViolation("review case source Facts must be source-grounded assertions, not review records")
+    if any(fact.accepted_at > opened_at for fact in source_facts):
+        raise ContractViolation("review case cannot open before a source Fact is accepted")
 
     digest = hashlib.sha256(
         ("|".join(sorted(source_ids)) + "|" + reason_kind.value + "|" + exception_reason).encode("utf-8")
     ).hexdigest()[:20]
     record_id = f"news-review-{digest}"
     subject_ref = source_facts[0].subject_ref
+    source_provenance = source_facts[0].provenance
+    review_provenance = Provenance(
+        source_ref=source_provenance.source_ref,
+        content_hash=source_provenance.content_hash,
+        retrieved_at=source_provenance.retrieved_at,
+        available_at=source_provenance.available_at,
+        accepted_at=opened_at,
+        provider_revision=source_provenance.provider_revision,
+        event_time=source_provenance.event_time,
+        published_at=source_provenance.published_at,
+        filed_at=source_provenance.filed_at,
+        source_accepted_at=source_provenance.source_accepted_at,
+    )
     review_fact = Fact(
         record_id=record_id,
         schema_version=NEWS_REVIEW_SCHEMA_VERSION,
         subject_ref=subject_ref,
         accepted_at=opened_at,
         created_at=opened_at,
-        provenance=source_facts[0].provenance,
+        provenance=review_provenance,
         fact_type="news.review.pending",
         value={
             "status": "pending_review",
@@ -164,6 +180,8 @@ def resolve_news_review_case(
         raise ContractViolation("confirmation Fact cannot itself be pending_review")
     if confirmation_fact.subject_ref != case.review_fact.subject_ref:
         raise ContractViolation("confirmation Fact subject must match review case subject")
+    if confirmation_fact.record_id in case.source_fact_ids:
+        raise ContractViolation("confirmation Fact must be a later independent source Fact")
     if resolved_at < case.review_fact.accepted_at:
         raise ContractViolation("resolved_at cannot be earlier than review opening")
     if confirmation_fact.accepted_at > resolved_at:
