@@ -1,6 +1,6 @@
 # OrderScope — E0-007 Web Implementation Handoff
 
-Status: **Provisional result — Web implementation complete / local test pending**
+Status: **Accepted — local verification complete**
 Date: 2026-09-09
 Task: `E0-007`
 Parent WBS: `WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
@@ -8,7 +8,7 @@ Depends on: Accepted `E0-004`, Accepted `E0-005`, Accepted `E0-006`
 
 ## 1. Web implementation scope
 
-Implemented deterministic AMD/NVDA earnings Canary quality reporting and focused fixtures without running the local suite.
+Implemented deterministic AMD/NVDA earnings Canary quality reporting and focused fixtures.
 
 Changed/added files:
 
@@ -98,18 +98,18 @@ E0-007 does not:
 
 Those unresolved differences remain visible for later policy/human review.
 
-## 8. Local verification boundary
+## 8. Local verification evidence
 
-Before promoting `E0-007` to Accepted, run:
+Local verification completed after fetch/pull:
 
-```bash
-uv run pytest -q analysis/tests/earnings/test_quality_report.py
-uv run pytest -q
-git diff --check
-```
+- focused E0-007 tests: **5 passed**
+- full regression suite: **215 passed**
+- `git diff --check`: **clean**
 
-Acceptance requires focused tests, full regression suite, and clean diff check. Semantic review should confirm that conflicting source values remain present in the report and that unresolved segment paths retain the E0-005 failure reasons.
+Semantic acceptance boundary remains unchanged: conflicting source values stay visible and unresolved segment paths retain the E0-005 failure reasons.
 
-## 9. Next action after acceptance
+## 9. Acceptance result
 
-If local verification passes, promote `E0-007` to Accepted. This completes the WBS E0 Earnings/Fundamental Canary lane and opens downstream tasks whose gates require E0-007, notably N1 contradiction/review work and X0 integration subject to their other dependencies.
+`E0-007` is **Accepted**. This completes the WBS E0 Earnings/Fundamental Canary lane.
+
+The next Core work must be selected from the post-E0 `N1 / O0 / X0` branch using the Progress Tracker and remaining dependency gates. X0 remains gated by other lanes; N1 later depends on N0 acquisition work. O0-001 is independently startable from Accepted W0/I0 prerequisites and is the selected next cycle.
