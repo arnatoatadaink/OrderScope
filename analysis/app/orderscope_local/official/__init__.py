@@ -19,6 +19,14 @@ from .official_statement import (
     build_official_policy_fact,
     build_official_policy_facts,
 )
+from .quality_report import (
+    OfficialQualitySeverity,
+    OfficialSignalQualityCase,
+    OfficialSignalQualityFinding,
+    OfficialSignalQualityReport,
+    assess_official_signal_quality,
+    render_official_signal_quality_markdown,
+)
 from .registry import (
     OFFICIAL_ACTORS,
     OFFICIAL_SOURCES,
@@ -71,10 +79,15 @@ __all__ = [
     "OfficialPolicyFactBundle",
     "OfficialPolicyFactKind",
     "OfficialPolicyObservation",
+    "OfficialQualitySeverity",
     "OfficialRelevanceBundle",
     "OfficialRelevanceClass",
     "OfficialRelevanceObservation",
     "OfficialRelevanceTargetType",
+    "OfficialSignalQualityCase",
+    "OfficialSignalQualityFinding",
+    "OfficialSignalQualityReport",
+    "assess_official_signal_quality",
     "build_official_policy_fact",
     "build_official_policy_facts",
     "build_official_relevance",
@@ -83,5 +96,6 @@ __all__ = [
     "get_official_actor",
     "get_official_source",
     "get_official_feed_profile",
+    "render_official_signal_quality_markdown",
     "validate_official_registry",
 ]
