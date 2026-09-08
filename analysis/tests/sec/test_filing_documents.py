@@ -161,9 +161,6 @@ def test_requires_canonical_document_reference_and_utc_clock() -> None:
         value.acquire(filing(primary_document_ref=None))
     with pytest.raises(ContractViolation, match="canonical SEC metadata"):
         value.acquire(filing(cik="AMD"))
-    with pytest.raises(ContractViolation, match="match its CIK"):
-        value.acquire(filing(cik="0001045810"))
-
     value, _, _, _ = acquirer()
     value._clock = lambda: NOW.replace(tzinfo=None)
     with pytest.raises(ContractViolation, match="UTC"):
@@ -180,3 +177,22 @@ def test_validates_retention_user_agent_and_size_limit() -> None:
         acquirer(retention=timedelta(days=31))
     with pytest.raises(ContractViolation, match="size limit"):
         acquirer(max_content_bytes=0)
+
+
+def test_acquires_reporting_owner_filing_under_accession_archive_cik() -> None:
+    accession = "0001452385-26-000008"
+    root = "https://www.sec.gov/Archives/edgar/data/1452385/000145238526000008"
+    value, transport, store, _ = acquirer()
+
+    result = value.acquire(
+        filing(
+            accession=accession,
+            form="4",
+            source_ref=root,
+            primary_document_ref=f"{root}/xslF345X06/wk-form4.xml",
+        )
+    )
+
+    assert result.error is None
+    assert transport.calls[0][0].startswith(root)
+    assert store.values

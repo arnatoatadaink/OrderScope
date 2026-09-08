@@ -44,10 +44,11 @@ def item(*, content_hash: str = "a" * 64, **overrides: object) -> AdapterItem:
         "primary_document": "amd-20260804.htm",
         **overrides,
     }
+    accession = normalized["accession"]
     return AdapterItem(
         normalized=normalized,
         content_identity=ContentIdentity(
-            StableIdentity.filing_accession(ACCESSION), ContentHash(content_hash)
+            StableIdentity.filing_accession(accession), ContentHash(content_hash)
         ),
     )
 
@@ -97,7 +98,6 @@ def test_same_accession_with_changed_hash_is_an_explicit_conflict() -> None:
 @pytest.mark.parametrize(
     ("candidate", "message"),
     [
-        (item(accession="0001045810-26-000001"), "stable identity"),
         (item(cik="0001045810"), "CIK"),
         (item(ticker="NVDA"), "corporate canary"),
         (item(filed_on="2026/08/04"), "ISO calendar date"),
@@ -116,6 +116,20 @@ def test_nullable_period_and_primary_document_remain_unknown() -> None:
 
     assert write.record.period_end is None
     assert write.record.primary_document_ref is None
+
+
+def test_reporting_owner_accession_keeps_issuer_scope_and_uses_filer_archive() -> None:
+    accession = "0001452385-26-000008"
+    write = repository().put(
+        item(accession=accession, form="4", primary_document="xslF345X06/ownership.xml"),
+        retrieved_at=RETRIEVED,
+    )
+
+    assert write.record.cik == "0000002488"
+    assert write.record.ticker == "AMD"
+    assert write.record.source_ref == (
+        "https://www.sec.gov/Archives/edgar/data/1452385/000145238526000008"
+    )
 
 
 def test_requires_utc_retrieval_and_preexisting_migration() -> None:

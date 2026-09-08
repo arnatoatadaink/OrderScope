@@ -84,11 +84,10 @@ class SecFilingDocumentAcquirer:
             raise ContractViolation("filing has no primary document reference")
         if _ACCESSION.fullmatch(filing.accession) is None or _CIK.fullmatch(filing.cik) is None:
             raise ContractViolation("filing identity is not canonical SEC metadata")
-        if filing.accession[:10] != filing.cik:
-            raise ContractViolation("filing accession does not match its CIK")
         accession_path = filing.accession.replace("-", "")
+        filing_cik = filing.accession[:10]
         canonical_root = (
-            f"https://www.sec.gov/Archives/edgar/data/{int(filing.cik)}/{accession_path}"
+            f"https://www.sec.gov/Archives/edgar/data/{int(filing_cik)}/{accession_path}"
         )
         if filing.source_ref != canonical_root or not filing.primary_document_ref.startswith(
             f"{canonical_root}/"

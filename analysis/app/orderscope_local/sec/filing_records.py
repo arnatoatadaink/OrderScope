@@ -17,7 +17,9 @@ from typing import Any, Mapping
 from orderscope_local.contracts import AdapterItem, ContractViolation, StableIdentityKind
 
 
-_PRIMARY_DOCUMENT = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*")
+_PRIMARY_DOCUMENT = re.compile(
+    r"[A-Za-z0-9][A-Za-z0-9._-]*(?:/[A-Za-z0-9][A-Za-z0-9._-]*)*"
+)
 _CANARY_TICKERS = {"0000002488": "AMD", "0001045810": "NVDA"}
 
 
@@ -108,8 +110,6 @@ def filing_record_from_adapter(item: AdapterItem, *, retrieved_at: datetime) -> 
     if accession != identity.value:
         raise ContractViolation("normalized accession does not match stable identity")
     cik = _required_text(normalized, "cik")
-    if accession[:10] != cik:
-        raise ContractViolation("filing accession does not match normalized CIK")
     ticker = _required_text(normalized, "ticker")
     if _CANARY_TICKERS.get(cik) != ticker:
         raise ContractViolation("filing CIK and ticker are outside the corporate canary")
@@ -121,7 +121,11 @@ def filing_record_from_adapter(item: AdapterItem, *, retrieved_at: datetime) -> 
         raise ContractViolation("primary_document is not a safe SEC document name")
 
     accession_path = accession.replace("-", "")
-    filing_root = f"https://www.sec.gov/Archives/edgar/data/{int(cik)}/{accession_path}"
+    # Ownership filings returned by an issuer's Submissions feed can be filed
+    # under a reporting owner's CIK. The accession prefix identifies the
+    # Archives directory while ``cik`` continues to identify the canary issuer.
+    filing_cik = accession[:10]
+    filing_root = f"https://www.sec.gov/Archives/edgar/data/{int(filing_cik)}/{accession_path}"
     primary_ref = None if primary_document is None else f"{filing_root}/{primary_document}"
     return FilingRecord(
         accession=accession,

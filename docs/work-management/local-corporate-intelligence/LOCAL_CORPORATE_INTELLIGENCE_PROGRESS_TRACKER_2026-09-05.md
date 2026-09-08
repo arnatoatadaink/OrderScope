@@ -44,8 +44,8 @@ Model/Agent selection follows the Model Assignment Policy and must be recorded p
 | S0-004 | Accepted | The strict target-form filter is connected to Accepted S0-003 FilingRecord output; parent semantic/diff/test review completed in the 2026-09-08 execution cycle | Reference when implementing S0-007 acceptance |
 | S0-005 | Accepted | The canonical primary-document acquirer stages SHA-256-addressed temporary content and returns sanitized retryable failures; parent semantic/diff/test review completed in the 2026-09-08 execution cycle | Reference when integrating S0-007 and the downstream retention worker |
 | S0-006 | Accepted | Provider-neutral Company Facts/XBRL types preserve unit, period, dimensions, filing/API source, and bounded AMD/NVDA acquisition behavior; parent semantic/diff/test review completed in the 2026-09-08 execution cycle | Reference when integrating S0-007 and later fundamental extraction |
-| S0-007 | Provisional result | Early validation evidence may exist; all S0-004..006 dependency gates are now Accepted | Reconcile the provisional artifact and run formal Canary acceptance in a separate cycle |
-| E0-001..007 | Not started | Depends on the S0 lane and I0-005 | Start sequentially after S0-007 |
+| S0-007 | Accepted | Fixture replay and controlled live AMD/NVDA checks verify canary scope, new/duplicate/amendment/retryable partial behavior, and reporting-owner filing paths; parent semantic/diff/test review completed in the 2026-09-08 execution cycle | Reference when implementing the Earnings lane |
+| E0-001..007 | Not started | The S0 lane and I0-005 gates are Accepted | Start E0-001 as a separate cycle, then proceed sequentially |
 | N1 / O0 / X0 | Not started | Depends on the Core Fact/SEC/Earnings lanes | Start later on the Core CP |
 
 ## 4. Parallel lanes
@@ -71,14 +71,14 @@ Static dependency order is defined in the Critical Path; this section records on
 
 ### Lane D — SEC / Earnings
 
-S0-006 is Accepted. S0-007 remains Provisional until formal fixture and limited-live Canary acceptance integration is completed in a separate cycle.
+S0-007 is Accepted. The SEC Filing lane is complete; E0-001 is the next Core critical-path task and must start in a separate cycle.
 
 ## 5. Current model / Agent assignment
 
 | Role / task | Assignment | Reasoning | Note |
 |---|---|---|---|
 | Orchestrator | Sol | medium | Select and review one task against the Tracker, WBS, Critical Path, and repository evidence |
-| Next SEC task | Terra + Sol review | high | Reconcile and formally accept S0-007 as one bounded acceptance cycle |
+| Next Core task | Terra + Sol review | high | Start E0-001 contract integration as one separate cycle |
 | Local-foundation bounded work | Luna/Terra | per Model Assignment Policy | Select one Ready task only |
 | A0-002 dataset/source definition | Terra | medium | No final schema write or hypothesis integration yet |
 
@@ -88,14 +88,13 @@ Record the actual model, reasoning effort, delegation rationale, and review resu
 
 - `L1-003` remote D1 export change window is deferred and does not block local fixture work.
 - `A0-002` is a validation lane and is not currently a serial blocker for Core Corporate Intelligence.
-- Preserve and reconcile the provisional `S0-007` artifact; do not discard it.
 
 ## 7. Current restart rule
 
-- Main local session: reconcile provisional `S0-007` and run its formal acceptance as a separate cycle; `S0-004..006` are Accepted
+- Main local session: start `E0-001` as a separate cycle; the S0 lane is Accepted
 - Second parallel local session: choose one Ready Local-foundation task (`L0-003`, `L0-004`, or `L0-005`) after overlap review
 - Cross-Market session: A0-001 implementation integration or `A0-002` dataset/source definition, with one task selected per cycle
-- SEC implementation may continue with formal `S0-007` acceptance; do not start E0 in the same cycle
+- Do not continue automatically beyond one selected E0 task in a cycle
 
 ## 8. Unresolved items
 
@@ -103,7 +102,6 @@ Record the actual model, reasoning effort, delegation rationale, and review resu
 - AI/Semiconductor proxy definition for A0-002
 - short/borrow data provider for H4 validation
 - whether A0-002 becomes mandatory for v0.1 release acceptance
-- exact evidence needed to promote the provisional `S0-007` artifact after S0-005/S0-006 integration
 
 Do not infer unresolved values; update this tracker only from repository evidence, test results, or confirmed external contract/source information.
 
@@ -302,6 +300,21 @@ Do not infer unresolved values; update this tracker only from repository evidenc
 | Next safe action | Reconcile and formally accept provisional `S0-007` in a separate main cycle; do not automatically begin E0. |
 | Unresolved | The exact limited-live evidence needed for S0-007 remains to be fixed from repository and controlled-run evidence. No missing segment fact is converted to zero or interpreted as nonexistence. Existing provider/A0 unresolved items remain unchanged. |
 
-## 22. Progress-update rule
+## 22. S0-007 execution cycle (2026-09-08)
+
+| Item | Result |
+|---|---|
+| Task ID | `S0-007` |
+| Model / reasoning | Parent Codex / Terra-high-equivalent implementation and Sol-equivalent acceptance review / high |
+| Selection rationale | The Model Assignment Policy classifies S0-007 as difficult multi-adapter Canary acceptance requiring Terra/high implementation plus Sol review. Session rules did not permit unsolicited sub-Agent delegation, so the parent preserved implementation and acceptance-review responsibilities while reconciling the provisional fixture artifact and promoting it only after controlled live evidence. |
+| Changed files | `analysis/app/orderscope_local/sec/filing_records.py`, `analysis/app/orderscope_local/sec/filing_documents.py`, `analysis/tests/sec/test_filing_records.py`, `analysis/tests/sec/test_filing_documents.py`, `analysis/tests/sec/test_filing_detection_acceptance.py`, and this Progress Tracker. WBS and Critical Path were unchanged because no completion condition or dependency structure changed. |
+| Tests / checks | S0-007 integration tests **2 passed**; focused FilingRecord/document/S0-007 tests **21 passed** after reconciliation; final full suite **163 passed**. `python3 -m compileall -q analysis/app analysis/tests` passed and `git diff --check` was clean. A controlled two-request live check with the declared contact-bearing User-Agent read only the AMD and NVIDIA Submissions endpoints on 2026-09-08; both returned the expected issuer CIK and a current Form 4. No response body was retained. |
+| Completion criteria | WBS S0-007 criteria satisfied: fixed response fixtures replay only AMD/NVDA inside a bounded window, first persistence is `new`, identical replay is `duplicate`, and a base/amendment pair remains distinct accessions in one form family. Submissions, document, and Company Facts retryable partial/failure cases remain sanitized, bounded, and body-free. The live check exposed and the integration tests now fix the reporting-owner boundary: Form 4 accessions may have a filer CIK different from the canary issuer CIK, and canonical Archives paths use the accession prefix while the record retains the issuer CIK/ticker. Nested safe SEC primary-document paths are supported without permitting traversal. |
+| State | **Accepted** — all S0-004..006 dependencies were Accepted, fixture and controlled-live evidence cover the required new/duplicate/amendment/partial cases, and parent semantic/diff/test review confirmed canary scope, idempotency, retry behavior, rate/User-Agent boundaries, canonical document acquisition, and provider-body/credential exclusion. |
+| Remaining work | No S0-007 test work remains. Production scheduling, durable migration setup, and broader operational cooldown remain their existing L0/X0 scopes. E0-001 is now dependency-ready but remains a separate cycle. |
+| Next safe action | Start `E0-001` in a separate Core cycle, or select one Ready Local-foundation task after overlap review. Do not begin both in one work packet. |
+| Unresolved | SEC still does not guarantee exact block status/header behavior. Existing Analyst Consensus, A0-002 proxy, short/borrow provider, and A0-002 release-scope questions remain unchanged. |
+
+## 23. Progress-update rule
 
 After normal implementation progress, update this file and do not mirror runtime state into the Critical Path or WBS. Update the Critical Path only when dependency structure, permanent gates, or safe-parallelization rules change.
