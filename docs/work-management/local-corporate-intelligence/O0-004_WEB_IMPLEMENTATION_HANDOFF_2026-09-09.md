@@ -1,25 +1,27 @@
 # OrderScope — O0-004 Web Implementation Handoff
 
-Status: **Provisional result — Web implementation complete / local test pending**
+Status: **Accepted — local verification complete**
 Date: 2026-09-09
 Task: `O0-004`
 Parent WBS: `WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
 Research input: `REPORT_OFFICIAL_INSTRUMENT_THEME_LINKAGE_WEB_018_2026-09-04.md`
 Depends on: Accepted `O0-003`, Accepted `I0-005`, Corporate Canary identity research/registry semantics
 
-## 1. Local acceptance carried into this cycle
+## 1. Local acceptance evidence
 
-`O0-003` was promoted to Accepted from user-reported local evidence:
+`O0-004` was promoted to Accepted from user-reported local evidence:
 
 ```text
-focused official-statement tests -> 8 passed
-full pytest suite                -> 239 passed
-git diff --check                 -> clean / no findings
+focused relevance tests -> 9 passed
+full pytest suite        -> 248 passed
+git diff --check         -> clean / no findings
 ```
+
+Semantic review boundary remains: theme-only and mention-only evidence cannot become AMD/NVDA direct instrument links without both identity and action/effect anchors.
 
 ## 2. WBS completion boundary
 
-O0-004 must distinguish direct AMD/NVDA relevance from indirect semiconductor-theme relevance using Evidence.
+O0-004 distinguishes direct AMD/NVDA relevance from indirect semiconductor-theme relevance using Evidence.
 
 Implemented classes:
 
@@ -117,28 +119,16 @@ O0-004 does not yet:
 
 Those quality/update/delete/timestamp/relevance-error cases belong to O0-005.
 
-## 10. Local verification boundary
-
-Before promoting O0-004 to Accepted, run:
-
-```bash
-uv run pytest -q analysis/tests/official/test_relevance.py
-uv run pytest -q
-git diff --check
-```
-
-Acceptance requires focused tests, full regression, and clean diff check. Semantic review should confirm that theme-only and mention-only evidence cannot become AMD/NVDA direct instrument links without both identity and action/effect anchors.
-
-## 11. Current Official Context lane
+## 10. Current Official Context lane
 
 ```text
 O0-001 Accepted
 O0-002 Accepted
 O0-003 Accepted
-O0-004 Provisional result — local test pending
-O0-005 gated by O0-004 acceptance
+O0-004 Accepted
+O0-005 Ready
 ```
 
-## 12. Next action after acceptance
+## 11. Next action
 
-If local verification passes, promote O0-004 to Accepted and begin `O0-005 — Official Signal quality test`, combining O0-002 update/delete/timestamp behavior, O0-003 semantic Fact separation, and O0-004 relevance-error fixtures.
+Begin `O0-005 — Official Signal quality test`, combining O0-002 update/delete/timestamp behavior, O0-003 semantic Fact separation, and O0-004 relevance-error fixtures.
