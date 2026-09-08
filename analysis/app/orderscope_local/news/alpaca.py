@@ -52,6 +52,8 @@ class AlpacaNewsTransport(Protocol):
 
 @dataclass(frozen=True, slots=True)
 class AlpacaNewsRequestFailure(Exception):
+    """Sanitized provider/transport failure safe to cross the adapter boundary."""
+
     category: str
     retryable: bool
     retry_after: timedelta | None = None
@@ -154,23 +156,27 @@ class AlpacaNewsAdapter:
                 available_at=retrieved_at,
             )
         except AlpacaNewsRequestFailure as exc:
-            return AdapterPage(
-                items=(),
-                next_cursor=None,
-                partial=False,
-                retrieved_at=retrieved_at,
-                available_at=retrieved_at,
-                error=ErrorInfo(
-                    category=exc.category,
-                    retryable=exc.retryable,
-                    message="Alpaca News request failed",
-                    retry_after=exc.retry_after,
-                ),
-            )
+            return _error_page(retrieved_at, exc)
         except ContractViolation:
             raise
-        except Exception as exc:
-            raise AlpacaNewsRequestFailure("transport_error", True) from exc
+        except Exception:
+            return _error_page(retrieved_at, AlpacaNewsRequestFailure("transport_error", True))
+
+
+def _error_page(retrieved_at: datetime, failure: AlpacaNewsRequestFailure) -> AdapterPage:
+    return AdapterPage(
+        items=(),
+        next_cursor=None,
+        partial=False,
+        retrieved_at=retrieved_at,
+        available_at=retrieved_at,
+        error=ErrorInfo(
+            category=failure.category,
+            retryable=failure.retryable,
+            message="Alpaca News request failed",
+            retry_after=failure.retry_after,
+        ),
+    )
 
 
 def _validate_request(request: AdapterRequest) -> str:
@@ -195,8 +201,6 @@ def _decode_response(
 ) -> tuple[tuple[AdapterItem, ...], str | None]:
     if not isinstance(payload, Mapping):
         raise AlpacaNewsRequestFailure("invalid_response", False)
-    if "content" in payload:
-        raise AlpacaNewsRequestFailure("body_leak", False)
     raw_items = payload.get("news")
     if not isinstance(raw_items, list):
         raise AlpacaNewsRequestFailure("invalid_response", False)
@@ -207,33 +211,28 @@ def _decode_response(
         raise AlpacaNewsRequestFailure("cursor_loop", False)
     if len(raw_items) > request.page_size:
         raise AlpacaNewsRequestFailure("invalid_response", False)
-    items = tuple(_normalize_article(value, query_symbol=query_symbol, request=request) for value in raw_items)
+    items = tuple(_normalize_article(value, query_symbol=query_symbol) for value in raw_items)
     return items, next_cursor
 
 
-def _normalize_article(value: object, *, query_symbol: str, request: AdapterRequest) -> AdapterItem:
+def _normalize_article(value: object, *, query_symbol: str) -> AdapterItem:
     if not isinstance(value, Mapping):
         raise AlpacaNewsRequestFailure("invalid_response", False)
     if "content" in value:
         # N0-002 must never carry a body even if a transport accidentally requested it.
         raise AlpacaNewsRequestFailure("body_leak", False)
 
-    article_id = _required_text(value.get("id"), "id", coerce_int=True, maximum=512)
-    headline = _required_text(value.get("headline"), "headline", maximum=2048)
-    source = _required_text(value.get("source"), "source", maximum=256)
-    url = _required_text(value.get("url"), "url", maximum=2048)
-    created = decode_alpaca_news_timestamp(value.get("created_at"), field="created_at")
+    article_id = _required_text(value.get("id"), coerce_int=True, maximum=512)
+    headline = _required_text(value.get("headline"), maximum=2048)
+    source = _required_text(value.get("source"), maximum=256)
+    url = _required_text(value.get("url"), maximum=2048)
+    created = decode_alpaca_news_timestamp(value.get("created_at"))
     updated_raw = value.get("updated_at")
-    updated = decode_alpaca_news_timestamp(updated_raw, field="updated_at") if updated_raw is not None else None
+    updated = decode_alpaca_news_timestamp(updated_raw) if updated_raw is not None else None
     if updated is not None and _timestamp_instant(updated) < _timestamp_instant(created):
         raise AlpacaNewsRequestFailure("invalid_response", False)
 
-    created_instant = _timestamp_instant(created)
-    # Alpaca REST documents inclusive end; OrderScope keeps a half-open local window.
-    if not request.window_start <= created_instant < request.window_end:
-        raise AlpacaNewsRequestFailure("out_of_window_item", False)
-
-    symbols = _string_tuple(value.get("symbols", ()), "symbols", maximum=32)
+    symbols = _string_tuple(value.get("symbols", ()), maximum=32)
     author = _optional_text(value.get("author"), maximum=512)
     summary = _optional_text(value.get("summary"), maximum=8192)
     metadata = NewsArticleMetadata(
@@ -259,7 +258,7 @@ def _normalize_article(value: object, *, query_symbol: str, request: AdapterRequ
     return AdapterItem(normalized=normalized, content_identity=identity)
 
 
-def decode_alpaca_news_timestamp(value: object, *, field: str) -> SourceTimestamp:
+def decode_alpaca_news_timestamp(value: object) -> SourceTimestamp:
     if not isinstance(value, str) or not value.strip() or value != value.strip():
         raise AlpacaNewsRequestFailure("invalid_response", False)
     text = value[:-1] + "+00:00" if value.endswith("Z") else value
@@ -273,7 +272,7 @@ def decode_alpaca_news_timestamp(value: object, *, field: str) -> SourceTimestam
     return SourceTimestamp.at(parsed)
 
 
-def _required_text(value: object, field: str, *, maximum: int, coerce_int: bool = False) -> str:
+def _required_text(value: object, *, maximum: int, coerce_int: bool = False) -> str:
     if coerce_int and isinstance(value, int) and not isinstance(value, bool):
         value = str(value)
     if not isinstance(value, str) or not value.strip() or value != value.strip() or len(value) > maximum:
@@ -289,7 +288,7 @@ def _optional_text(value: object, *, maximum: int) -> str | None:
     return value or None
 
 
-def _string_tuple(value: object, field: str, *, maximum: int) -> tuple[str, ...]:
+def _string_tuple(value: object, *, maximum: int) -> tuple[str, ...]:
     if not isinstance(value, Sequence) or isinstance(value, (str, bytes, bytearray)):
         raise AlpacaNewsRequestFailure("invalid_response", False)
     result: list[str] = []
