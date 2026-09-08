@@ -154,15 +154,17 @@ class SegmentRevenueResolution:
 
 def resolve_segment_revenue(
     *,
-    company_facts: tuple[XbrlFact, ...] = (),
-    dimension_facts: tuple[XbrlFact, ...] = (),
-    filing_observation: SegmentRevenueObservation | None = None,
     instrument_id: str,
     raw_label: str,
     classification_role: str,
     period_start: date,
     period_end: date,
     source_accession: str,
+    company_facts: tuple[XbrlFact, ...] = (),
+    company_facts_provenance: Provenance | None = None,
+    dimension_facts: tuple[XbrlFact, ...] = (),
+    dimension_provenance: Provenance | None = None,
+    filing_observation: SegmentRevenueObservation | None = None,
     expected_unit: str = "USD",
     company_facts_failure: SegmentRevenueFailureReason = SegmentRevenueFailureReason.DIMENSION_FACT_NOT_IN_COMPANYFACTS_SCOPE,
     dimension_failure: SegmentRevenueFailureReason = SegmentRevenueFailureReason.CONTEXT_MEMBER_UNRESOLVED,
@@ -172,6 +174,8 @@ def resolve_segment_revenue(
 
     Inputs are already-normalized source observations. This function does not
     parse HTML/XBRL payloads and does not normalize segment identity by name.
+    Provenance must be supplied explicitly for successful XBRL stages; operational
+    timestamps or hashes are never synthesized from an XBRL fact.
     """
 
     if instrument_id not in {"AMD", "NVDA"}:
@@ -180,6 +184,10 @@ def resolve_segment_revenue(
         raise ContractViolation("segment revenue resolution requires explicit labels")
     if period_start > period_end:
         raise ContractViolation("segment revenue resolution period is invalid")
+    if company_facts and not isinstance(company_facts_provenance, Provenance):
+        raise ContractViolation("Company Facts success candidates require explicit provenance")
+    if dimension_facts and not isinstance(dimension_provenance, Provenance):
+        raise ContractViolation("dimension success candidates require explicit provenance")
     attempts: list[SegmentRevenueAttempt] = []
 
     company = _select_fact(
@@ -190,11 +198,10 @@ def resolve_segment_revenue(
         expected_unit=expected_unit,
         require_dimensions=False,
     )
-    if company is not None and company.dimensions:
-        raise ContractViolation("Company Facts stage cannot masquerade as dimension-aware input")
     if company is not None:
         observation = _from_xbrl(
             fact=company,
+            provenance=company_facts_provenance,
             instrument_id=instrument_id,
             raw_label=raw_label,
             classification_role=classification_role,
@@ -208,7 +215,11 @@ def resolve_segment_revenue(
             status=SegmentRevenueStatus.FAILED,
             failure_reason=company_facts_failure,
             source_accession=source_accession,
-            source_ref="sec:companyfacts",
+            source_ref=(
+                company_facts_provenance.source_ref.value
+                if company_facts_provenance is not None
+                else "sec:companyfacts"
+            ),
             raw_label=raw_label,
         )
     )
@@ -224,6 +235,7 @@ def resolve_segment_revenue(
     if dimension is not None:
         observation = _from_xbrl(
             fact=dimension,
+            provenance=dimension_provenance,
             instrument_id=instrument_id,
             raw_label=raw_label,
             classification_role=classification_role,
@@ -237,7 +249,11 @@ def resolve_segment_revenue(
             status=SegmentRevenueStatus.FAILED,
             failure_reason=dimension_failure,
             source_accession=source_accession,
-            source_ref="sec:xbrl-instance",
+            source_ref=(
+                dimension_provenance.source_ref.value
+                if dimension_provenance is not None
+                else "sec:xbrl-instance"
+            ),
             raw_label=raw_label,
         )
     )
@@ -248,6 +264,7 @@ def resolve_segment_revenue(
         if (
             filing_observation.instrument_id != instrument_id
             or filing_observation.raw_label != raw_label
+            or filing_observation.classification_role != classification_role
             or filing_observation.period_start != period_start
             or filing_observation.period_end != period_end
             or filing_observation.source_accession != source_accession
@@ -288,6 +305,8 @@ def _select_fact(
     expected_unit: str,
     require_dimensions: bool,
 ) -> XbrlFact | None:
+    if not isinstance(facts, tuple) or any(not isinstance(fact, XbrlFact) for fact in facts):
+        raise ContractViolation("segment revenue XBRL inputs must be XbrlFact tuples")
     matches = [
         fact
         for fact in facts
@@ -305,6 +324,7 @@ def _select_fact(
 def _from_xbrl(
     *,
     fact: XbrlFact,
+    provenance: Provenance | None,
     instrument_id: str,
     raw_label: str,
     classification_role: str,
@@ -312,13 +332,10 @@ def _from_xbrl(
 ) -> SegmentRevenueObservation:
     if fact.period.start is None or fact.period.end is None:
         raise ContractViolation("segment revenue requires duration XBRL facts")
-    provenance = Provenance(
-        source_ref=__import__("orderscope_local.contracts", fromlist=["SourceReference"]).SourceReference(fact.source_ref),
-        content_hash=__import__("orderscope_local.contracts", fromlist=["ContentHash"]).ContentHash("0" * 64),
-        retrieved_at=__import__("datetime", fromlist=["datetime", "timezone"]).datetime(1970, 1, 1, tzinfo=__import__("datetime", fromlist=["timezone"]).timezone.utc),
-        available_at=__import__("datetime", fromlist=["datetime", "timezone"]).datetime(1970, 1, 1, tzinfo=__import__("datetime", fromlist=["timezone"]).timezone.utc),
-        accepted_at=__import__("datetime", fromlist=["datetime", "timezone"]).datetime(1970, 1, 1, tzinfo=__import__("datetime", fromlist=["timezone"]).timezone.utc),
-    )
+    if not isinstance(provenance, Provenance):
+        raise ContractViolation("successful XBRL segment revenue requires explicit provenance")
+    if provenance.source_ref.value != fact.source_ref:
+        raise ContractViolation("segment revenue provenance source_ref must match XBRL source_ref")
     return SegmentRevenueObservation(
         instrument_id=instrument_id,
         raw_label=raw_label,
