@@ -210,7 +210,7 @@ def _decode_response(
     next_cursor = payload.get("next_page_token")
     if next_cursor is not None and (not isinstance(next_cursor, str) or not next_cursor.strip() or len(next_cursor) > 2048):
         raise AlpacaNewsRequestFailure("invalid_response", False)
-    if next_cursor == request.cursor:
+    if next_cursor is not None and request.cursor is not None and next_cursor == request.cursor:
         raise AlpacaNewsRequestFailure("cursor_loop", False)
     if len(raw_items) > request.page_size:
         raise AlpacaNewsRequestFailure("invalid_response", False)
