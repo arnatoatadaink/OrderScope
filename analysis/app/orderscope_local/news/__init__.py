@@ -8,12 +8,22 @@ from .alpaca import (
     NewsArticleMetadata,
     decode_alpaca_news_timestamp,
 )
+from .duplicate import (
+    NewsArticleComparison,
+    NewsArticleComparisonKind,
+    canonicalize_news_url,
+    compare_news_articles,
+)
 
 __all__ = [
     "ALPACA_NEWS_PROVIDER_KEY",
     "AlpacaNewsAdapter",
     "AlpacaNewsRequestFailure",
     "AlpacaNewsTransport",
+    "NewsArticleComparison",
+    "NewsArticleComparisonKind",
     "NewsArticleMetadata",
+    "canonicalize_news_url",
+    "compare_news_articles",
     "decode_alpaca_news_timestamp",
 ]
