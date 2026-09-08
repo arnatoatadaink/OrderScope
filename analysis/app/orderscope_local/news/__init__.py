@@ -48,6 +48,16 @@ from .event_taxonomy import (
     event_taxonomy_entry,
     news_event_taxonomy,
 )
+from .review import (
+    NEWS_REVIEW_METHOD_VERSION,
+    NEWS_REVIEW_RESOLUTION_SCHEMA_VERSION,
+    NEWS_REVIEW_SCHEMA_VERSION,
+    NewsReviewCase,
+    NewsReviewReasonKind,
+    NewsReviewResolution,
+    open_news_review_case,
+    resolve_news_review_case,
+)
 
 __all__ = [
     "ALPACA_NEWS_PROVIDER_KEY",
@@ -68,6 +78,9 @@ __all__ = [
     "NEWS_EVENT_EVIDENCE_SCHEMA_VERSION",
     "NEWS_EVENT_FACT_SCHEMA_VERSION",
     "NEWS_EVENT_TAXONOMY_VERSION",
+    "NEWS_REVIEW_METHOD_VERSION",
+    "NEWS_REVIEW_RESOLUTION_SCHEMA_VERSION",
+    "NEWS_REVIEW_SCHEMA_VERSION",
     "NewsArticleComparison",
     "NewsArticleComparisonKind",
     "NewsArticleMetadata",
@@ -75,6 +88,9 @@ __all__ = [
     "NewsBodyTransport",
     "NewsEventType",
     "NewsFactCandidate",
+    "NewsReviewCase",
+    "NewsReviewReasonKind",
+    "NewsReviewResolution",
     "TemporaryBodyReader",
     "TemporaryBodyStore",
     "canonicalize_news_url",
@@ -86,4 +102,6 @@ __all__ = [
     "extract_headline_fact_candidates",
     "headline_patterns",
     "news_event_taxonomy",
+    "open_news_review_case",
+    "resolve_news_review_case",
 ]
