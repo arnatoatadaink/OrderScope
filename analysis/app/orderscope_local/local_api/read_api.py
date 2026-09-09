@@ -178,7 +178,10 @@ def create_read_app(
 def _latest_quality(snapshot: LocalReadSnapshot) -> MarketDataQualityReport | None:
     if not snapshot.quality_reports:
         return None
-    return max(snapshot.quality_reports, key=lambda item: (item.dataset_manifest_id, item.dataset_parquet_sha256))
+    # MarketDataQualityReport has no acceptance timestamp in the L1-005 contract.
+    # The snapshot builder therefore owns accepted ordering and places its latest
+    # accepted report last; the read API must not invent recency from manifest IDs.
+    return snapshot.quality_reports[-1]
 
 
 def _fact_subset(*, snapshot: LocalReadSnapshot, cutoff: datetime, kind: TimelineSourceKind, subject_ref: str | None, name: str) -> dict[str, object]:
