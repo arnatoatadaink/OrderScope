@@ -1,6 +1,6 @@
 # OrderScope — N1-006 Live Candidate Population Acceptance
 
-Status: **Accepted — authenticated candidate population complete; explicit labeling pending**
+Status: **Accepted — authenticated candidate population and label template complete; explicit review pending**
 Date: 2026-09-10
 Task: `N1-006 — Evaluate news recall`
 Scope: authenticated Alpaca 30-day candidate population and provider-shape compatibility
@@ -91,7 +91,7 @@ Candidate population implementation           Accepted
 Provider-shape compatibility                  Accepted
 Authenticated 30-day candidate population     Accepted (645 candidates)
 Explicit labeling/finalization implementation Accepted
-  -> generate label template
+Label template generation                    Complete (645 unreviewed rows)
   -> explicitly review all 645 candidates
   -> finalize benchmark
   -> execute quality news-recall
@@ -103,7 +103,7 @@ No automatic article-to-reference matching has been performed or accepted.
 
 ## 7. Next action
 
-Generate the label template from the accepted candidate file:
+The label template was generated from the accepted candidate file:
 
 ```bash
 PYTHONPATH=analysis/app uv run python -m orderscope_local.cli \
@@ -118,7 +118,20 @@ Expected output location:
 $ORDERSCOPE_DATA_ROOT/benchmarks/n1-006/amd-nvda-news-labels.json
 ```
 
-Every generated row must initially remain `unreviewed`. Finalization must continue to fail until every candidate has been explicitly classified as `matched`, `unrelated`, or `unresolved` according to the accepted labeling contract.
+Generation validation reported:
+
+```text
+label_count: 645
+all labels unreviewed: True
+unique label IDs: 645
+candidate IDs exact match: True
+window match: True
+content key present: False
+configured secrets present: False
+focused tests: 15 passed
+```
+
+Every generated row initially remains `unreviewed`. The next action is to explicitly review all 645 rows. Finalization must continue to fail until every candidate has been classified as `matched`, `unrelated`, or `unresolved` according to the accepted labeling contract.
 
 ## 8. Non-goals for the next step
 
