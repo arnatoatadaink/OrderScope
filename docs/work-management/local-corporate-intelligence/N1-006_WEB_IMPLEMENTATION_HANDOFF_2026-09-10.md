@@ -1,6 +1,6 @@
 # OrderScope — N1-006 Web Implementation Handoff
 
-Status: **Provisional result — evaluator accepted; benchmark manifest/CLI implementation pending local verification; real 1–3 month execution pending**
+Status: **Provisional result — evaluator and benchmark path accepted; official reference seed complete; News population path pending local verification/execution**
 Date: 2026-09-10
 Task: `N1-006`
 Parent WBS: `docs/WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
@@ -16,22 +16,14 @@ Measure News discovery quality over a 1–3 month comparison window against SEC/
 
 The evaluation must not promote inferred article-event equivalence into Fact.
 
-## 2. Evaluator implementation — Accepted framework
+## 2. Accepted evaluator framework
 
 Implemented:
 
 - `analysis/app/orderscope_local/news/recall.py`
 - `analysis/tests/news/test_news_recall_evaluator.py`
-- exports through `analysis/app/orderscope_local/news/__init__.py`
 
-Versioned contracts:
-
-```text
-news-recall-evaluator-v0.1
-news-recall-report-v0.1
-```
-
-Local acceptance evidence reported by the operator:
+Measured acceptance evidence:
 
 ```text
 focused evaluator tests -> 7 passed
@@ -40,153 +32,166 @@ compileall               -> success / no errors
 git diff --check         -> clean / no findings
 ```
 
-This accepts the evaluator/framework only. It does not satisfy the WBS-required real/reference benchmark execution.
+The evaluator consumes explicitly labeled SEC/IR reference events and News discoveries. It measures discovery rate, signed lag, and subject/ticker misattribution without guessing event equivalence.
 
-## 3. Evaluator benchmark boundary
+## 3. Accepted benchmark manifest / CLI path
 
-The evaluator consumes an explicitly labeled benchmark rather than guessing matches from headline similarity.
-
-`NewsRecallReferenceEvent` represents one SEC/IR reference event:
-
-- stable reference ID;
-- subject identity;
-- accepted `NewsEventType`;
-- reference `available_at`;
-- source kind restricted to `sec` or `ir`.
-
-`NewsRecallDiscovery` represents one News discovery already labeled to a reference event:
-
-- stable discovery ID;
-- explicit `reference_id`;
-- subject/ticker assigned by the News path;
-- News observation timestamp.
-
-Unknown reference IDs fail closed.
-
-Benchmark preparation owns event equivalence. The evaluator only measures the labeled result.
-
-## 4. Metrics
-
-`evaluate_news_recall()` reports:
-
-- reference event count;
-- number of reference events with at least one labeled News discovery;
-- discovery rate;
-- discovery count;
-- ticker/subject misattribution count and rate;
-- per-reference earliest discovery ID;
-- signed first-discovery lag in seconds.
-
-Signed lag:
-
-```text
-positive = News observed after SEC/IR reference availability
-zero     = same timestamp
-negative = News observed before the SEC/IR reference availability
-```
-
-The evaluator never clamps negative lag.
-
-## 5. Evaluation-window rule
-
-The benchmark window must be between 30 and 93 days inclusive.
-
-Both reference events and labeled discoveries must fall inside the half-open window:
-
-```text
-window_start <= timestamp < window_end
-```
-
-An empty benchmark returns explicit zero counts/rates; it is not represented as successful recall.
-
-## 6. Real-benchmark ingestion path
-
-Repository inspection after evaluator acceptance found no existing 30–93 day dataset that already contains explicit SEC/IR-reference-to-News labels suitable for N1-006 execution.
-
-To avoid fabricating benchmark metrics or committing article bodies, the next Web implementation adds a narrow metadata-only benchmark path:
+Implemented:
 
 - `analysis/app/orderscope_local/news/recall_benchmark.py`
 - `analysis/tests/news/test_news_recall_benchmark.py`
-- `quality news-recall --benchmark <json>` CLI command
+- `quality news-recall --benchmark <json>`
 
-Versioned benchmark schema:
+Measured acceptance evidence reported by the operator:
 
 ```text
-news-recall-benchmark-v0.1
+focused benchmark/CLI command -> 15 passed
+full pytest suite              -> 482 passed
+compileall                     -> success / no errors
+git diff --check               -> clean / no findings
 ```
 
-The JSON manifest contains only:
+The benchmark schema is metadata-only and retains explicit unresolved-label cases. It excludes raw SEC/IR/News bodies and credentials.
 
-- benchmark ID;
-- 30–93 day window;
-- explicit SEC/IR reference metadata;
-- explicit News discovery labels;
-- unresolved benchmark-label cases with bounded reasons.
+## 4. Official 30-day reference seed
 
-It does not contain raw SEC filings, issuer-IR bodies, News bodies, provider credentials, or inferred unlabeled article-event matches.
+Added:
 
-Unknown JSON fields fail closed so a benchmark cannot silently add unreviewed semantics.
+`docs/work-management/local-corporate-intelligence/N1-006_REFERENCE_SEED_2026-08-11_2026-09-10.md`
 
-## 7. Benchmark report
+Window:
 
-`render_news_recall_markdown()` produces deterministic Markdown with:
+```text
+2026-08-11T00:00:00Z <= timestamp < 2026-09-10T00:00:00Z
+```
 
-- reference count;
-- discovered-reference count / discovery rate;
-- News discovery count;
-- subject/ticker misattribution count/rate;
-- per-reference signed lag;
-- minimum / maximum / median signed lag;
-- unresolved benchmark-label cases.
+Real SEC reference set:
 
-The CLI prints this report to stdout and performs no HTTP mutation, provider call, scheduler registration, or body retention.
+| Reference ID | Subject | Type | SEC availability |
+|---|---|---|---|
+| `n1r-amd-20260813-financing` | AMD | financing | 2026-08-17T16:05:40Z |
+| `n1r-nvda-20260817-partnership` | NVDA | partnership | 2026-08-17T08:41:33Z |
+| `n1r-amd-20260819-leadership` | AMD | leadership | 2026-08-19T16:16:56Z |
+| `n1r-nvda-20260826-earnings` | NVDA | earnings | 2026-08-26T16:21:19Z |
 
-## 8. Current focused test boundary
+The seed is not itself evaluated as a zero-recall benchmark. News discoveries must be populated first.
 
-Previously accepted evaluator module:
+## 5. Retrospective News timestamp rule
 
-- `analysis/tests/news/test_news_recall_evaluator.py` — 7 passed measured.
+This benchmark is populated retrospectively after the 30-day window has occurred. Therefore local retrieval time cannot represent historical News availability.
 
-New benchmark-path tests pending local verification:
+For N1-006 retrospective provider-recall measurement:
 
-- `analysis/tests/news/test_news_recall_benchmark.py` — 6 cases;
-- existing `analysis/tests/cli/test_cli.py` gains one `quality news-recall` case.
+- SEC/IR side uses reference `available_at`;
+- News side uses Alpaca's source-provided article `created_at`, normalized by the accepted adapter as `published_at`;
+- the resulting signed lag measures provider article availability relative to the Tier-1 reference event;
+- local scheduler/retrieval delay is a separate operational metric and is not reconstructed from this historical benchmark.
 
-The new cases cover JSON decoding/loading, exact-field validation, taxonomy validation, unresolved-label window validation, deterministic report output, and CLI execution.
+## 6. News candidate population path — pending local verification
 
-## 9. Required next local verification
+Added:
+
+- `analysis/app/orderscope_local/news/alpaca_http.py`
+- `analysis/app/orderscope_local/news/recall_population.py`
+- `analysis/tests/news/test_news_recall_population.py`
+- exports through `analysis/app/orderscope_local/news/__init__.py`
+- CLI command `quality news-recall-candidates`
+
+Current Alpaca official News endpoint was rechecked before implementation and matches the accepted adapter assumptions: bounded `limit` 1–50, pagination with `page_token`, symbol/start/end filters, API-key headers, and optional `include_content`. Candidate acquisition forces `include_content=false`.
+
+Manual CLI:
+
+```bash
+uv run orderscope quality news-recall-candidates \
+  --start 2026-08-11T00:00:00Z \
+  --end 2026-09-10T00:00:00Z \
+  --filename amd-nvda-news-candidates.json
+```
+
+Required credentials remain process-local:
+
+```text
+ORDERSCOPE_SECRET_ALPACA_API_KEY
+ORDERSCOPE_SECRET_ALPACA_API_SECRET
+```
+
+Output is forced beneath:
+
+```text
+ORDERSCOPE_DATA_ROOT/benchmarks/n1-006/<simple-json-filename>
+```
+
+The output contains only candidate metadata:
+
+- provider article ID;
+- AMD/NVDA query-symbol membership;
+- headline;
+- publisher;
+- URL;
+- provider symbol tags;
+- provider publication timestamp.
+
+It does not contain article bodies or credentials and does not assign reference IDs automatically.
+
+## 7. Candidate labeling boundary
+
+After acquisition, each candidate must be explicitly classified as:
+
+1. matching one reference ID;
+2. unrelated to all references; or
+3. unresolved / ambiguous.
+
+Only explicit matches become `NewsRecallDiscovery` rows in the final benchmark. Ambiguous items become `unresolved_labels`. Headline similarity alone must never create a match.
+
+Preserve the News path's assigned subject/ticker so misattribution can be measured rather than corrected away during benchmark preparation.
+
+## 8. New focused tests
+
+`analysis/tests/news/test_news_recall_population.py` contains 6 cases covering:
+
+1. concrete HTTP request targets Alpaca News with `include_content=false`;
+2. any body request fails closed;
+3. provider article IDs are deduplicated across AMD/NVDA queries while query-symbol membership is preserved;
+4. candidate JSON remains under `ORDERSCOPE_DATA_ROOT` and contains no credentials;
+5. path traversal/output escape is rejected;
+6. retrospective window remains constrained to 30–93 days.
+
+## 9. Required local verification
 
 Run:
 
 ```bash
-uv run pytest -q analysis/tests/news/test_news_recall_benchmark.py analysis/tests/cli/test_cli.py
+uv run pytest -q analysis/tests/news/test_news_recall_population.py analysis/tests/cli/test_cli.py
 uv run pytest -q
 python3 -m compileall -q analysis/app analysis/tests
 git diff --check
 ```
 
-If these pass, the benchmark ingestion/reporting path can be accepted. `N1-006` itself remains Provisional until a real/reference 30–93 day benchmark is populated and executed.
+If these pass, the candidate-acquisition implementation can be accepted. N1-006 itself remains Provisional until the real candidate window is fetched, explicitly labeled, and evaluated.
 
-## 10. Final N1-006 acceptance gap
+## 10. Final acceptance sequence
 
-Final task acceptance still requires at least one real/reference comparison dataset and measured:
+```text
+Evaluator framework                       Accepted
+Benchmark manifest/report CLI             Accepted
+Official 30-day SEC reference seed        Complete
+News candidate acquisition implementation Provisional
+        -> local tests
+        -> execute Alpaca 30-day metadata fetch
+        -> explicit candidate/reference labeling
+        -> final benchmark JSON
+        -> quality news-recall execution
+        -> record measured recall/lag/misattribution/unresolved
+        -> N1-006 Accepted
+```
 
-- reference count;
-- discovered-reference count / discovery rate;
-- signed lag distribution or per-event lags;
-- ticker/subject misattribution count/rate;
-- unresolved benchmark labeling cases.
-
-Synthetic fixture values are never substituted for these measurements.
-
-## 11. Non-scope
+## 11. Non-scope / safety
 
 N1-006 does not:
 
-- choose a new News provider;
-- fetch live News/SEC/IR by itself;
-- infer whether two unlabeled events are equivalent;
-- alter News taxonomy/extraction/retention;
-- authorize body retention beyond accepted lifecycle rules;
-- register live scheduler jobs;
-- open remote D1 or Worker change windows.
+- request or persist News body content for recall measurement;
+- infer article-event equivalence automatically;
+- register a live scheduler job;
+- alter Worker mode;
+- open remote D1 / SMOKE-007;
+- reconstruct local historical scheduler latency from a retrospective provider query.
