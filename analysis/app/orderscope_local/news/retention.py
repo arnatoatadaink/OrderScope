@@ -112,7 +112,7 @@ def delete_due_content(
 
 
 def assert_exception_retention_compliant(*, content: TemporaryContent, now: datetime) -> None:
-    """Raise when an exception body is retained past its mandatory expiry."""
+    """Raise when an exception body still exists at or beyond mandatory expiry."""
 
     if not isinstance(content, TemporaryContent):
         raise ContractViolation("content must be TemporaryContent")
@@ -121,7 +121,7 @@ def assert_exception_retention_compliant(*, content: TemporaryContent, now: date
         return
     if content.state is TemporaryContentState.DELETED:
         return
-    if now > content.expires_at:
+    if now >= content.expires_at:
         raise ContractViolation("exception body retained beyond mandatory expiry")
 
 
