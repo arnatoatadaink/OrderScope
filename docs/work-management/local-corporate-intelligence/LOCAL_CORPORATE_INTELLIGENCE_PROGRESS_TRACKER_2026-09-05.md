@@ -21,10 +21,10 @@ This file is the sole integrated authority for Local Corporate Intelligence runt
 |---|---|---|
 | L0-001 | Accepted / inherited prerequisite | Reference only |
 | L0-002 | Accepted | Scaffold/Git boundary complete |
-| L0-003 | Provisional result | focused 9; full 441; diff clean; compileall evidence pending |
+| L0-003 | Accepted | focused 9; full 441; compileall success; diff clean |
 | L0-004 | Accepted | focused 11; full 418; diff clean; upstream deprecation warnings non-blocking |
 | L0-005 | Accepted | focused 7; full 352; compileall success; diff clean |
-| L0-006 | Blocked by L0-003 acceptance only | L0-004/L0-005 are Accepted; compileall is the only remaining L0-003 acceptance check |
+| L0-006 | Ready | L0-003/L0-004/L0-005 are Accepted; implement CLI entry point next |
 | L1-001 | Accepted | focused 8; full 360; diff clean |
 | L1-002 | Accepted | storage 7; focused 8; full 368; compileall success; diff clean |
 | L1-003 | Blocked | Requires separately approved `SMOKE-007` remote D1 window |
@@ -45,53 +45,27 @@ This file is the sole integrated authority for Local Corporate Intelligence runt
 
 Real D1 promotion remains separately gated by L1-003 and must not be conflated with fixture-path X0 development.
 
-## 4. Current L0-003 implementation boundary
+## 4. Current L0-003 acceptance boundary
 
 `analysis/app/orderscope_local/config.py` implements a non-secret local configuration model and an explicit credential-name boundary.
 
-Non-secret environment names:
-
-```text
-ORDERSCOPE_DATA_ROOT
-ORDERSCOPE_LOG_LEVEL
-ORDERSCOPE_SEC_USER_AGENT
-```
-
-Registered secret names:
-
-```text
-ORDERSCOPE_SECRET_ALPACA_API_KEY
-ORDERSCOPE_SECRET_ALPACA_API_SECRET
-```
-
-Properties:
-
-- secret values are not members of `LocalConfig`;
-- provider secrets are read only through explicitly registered names;
-- all `ORDERSCOPE_SECRET_*` values are redacted from logging projections, including future-prefixed names;
-- missing/unregistered secrets fail closed without echoing values;
-- local credential handling procedure is documented in `analysis/config/README.md`;
-- operational data root remains configurable so canary runs can use a WSL-native path without committing a machine-specific path;
-- tests operate on supplied synthetic mappings and do not read the operator environment.
-
-Observed local verification:
+Local acceptance evidence:
 
 ```text
 focused L0-003 tests -> 9 passed
 full pytest suite    -> 441 passed
+compileall           -> success / no errors
 git diff --check     -> clean / no findings
-compileall           -> not yet reported
 ```
 
-Task-specific details are in `L0-003_WEB_IMPLEMENTATION_HANDOFF_2026-09-09.md`.
+L0-003 is Accepted.
 
 ## 5. Primary integration path
 
-After L0-003 acceptance, scheduler work remains:
+Scheduler work now proceeds through:
 
 ```text
-L0-003 acceptance
-  -> L0-006 CLI entry point
+L0-006 CLI entry point
   -> X0-004 local scheduler
 ```
 
@@ -99,7 +73,7 @@ L0-003 acceptance
 
 ## 6. Parallel/deferred lanes
 
-- `L0-003` compileall verification is the current primary foundation gate.
+- `L0-006` is the next primary foundation task because all L0 prerequisites are Accepted.
 - `L1-006` is Ready as a parallel read-only API extension.
 - `L1-003` remains externally Blocked and does not invalidate fixture-path work.
 - `N1-006` remains important for News quality but is not the current X0 integration blocker.
@@ -108,16 +82,16 @@ L0-003 acceptance
 
 ## 7. Current restart rule
 
-1. Run `python3 -m compileall -q analysis/app analysis/tests`.
-2. If compileall succeeds, promote L0-003 to Accepted and start `L0-006 — CLI entry point`.
-3. Complete L0-006 before X0-004 scheduler work.
-4. `L1-006` may proceed in a separate bounded API cycle.
-5. Keep L1-003/SMOKE-007 real-D1 work separate.
+1. Start `L0-006 — CLI entry point`.
+2. After L0-006 acceptance, start `X0-004 — local scheduler`.
+3. `L1-006` may proceed in a separate bounded API cycle.
+4. Keep L1-003/SMOKE-007 real-D1 work separate.
 
 ## 8. Latest acceptance evidence
 
 | Task | Evidence |
 |---|---|
+| L0-003 | focused 9; full 441; compileall success; diff clean |
 | L0-004 | focused 11; full 418; diff clean; dependency deprecation warnings non-blocking |
 | L0-005 | focused 7; full 352; compileall success; diff clean |
 | L1-001 | focused 8; full 360; diff clean |
@@ -130,8 +104,7 @@ L0-003 acceptance
 
 ## 9. Unresolved items
 
-- `L0-003` compileall acceptance evidence remains pending.
-- `L0-006` CLI entry point is gated only by L0-003 acceptance.
+- `L0-006` CLI entry point implementation and local acceptance remain pending.
 - `L1-003` / `SMOKE-007` real-D1 approval window.
 - `N1-006` News quality work.
 - `A0-001` provisional validation.
