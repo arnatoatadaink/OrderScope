@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 import typer
 import uvicorn
@@ -11,6 +12,7 @@ from orderscope_local.config import load_local_config
 from orderscope_local.integration import run_scheduler
 from orderscope_local.local_api.health import LOCALHOST_BIND_HOST, LocalServerBinding
 from orderscope_local.local_api.read_api import LocalReadSnapshot, create_read_app
+from orderscope_local.news import load_news_recall_benchmark, render_news_recall_markdown
 
 
 app = typer.Typer(help="OrderScope local analysis CLI", no_args_is_help=True)
@@ -51,6 +53,16 @@ def quality_status() -> None:
     """Show the v0.1 quality execution boundary without starting a job."""
 
     typer.echo("quality operations are CLI-only; explicit quality commands are added by their owning tasks")
+
+
+@quality_app.command("news-recall")
+def quality_news_recall(
+    benchmark: Path = typer.Option(..., exists=True, dir_okay=False, readable=True, help="Validated N1-006 benchmark JSON file."),
+) -> None:
+    """Evaluate one explicit SEC/IR-to-News recall benchmark and print Markdown."""
+
+    dataset = load_news_recall_benchmark(benchmark)
+    typer.echo(render_news_recall_markdown(benchmark=dataset), nl=False)
 
 
 @schedule_app.command("run")
