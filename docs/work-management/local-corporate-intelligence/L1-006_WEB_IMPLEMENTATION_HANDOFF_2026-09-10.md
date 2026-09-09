@@ -1,6 +1,6 @@
 # OrderScope — L1-006 Web Implementation Handoff
 
-Status: **Provisional result — implementation complete / local verification pending**
+Status: **Accepted**
 Date: 2026-09-10
 Task: `L1-006`
 Parent WBS: `docs/WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
@@ -97,36 +97,23 @@ Preserved:
 
 ## 5. Focused acceptance cases
 
-`analysis/tests/local_api/test_import_dataset_api.py` currently contains 7 cases covering:
+`analysis/tests/local_api/test_import_dataset_api.py` contains 7 L1-006-specific cases. The acceptance command also includes the existing read API regression tests.
 
-1. `/imports` sanitized descriptor output;
-2. `/datasets` descriptor-only output;
-3. `/quality/latest` accepted quality output;
-4. `/coverage/latest` derived market coverage;
-5. absent accepted market state returns empty/null without fabrication;
-6. all four L1-006 routes reject HTTP mutation;
-7. snapshot market collections must remain immutable tuples.
+## 6. Local verification evidence
 
-## 6. Required local verification
-
-Run:
-
-```bash
-uv run pytest -q analysis/tests/local_api/test_import_dataset_api.py analysis/tests/local_api/test_read_api.py
-uv run pytest -q
-python3 -m compileall -q analysis/app analysis/tests
-git diff --check
-```
-
-Acceptance requires the focused tests, full suite, compileall, and diff check to pass.
-
-## 7. Acceptance transition
-
-If local verification passes:
+User-reported local verification:
 
 ```text
-L1-006 Provisional result
-  -> L1-006 Accepted
+focused API command -> 21 passed
+full pytest suite   -> 468 passed
+compileall          -> success / no errors
+git diff --check    -> clean / no findings
 ```
 
-This completes the fixture-path L1 read API surface but does not complete `L1-003` real-D1 export.
+The focused command includes the 7 L1-006-specific cases plus the existing `test_read_api.py` regression coverage.
+
+## 7. Acceptance result
+
+`L1-006` is **Accepted** for the fixture-path read API boundary.
+
+This completes the L1 fixture-path read surface but does not complete `L1-003` real-D1 export, which remains separately gated behind `SMOKE-007`.
