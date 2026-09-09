@@ -168,6 +168,17 @@ def test_blank_or_missing_source_is_retained_as_nullable_publisher():
         assert page.items[0].normalized["publisher"] is None
 
 
+def test_summary_whitespace_is_normalized_without_becoming_required():
+    for raw_summary, expected in (("   ", None), ("  Fixture summary  ", "Fixture summary")):
+        page = AlpacaNewsAdapter(
+            transport=FakeTransport({"news": [_article(summary=raw_summary)], "next_page_token": None}),
+            clock=lambda: RETRIEVED,
+        ).fetch(_request())
+
+        assert page.error is None
+        assert page.items[0].normalized["summary"] == expected
+
+
 def test_content_field_is_discarded_at_n0_002_boundary():
     raw_body = "raw body must not cross"
     transport = FakeTransport({"news": [_article(content=raw_body)], "next_page_token": None})
