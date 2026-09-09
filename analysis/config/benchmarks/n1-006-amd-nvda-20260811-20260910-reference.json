@@ -1,0 +1,38 @@
+{
+  "schema_version": "news-recall-benchmark-v0.1",
+  "benchmark_id": "amd-nvda-20260811-20260910-v1",
+  "window_start": "2026-08-11T00:00:00+00:00",
+  "window_end": "2026-09-10T00:00:00+00:00",
+  "references": [
+    {
+      "reference_id": "n1r-amd-20260813-financing",
+      "subject_ref": "AMD",
+      "event_type": "financing",
+      "available_at": "2026-08-17T16:05:40+00:00",
+      "source_kind": "sec"
+    },
+    {
+      "reference_id": "n1r-nvda-20260817-partnership",
+      "subject_ref": "NVDA",
+      "event_type": "partnership",
+      "available_at": "2026-08-17T08:41:33+00:00",
+      "source_kind": "sec"
+    },
+    {
+      "reference_id": "n1r-amd-20260819-leadership",
+      "subject_ref": "AMD",
+      "event_type": "leadership",
+      "available_at": "2026-08-19T16:16:56+00:00",
+      "source_kind": "sec"
+    },
+    {
+      "reference_id": "n1r-nvda-20260826-earnings",
+      "subject_ref": "NVDA",
+      "event_type": "earnings",
+      "available_at": "2026-08-26T16:21:19+00:00",
+      "source_kind": "sec"
+    }
+  ],
+  "discoveries": [],
+  "unresolved_labels": []
+}
