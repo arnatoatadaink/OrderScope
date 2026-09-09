@@ -1,6 +1,6 @@
 # OrderScope — L0-003 Web Implementation Handoff
 
-Status: **Provisional result — Web implementation complete / local test pending**
+Status: **Provisional result — local tests passed / compileall evidence pending**
 Date: 2026-09-09
 Task: `L0-003`
 Parent WBS: `WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
@@ -58,7 +58,7 @@ Rules:
 
 ## 4. Local-only credential procedure
 
-The configuration README now specifies:
+The configuration README specifies:
 
 1. credentials stay in the local WSL process/session environment or another Git-excluded local mechanism;
 2. no secrets in committed config/dotenv, CLI arguments, tests, dumps, API responses, or manifests;
@@ -82,7 +82,7 @@ The focused module contains 9 cases covering:
 
 ## 6. Local verification boundary
 
-Run from the repository root:
+Required commands:
 
 ```bash
 uv run pytest -q analysis/tests/config/test_config.py
@@ -91,18 +91,20 @@ python3 -m compileall -q analysis/app analysis/tests
 git diff --check
 ```
 
-Acceptance requires:
+Observed user-reported evidence on 2026-09-09:
 
-- focused tests pass;
-- full regression passes;
-- compileall completes without errors;
-- diff check is clean.
+```text
+focused config tests -> 9 passed
+full pytest suite    -> 441 passed
+git diff --check     -> clean / no findings
+compileall           -> not reported yet
+```
 
-Do not report the expected full-suite count in advance; use the observed local count as acceptance evidence.
+Acceptance requires all four checks. L0-003 therefore remains Provisional until compileall completes without errors.
 
 ## 7. Next action after acceptance
 
-If all verification passes:
+If compileall succeeds:
 
 ```text
 L0-003 Accepted
