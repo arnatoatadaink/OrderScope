@@ -67,7 +67,7 @@ class NewsArticleMetadata:
     provider_article_id: str
     query_symbol: str
     headline: str
-    publisher: str
+    publisher: str | None
     article_url: str | None
     published_at: SourceTimestamp
     provider_updated_at: SourceTimestamp | None
@@ -82,17 +82,17 @@ class NewsArticleMetadata:
             ("provider_article_id", self.provider_article_id, 512),
             ("query_symbol", self.query_symbol, 32),
             ("headline", self.headline, 2048),
-            ("publisher", self.publisher, 256),
         ):
             if not isinstance(value, str) or not value.strip() or value != value.strip() or len(value) > limit:
                 raise ContractViolation(f"news {field} must be bounded non-blank text")
         for field, value, limit in (
+            ("publisher", self.publisher, 256),
             ("article_url", self.article_url, 2048),
             ("author", self.author, 512),
             ("summary", self.summary, 8192),
         ):
-            if value is not None and (not isinstance(value, str) or value != value.strip() or len(value) > limit):
-                raise ContractViolation(f"news {field} must be bounded text when present")
+            if value is not None and (not isinstance(value, str) or value != value.strip() or not value or len(value) > limit):
+                raise ContractViolation(f"news {field} must be bounded non-blank text when present")
         if not isinstance(self.published_at, SourceTimestamp):
             raise ContractViolation("news published_at must use SourceTimestamp")
         if self.provider_updated_at is not None and not isinstance(self.provider_updated_at, SourceTimestamp):
@@ -228,7 +228,7 @@ def _normalize_article(value: object, *, query_symbol: str) -> AdapterItem:
     # remains owned by N0-004 through its separate temporary-content boundary.
     article_id = _required_text(value.get("id"), coerce_int=True, maximum=512)
     headline = _required_text(value.get("headline"), maximum=2048)
-    source = _required_text(value.get("source"), maximum=256)
+    source = _optional_text(value.get("source"), maximum=256)
     url = _optional_text(value.get("url"), maximum=2048)
     created = decode_alpaca_news_timestamp(value.get("created_at"))
     updated_raw = value.get("updated_at")
