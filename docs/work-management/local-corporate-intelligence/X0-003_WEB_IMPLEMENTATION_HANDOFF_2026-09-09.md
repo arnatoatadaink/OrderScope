@@ -1,6 +1,6 @@
 # OrderScope — X0-003 Web Implementation Handoff
 
-Status: **Provisional result — Web implementation complete / local test pending**
+Status: **Accepted — local verification complete**
 Date: 2026-09-09
 Task: `X0-003`
 Parent WBS: `WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
@@ -95,7 +95,7 @@ Collection responses include the schema version, collection name, as-of instant,
 
 ## 10. Focused fixtures encoded
 
-The focused module currently collects 14 cases covering:
+The focused module collects 14 cases covering:
 
 1. health/bind contract reuse;
 2. as-of-safe `/facts` ordering/value serialization;
@@ -118,22 +118,22 @@ X0-003 does not:
 - execute real D1 export;
 - authenticate remote clients because remote binds are prohibited in v0.1.
 
-## 12. Local verification boundary
+## 12. Local verification evidence
 
-Run:
+Executed locally:
 
-```bash
-uv run pytest -q analysis/tests/local_api/test_read_api.py
-uv run pytest -q
-python3 -m compileall -q analysis/app analysis/tests
-git diff --check
+```text
+uv run pytest -q analysis/tests/local_api/test_read_api.py -> 14 passed
+uv run pytest -q                                      -> 432 passed
+python3 -m compileall -q analysis/app analysis/tests  -> success / no errors
+git diff --check                                      -> clean / no findings
 ```
 
-Acceptance requires focused tests, full regression, compileall success, and clean diff check.
+All X0-003 acceptance gates passed. `X0-003 = Accepted`.
 
 ## 13. Next action after acceptance
 
-After X0-003 acceptance, the remaining path to X0-004 scheduler runs through Local foundation:
+The remaining path to X0-004 scheduler runs through Local foundation:
 
 ```text
 L0-003 config/secret boundary
