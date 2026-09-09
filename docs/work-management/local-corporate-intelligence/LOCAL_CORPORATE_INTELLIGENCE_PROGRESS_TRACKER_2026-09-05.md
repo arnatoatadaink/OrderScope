@@ -51,17 +51,16 @@ This file is the sole integrated authority for Local Corporate Intelligence runt
 | L1-001 | Accepted | D1 manifest contract accepted: focused 8, full 360, diff clean |
 | L1-002 | Accepted | Fixture raw import accepted after migration regression fix: storage 7, focused 8, full 368, compileall success, diff clean |
 | L1-003 | Blocked | Real D1 export requires separately approved `SMOKE-007` change window |
-| L1-004 | Provisional result | Fixture canonical Parquet implementation complete; local verification pending |
-| L1-005 | Not started | Fixture path waits for L1-004 acceptance |
+| L1-004 | Accepted — fixture path | Canonical Parquet fixture path accepted: focused 11, full 372, diff clean; real-data promotion remains gated by L1-003 |
+| L1-005 | Provisional result | Market-data quality implementation complete; focused/full local verification pending |
 | L1-006 | Not started | Depends on L0-004 and L1-005 |
 
 ## 4. Current primary serial path
 
-The remaining fixture-path serial work toward X0-001 is:
+The remaining fixture-path serial work toward X0-001 is now:
 
 ```text
-L1-004 fixture acceptance
-  -> L1-005 market-data quality
+L1-005 fixture acceptance
   -> X0-001 unified timeline
 ```
 
@@ -82,26 +81,26 @@ I0-005  Accepted
 E0-007  Accepted
 N1-005  Accepted
 O0-005  Accepted
-L1-005  Not started
+L1-005  Provisional result — local verification pending
 ```
 
-Therefore `X0-001` remains blocked only by the fixture-market quality path through L1-005.
+Therefore `X0-001` remains blocked only by formal fixture-path acceptance of L1-005.
 
-## 6. Current L1-004 fixture implementation boundary
+## 6. Current L1-005 fixture implementation boundary
 
-`analysis/app/orderscope_local/market_import/canonical_bars.py` now implements the fixture path:
+`analysis/app/orderscope_local/market_import/quality.py` implements provider-neutral quality evaluation over the persisted canonical Parquet:
 
-- verifies L1-001 manifest byte size and SHA-256;
-- loads UTF-8 fixture SQL only into isolated in-memory SQLite;
-- requires exact columns `symbol, bar_time, open, high, low, close, volume, receipt_time`;
-- normalizes UTC bar/receipt timestamps and validates manifest half-open window;
-- validates finite non-negative OHLC, OHLC envelope, and non-negative integer volume;
-- rejects duplicate/conflicting `(symbol, bar_time)` keys;
-- sorts deterministically by `(symbol, bar_time, receipt_time)`;
-- writes Parquet with source manifest/artifact/environment/revision provenance;
-- returns only dataset metadata/path/hash, never raw SQL or parsed rows.
+- verifies the actual Parquet SHA-256 against the L1-004 dataset descriptor;
+- verifies canonical field order/types and schema-version metadata;
+- verifies actual row count against the dataset descriptor;
+- distinguishes duplicate from conflicting `(symbol, bar_time)` identities;
+- revalidates OHLC envelope, finite/non-negative prices, non-negative volume, and receipt ordering;
+- checks row provenance against source manifest/artifact identity;
+- evaluates explicit caller-supplied UTC `SessionWindow` grids;
+- reports missing and off-grid points without interpolation or timestamp snapping;
+- returns an immutable deterministic issue report and does not mutate source data.
 
-Focused local verification is pending before L1-004 can become Accepted.
+Exchange holiday/short-session policy is intentionally not embedded in L1-005. A replaceable calendar/provider layer supplies explicit session windows later.
 
 ## 7. Parallel/deferred lanes
 
@@ -113,14 +112,15 @@ Focused local verification is pending before L1-004 can become Accepted.
 
 ## 8. Current restart rule
 
-- **Main local session:** run L1-004 fixture tests/full suite/compileall/diff check.
-- If L1-004 passes, promote it to Accepted and start `L1-005` as the next main task.
-- Do not start X0-001 before L1-005 acceptance.
+- **Main local session:** run L1-005 focused tests/full suite/compileall/diff check.
+- If L1-005 passes, promote it to Accepted and reconcile/start `X0-001` as the next main task.
 - Do not treat fixture-path acceptance as real-D1 acceptance.
+- L0-003/L0-004 remain separate foundation work required later for L0-006/X0-003/X0-004 paths.
 
 ## 9. Unresolved items
 
 - `SMOKE-007` / L1-003 approved remote D1 export change window and real-data evidence.
+- Exchange calendar/holiday/short-session source for production session-window generation; L1-005 itself remains calendar-provider-neutral.
 - N1-006 exact evaluation window and News history availability.
 - Analyst Consensus as-of provider/terms.
 - A0-002 AI/Semiconductor proxy.
@@ -134,6 +134,7 @@ Focused local verification is pending before L1-004 can become Accepted.
 | L0-005 | focused 7; full 352; compileall success; diff clean; upstream 0/0 |
 | L1-001 | focused 8; full 360; diff clean |
 | L1-002 | migration tests 7; focused 8; full 368; compileall success; diff clean |
+| L1-004 fixture | focused 11; full 372; diff clean |
 
 ## 11. Progress-update rule
 
