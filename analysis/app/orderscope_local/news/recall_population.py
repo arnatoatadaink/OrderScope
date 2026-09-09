@@ -22,7 +22,7 @@ class NewsRecallCandidate:
     provider_article_id: str
     query_symbols: tuple[str, ...]
     headline: str
-    publisher: str
+    publisher: str | None
     article_url: str | None
     provider_symbols: tuple[str, ...]
     provider_published_at: datetime
@@ -38,8 +38,8 @@ class NewsRecallCandidate:
             raise ContractViolation("candidate provider_symbols must be immutable tuple")
         if not isinstance(self.headline, str) or not self.headline:
             raise ContractViolation("candidate headline must be non-blank text")
-        if not isinstance(self.publisher, str) or not self.publisher:
-            raise ContractViolation("candidate publisher must be non-blank text")
+        if self.publisher is not None and (not isinstance(self.publisher, str) or not self.publisher):
+            raise ContractViolation("candidate publisher must be non-blank text when present")
         _utc(self.provider_published_at, "candidate provider_published_at")
 
 
