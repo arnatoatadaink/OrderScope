@@ -1,6 +1,6 @@
 # OrderScope — L0-003 Web Implementation Handoff
 
-Status: **Provisional result — local tests passed / compileall evidence pending**
+Status: **Accepted**
 Date: 2026-09-09
 Task: `L0-003`
 Parent WBS: `WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
@@ -80,31 +80,20 @@ The focused module contains 9 cases covering:
 8. prefix-wide logging redaction including a future provider token;
 9. secret-free `LocalConfig.log_fields()` projection.
 
-## 6. Local verification boundary
-
-Required commands:
-
-```bash
-uv run pytest -q analysis/tests/config/test_config.py
-uv run pytest -q
-python3 -m compileall -q analysis/app analysis/tests
-git diff --check
-```
+## 6. Local acceptance evidence
 
 Observed user-reported evidence on 2026-09-09:
 
 ```text
 focused config tests -> 9 passed
 full pytest suite    -> 441 passed
+compileall           -> success / no errors
 git diff --check     -> clean / no findings
-compileall           -> not reported yet
 ```
 
-Acceptance requires all four checks. L0-003 therefore remains Provisional until compileall completes without errors.
+All required checks passed. L0-003 is Accepted.
 
 ## 7. Next action after acceptance
-
-If compileall succeeds:
 
 ```text
 L0-003 Accepted
