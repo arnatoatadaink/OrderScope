@@ -238,7 +238,7 @@ def _normalize_article(value: object, *, query_symbol: str) -> AdapterItem:
 
     symbols = _string_tuple(value.get("symbols", ()), field="symbols", maximum=32)
     author = _optional_text(value.get("author"), field="author", maximum=512)
-    summary = _optional_text(value.get("summary"), field="summary", maximum=8192)
+    summary = _optional_normalized_text(value.get("summary"), field="summary", maximum=8192)
     metadata = NewsArticleMetadata(
         provider_key=ALPACA_NEWS_PROVIDER_KEY,
         provider_article_id=article_id,
@@ -290,6 +290,19 @@ def _optional_text(value: object, *, field: str, maximum: int) -> str | None:
     if not isinstance(value, str) or value != value.strip() or len(value) > maximum:
         raise AlpacaNewsRequestFailure(f"invalid_response_{field}", False)
     return value or None
+
+
+def _optional_normalized_text(value: object, *, field: str, maximum: int) -> str | None:
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise AlpacaNewsRequestFailure(f"invalid_response_{field}", False)
+    normalized = value.strip()
+    if not normalized:
+        return None
+    if len(normalized) > maximum:
+        raise AlpacaNewsRequestFailure(f"invalid_response_{field}", False)
+    return normalized
 
 
 def _string_tuple(value: object, *, field: str, maximum: int) -> tuple[str, ...]:
