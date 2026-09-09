@@ -1,6 +1,6 @@
 # OrderScope — X0-005 Web Implementation Handoff
 
-Status: **Provisional result — Web implementation complete / local test pending**
+Status: **Accepted**
 Date: 2026-09-10
 Task: `X0-005`
 Parent WBS: `WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
@@ -93,22 +93,20 @@ The X0-005 module contains 4 cases:
 3. timeline order is information-time deterministic;
 4. scheduler job-boundary resume completes the fixture correctly.
 
-## 7. Local verification boundary
+## 7. Local acceptance evidence
 
-Run from repository root:
+Observed user-reported evidence on 2026-09-10:
 
-```bash
-uv run pytest -q analysis/tests/integration/test_end_to_end_fixture.py
-uv run pytest -q
-python3 -m compileall -q analysis/app analysis/tests
-git diff --check
+```text
+focused X0-005 tests -> 4 passed
+full pytest suite    -> 461 passed
+compileall           -> success / no errors
+git diff --check     -> clean / no findings
 ```
 
-Acceptance requires all four checks to pass.
+All explicitly required acceptance checks passed. X0-005 is Accepted.
 
-## 8. Next action after acceptance
-
-If local verification passes:
+## 8. Next action
 
 ```text
 X0-005 Accepted
