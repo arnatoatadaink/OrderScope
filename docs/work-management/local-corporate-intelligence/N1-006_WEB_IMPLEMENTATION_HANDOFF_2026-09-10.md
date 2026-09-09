@@ -228,3 +228,90 @@ N1-006 does not:
 - alter Worker mode;
 - open remote D1 / SMOKE-007;
 - treat local historical retrieval time as provider historical availability.
+
+## 12. Live candidate-population blocker — proposed repair pending Web scope review
+
+On 2026-09-10, the authenticated N1-006 candidate command was executed for the
+official comparison window:
+
+```bash
+PYTHONPATH=analysis/app uv run python -m orderscope_local.cli \
+  quality news-recall-candidates \
+  --start 2026-08-11T00:00:00Z \
+  --end 2026-09-10T00:00:00Z \
+  --filename amd-nvda-news-candidates.json
+```
+
+Candidate generation stopped before writing the output file:
+
+```text
+ContractViolation: News candidate acquisition failed: invalid_response_symbols
+```
+
+The failure was reproduced by calling the Alpaca News transport directly and
+inspecting only response structure and metadata. The full bounded window
+returned this snapshot:
+
+| Query symbol | Pages | Articles | Invalid `symbols` values |
+|---|---:|---:|---:|
+| AMD | 2 | 93 | 0 |
+| NVDA | 12 | 599 | 1 |
+
+The single incompatible provider observation was article ID `61371589`, with
+provider `created_at` `2026-08-22T13:00:00Z`:
+
+```text
+[' MA', ' V', 'ALLY', 'BAC', 'BRK', 'COF', 'MA', 'META', 'NVDA', 'V', 'WBD']
+```
+
+Alpaca supplied leading whitespace on ` MA` and ` V`. The current adapter
+requires each provider symbol to already be stripped, so one malformed symbol
+rejects the entire page. After trimming, those two observations duplicate the
+later `MA` and `V` values.
+
+No candidate JSON was created by the failed run. Credentials and article body
+content were not printed or persisted.
+
+### 12.1 Proposed bounded repair
+
+Change only the Alpaca response-normalization boundary and its tests:
+
+1. In `analysis/app/orderscope_local/news/alpaca.py`, trim surrounding
+   whitespace from each string element decoded from `symbols`.
+2. Validate the normalized value, continuing to reject non-string elements,
+   empty/whitespace-only symbols, and symbols longer than 32 characters after
+   trimming.
+3. Deduplicate after normalization while preserving first-observed order. The
+   observed value above would normalize to:
+
+   ```text
+   ('MA', 'V', 'ALLY', 'BAC', 'BRK', 'COF', 'META', 'NVDA', 'WBD')
+   ```
+
+4. Add focused regression coverage in
+   `analysis/tests/news/test_alpaca_news_metadata_adapter.py` for surrounding
+   whitespace plus post-normalization duplicates.
+5. Retain negative coverage proving that `None`, non-sequence values,
+   non-string members, whitespace-only members, and over-limit normalized
+   symbols still fail closed with the sanitized `invalid_response_symbols`
+   category.
+6. Run the focused Alpaca adapter and N1-006 population/CLI tests, then the full
+   Python suite, `compileall`, and `git diff --check`.
+7. Re-run the authenticated candidate command and verify that:
+   - pagination completes for both query symbols;
+   - AMD/NVDA cross-query articles are merged by provider article ID;
+   - the output contains no untrimmed provider symbols;
+   - the output remains metadata-only and contains no credentials;
+   - the file is written only beneath
+     `ORDERSCOPE_DATA_ROOT/benchmarks/n1-006/`.
+
+### 12.2 Scope rationale
+
+This is provider-input hygiene required to complete the real-data execution of
+N1-006. It does not relax the normalized News metadata contract: normalized
+symbols remain bounded, non-blank, unique strings. It also does not change
+query identity, article identity, recall matching, labeling, scoring, storage,
+scheduling, Worker behavior, or external infrastructure.
+
+Implementation is intentionally deferred until Web review confirms that this
+repair scope is appropriate for N1-006.
