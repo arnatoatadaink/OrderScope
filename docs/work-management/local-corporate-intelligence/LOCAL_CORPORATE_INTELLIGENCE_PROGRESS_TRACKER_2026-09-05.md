@@ -1,7 +1,7 @@
 # OrderScope — Local Corporate Intelligence Progress Tracker
 
 Status: active operational tracker (non-normative)
-Date: 2026-09-05
+Date: 2026-09-09
 Parent WBS: `../../WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
 Integrated CP: `../../WORK_PLAN_LOCAL_CORPORATE_INTELLIGENCE_CRITICAL_PATH_2026-09-05.md`
 Extension WBS: `../../WORK_BREAKDOWN_ANALYST_CROSS_MARKET_2026-09-05.md`
@@ -12,9 +12,9 @@ Runtime-status authority: **this file**
 
 This file is the sole integrated authority for Local Corporate Intelligence runtime progress. Track current status, accepted/provisional/ready/blocked state, restart point, execution evidence, unresolved items, and next safe action here.
 
-The Parent WBS defines what must be completed. The Integrated Critical Path defines static dependency structure, permanent gates, and safe parallelization. Neither should be updated merely because execution progressed.
+The Parent WBS defines completion conditions. The Integrated Critical Path defines static dependency structure, permanent gates, and safe parallelization. Neither should be changed merely because runtime progress advanced.
 
-Model/Agent selection follows the Model Assignment Policy and must be recorded per cycle.
+This tracker was fully reconciled on 2026-09-09 after the E0, O0, N0, and N1 implementation cycles had advanced beyond the older 2026-09-08 snapshot. Detailed historical per-task evidence remains available in Git history and task handoff files; this file intentionally prioritizes the current integrated runtime state.
 
 ## 2. Status vocabulary
 
@@ -27,294 +27,175 @@ Model/Agent selection follows the Model Assignment Policy and must be recorded p
 | Blocked | Waiting on an external window, unresolved contract, or upstream result |
 | Not started | Dependency gate is closed or work has not started |
 
-## 3. Current critical-path snapshot
+## 3. Current integrated snapshot
+
+### 3.1 Common contracts / SEC / Earnings / Official / News
+
+| Lane / task | Status | Evidence / interpretation | Next action |
+|---|---|---|---|
+| I0-001..007 | Accepted | Common registry, provenance, checkpoint, identity, Fact Store, temporary-content, and common adapter-test contracts were accepted before downstream adapter work | Reference only |
+| S0-001..007 | Accepted | SEC conditions, submissions, FilingRecord, target forms, document acquisition, Company Facts/XBRL, and Canary acceptance are complete at the v0.1 fixture/controlled-live boundary | Reference only |
+| E0-001..007 | Accepted | Earnings contract, SEC detection, IR fallback, basic Facts, segment fallback, segment identity, and AMD/NVDA quality report are accepted | Reference only; E0-007 is a downstream prerequisite |
+| O0-001..005 | Accepted | Official source registry, feed acquisition, statement/implementation semantics, relevance, and quality acceptance are complete | Reference only; O0-005 is a downstream prerequisite |
+| N0-001..004 | Accepted | Provider decision, metadata adapter, canonicalization, and temporary body access are accepted | Reference only |
+| N1-001..005 | Accepted | Event taxonomy, deterministic extraction, body extraction, contradiction/review, and retention controller are accepted | News gate for X0-001 is satisfied |
+| N1-006 | Ready* | Dependency N1-005 and E0-007 are Accepted; execution still needs a 1–3 month News-vs-SEC/IR comparison dataset/reference window | Run when evaluation data is available; does not replace the Local-foundation gate |
+
+`*` Ready means dependency-ready. Dataset availability still determines whether the evaluation can produce meaningful recall/lag/misattribution results in the current cycle.
+
+### 3.2 Local foundation / market import and quality
 
 | Task | Status | Evidence / interpretation | Next action |
 |---|---|---|---|
-| I0-001 | Accepted | The prerequisite for I0-002 was satisfied before the current execution cycles | Reference only during downstream reconciliation |
-| I0-002 | Accepted | Immutable types and contract tests fix the source ref/hash, source timestamp, retrieved/available/internal-accepted timestamps, and provider revision; parent diff/test/semantic review completed in the 2026-09-05 execution cycle | Reference only during downstream reconciliation |
-| I0-003 | Accepted | Persistable types and tests fix provider/source scope, bounded windows, opaque cursors, and resumable partial/error states; parent diff/test/semantic review completed in the 2026-09-05 execution cycle | Reference only when connecting I0-007 |
-| I0-004 | Accepted | Stable filing/article/signal identities and immutable new/duplicate/update/conflict classification are fixed by contract tests; parent diff/test/semantic review completed in the 2026-09-06 execution cycle | Reference when connecting I0-007 and downstream adapters |
-| I0-005 | Accepted | Immutable Fact Store contracts and fixtures separate Fact, Evidence, Relationship, DerivedMetric, and Interpretation while using I0-002 provenance; parent semantic/diff/test review completed in the 2026-09-06 execution cycle | Reference when implementing I0-006 and reconciling downstream provisional artifacts |
-| I0-006 | Accepted | Immutable temporary-content lifecycle types, expiry/deletion/exception invariants, and contract tests were reviewed and accepted in the 2026-09-06 execution cycle | Reference when connecting I0-007 and downstream content adapters |
-| I0-007 | Accepted | The common contract-test kit connects the accepted checkpoint, stable-identity, and temporary-content contracts; parent semantic/diff/test review completed in the 2026-09-06 execution cycle | Reference when implementing provider adapters |
-| S0-001 | Accepted | The WEB-005 handoff was reconciled against the W0-004 checklist and current SEC primary sources; parent evidence and semantic review completed in the 2026-09-08 execution cycle | Reference when implementing SEC adapters and recheck before live deployment or after policy changes |
-| S0-002 | Accepted | The bounded AMD/NVDA Submissions adapter, recent/history fixtures, common-contract integration, and parent semantic/test review completed in the 2026-09-08 execution cycle | Reference when implementing FilingRecord persistence |
-| S0-003 | Accepted | Immutable FilingRecord conversion and SQLite repository persist accession-keyed metadata idempotently; parent semantic/diff/test review completed in the 2026-09-08 execution cycle | Reference when integrating the provisional form filter and implementing document/XBRL adapters |
-| S0-004 | Accepted | The strict target-form filter is connected to Accepted S0-003 FilingRecord output; parent semantic/diff/test review completed in the 2026-09-08 execution cycle | Reference when implementing S0-007 acceptance |
-| S0-005 | Accepted | The canonical primary-document acquirer stages SHA-256-addressed temporary content and returns sanitized retryable failures; parent semantic/diff/test review completed in the 2026-09-08 execution cycle | Reference when integrating S0-007 and the downstream retention worker |
-| S0-006 | Accepted | Provider-neutral Company Facts/XBRL types preserve unit, period, dimensions, filing/API source, and bounded AMD/NVDA acquisition behavior; parent semantic/diff/test review completed in the 2026-09-08 execution cycle | Reference when integrating S0-007 and later fundamental extraction |
-| S0-007 | Accepted | Fixture replay and controlled live AMD/NVDA checks verify canary scope, new/duplicate/amendment/retryable partial behavior, and reporting-owner filing paths; parent semantic/diff/test review completed in the 2026-09-08 execution cycle | Reference when implementing the Earnings lane |
-| E0-001..007 | Not started | The S0 lane and I0-005 gates are Accepted | Start E0-001 as a separate cycle, then proceed sequentially |
-| N1 / O0 / X0 | Not started | Depends on the Core Fact/SEC/Earnings lanes | Start later on the Core CP |
+| L0-001 | Accepted / inherited prerequisite | L0-002 was accepted under the existing local-stack ADR dependency; no new runtime issue was found in this reconciliation | Reference only |
+| L0-002 | Accepted | Scaffold and Git boundary were accepted; `analysis/config` currently contains only its scaffold README | Reference only |
+| L0-003 | Ready | Depends on L0-002; current branch has no implemented config/secret module under `orderscope_local` | **Primary next implementation candidate** |
+| L0-004 | Ready | Depends on L0-002; current branch has no localhost health/API foundation under `orderscope_local` | Can run after overlap review, parallel to L0-003/L0-005 if files stay disjoint |
+| L0-005 | Ready | Depends on L0-002; current branch has no local migration/catalog implementation under `orderscope_local` | **Critical prerequisite for L1-001** |
+| L0-006 | Not started | Depends on L0-003, L0-004, and L0-005 | Start only after those three are Accepted |
+| L1-001 | Not started | Depends on L0-005 | Start after L0-005 acceptance |
+| L1-002 | Not started | Depends on L1-001 | Start after manifest contract |
+| L1-003 | Blocked | Real D1 export requires separately approved `SMOKE-007` change window | Keep independent from fixture path |
+| L1-004 | Not started | Fixture path depends on L1-002; real-data completion additionally requires L1-003 | Build fixture dataset path first after L1-002 |
+| L1-005 | Not started | Depends on L1-004 | **Remaining unsatisfied X0-001 gate** |
+| L1-006 | Not started | Depends on L0-004 and L1-005 | Later read-only import/dataset API work |
 
-## 4. Parallel lanes
+Repository reconciliation on 2026-09-09 found only the domain packages `contracts`, `sec`, `earnings`, `official`, and `news` under `analysis/app/orderscope_local`; there is no local config/health/migration/import/market-quality package yet. Therefore L1-005 must not be treated as implemented or provisional merely because the Corporate Intelligence source lanes are complete.
 
-### Lane A — Core contracts
+## 4. X0 gate reconciliation
 
-Latest accepted task: `I0-007`. The Core contract lane is complete; select the next task only in a separate cycle after checking its remaining gates.
+### X0-001 — unified timeline
 
-Static dependency order is defined in the Critical Path; this section records only the current runtime position.
+Static WBS dependencies:
 
-### Lane B — Local foundation
+```text
+L1-005 + I0-005 + E0-007 + N1-005 + O0-005
+```
 
-`L0-002` is Accepted. Next safe dependent work is one of `L0-003`, `L0-004`, or `L0-005`, subject to task/file-overlap review.
+Runtime state after this reconciliation:
 
-`L1-003` remains blocked by the separately approved `SMOKE-007` change window and does not block fixture work.
+```text
+I0-005  Accepted
+E0-007  Accepted
+N1-005  Accepted
+O0-005  Accepted
+L1-005  NOT STARTED
+```
+
+Therefore:
+
+```text
+X0-001 = Blocked by L1-005 only
+```
+
+Do **not** begin X0-001 yet. The shortest remaining path is:
+
+```text
+L0-005
+  -> L1-001
+  -> L1-002
+  -> L1-004 fixture path
+  -> L1-005
+  -> X0-001
+```
+
+`L1-003` remains an independent remote-real-data gate. It is required when promoting the market dataset path from fixture acceptance to real D1 data, but it should not block development of L1-001/002 and the fixture form of L1-004/005.
+
+### Other X0 tasks
+
+| Task | Runtime status | Reason |
+|---|---|---|
+| X0-001 | Blocked | L1-005 not started |
+| X0-002 | Not started | Coverage summary should wait until remaining Local/market adapter path exists and adapter states are reconciled |
+| X0-003 | Not started | Depends on L0-004 plus X0-001/002 |
+| X0-004 | Not started | Depends on adapter availability and L0-006 |
+| X0-005 | Not started | Depends on X0-001..004 |
+| X0-006 | Not started | Depends on X0-005 |
+
+## 5. Parallel lanes
+
+### Lane A — Corporate information core
+
+`I0`, `S0`, `E0`, `O0`, and News through `N1-005` are Accepted. The next source-quality task is `N1-006`, but it is an evaluation task and is not the remaining serial blocker for X0-001.
+
+### Lane B — Local foundation / market quality
+
+This is now the **primary serial lane** for the Local Intelligence MVP.
+
+Recommended order:
+
+1. `L0-005` — migration foundation, because it opens L1-001.
+2. `L0-003` and `L0-004` — can be implemented as separate bounded cycles after overlap review; both are also required before L0-006.
+3. `L1-001` → `L1-002` → fixture `L1-004` → `L1-005`.
+4. `L1-003` stays blocked until the approved remote D1/SMOKE-007 window; reconcile real data later without invalidating fixture progress.
 
 ### Lane C — Cross-Market extension
 
 | Task | Status | Next action |
 |---|---|---|
-| A0-001 | Provisional result | Design complete and its I0-002/I0-005 implementation-acceptance dependencies are satisfied | Reflect fields/schema/fixtures in a separate Cross-Market cycle |
-| A0-002 | Not started | Dataset/source definition may proceed before final schema write |
+| A0-001 | Provisional result | Implementation integration can proceed in a separate Cross-Market cycle if desired |
+| A0-002 | Not started | Dataset/source definition may proceed independently; not a serial Core blocker unless release DoD changes |
 
-### Lane D — SEC / Earnings
-
-S0-007 is Accepted. The SEC Filing lane is complete; E0-001 is the next Core critical-path task and must start in a separate cycle.
-
-## 5. Current model / Agent assignment
+## 6. Current model / Agent assignment
 
 | Role / task | Assignment | Reasoning | Note |
 |---|---|---|---|
-| Orchestrator | Sol | medium | Select and review one task against the Tracker, WBS, Critical Path, and repository evidence |
-| Next Core task | Terra + Sol review | high | Start E0-001 contract integration as one separate cycle |
-| Local-foundation bounded work | Luna/Terra | per Model Assignment Policy | Select one Ready task only |
-| A0-002 dataset/source definition | Terra | medium | No final schema write or hypothesis integration yet |
+| Orchestrator | Sol | medium | Reconcile tracker/WBS/CP/repository evidence and select one bounded next task |
+| Primary next serial task | Luna/Terra + Sol review | medium | `L0-005` is bounded local migration foundation but affects downstream persistence/import work |
+| L0-003 / L0-004 | Luna/Terra | per Model Assignment Policy | Safe bounded Local-foundation work after overlap review |
+| N1-006 evaluation | Terra + Sol review | medium/high | Dataset quality, matching methodology, lag, and ticker-misattribution measurement need careful review |
+| A0-002 dataset/source definition | Terra | medium | Separate validation lane |
 
-Record the actual model, reasoning effort, delegation rationale, and review result at the end of each cycle.
+Record the actual model/reasoning and acceptance evidence in the handoff or tracker update for each future cycle.
 
-## 6. Known non-blockers / deferred items
+## 7. Known non-blockers / deferred items
 
-- `L1-003` remote D1 export change window is deferred and does not block local fixture work.
-- `A0-002` is a validation lane and is not currently a serial blocker for Core Corporate Intelligence.
+- `L1-003` remote D1 export change window remains deferred and does not block fixture-path implementation through L1-005.
+- `N1-006` is important for News quality/M4 acceptance but is not the current serial dependency of X0-001.
+- `A0-002` remains a validation lane and is not currently a serial blocker for Core Corporate Intelligence.
+- Worker remains Shadow; Local work must not directly change Worker runtime state.
 
-## 7. Current restart rule
+## 8. Current restart rule
 
-- Main local session: start `E0-001` as a separate cycle; the S0 lane is Accepted
-- Second parallel local session: choose one Ready Local-foundation task (`L0-003`, `L0-004`, or `L0-005`) after overlap review
-- Cross-Market session: A0-001 implementation integration or `A0-002` dataset/source definition, with one task selected per cycle
-- Do not continue automatically beyond one selected E0 task in a cycle
+- **Main local session:** start `L0-005` as the primary serial task toward L1-005/X0-001.
+- **Second bounded local session:** `L0-003` or `L0-004` may proceed after task/file-overlap review.
+- **News evaluation session:** start `N1-006` only when a credible 1–3 month News and SEC/IR comparison dataset/reference window is available.
+- **Cross-Market session:** A0 work remains separate.
+- Do not start X0-001 until L1-005 is Accepted.
+- Do not conflate fixture completion with the separately gated real D1 export/change window.
 
-## 8. Unresolved items
+## 9. Unresolved items
 
-- Analyst Consensus as-of history provider and contract conditions
-- AI/Semiconductor proxy definition for A0-002
-- short/borrow data provider for H4 validation
-- whether A0-002 becomes mandatory for v0.1 release acceptance
+- `SMOKE-007` / L1-003 approved remote D1 export change window and real-data completion evidence.
+- N1-006 exact 1–3 month evaluation window and available provider News history for the chosen account/plan.
+- Analyst Consensus as-of history provider and contract conditions.
+- AI/Semiconductor proxy definition for A0-002.
+- short/borrow data provider for H4 validation.
+- whether A0-002 becomes mandatory for v0.1 release acceptance.
 
-Do not infer unresolved values; update this tracker only from repository evidence, test results, or confirmed external contract/source information.
+Do not infer unresolved values. Update this tracker only from repository evidence, local test evidence supplied by the user, controlled-run evidence, or confirmed external contract/source information.
 
-## 9. L0-002 execution cycle (2026-09-05)
-
-| Item | Result |
-|---|---|
-| Task ID | `L0-002` |
-| Model / reasoning | `gpt-5.6-luna` / medium |
-| Selection rationale | Model policy assigns Luna/medium to the bounded scaffold and `.gitignore` change; no cross-lane design or acceptance decision was made. |
-| Changed files | `analysis/config/README.md` (new scaffold marker), `pyproject.toml`, `uv.lock`, and this Progress Tracker; `var/` was verified Git-ignored (existing rule retained). |
-| Tests / checks | Executor and parent review each ran `uv sync --locked` and `uv run pytest -q` — **58 passed**. Parent review also verified the three scaffold directories, `var/` exclusion, and `git diff --check`. |
-| Completion criteria | WBS L0-002 criteria satisfied: all three analysis scaffold directories are present and `var/` is outside Git scope. ADR L0-002 scaffold items satisfied: Python 3.13 marker retained, direct runtime/test dependencies are declared, and the locked dependency graph is updated. |
-| State | **Accepted** — parent diff/test review confirmed the bounded L0-002 change and WBS/ADR completion criteria. |
-| Remaining work | None for L0-002. L0-003, L0-004, and L0-005 remain separate downstream tasks. |
-| Next safe action | Begin one dependent task in a later cycle; do not continue automatically. |
-| Unresolved | No new unresolved item introduced. Existing tracker unresolved items remain unchanged. |
-
-## 10. I0-002 execution cycle (2026-09-05)
+## 10. 2026-09-09 reconciliation evidence
 
 | Item | Result |
 |---|---|
-| Task ID | `I0-002` |
-| Model / reasoning | `GPT-5 Codex` delegated implementation / high-equivalent; parent acceptance review / medium-high-equivalent |
-| Selection rationale | Model policy classifies I0-002 as B3 integration/acceptance because provenance and timestamp semantics affect multiple downstream contracts. Implementation was delegated as one bounded change set and independently reviewed before acceptance. |
-| Changed files | `analysis/app/orderscope_local/contracts/errors.py`, `analysis/app/orderscope_local/contracts/provenance.py`, `analysis/app/orderscope_local/contracts/provider.py`, `analysis/app/orderscope_local/contracts/__init__.py`, `analysis/tests/contracts/test_provenance_contract.py`, `analysis/tests/contracts/test_provider_contract.py`, and this Progress Tracker. Existing L0-002 changes were preserved and not modified in this cycle. |
-| Tests / checks | Executor: contract tests **21 passed**, full suite **72 passed**, `git diff --check` clean. Parent: `UV_CACHE_DIR=/tmp/orderscope-parent-i0-002-uv-cache uv run pytest -q` — **72 passed**; `git diff --check` clean. |
-| Completion criteria | WBS I0-002 criteria satisfied: canonical source reference, normalized-source SHA-256 hash, opaque provider revision, distinct event/published/filed/source-accepted timestamps, required retrieved/available/internal-accepted timestamps, UTC normalization, and `available_at <= retrieved_at <= accepted_at` are fixed by immutable types and tests. Unknown/date-only source times are not fabricated. |
-| State | **Accepted** — parent review confirmed WBS completion, I0-001 dependency, existing I0-007 adapter-page integration, Proposed I0-005 provenance semantics, and secret/raw-body boundaries. |
-| Remaining work | Downstream tasks remain separate cycles. |
-| Next safe action | Continue according to the current snapshot above rather than this historical cycle entry. |
-| Unresolved | No new unresolved item introduced. Existing provider/A0 and provisional-artifact acceptance questions remain unchanged. |
+| Trigger | User requested re-synchronization after N1-005 local acceptance |
+| N1-005 local acceptance | focused **11 passed**; full suite **345 passed**; `git diff --check` clean |
+| E0 evidence | `E0-007_WEB_IMPLEMENTATION_HANDOFF_2026-09-09.md` is Accepted; E0-001..006 were already accepted prerequisites |
+| O0 evidence | `O0-005_WEB_IMPLEMENTATION_HANDOFF_2026-09-09.md` is Accepted; O0-001..004 were already accepted prerequisites |
+| News evidence | N0-001..004 and N1-001..005 handoffs/implementation cycles are accepted; N1-005 acceptance recorded in its handoff |
+| Repository shape | `analysis/app/orderscope_local` contains `contracts`, `sec`, `earnings`, `official`, and `news`; no local foundation/import/market-quality implementation package exists yet |
+| Config shape | `analysis/config` contains only scaffold `README.md` |
+| X0 decision | X0-001 remains blocked solely by L1-005 among its explicit dependencies |
+| Primary next task | `L0-005` |
+| Critical Path/WBS update | **None** — dependency structure and completion definitions did not change; only runtime state was reconciled |
 
-## 11. I0-003 execution cycle (2026-09-05)
+## 11. Historical accepted evidence index
 
-| Item | Result |
-|---|---|
-| Task ID | `I0-003` |
-| Model / reasoning | `gpt-5.6-terra` / medium implementation; parent Sol acceptance review |
-| Selection rationale | Model policy assigns Terra with Sol review to the multi-file cursor/checkpoint contract. Scope was limited to one provider-neutral contract and its tests; no Provisional result was promoted. |
-| Changed files | `analysis/app/orderscope_local/contracts/checkpoint.py`, `analysis/app/orderscope_local/contracts/__init__.py`, `analysis/tests/contracts/test_checkpoint_contract.py`, and this Progress Tracker. Pre-existing I0-002 and L0-002 changes were preserved. |
-| Tests / checks | Executor: contract tests **33 passed**, full suite **84 passed**, `git diff --check` clean. Parent after invalid-record hardening: contract tests **34 passed**, full suite **85 passed**, `git diff --check` clean. |
-| Completion criteria | WBS I0-003 criteria satisfied: checkpoints are scoped by provider and source; UTC half-open windows remain bounded across resume; opaque cursors, partial/error state, retry metadata, and observation time round-trip through a storage-neutral record; complete checkpoints cannot resume; provider raw error text/body and credentials are outside the durable schema. |
-| State | **Accepted** — parent diff/test/semantic review confirmed I0-002 compatibility and the I0-007 bounded pagination/partial/error contract boundary. |
-| Remaining work | I0-004 remains Ready. I0-005 remains Provisional; I0-006 and formal I0-007 acceptance remain gated by their documented dependencies. |
-| Next safe action | Start `I0-004` as a separate cycle for stable IDs and duplicate/update/conflict classification. |
-| Unresolved | No new unresolved item introduced. Existing provider/A0 and provisional-artifact acceptance questions remain unchanged. |
+The previous tracker revision contained detailed execution-cycle tables for L0-002, I0-002..007, and S0-001..007. Those records remain available in Git history. Later E0/O0/N0/N1 details are stored in their task-specific Web Implementation Handoffs under this directory.
 
-## 12. I0-004 execution cycle (2026-09-06)
+Current downstream code must rely on the Accepted states in the integrated snapshot above rather than stale historical "next action" text from older revisions.
 
-| Item | Result |
-|---|---|
-| Task ID | `I0-004` |
-| Model / reasoning | `gpt-5.6-terra` / high implementation; parent Sol-equivalent acceptance review / medium-high |
-| Selection rationale | The Model Assignment Policy classifies stable identity and update/duplicate/conflict semantics as a high-reasoning Terra implementation with Sol acceptance review because the boundary affects I0-007 and multiple downstream adapters. The implementation remained one bounded contract-and-test change set. |
-| Changed files | `analysis/app/orderscope_local/contracts/identity.py`, `analysis/app/orderscope_local/contracts/__init__.py`, `analysis/tests/contracts/test_identity_contract.py`, and this Progress Tracker. Existing accepted and provisional artifacts were preserved. |
-| Tests / checks | Executor: focused tests **19 passed**, full suite **104 passed**, `git diff --check` clean. Parent: `UV_CACHE_DIR=/tmp/orderscope-parent-i0-004-final uv run pytest -q analysis/tests/contracts/test_identity_contract.py` — **19 passed**; full suite — **104 passed**; `git diff --check` clean. |
-| Completion criteria | WBS I0-004 criteria satisfied: SEC accession identities are global; article and signal identities are provider-scoped; all are validated immutable values paired with the accepted I0-002 SHA-256 `ContentHash`. Distinct identity is `new`; same identity/hash is `duplicate`; same identity/different hash is `update` only with an explicit matching predecessor-to-successor relationship and otherwise is `conflict`. Tests reject ambiguous, reversed, cross-scope, secret-like, and invalid identity inputs; the durable record shape contains no raw-content or credential field. |
-| State | **Accepted** — parent diff/test/semantic review confirmed the I0-002 dependency, append-only I0-005 supersession compatibility, I0-007 secret boundary, SEC amendment-as-distinct-accession behavior, and no provider payload or credential fields. |
-| Remaining work | I0-005 remains Provisional and must be reconciled and formally accepted in a separate cycle. I0-006 and formal I0-007 acceptance remain gated by their documented dependencies. |
-| Next safe action | Start `I0-005` reconciliation and formal acceptance as a separate cycle; do not continue automatically. |
-| Unresolved | No new unresolved item introduced. Storage integration must select the accepted predecessor explicitly and must not reinterpret a hash mismatch as an update without a revision relationship. |
-
-## 13. I0-005 execution cycle (2026-09-06)
-
-| Item | Result |
-|---|---|
-| Task ID | `I0-005` |
-| Model / reasoning | Parent GPT-5 Codex / high-equivalent implementation and acceptance review |
-| Selection rationale | The Model Assignment Policy classifies I0-005 as B3 `Terra high + Sol review`. Session rules did not permit unsolicited sub-Agent delegation, so the parent preserved those as separate implementation and semantic-review responsibilities while completing one bounded change set. |
-| Changed files | `analysis/app/orderscope_local/contracts/fact_store.py`, `analysis/app/orderscope_local/contracts/__init__.py`, `analysis/tests/contracts/test_fact_store_contract.py`, `docs/ADR_FACT_STORE_LOGICAL_SCHEMA_v0.1.md`, and this Progress Tracker. Pre-existing accepted I0-004 working-tree changes were preserved. |
-| Tests / checks | Focused Fact Store contract tests — **8 passed** after hardening; full suite — **112 passed**; `python3 -m compileall -q analysis/app analysis/tests` passed; `git diff --check` clean. |
-| Completion criteria | WBS I0-005 criteria satisfied: immutable Fact, Evidence, Relationship, DerivedMetric, and Interpretation types remain distinct historical records. Fixtures cover a filing Fact with reciprocal Evidence, amendment history, a corporate Relationship, a two-input DerivedMetric, an Interpretation with explicit basis, contradicting Evidence, secret/raw-body exclusion, and availability-aware as-of history. Source-grounded records use the accepted I0-002 Provenance types and timestamp order. |
-| State | **Accepted** — parent diff/test/semantic review confirmed the I0-002 dependency, I0-004 external-identity boundary, append-only supersession, downstream A0/E0/N1/O0 compatibility, and the deferral of physical persistence and temporary-content lifecycle details to L0-005/I0-006. |
-| Remaining work | I0-006 is Ready. I0-007 remains Provisional until I0-006 is Accepted and its accepted I0-003/I0-004 contracts are connected. A0-001 implementation integration is now dependency-ready but remains a separate lane and cycle. |
-| Next safe action | Start `I0-006` as a separate main cycle; do not automatically continue to I0-007 or a parallel lane. |
-| Unresolved | No provider or contract semantics were inferred. Physical migration layout remains L0-005 scope; temporary content expiry/delete-proof/exception details remain I0-006 scope. |
-
-## 14. I0-006 execution cycle (2026-09-06)
-
-| Item | Result |
-|---|---|
-| Task ID | `I0-006` |
-| Model / reasoning | Terra-equivalent implementation / medium; Sol-equivalent parent acceptance review / medium |
-| Selection rationale | The Model Assignment Policy assigns Terra + Sol to the multi-file temporary-content lifecycle contract because retention, expiry, deletion proof, and exception semantics extend the Accepted I0-005 boundary. The work remained one bounded contract/schema/test change set; no downstream adapter or provisional result was promoted. |
-| Changed files | `analysis/app/orderscope_local/contracts/temporary_content.py`, `analysis/app/orderscope_local/contracts/__init__.py`, `analysis/tests/contracts/test_temporary_content_contract.py`, `docs/ADR_TEMPORARY_CONTENT_LIFECYCLE_v0.1.md`, and this Progress Tracker. Existing accepted/provisional artifacts were preserved. |
-| Tests / checks | Focused lifecycle tests **6 passed**; full suite **118 passed**; `python3 -m compileall -q analysis/app analysis/tests` passed; `git diff --check` clean. Initial uv cache permission issue was avoided with `UV_CACHE_DIR=/tmp/orderscope-i0-006-uv-cache`; no repository or source issue was found. |
-| Completion criteria | WBS I0-006 criteria satisfied: immutable content reference, `temporary_success` / `temporary_exception` retention classes, UTC capture/expiry fields, deletion proof, exception reason, secret/body exclusion, state/class alignment, and a 30-day maximum for exception content are fixed by types, ADR, and tests. Physical persistence and retention-worker behavior remain downstream. |
-| State | **Accepted** — parent diff/test/semantic review confirmed I0-005 compatibility, the successful-body deletion handoff, exception expiry, deletion audit, and no raw body or credential fields. |
-| Remaining work | I0-007 remains Provisional until I0-003, I0-004, and I0-006 are connected and formally accepted. Downstream SEC/content adapters remain gated by I0-007. |
-| Next safe action | Start I0-007 reconciliation and formal acceptance as a separate cycle; do not automatically continue to SEC or parallel lanes. |
-| Unresolved | No new unresolved item introduced. The exact physical retention worker, storage layout, and provider-specific body-access behavior remain downstream task scope. |
-
-## 15. I0-007 execution cycle (2026-09-06)
-
-| Item | Result |
-|---|---|
-| Task ID | `I0-007` |
-| Model / reasoning | GPT-5 Codex delegated implementation / Terra-high responsibility; parent Sol-equivalent acceptance review / medium |
-| Selection rationale | The Model Assignment Policy classifies I0-007 as B3 `L/T+S` with high implementation reasoning because it promotes a provisional cross-contract test kit after integrating three accepted upstream contracts. One bounded implementation change set was delegated, then independently reviewed by the parent. |
-| Changed files | `analysis/app/orderscope_local/contracts/provider.py`, `analysis/app/orderscope_local/contracts/__init__.py`, `analysis/tests/contracts/test_provider_contract.py`, and this Progress Tracker. WBS and Critical Path were unchanged because no completion condition or dependency structure changed. |
-| Tests / checks | Executor: focused upstream/common contract tests **52 passed**, full suite **124 passed**, compileall passed, and `git diff --check` clean. Parent: focused provider tests **14 passed** during review; final full suite **124 passed**; `python3 -m compileall -q analysis/app analysis/tests` passed; `git diff --check` clean. |
-| Completion criteria | WBS I0-007 criteria satisfied: the common kit validates UTC availability/retrieval timestamp order, bounded cursor pagination, safe partial/error replay, bounded retry metadata, stable new/duplicate/update/conflict classification, optional temporary-content lifecycle handoff, and recursive credential/provider-body non-exposure. It delegates durable state and identity semantics to the accepted I0-003/I0-004 contracts and validates I0-006 content metadata without fabricating downstream acceptance timestamps. |
-| State | **Accepted** — all I0-003/I0-004/I0-006 dependency gates are Accepted, and parent diff/test/semantic review confirmed compatibility with legacy normalized mappings and downstream adapter use. |
-| Remaining work | No I0-007 work remains. S0-002 is no longer gated by I0-007, but S0-001 still requires local acceptance from the existing Web handoff before SEC adapter implementation starts. |
-| Next safe action | Reconcile and formally accept S0-001 in a separate cycle; do not automatically begin S0-002 or another lane. |
-| Unresolved | Provider-specific schemas and operational error messages remain outside durable Core contracts. Physical retention workers and provider-specific body access remain downstream scope. Existing provider/A0 unresolved items remain unchanged. |
-
-## 16. S0-001 execution cycle (2026-09-08)
-
-| Item | Result |
-|---|---|
-| Task ID | `S0-001` |
-| Model / reasoning | Terra-equivalent bounded official-source research / medium; parent Sol-equivalent acceptance review / medium |
-| Selection rationale | The Model Assignment Policy assigns S0-001 to Terra research plus Sol review. The cycle reconciled the existing WEB-005 handoff against the W0-004/WEB-003 checklist and current SEC primary sources without starting adapter implementation. |
-| Changed files | This Progress Tracker only. WBS and Critical Path were unchanged because no completion condition, dependency structure, permanent gate, or safe-parallelization rule changed. |
-| Evidence / checks | Rechecked SEC Developer Resources, Webmaster FAQ, EDGAR Data APIs, Accessing EDGAR Data, and Privacy Information on 2026-09-08. Official conditions remain: a declared organization/contact User-Agent; an aggregate maximum of 10 requests/second regardless of machine count; efficient/bounded access and a 10-minute below-threshold recovery condition; no authentication or API key for the public Submissions/XBRL data APIs; no CORS support on `data.sec.gov`; documented Submissions, XBRL, bulk, index, and Archives routes; reusable public EDGAR filing content with third-party artwork/logo/trademark exceptions; and no explicit public-filing local-retention limit, whose absence is not treated as permission. Parent review independently checked the official sources and `git diff --check`. |
-| Completion criteria | WBS S0-001 criteria satisfied: current official User-Agent, fair-access/rate rules, endpoints, and storage/reuse conditions are recorded using the W0-004 checklist. The 2026-09-08 refresh found no material change from WEB-005. |
-| State | **Accepted** — parent review confirmed the W0-004 dependency, current official evidence, public-data-versus-EDGAR-Next authentication boundary, CORS constraint, and separation of SEC reuse permission from OrderScope retention policy. |
-| Remaining work | No S0-001 work remains. Rate limiting, User-Agent configuration, backoff/cooldown behavior, controlled live checks, and temporary-content persistence are downstream S0-002/S0-005/S0-007 implementation and test scope. |
-| Next safe action | Start S0-002 as a separate cycle; do not automatically begin another SEC task. |
-| Unresolved | SEC publishes no formal User-Agent grammar, exact block HTTP status/header behavior is not guaranteed, and no explicit local-retention duration was found. Recheck official conditions before live deployment and when SEC pages or policy change. |
-
-## 17. S0-002 execution cycle (2026-09-08)
-
-| Item | Result |
-|---|---|
-| Task ID | `S0-002` |
-| Model / reasoning | Parent GPT-5 Codex / Terra-medium-equivalent implementation and Sol-equivalent acceptance review / medium |
-| Selection rationale | The Model Assignment Policy classifies S0-002 as a bounded multi-file provider adapter for Terra/medium. Session rules did not permit unsolicited sub-Agent delegation, so the parent preserved implementation and acceptance-review responsibilities while completing one bounded S0-002 change set. |
-| Changed files | `analysis/app/orderscope_local/sec/submissions.py`, `analysis/app/orderscope_local/sec/__init__.py`, `analysis/tests/sec/test_submissions.py`, and this Progress Tracker. WBS and Critical Path were unchanged because no completion condition or dependency structure changed. |
-| Tests / checks | Focused Submissions adapter tests **9 passed** after acceptance hardening; the full suite **133 passed**. `python3 -m compileall -q analysis/app analysis/tests` passed and `git diff --check` was clean. Remote comparison after `git fetch origin --prune` confirmed the starting branch was **0 ahead / 0 behind** its upstream. |
-| Completion criteria | WBS S0-002 criteria satisfied: the adapter accepts only the fixed AMD/NVDA canary sources, reads current and intersecting historical Submissions files inside a UTC half-open window, paginates with an opaque cursor, and emits provider-neutral accession identities plus bounded filing metadata. SEC columnar JSON and transport exception bodies do not cross the adapter boundary. Tests cover declared contact-bearing User-Agent configuration, a shareable fixed-interval limiter capped at the SEC public ceiling, history-window selection, cursor resume, malformed provider responses, retryable sanitized failures, CIK/history-file cross-company rejection, and common page/checkpoint contracts. |
-| State | **Accepted** — both upstream gates were Accepted, and parent diff/test/semantic review confirmed I0-003/I0-004/I0-007 compatibility, stable accession identity, deterministic content hashing, bounded AMD/NVDA scope, and no credential or raw-provider-body fields. |
-| Remaining work | S0-003 FilingRecord persistence remains a separate task. Production HTTP transport wiring, deployment-level shared-limiter configuration, operational cooldown behavior, and controlled live fetching remain downstream local-foundation/S0-007 integration scope; S0-004 and S0-007 provisional artifacts were preserved. |
-| Next safe action | Start `S0-003` in a separate cycle and connect these normalized adapter items to idempotent FilingRecord persistence; do not automatically continue to S0-004/S0-005/S0-006. |
-| Unresolved | The exact SEC block status/header behavior remains provider-dependent and must not be inferred. Offset cursors are stable for the adapter's deterministic oldest-first snapshot ordering, while persistence must still deduplicate by accession when a later provider snapshot changes. Existing tracker unresolved items remain unchanged. |
-
-## 18. S0-003 execution cycle (2026-09-08)
-
-| Item | Result |
-|---|---|
-| Task ID | `S0-003` |
-| Model / reasoning | Parent GPT-5 Codex / Terra-medium-equivalent implementation and Sol-equivalent acceptance review / medium |
-| Selection rationale | The Model Assignment Policy classifies S0-003 as Terra/medium because it is a multi-file provider-neutral persistence integration. Session rules did not permit unsolicited sub-Agent delegation, so the parent preserved implementation and acceptance-review responsibilities while completing one bounded S0-003 change set. |
-| Changed files | `analysis/app/orderscope_local/sec/filing_records.py`, `analysis/app/orderscope_local/sec/__init__.py`, `analysis/tests/sec/test_filing_records.py`, and this Progress Tracker. WBS and Critical Path were unchanged because no completion condition or dependency structure changed. |
-| Tests / checks | Focused FilingRecord persistence tests **10 passed**; the full suite **143 passed**. `python3 -m compileall -q analysis/app analysis/tests` passed and `git diff --check` was clean. |
-| Completion criteria | WBS S0-003 criteria satisfied: normalized S0-002 items are validated against their global accession identity and AMD/NVDA CIK/ticker scope, then accession, form, date-precision `filed_at`, optional `period_end`, canonical primary-document reference, source reference, content hash, and UTC `retrieved_at` are persisted in SQLite. First insertion is `new`; the same accession/hash is an idempotent `duplicate` that preserves the first retrieval; a changed hash for the same accession is an explicit conflict rather than an inferred update. |
-| State | **Accepted** — the S0-002 dependency was Accepted, and parent diff/test/semantic review confirmed compatibility with I0-004 identity rules, S0-004 amendment-as-distinct-accession assumptions, unknown optional dates/document references, and the provider-body/credential exclusion boundary. |
-| Remaining work | Versioned creation of the `filing_records` table remains L0-005 scope; the repository intentionally requires a pre-migrated SQLite connection. S0-004 remains Provisional pending a separate reconciliation cycle. S0-005 and S0-006 are now Ready, and S0-007 remains gated by S0-004..006. |
-| Next safe action | Reconcile and formally accept provisional `S0-004` as a separate main cycle, or select one Ready S0-005/S0-006 task after overlap review; do not automatically continue in this cycle. |
-| Unresolved | No provider semantics were inferred. An accession with a changed normalized content hash remains a conflict unless a later accepted contract supplies an explicit revision relationship. |
-
-## 19. S0-004 execution cycle (2026-09-08)
-
-| Item | Result |
-|---|---|
-| Task ID | `S0-004` |
-| Model / reasoning | Parent GPT-5 Codex / Terra-medium-equivalent bounded integration and Sol-equivalent acceptance review / medium |
-| Selection rationale | The Model Assignment Policy classifies S0-004 as bounded Luna/Terra implementation plus Sol acceptance review because this cycle promotes a provisional artifact. Session rules did not permit unsolicited sub-Agent delegation, so the parent preserved the implementation and independent semantic-review responsibilities within one bounded task. |
-| Changed files | `analysis/app/orderscope_local/sec/form_filter.py`, `analysis/app/orderscope_local/sec/__init__.py`, `analysis/tests/sec/test_form_filter.py`, and this Progress Tracker. WBS and Critical Path were unchanged because no completion condition, dependency structure, permanent gate, or safe-parallelization rule changed. |
-| Tests / checks | Focused S0-003/S0-004 integration tests **62 passed**; the full suite **144 passed**. `python3 -m compileall -q analysis/app analysis/tests` passed and `git diff --check` was clean. Remote comparison after `git fetch --all --prune` confirmed the starting branch was **0 ahead / 0 behind** its upstream. |
-| Completion criteria | WBS S0-004 criteria satisfied: the strict exact-value allowlist identifies 8-K, 10-Q, 10-K, S-1, S-3, reviewed 424B variants, DEF 14A, legacy/current Schedule 13D/G, and Form 4, including reviewed amendments. The filter now consumes the exact form preserved by an Accepted S0-003 FilingRecord. Integration tests confirm a base filing and amendment remain distinct accessions in the same family, while an idempotent duplicate preserves the same decision. Near-miss and unknown forms remain observable rejections without trimming, case-folding, or prefix coercion. |
-| State | **Accepted** — the S0-003 dependency was Accepted, and parent diff/test/semantic review confirmed the WEB-006 handoff, existing fixture coverage, FilingRecord integration, amendment identity boundary, and no credential, raw-provider-body, or document-body exposure. |
-| Remaining work | No S0-004 work remains. S0-005 and S0-006 remain separate Ready tasks. S0-007 remains Provisional until both are Accepted and the full new/duplicate/amendment/partial acceptance cases are integrated. |
-| Next safe action | Select either `S0-005` or `S0-006` as the next main SEC cycle; do not automatically begin both or promote S0-007. |
-| Unresolved | No new provider semantics were inferred. Existing provider/A0 questions and the exact remaining S0-007 live/partial evidence remain unresolved. |
-
-## 20. S0-005 execution cycle (2026-09-08)
-
-| Item | Result |
-|---|---|
-| Task ID | `S0-005` |
-| Model / reasoning | Parent GPT-5 Codex / Terra-medium-equivalent implementation and Sol-equivalent acceptance review / medium |
-| Selection rationale | The Model Assignment Policy classifies S0-005 as Terra/medium because it integrates a bounded SEC acquisition adapter with the Accepted I0-006 lifecycle contract. Session rules did not permit unsolicited sub-Agent delegation, so the parent preserved implementation and semantic-review responsibilities within one bounded task. |
-| Changed files | `analysis/app/orderscope_local/sec/filing_documents.py`, `analysis/app/orderscope_local/sec/__init__.py`, `analysis/tests/sec/test_filing_documents.py`, and this Progress Tracker. WBS and Critical Path were unchanged because no completion condition or dependency structure changed. |
-| Tests / checks | Focused S0-003/I0-006/provider integration tests **38 passed**; the full suite **152 passed**. `python3 -m compileall -q analysis/app analysis/tests` passed and `git diff --check` was clean. Remote comparison after `git fetch origin --prune` confirmed the starting branch was **0 ahead / 0 behind** its upstream. |
-| Completion criteria | WBS S0-005 criteria satisfied: acquisition accepts only the canonical primary-document reference derived from an Accepted S0-003 FilingRecord, applies the shared SEC rate-limiter and declared contact-bearing User-Agent, hashes the returned bytes with SHA-256, and stages them outside durable metadata under a hash-derived I0-006 TemporaryContent reference with bounded expiry. Known provider failures preserve retryability and bounded retry delay; unknown transport/storage failures are sanitized and retryable; invalid or oversized documents are non-retryable and are not stored. |
-| State | **Accepted** — the S0-003 and I0-006 dependency gates were Accepted, and parent diff/test/semantic review confirmed canonical SEC Archives scoping, content hash/reference alignment, temporary-success lifecycle compatibility, bounded content and retention, and no document body, provider exception text, or credential exposure in the result. |
-| Remaining work | No S0-005 work remains. Physical temporary-storage implementation and retention-worker deletion remain L0-005/N1-005 integration scope. S0-006 remains Ready, and S0-007 remains Provisional until S0-006 and formal new/duplicate/amendment/partial acceptance integration are complete. |
-| Next safe action | Start `S0-006` as a separate main cycle; do not automatically promote S0-007. |
-| Unresolved | No provider semantics were inferred. Production transport/storage wiring and the exact S0-007 limited-live evidence remain unresolved downstream integration details. |
-
-## 21. S0-006 execution cycle (2026-09-08)
-
-| Item | Result |
-|---|---|
-| Task ID | `S0-006` |
-| Model / reasoning | GPT-5 Codex delegated implementation / Terra-high responsibility; parent Sol-equivalent acceptance review / medium |
-| Selection rationale | The Model Assignment Policy classifies S0-006 as difficult XBRL normalization requiring Terra/high implementation plus Sol review. One bounded adapter/type/test change set was delegated, then independently reviewed and hardened before acceptance. |
-| Changed files | `analysis/app/orderscope_local/sec/company_facts.py`, `analysis/app/orderscope_local/sec/__init__.py`, `analysis/tests/sec/test_company_facts.py`, and this Progress Tracker. WBS and Critical Path were unchanged because no completion condition or dependency structure changed. |
-| Tests / checks | Executor focused tests **6 passed** and full suite **158 passed**. Parent review added malformed-source and cross-company hardening; focused S0-006/S0-003/provider integration tests **32 passed**, final full suite **160 passed**, `python3 -m compileall -q analysis/app analysis/tests` passed, and `git diff --check` was clean. Remote comparison after `git fetch origin --prune` confirmed the starting branch was **0 ahead / 0 behind** its upstream. |
-| Completion criteria | WBS S0-006 criteria satisfied: immutable provider-neutral XBRL types preserve canonical concept QName, exact finite decimal value, unit, instant or duration period, ordered axis/member dimensions, accession/form/filed date, canonical filing reference, and API source reference. The bounded AMD/NVDA Company Facts adapter applies the shared SEC limiter and declared User-Agent, filters a half-open filed-date window, paginates with an opaque cursor, rejects cross-company accessions, and converts malformed payloads or transport failures into sanitized errors. SEC response-only fields do not cross the adapter boundary, and empty Company Facts dimensions are not misrepresented as proof that segment facts are absent. |
-| State | **Accepted** — the S0-003 dependency was Accepted, and parent semantic/diff/test review confirmed compatibility with the existing filing identity/source boundary, WBS normalization requirements, WEB-009 fallback assumptions, and provider-body/credential exclusion. |
-| Remaining work | No S0-006 work remains. Filing-instance dimension parsing and the Company Facts → XBRL Dimension → Filing Fallback chain remain E0-005 scope. S0-007 still requires a separate formal fixture and limited AMD/NVDA Canary acceptance cycle covering new, duplicate, amendment, and partial cases. |
-| Next safe action | Reconcile and formally accept provisional `S0-007` in a separate main cycle; do not automatically begin E0. |
-| Unresolved | The exact limited-live evidence needed for S0-007 remains to be fixed from repository and controlled-run evidence. No missing segment fact is converted to zero or interpreted as nonexistence. Existing provider/A0 unresolved items remain unchanged. |
-
-## 22. S0-007 execution cycle (2026-09-08)
-
-| Item | Result |
-|---|---|
-| Task ID | `S0-007` |
-| Model / reasoning | Parent Codex / Terra-high-equivalent implementation and Sol-equivalent acceptance review / high |
-| Selection rationale | The Model Assignment Policy classifies S0-007 as difficult multi-adapter Canary acceptance requiring Terra/high implementation plus Sol review. Session rules did not permit unsolicited sub-Agent delegation, so the parent preserved implementation and acceptance-review responsibilities while reconciling the provisional fixture artifact and promoting it only after controlled live evidence. |
-| Changed files | `analysis/app/orderscope_local/sec/filing_records.py`, `analysis/app/orderscope_local/sec/filing_documents.py`, `analysis/tests/sec/test_filing_records.py`, `analysis/tests/sec/test_filing_documents.py`, `analysis/tests/sec/test_filing_detection_acceptance.py`, and this Progress Tracker. WBS and Critical Path were unchanged because no completion condition or dependency structure changed. |
-| Tests / checks | S0-007 integration tests **2 passed**; focused FilingRecord/document/S0-007 tests **21 passed** after reconciliation; final full suite **163 passed**. `python3 -m compileall -q analysis/app analysis/tests` passed and `git diff --check` was clean. A controlled two-request live check with the declared contact-bearing User-Agent read only the AMD and NVIDIA Submissions endpoints on 2026-09-08; both returned the expected issuer CIK and a current Form 4. No response body was retained. |
-| Completion criteria | WBS S0-007 criteria satisfied: fixed response fixtures replay only AMD/NVDA inside a bounded window, first persistence is `new`, identical replay is `duplicate`, and a base/amendment pair remains distinct accessions in one form family. Submissions, document, and Company Facts retryable partial/failure cases remain sanitized, bounded, and body-free. The live check exposed and the integration tests now fix the reporting-owner boundary: Form 4 accessions may have a filer CIK different from the canary issuer CIK, and canonical Archives paths use the accession prefix while the record retains the issuer CIK/ticker. Nested safe SEC primary-document paths are supported without permitting traversal. |
-| State | **Accepted** — all S0-004..006 dependencies were Accepted, fixture and controlled-live evidence cover the required new/duplicate/amendment/partial cases, and parent semantic/diff/test review confirmed canary scope, idempotency, retry behavior, rate/User-Agent boundaries, canonical document acquisition, and provider-body/credential exclusion. |
-| Remaining work | No S0-007 test work remains. Production scheduling, durable migration setup, and broader operational cooldown remain their existing L0/X0 scopes. E0-001 is now dependency-ready but remains a separate cycle. |
-| Next safe action | Start `E0-001` in a separate Core cycle, or select one Ready Local-foundation task after overlap review. Do not begin both in one work packet. |
-| Unresolved | SEC still does not guarantee exact block status/header behavior. Existing Analyst Consensus, A0-002 proxy, short/borrow provider, and A0-002 release-scope questions remain unchanged. |
-
-## 23. Progress-update rule
+## 12. Progress-update rule
 
 After normal implementation progress, update this file and do not mirror runtime state into the Critical Path or WBS. Update the Critical Path only when dependency structure, permanent gates, or safe-parallelization rules change.
