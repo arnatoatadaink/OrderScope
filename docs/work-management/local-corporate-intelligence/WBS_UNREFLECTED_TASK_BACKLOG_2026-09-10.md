@@ -59,7 +59,27 @@ The exact recently added M&A/TOB report referenced in project discussion was not
 | UWBS-009 | Post-transaction enterprise-value / Regime-change linkage | Corporate Action + Regime | Keep observed transaction facts separate from derived valuation/repricing and `COMPANY_REGIME_CHANGE`; represent acquired/divested businesses, segment changes, financing/consideration and resulting company-scope changes as evidence for later Regime/valuation analysis rather than immediate prediction | I0 Fact/Derived Metric/Interpretation separation; E0 segment identity/revenue; Regime spec | Needs source re-link | Pending |
 | UWBS-010 | Corporate-action Canary acceptance cases | Corporate Action QA | Fixture cases cover pending → amended → completed, failed/withdrawn offer, competing bid, partial ownership threshold, delisting/cash-out, stock-vs-cash consideration and conflicting secondary-news vs SEC/IR assertions | UWBS-005..009 after decomposition | Needs decomposition | Pending |
 
-## 5. Existing extension work that is NOT counted as WBS-unreflected
+## 5. Macro rates / carry-unwind / non-price Fact expansion
+
+Source report: `docs/REPORT_MACRO_RATES_CARRY_UNWIND_NON_PRICE_FACTS_2026-09-10.md`.
+
+The existing Cross-Market extension already uses sovereign yields, FX, and policy expectations as context under `A0-001/A0-002`. Therefore these rows do **not** add a duplicate generic "use yields/FX" task. They capture the missing reusable Fact contract, derived-rate structure, interpretation rules, validation cases, and source/provider work needed to make that context systematic.
+
+| UWBS ID | Proposed task | Proposed package | Completion condition summary | Likely inputs / dependencies | Status | Disposition |
+|---|---|---|---|---|---|---|
+| UWBS-011 | Define Macro-Market non-price Fact contract | A0 / I0 Cross-Market integration | Define normalized raw Facts for policy rates, short-market rates, sovereign 2Y/5Y/10Y/30Y yields, USD/JPY and eligible volatility/flow context; preserve event/available/accepted/as-of times, units, market/tenor identity and source provenance; inferred capital movement must not be stored as Fact | A0-001; I0-002/004/005; provider/source gates | Ready for WBS design | Pending |
+| UWBS-012 | Implement rate-curve and cross-country Derived Metrics | A0 Derived Metrics | Compute tested 2s10s/10s30s slopes, U.S.-Japan 2Y/10Y spreads, fixed-window FX/yield deltas and change velocity; distinguish steepening, flattening and inversion without converting them into causal claims; preserve as-of semantics | UWBS-011; A0-001; I0 Fact/Derived Metric boundary | Ready for WBS design | Pending |
+| UWBS-013 | Define carry-unwind / deleveraging Interpretation contract | A0 Interpretation / Regime | Define `CARRY_UNWIND_CANDIDATE`, `DELEVERAGING_REGIME`, `RATE_SHOCK`, `FX_SHOCK_JPY` and related evidence rules using multiple independent signals; support SUPPORT/PARTIAL/CONTRADICT/UNKNOWN and prohibit USD/JPY or one news item from establishing capital movement as Fact | UWBS-011/012; A0-001 hypothesis rules; News evidence | Ready for WBS design | Pending |
+| UWBS-014 | Macro stress / carry-unwind validation fixtures and Canary cases | A0 QA / Cross-Market validation | Fixture set covers policy-rate up + long-yield down, steepening/flattening/inversion, rapid JPY appreciation, broad selloff with/without company-specific negative evidence, explicit carry-reduction report, event-risk de-risking and false-positive cases; validates Fact/Derived Metric/Interpretation separation | UWBS-011..013; A0-002 validation pattern | Ready for WBS design | Pending |
+| UWBS-015 | Survey and select structured macro-rate / FX / flow data sources | Provider contracts / A0 | Identify permissible official/structured sources for policy rates, sovereign curves, FX, FX-volatility and eligible fund-flow series; record terms, cadence, historical depth, timestamps, revision behavior, cost, rate limits and fallback boundary; do not activate live providers as part of survey | Existing provider/terms/security gates; UWBS-011 data requirements | Needs decomposition | Pending |
+
+Planning notes:
+
+- Bank-specific deposit and lending rates are intentionally not forced into the minimum Macro-Market contract. They may become a later sector/company extension after UWBS-011/012 establish the reusable rate structure.
+- The previously discussed rough 1–3 week stabilization window is a scenario estimate, not a system constant or Fact. Historical validation would be required before introducing any duration model.
+- Fund-flow values, MMF flows, ETF flows, gross deleveraging, and market-cap changes must not be blindly summed into one observed `capital_outflow` figure because scopes overlap and double counting is likely.
+
+## 6. Existing extension work that is NOT counted as WBS-unreflected
 
 Do not duplicate these in this backlog unless new scope exceeds their completion conditions:
 
@@ -68,13 +88,14 @@ Do not duplicate these in this backlog unless new scope exceeds their completion
 - `L1-006`, `L1-003`, `N1-006`, and the existing A0 tasks are already represented in WBS/tracker state even when unfinished.
 - `SMOKE-*` / `CANARY-*` Worker items are already explicit deferred Worker backlog items in the main WBS.
 
-## 6. Discovery inbox — append new task ideas here first
+## 7. Discovery inbox — append new task ideas here first
 
-Use this section for newly proposed work before deciding whether it deserves a full row in §3/§4 or another package-specific section.
+Use this section for newly proposed work before deciding whether it deserves a full row in §3/§4/§5 or another package-specific section.
 
 | Discovery ID | Date | Proposal / question | Source | Suspected package | Triage state |
 |---|---|---|---|---|---|
 | DISC-001 | 2026-09-10 | Reserved for next newly discovered WBS-unreflected item | — | — | Empty placeholder; replace/append, do not infer scope |
+| DISC-002 | 2026-09-10 | Capture structured rate/FX Facts and carry-unwind/deleveraging interpretation instead of relying on news-only rate context | `docs/REPORT_MACRO_RATES_CARRY_UNWIND_NON_PRICE_FACTS_2026-09-10.md` | A0 / I0 / Provider contracts | Promoted to UWBS-011..015 |
 
 When a proposal is accepted for tracking:
 
@@ -84,7 +105,7 @@ When a proposal is accepted for tracking:
 4. mark the Discovery row `Promoted to UWBS-xxx`;
 5. do not delete the original discovery record.
 
-## 7. Add-a-task template
+## 8. Add-a-task template
 
 Copy this block when a new idea is raised:
 
@@ -106,7 +127,7 @@ Copy this block when a new idea is raised:
 - Disposition: Pending
 ```
 
-## 8. WBS incorporation procedure
+## 9. WBS incorporation procedure
 
 A future WBS revision should review this file row by row and choose exactly one disposition:
 
@@ -131,9 +152,14 @@ The revision must preserve a mapping table:
 | UWBS-008 | Pending | — | — |
 | UWBS-009 | Pending | — | — |
 | UWBS-010 | Pending | — | — |
+| UWBS-011 | Pending | — | — |
+| UWBS-012 | Pending | — | — |
+| UWBS-013 | Pending | — | — |
+| UWBS-014 | Pending | — | — |
+| UWBS-015 | Pending | — | — |
 
-## 9. Current planning interpretation
+## 10. Current planning interpretation
 
 This backlog does not change the current completion path. X0 fixture-path is accepted. The next already-Ready implementation task remains `L1-006 — read-only import/dataset API` unless priorities are explicitly changed.
 
-The purpose of this file is to prevent later ideas—especially production operations and deeper corporate-action handling—from being lost or accidentally smuggled into already accepted tasks.
+The purpose of this file is to prevent later ideas—especially production operations, deeper corporate-action handling, and macro-rate/carry-unwind context—from being lost or accidentally smuggled into already accepted tasks.
