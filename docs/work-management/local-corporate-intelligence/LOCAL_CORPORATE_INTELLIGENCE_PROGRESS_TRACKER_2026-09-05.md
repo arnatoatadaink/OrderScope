@@ -35,7 +35,7 @@ This file is the sole integrated authority for Local Corporate Intelligence runt
 | L0-001 | Accepted / inherited prerequisite | Reference only |
 | L0-002 | Accepted | Scaffold/Git boundary complete |
 | L0-003 | Ready | Config/secret boundary remains separate work |
-| L0-004 | Ready | Localhost health remains separate work |
+| L0-004 | Ready | Localhost health is the remaining API gate after X0-002 |
 | L0-005 | Accepted | focused 7; full 352; compileall success; diff clean |
 | L0-006 | Not started | Waits for L0-003/L0-004/L0-005 |
 | L1-001 | Accepted | focused 8; full 360; diff clean |
@@ -49,43 +49,35 @@ This file is the sole integrated authority for Local Corporate Intelligence runt
 
 | Task | Status | Reason / next action |
 |---|---|---|
-| X0-001 | Provisional result | Unified timeline implementation complete; local verification pending |
-| X0-002 | Ready for separate design/implementation cycle | Coverage summary still needed before X0-003 |
-| X0-003 | Blocked | Depends on L0-004 + X0-001 + X0-002 |
+| X0-001 | Accepted | focused 7; full 398; diff clean |
+| X0-002 | Provisional result | Coverage-summary implementation complete; local verification pending |
+| X0-003 | Blocked | After X0-002 acceptance, only L0-004 remains |
 | X0-004 | Blocked | Depends on adapter availability + L0-006 |
 | X0-005 | Not started | Depends on X0-001..004 |
 | X0-006 | Not started | Depends on X0-005 |
 
-The explicit X0-001 dependencies are satisfied on the fixture path:
+Real D1 promotion remains separately gated by L1-003 and must not be conflated with fixture-path X0 development.
 
-```text
-L1-005 Accepted
-I0-005 Accepted
-E0-007 Accepted
-N1-005 Accepted
-O0-005 Accepted
-```
+## 4. X0-002 implementation boundary
 
-Real D1 promotion is still separately gated by L1-003 and must not be conflated with fixture-path X0 development.
+`analysis/app/orderscope_local/integration/coverage.py` implements read-only source coverage over accepted checkpoint/lifecycle contracts.
 
-## 4. Current X0-001 boundary
+Per `(provider_key, source_key)` it reports:
 
-`analysis/app/orderscope_local/integration/timeline.py` implements a read-only deterministic as-of timeline.
+- latest completed checkpoint as `last_success_at`;
+- latest visible checkpoint observation/state;
+- opaque resume cursor;
+- lag from last success to query `as_of`;
+- sanitized error category/retryability/retry-not-before;
+- explicit-source temporary-content pending count;
+- overdue retention count and next due time.
 
-Knowledge-order semantics:
-
-- Fact visibility requires `provenance.available_at <= as_of` and `Fact.accepted_at <= as_of`;
-- market bar visibility uses canonical `receipt_time <= as_of`;
-- sorting is by availability/acceptance and deterministic tie-break fields;
-- exact UTC source event instants may be exposed as metadata;
-- date-only source timestamps are never coerced into invented instants;
-- Fact values/raw bodies/raw D1 fixture content are not duplicated into TimelineItem records.
-
-Focused local verification is pending.
+Only `CheckpointState.COMPLETE` establishes success. Future checkpoint/lifecycle records are excluded from historical as-of output. Temporary content is associated with a source explicitly; X0-002 never infers source ownership from a content reference or filename.
 
 ## 5. Parallel/deferred lanes
 
-- `L0-003` and `L0-004` remain Ready and are required before `L0-006`; `L0-004` is also required for X0-003.
+- `L0-004` should be the next primary integration task after X0-002 acceptance because it opens X0-003.
+- `L0-003` remains Ready and is still required with L0-004/L0-005 before L0-006/X0-004.
 - `L1-003` remains externally Blocked and does not invalidate fixture-path work.
 - `N1-006` remains important for News quality but is not the current X0 integration blocker.
 - `A0-001` remains Provisional and `A0-002` remains separate validation work.
@@ -93,10 +85,10 @@ Focused local verification is pending.
 
 ## 6. Current restart rule
 
-1. Run X0-001 focused/full/compileall/diff verification.
-2. If X0-001 passes, promote it to Accepted.
-3. Before X0-003, complete both `X0-002` and `L0-004`.
-4. Before X0-004, complete `L0-003`, `L0-004`, then `L0-006`.
+1. Run X0-002 focused/full/compileall/diff verification.
+2. If X0-002 passes, promote it to Accepted.
+3. Complete `L0-004 — localhost health` next; this opens X0-003 because X0-001/002 will then be Accepted.
+4. Complete L0-003 and then L0-006 before scheduler work X0-004.
 5. Keep L1-003/SMOKE-007 real-D1 work separate.
 
 ## 7. Latest acceptance evidence
@@ -108,6 +100,7 @@ Focused local verification is pending.
 | L1-002 | storage 7; focused 8; full 368; compileall success; diff clean |
 | L1-004 fixture | focused 11; full 372; diff clean |
 | L1-005 fixture | focused 12; full 391; diff clean |
+| X0-001 | focused 7; full 398; diff clean |
 
 ## 8. Unresolved items
 
