@@ -8,6 +8,7 @@ from .alpaca import (
     NewsArticleMetadata,
     decode_alpaca_news_timestamp,
 )
+from .alpaca_http import ALPACA_NEWS_URL, AlpacaNewsHttpTransport
 from .body import (
     AlpacaNewsBodyAccessor,
     NewsBodyAcquisition,
@@ -65,6 +66,12 @@ from .recall_benchmark import (
     load_news_recall_benchmark,
     render_news_recall_markdown,
 )
+from .recall_population import (
+    NEWS_RECALL_CANDIDATE_SCHEMA_VERSION,
+    NewsRecallCandidate,
+    collect_news_recall_candidates,
+    write_news_recall_candidates,
+)
 from .retention import (
     NEWS_RETENTION_CONTROLLER_VERSION,
     RetentionDecision,
@@ -86,8 +93,10 @@ from .review import (
 
 __all__ = [
     "ALPACA_NEWS_PROVIDER_KEY",
+    "ALPACA_NEWS_URL",
     "AlpacaNewsAdapter",
     "AlpacaNewsBodyAccessor",
+    "AlpacaNewsHttpTransport",
     "AlpacaNewsRequestFailure",
     "AlpacaNewsTransport",
     "BodyEvidenceSpan",
@@ -104,6 +113,7 @@ __all__ = [
     "NEWS_EVENT_FACT_SCHEMA_VERSION",
     "NEWS_EVENT_TAXONOMY_VERSION",
     "NEWS_RECALL_BENCHMARK_SCHEMA_VERSION",
+    "NEWS_RECALL_CANDIDATE_SCHEMA_VERSION",
     "NEWS_RECALL_EVALUATOR_VERSION",
     "NEWS_RECALL_REPORT_SCHEMA_VERSION",
     "NEWS_RETENTION_CONTROLLER_VERSION",
@@ -118,6 +128,7 @@ __all__ = [
     "NewsEventType",
     "NewsFactCandidate",
     "NewsRecallBenchmark",
+    "NewsRecallCandidate",
     "NewsRecallDiscovery",
     "NewsRecallReferenceEvent",
     "NewsRecallReferenceResult",
@@ -132,6 +143,7 @@ __all__ = [
     "TemporaryContentDeleter",
     "assert_exception_retention_compliant",
     "canonicalize_news_url",
+    "collect_news_recall_candidates",
     "compare_news_articles",
     "decode_alpaca_news_timestamp",
     "decode_news_recall_benchmark",
@@ -148,4 +160,5 @@ __all__ = [
     "render_news_recall_markdown",
     "resolve_news_review_case",
     "retention_decision",
+    "write_news_recall_candidates",
 ]
