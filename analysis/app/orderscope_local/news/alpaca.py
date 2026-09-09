@@ -221,10 +221,11 @@ def _decode_response(
 def _normalize_article(value: object, *, query_symbol: str) -> AdapterItem:
     if not isinstance(value, Mapping):
         raise AlpacaNewsRequestFailure("invalid_response", False)
-    if "content" in value:
-        # N0-002 must never carry a body even if a transport accidentally requested it.
-        raise AlpacaNewsRequestFailure("body_leak", False)
 
+    # Alpaca may include a `content` member in the response shape even when the
+    # request explicitly sets include_content=false. N0-002 is metadata-only:
+    # never inspect, normalize, hash, persist, or expose that member. Body access
+    # remains owned by N0-004 through its separate temporary-content boundary.
     article_id = _required_text(value.get("id"), coerce_int=True, maximum=512)
     headline = _required_text(value.get("headline"), maximum=2048)
     source = _required_text(value.get("source"), maximum=256)
