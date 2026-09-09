@@ -49,11 +49,11 @@ This tracker was fully reconciled on 2026-09-09 after the E0, O0, N0, and N1 imp
 |---|---|---|---|
 | L0-001 | Accepted / inherited prerequisite | L0-002 was accepted under the existing local-stack ADR dependency; no new runtime issue was found in this reconciliation | Reference only |
 | L0-002 | Accepted | Scaffold and Git boundary were accepted; `analysis/config` currently contains only its scaffold README | Reference only |
-| L0-003 | Ready | Depends on L0-002; current branch has no implemented config/secret module under `orderscope_local` | **Primary next implementation candidate** |
-| L0-004 | Ready | Depends on L0-002; current branch has no localhost health/API foundation under `orderscope_local` | Can run after overlap review, parallel to L0-003/L0-005 if files stay disjoint |
-| L0-005 | Ready | Depends on L0-002; current branch has no local migration/catalog implementation under `orderscope_local` | **Critical prerequisite for L1-001** |
+| L0-003 | Ready | Depends on L0-002; current branch has no implemented config/secret module under `orderscope_local` | Parallel Local-foundation candidate |
+| L0-004 | Ready | Depends on L0-002; current branch has no localhost health/API foundation under `orderscope_local` | Can run after overlap review, parallel to L0-003 if files stay disjoint |
+| L0-005 | Accepted | Versioned SQLite migration runner, SHA-256 drift detection, contiguous-version validation, atomic rollback, schema history, and the initial catalog migration are implemented; focused **7 passed**, full suite **352 passed** | Reference only; L1-001 gate is open |
 | L0-006 | Not started | Depends on L0-003, L0-004, and L0-005 | Start only after those three are Accepted |
-| L1-001 | Not started | Depends on L0-005 | Start after L0-005 acceptance |
+| L1-001 | Ready | L0-005 is Accepted; D1 export manifest contract is not yet implemented | **Primary next implementation candidate** |
 | L1-002 | Not started | Depends on L1-001 | Start after manifest contract |
 | L1-003 | Blocked | Real D1 export requires separately approved `SMOKE-007` change window | Keep independent from fixture path |
 | L1-004 | Not started | Fixture path depends on L1-002; real-data completion additionally requires L1-003 | Build fixture dataset path first after L1-002 |
@@ -124,10 +124,9 @@ This is now the **primary serial lane** for the Local Intelligence MVP.
 
 Recommended order:
 
-1. `L0-005` — migration foundation, because it opens L1-001.
-2. `L0-003` and `L0-004` — can be implemented as separate bounded cycles after overlap review; both are also required before L0-006.
-3. `L1-001` → `L1-002` → fixture `L1-004` → `L1-005`.
-4. `L1-003` stays blocked until the approved remote D1/SMOKE-007 window; reconcile real data later without invalidating fixture progress.
+1. `L1-001` → `L1-002` → fixture `L1-004` → `L1-005` is the remaining serial path to X0-001.
+2. `L0-003` and `L0-004` can be implemented as separate bounded cycles after overlap review; both are required before L0-006.
+3. `L1-003` stays blocked until the approved remote D1/SMOKE-007 window; reconcile real data later without invalidating fixture progress.
 
 ### Lane C — Cross-Market extension
 
@@ -141,7 +140,7 @@ Recommended order:
 | Role / task | Assignment | Reasoning | Note |
 |---|---|---|---|
 | Orchestrator | Sol | medium | Reconcile tracker/WBS/CP/repository evidence and select one bounded next task |
-| Primary next serial task | Luna/Terra + Sol review | medium | `L0-005` is bounded local migration foundation but affects downstream persistence/import work |
+| Primary next serial task | Luna/Terra + Sol review | medium | `L1-001` is the next bounded contract task on the fixture-market critical path |
 | L0-003 / L0-004 | Luna/Terra | per Model Assignment Policy | Safe bounded Local-foundation work after overlap review |
 | N1-006 evaluation | Terra + Sol review | medium/high | Dataset quality, matching methodology, lag, and ticker-misattribution measurement need careful review |
 | A0-002 dataset/source definition | Terra | medium | Separate validation lane |
@@ -157,7 +156,7 @@ Record the actual model/reasoning and acceptance evidence in the handoff or trac
 
 ## 8. Current restart rule
 
-- **Main local session:** start `L0-005` as the primary serial task toward L1-005/X0-001.
+- **Main local session:** start `L1-001` as the primary serial task toward L1-005/X0-001.
 - **Second bounded local session:** `L0-003` or `L0-004` may proceed after task/file-overlap review.
 - **News evaluation session:** start `N1-006` only when a credible 1–3 month News and SEC/IR comparison dataset/reference window is available.
 - **Cross-Market session:** A0 work remains separate.
@@ -189,6 +188,19 @@ Do not infer unresolved values. Update this tracker only from repository evidenc
 | X0 decision | X0-001 remains blocked solely by L1-005 among its explicit dependencies |
 | Primary next task | `L0-005` |
 | Critical Path/WBS update | **None** — dependency structure and completion definitions did not change; only runtime state was reconciled |
+
+## 10.1 L0-005 acceptance evidence
+
+| Item | Result |
+|---|---|
+| Implementation | `orderscope_local.storage` versioned SQLite migration runner and packaged `0001_catalog.sql` |
+| Safety properties | Strict filenames, contiguous versions, exact-file SHA-256 history, applied-file drift rejection, per-migration atomic transaction/rollback, unknown-version rejection |
+| Rebuild evidence | Two empty temporary SQLite databases rebuild to identical application schemas; current migrations reapply idempotently |
+| Focused tests | **7 passed** |
+| Full local suite | **352 passed** |
+| Additional checks | `python3 -m compileall -q analysis/app analysis/tests`; `git diff --check` clean |
+| External contract | None required for L0-005; D1 export manifest fields remain scoped to L1-001 |
+| Next task | `L1-001` is Ready |
 
 ## 11. Historical accepted evidence index
 
