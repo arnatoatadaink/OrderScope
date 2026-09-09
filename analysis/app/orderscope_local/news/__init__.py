@@ -48,6 +48,14 @@ from .event_taxonomy import (
     event_taxonomy_entry,
     news_event_taxonomy,
 )
+from .retention import (
+    NEWS_RETENTION_CONTROLLER_VERSION,
+    RetentionDecision,
+    TemporaryContentDeleter,
+    assert_exception_retention_compliant,
+    delete_due_content,
+    retention_decision,
+)
 from .review import (
     NEWS_REVIEW_METHOD_VERSION,
     NEWS_REVIEW_RESOLUTION_SCHEMA_VERSION,
@@ -78,6 +86,7 @@ __all__ = [
     "NEWS_EVENT_EVIDENCE_SCHEMA_VERSION",
     "NEWS_EVENT_FACT_SCHEMA_VERSION",
     "NEWS_EVENT_TAXONOMY_VERSION",
+    "NEWS_RETENTION_CONTROLLER_VERSION",
     "NEWS_REVIEW_METHOD_VERSION",
     "NEWS_REVIEW_RESOLUTION_SCHEMA_VERSION",
     "NEWS_REVIEW_SCHEMA_VERSION",
@@ -91,11 +100,15 @@ __all__ = [
     "NewsReviewCase",
     "NewsReviewReasonKind",
     "NewsReviewResolution",
+    "RetentionDecision",
     "TemporaryBodyReader",
     "TemporaryBodyStore",
+    "TemporaryContentDeleter",
+    "assert_exception_retention_compliant",
     "canonicalize_news_url",
     "compare_news_articles",
     "decode_alpaca_news_timestamp",
+    "delete_due_content",
     "event_taxonomy_entry",
     "exception_record",
     "extract_body_fact_candidates",
@@ -104,4 +117,5 @@ __all__ = [
     "news_event_taxonomy",
     "open_news_review_case",
     "resolve_news_review_case",
+    "retention_decision",
 ]
