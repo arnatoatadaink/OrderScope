@@ -41,69 +41,72 @@ This file is the sole integrated authority for Local Corporate Intelligence runt
 | X0-003 | Accepted | focused 14; full 432; compileall success; diff clean |
 | X0-004 | Accepted | focused 16; full 457; compileall success; diff clean |
 | X0-005 | Accepted | focused 4; full 461; compileall success; diff clean |
-| X0-006 | Provisional result | Canary operations runbook drafted; operator review/acceptance pending |
+| X0-006 | Accepted — policy-level fixture path | External review found no boundary contradiction; F1-F4 moved to explicit post-X0 follow-ups |
 
 Real D1 promotion remains separately gated by L1-003 and must not be conflated with fixture-path X0 development.
 
-## 4. Current X0-005 acceptance boundary
+## 4. X0 fixture-path completion
 
-`analysis/tests/integration/test_end_to_end_fixture.py` replays one bounded fixture across the accepted integration path.
+`X0-001..006` is complete for the fixture-path integration boundary.
 
-Local acceptance evidence:
+X0-006 acceptance basis:
 
-```text
-focused X0-005 tests -> 4 passed
-full pytest suite    -> 461 passed
-compileall           -> success / no errors
-git diff --check     -> clean / no findings
-```
+- external review concluded the runbook is suitable as the policy-level procedure for the current fixture-path integration boundary;
+- credentials, rate limits, stop/resume, reprocessing, deletion, backup, and incident decisions are documented;
+- localhost/config/scheduler/retention/Worker-D1 boundaries were found consistent;
+- four production-operations gaps are explicitly tracked rather than hidden inside X0-006.
 
-X0-005 is Accepted.
+Acceptance does **not** mean production recovery is complete and does not authorize remote D1, Worker mutation, or live-provider registration.
 
-## 5. Current X0-006 documentation boundary
+Review authority:
 
-`docs/work-management/local-corporate-intelligence/X0-006_CANARY_OPERATIONS_RUNBOOK_2026-09-10.md` documents the v0.1 Canary operating boundary.
+`X0-006_CANARY_OPERATIONS_RUNBOOK_REVIEW_2026-09-10.md`
 
-Covered topics:
+## 5. Post-X0 operational follow-ups
 
-- local credential and non-secret configuration handling;
-- provider rate/access-condition verification and runtime response;
-- localhost API and manual scheduler startup;
-- normal stop, interrupted-run recovery, lock handling, and job-boundary resume;
-- bounded/idempotent reprocessing rules;
-- temporary-news retention/deletion and expiry incidents;
-- WSL-native backup/restore procedure;
-- incident decision table and pre/post-run checklists.
+The 2026-09-03 WBS contains adjacent contracts but no task whose completion condition fully covers the four review findings. Until the next WBS revision, the following `PX0-*` IDs are non-normative tracking IDs defined in `POST_X0_OPERATIONAL_FOLLOWUPS_2026-09-10.md`.
 
-Explicit exclusions remain preserved: no remote D1 action outside L1-003/SMOKE-007, no Worker mutation, no HTTP mutation/job start, no external API bind, and no unreviewed live-provider job registration.
+| Follow-up | Status | Boundary |
+|---|---|---|
+| PX0-001 | Not started | Reviewed operational scheduler job registration; zero-job success must not imply workload completion |
+| PX0-002 | Not started | Durable scheduler run/job evidence and reproducible stale-lock recovery; do not redefine I0-003 provider checkpoints |
+| PX0-003 | Not started | Operator CLI for retention backlog/overdue/delete-retry and bounded reprocessing; preserve accepted N1-005 semantics |
+| PX0-004 | Not started | Reproducible backup/restore implementation, validation evidence, RPO/generations, and restore drills |
 
-X0-006 is Provisional until the operator accepts the runbook as the Canary procedure.
+Interim limitations:
+
+- scheduler may select zero built-in jobs;
+- stale-lock clearance/resume requires manual engineering review until PX0-002;
+- retention/reprocessing operator checks remain fixture/programmatic until PX0-003;
+- backup/restore remains policy-level until PX0-004.
 
 ## 6. Primary integration path
 
+The original X0 primary path is complete:
+
 ```text
-X0-005 Accepted
-  -> X0-006 operator review / acceptance
+X0-001 -> X0-002 -> X0-003 -> X0-004 -> X0-005 -> X0-006
+                                                       Accepted
 ```
 
-After X0-006 acceptance, the X0-001..006 fixture-path integration lane is complete. This does not complete separately gated real-D1, L1-006, N1-006, A0, or Worker work.
+The next separate implementation lane remains `L1-006 — read-only import/dataset API` unless a different explicitly gated lane is selected.
 
 ## 7. Parallel/deferred lanes
 
-- `X0-006` operator review is the current primary X0 gate.
 - `L1-006` is Ready as a separate read-only API extension.
-- `L1-003` remains externally Blocked.
-- `N1-006` remains important for News quality but is not an X0 runbook blocker.
+- `PX0-001..004` are explicit post-X0 operational/recovery follow-ups and do not reopen X0 acceptance.
+- `L1-003` remains externally Blocked behind `SMOKE-007` approval.
+- `N1-006` remains important for News quality.
 - `A0-001` remains Provisional and `A0-002` remains separate validation work.
 - Worker remains Shadow; Local does not directly control Worker runtime.
 
 ## 8. Current restart rule
 
-1. Review `X0-006_CANARY_OPERATIONS_RUNBOOK_2026-09-10.md`.
-2. If the runbook matches the intended Canary operating procedure, promote X0-006 to Accepted.
-3. After X0-006 acceptance, treat X0-001..006 fixture-path integration as complete.
-4. Choose the next separate lane explicitly: `L1-006`, `L1-003/SMOKE-007`, `N1-006`, or the A0 validation backlog.
-5. Do not implicitly open a real-D1 or Worker change window.
+1. Treat `X0-001..006` fixture-path integration as Accepted/complete.
+2. Continue with `L1-006 — read-only import/dataset API` as the next Ready implementation lane unless priorities are explicitly changed.
+3. Preserve `PX0-001..004` for future operations/recovery implementation and incorporate/remap them in the next WBS revision.
+4. Keep `L1-003/SMOKE-007` real-D1 work separately gated.
+5. Do not implicitly open a Worker change window or register live provider jobs.
 
 ## 9. Latest acceptance evidence
 
@@ -122,10 +125,14 @@ After X0-006 acceptance, the X0-001..006 fixture-path integration lane is comple
 | X0-003 | focused 14; full 432; compileall success; diff clean |
 | X0-004 | focused 16; full 457; compileall success; diff clean |
 | X0-005 | focused 4; full 461; compileall success; diff clean |
+| X0-006 | operator/external review accepted for policy-level fixture path; F1-F4 explicitly deferred to PX0-001..004 |
 
 ## 10. Unresolved items
 
-- `X0-006` operator acceptance of the Canary operations runbook.
+- `PX0-001` operational scheduler job registry.
+- `PX0-002` durable scheduler run evidence / stale-lock recovery.
+- `PX0-003` retention/reprocessing operator CLI.
+- `PX0-004` reproducible backup/restore and restore drills.
 - `L1-003` / `SMOKE-007` real-D1 approval window.
 - `L1-006` read-only import/dataset API remains Ready.
 - `N1-006` News quality work.
