@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timedelta
 import os
 from pathlib import Path
 
@@ -9,10 +10,17 @@ import typer
 import uvicorn
 
 from orderscope_local.config import load_local_config
+from orderscope_local.contracts import ContractViolation
 from orderscope_local.integration import run_scheduler
 from orderscope_local.local_api.health import LOCALHOST_BIND_HOST, LocalServerBinding
 from orderscope_local.local_api.read_api import LocalReadSnapshot, create_read_app
-from orderscope_local.news import load_news_recall_benchmark, render_news_recall_markdown
+from orderscope_local.news import (
+    AlpacaNewsHttpTransport,
+    collect_news_recall_candidates,
+    load_news_recall_benchmark,
+    render_news_recall_markdown,
+    write_news_recall_candidates,
+)
 
 
 app = typer.Typer(help="OrderScope local analysis CLI", no_args_is_help=True)
@@ -65,6 +73,35 @@ def quality_news_recall(
     typer.echo(render_news_recall_markdown(benchmark=dataset), nl=False)
 
 
+@quality_app.command("news-recall-candidates")
+def quality_news_recall_candidates(
+    start: str = typer.Option(..., help="30-93 day retrospective window start, ISO-8601 UTC."),
+    end: str = typer.Option(..., help="Retrospective window end, ISO-8601 UTC."),
+    filename: str = typer.Option("amd-nvda-news-candidates.json", help="Simple JSON filename beneath data_root/benchmarks/n1-006."),
+    max_pages_per_symbol: int = typer.Option(100, min=1, max=500),
+) -> None:
+    """Fetch metadata-only AMD/NVDA Alpaca News candidates for manual benchmark labeling."""
+
+    window_start = _utc_timestamp(start, "start")
+    window_end = _utc_timestamp(end, "end")
+    config = load_local_config(os.environ)
+    transport = AlpacaNewsHttpTransport(environ=os.environ)
+    candidates = collect_news_recall_candidates(
+        transport=transport,
+        window_start=window_start,
+        window_end=window_end,
+        max_pages_per_symbol=max_pages_per_symbol,
+    )
+    destination = write_news_recall_candidates(
+        data_root=config.data_root,
+        filename=filename,
+        window_start=window_start,
+        window_end=window_end,
+        candidates=candidates,
+    )
+    typer.echo(f"candidate_count={len(candidates)} output={destination}")
+
+
 @schedule_app.command("run")
 def schedule_run(
     max_jobs: int = typer.Option(10, min=1, max=100, help="Maximum jobs to execute in this bounded run."),
@@ -84,6 +121,16 @@ def schedule_run(
     typer.echo(
         f"selected={len(result.selected)} completed={len(result.completed)} dry_run={str(result.dry_run).lower()}"
     )
+
+
+def _utc_timestamp(value: str, field: str) -> datetime:
+    try:
+        parsed = datetime.fromisoformat(value[:-1] + "+00:00" if value.endswith("Z") else value)
+    except ValueError as exc:
+        raise ContractViolation(f"{field} must be ISO-8601 UTC") from exc
+    if parsed.tzinfo is None or parsed.utcoffset() != timedelta(0):
+        raise ContractViolation(f"{field} must be normalized to UTC")
+    return parsed
 
 
 if __name__ == "__main__":
