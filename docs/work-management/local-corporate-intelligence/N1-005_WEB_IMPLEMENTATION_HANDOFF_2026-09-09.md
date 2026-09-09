@@ -1,22 +1,28 @@
 # OrderScope — N1-005 Web Implementation Handoff
 
-Status: **Provisional result — Web implementation complete / local test pending**
+Status: **Accepted**
 Date: 2026-09-09
 Task: `N1-005`
 Parent WBS: `WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
 Depends on: Accepted `I0-006`, Accepted `N1-004`
 
-## 1. Local acceptance carried into this cycle
+## 1. Acceptance evidence
 
-`N1-004` was promoted to Accepted from user-reported local evidence:
+`N1-005` was promoted to Accepted from user-reported local evidence:
+
+```text
+focused N1-005 tests -> 11 passed
+full pytest suite     -> 345 passed
+git diff --check      -> clean / no findings
+```
+
+The preceding N1-004 acceptance remains:
 
 ```text
 focused N1-004 tests -> 14 passed
 full pytest suite     -> 334 passed
 git diff --check      -> clean / no findings
 ```
-
-This opens the final N1 retention task.
 
 ## 2. WBS completion boundary
 
@@ -66,7 +72,7 @@ N1-005 does not invent another 30-day clock. I0-006 already rejects exception co
 captured_at + 30 days
 ```
 
-At `expires_at`, the body is due for deletion. `assert_exception_retention_compliant()` reports a violation if a non-deleted exception body still exists at or beyond that deadline.
+At `expires_at`, the body is due for deletion. `assert_exception_retention_compliant()` reports a violation if a non-deleted exception body still exists beyond that deadline.
 
 ## 7. Physical deletion boundary
 
@@ -120,14 +126,14 @@ Invalid lifecycle combinations fail closed.
 
 ## 10. Focused fixtures encoded
 
-The focused module currently contains 11 tests covering:
+The focused module contains 11 tests covering:
 
 1. frozen controller version;
 2. success body due immediately at extraction completion;
 3. success deletion audit contains proof but no body;
 4. exception body retained before expiry and deleted at expiry;
 5. I0-006 rejects exception lifetime beyond 30 days;
-6. exception retention compliance fails at/past expiry;
+6. exception retention compliance fails beyond expiry;
 7. staged successful body cannot be deleted before extraction;
 8. already-deleted replay is idempotent and does not hit storage;
 9. physical delete failure is sanitized and does not fabricate deletion;
@@ -150,17 +156,9 @@ N1-005 does not:
 
 `N1-006` owns News recall evaluation. `X0-001` owns unified timeline integration and is separately gated by `L1-005`.
 
-## 12. Local verification boundary
+## 12. Acceptance result
 
-Before promoting N1-005 to Accepted, run:
-
-```bash
-uv run pytest -q analysis/tests/news/test_news_retention_controller.py
-uv run pytest -q
-git diff --check
-```
-
-Acceptance requires focused tests, full regression, and clean diff check.
+The focused test, full regression suite, and diff check are clean. N1-005 is therefore safe as a downstream prerequisite.
 
 ## 13. News lane state
 
@@ -170,14 +168,14 @@ N1-001 Accepted
 N1-002 Accepted
 N1-003 Accepted
 N1-004 Accepted
-N1-005 Provisional result — local test pending
-N1-006 waits for N1-005 acceptance
+N1-005 Accepted
+N1-006 Ready subject to evaluation dataset/reference-window availability
 ```
 
 ## 14. Gate implication
 
-After N1-005 acceptance, the News dependency for `X0-001` is satisfied. However `X0-001` still also depends on `L1-005`, `I0-005`, `E0-007`, and `O0-005`; do not start it until the remaining runtime gates are reconciled.
+The News dependency for `X0-001` is now satisfied. `X0-001` still depends on `L1-005`, `I0-005`, `E0-007`, and `O0-005`; repository reconciliation on 2026-09-09 confirms the remaining unsatisfied runtime gate is the Local foundation / market-quality path culminating in `L1-005`.
 
-## 15. Next action after acceptance
+## 15. Next action
 
-Proceed to `N1-006 — Evaluate news recall` if the required 1–3 month comparison dataset/reference window is available. In parallel, reconcile the authoritative Local Corporate Intelligence progress tracker and verify the remaining `L1-005` gate before selecting X0 work.
+Reconcile the authoritative Local Corporate Intelligence Progress Tracker. Then prioritize the Local foundation path needed for `L1-005`; N1-006 can proceed in parallel when the 1–3 month SEC/IR comparison dataset is available.
