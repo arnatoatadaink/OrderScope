@@ -121,7 +121,7 @@ def _fact_from_input(source_input: dict[str, object]) -> tuple[Fact, Evidence]:
         evidence_kind=EvidenceKind.SUPPORTING,
         target_record_ids=(record_id,),
         locator=str(source_input["source"]),
-        quality_class=EvidenceQuality.TIER_1_OFFICIAL if source_input["kind"] != "news" else EvidenceQuality.TIER_2_REPUTABLE,
+        quality_class=EvidenceQuality.TIER_1_OFFICIAL if source_input["kind"] != "news" else EvidenceQuality.SECONDARY,
         retention_class=RetentionClass.DURABLE_METADATA,
     )
     return fact, evidence
