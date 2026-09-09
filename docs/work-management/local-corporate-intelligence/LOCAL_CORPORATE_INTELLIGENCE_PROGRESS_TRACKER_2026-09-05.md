@@ -49,14 +49,7 @@ Real D1 promotion remains separately gated by L1-003 and must not be conflated w
 
 `X0-001..006` is complete for the fixture-path integration boundary.
 
-`L1-006` is also Accepted for the fixture-path market read API boundary. It exposes read-only localhost routes:
-
-```text
-GET /imports
-GET /coverage/latest
-GET /datasets
-GET /quality/latest
-```
+`L1-006` is Accepted for the fixture-path market read API boundary.
 
 L1-006 acceptance evidence:
 
@@ -71,40 +64,54 @@ This does not complete `L1-003` real-D1 export.
 
 ## 5. Current N1-006 evaluation boundary
 
-`N1-006 — Evaluate news recall` is the selected next non-gated WBS lane.
+`N1-006 — Evaluate news recall` is the selected current non-gated WBS lane.
 
 Dependencies are satisfied:
 
 - `E0-007` Accepted;
 - `N1-005` Accepted.
 
-Implemented Web-side evaluation framework:
+### Evaluator framework — Accepted
+
+Implemented:
 
 - `analysis/app/orderscope_local/news/recall.py`
 - `analysis/tests/news/test_news_recall_evaluator.py`
-- exports via `analysis/app/orderscope_local/news/__init__.py`
 
-The evaluator uses explicitly labeled SEC/IR reference events and News discoveries. It does not infer event equivalence from headline similarity.
-
-Measured outputs:
-
-- discovery rate / recall;
-- signed first-discovery lag;
-- ticker/subject misattribution count/rate;
-- deterministic per-reference result.
-
-The evaluation window is constrained to 30–93 days.
-
-Current state:
+Measured acceptance evidence:
 
 ```text
-N1-006 Provisional result
-  -> local evaluator verification
-  -> real/reference 1–3 month benchmark execution
+focused evaluator tests -> 7 passed
+full pytest suite        -> 475 passed
+compileall               -> success / no errors
+git diff --check         -> clean / no findings
+```
+
+The evaluator uses explicit SEC/IR reference-to-News labels and measures discovery rate, signed first-discovery lag, and subject/ticker misattribution without inferring event equivalence.
+
+### Benchmark ingestion/report path — Provisional
+
+No existing active-branch artifact was found that already contains a 30–93 day explicit SEC/IR-reference-to-News labeled dataset suitable for final N1-006 measurement.
+
+Added:
+
+- `analysis/app/orderscope_local/news/recall_benchmark.py`
+- `analysis/tests/news/test_news_recall_benchmark.py`
+- `quality news-recall --benchmark <json>` CLI command
+
+The benchmark schema is metadata-only and records unresolved label cases explicitly. It excludes raw filing/IR/News bodies and credentials.
+
+Current transition:
+
+```text
+N1-006 evaluator framework Accepted
+  -> benchmark manifest/CLI local verification
+  -> populate real/reference 30–93 day benchmark
+  -> execute measured recall report
   -> N1-006 Accepted
 ```
 
-The evaluator/fixture path alone is not sufficient for final N1-006 acceptance; the WBS explicitly requires measured 1–3 month discovery quality against SEC/IR reference events.
+Synthetic fixture metrics must never substitute for the final real/reference benchmark.
 
 ## 6. Post-X0 operational follow-ups
 
@@ -119,7 +126,7 @@ The following `PX0-*` IDs remain non-normative tracking IDs defined in `POST_X0_
 
 ## 7. Parallel/deferred lanes
 
-- `N1-006` evaluator verification and benchmark preparation is the current selected lane.
+- `N1-006` benchmark manifest/CLI verification is the current selected lane.
 - `L1-003` remains externally Blocked behind `SMOKE-007` approval.
 - `PX0-001..004` remain explicit post-X0 operational/recovery follow-ups.
 - `A0-001` remains Provisional and `A0-002` remains separate validation work.
@@ -128,11 +135,12 @@ The following `PX0-*` IDs remain non-normative tracking IDs defined in `POST_X0_
 
 ## 8. Current restart rule
 
-1. Treat `L1-006` as Accepted with measured 21 / 468 / compileall / diff evidence.
-2. Run focused/full/compileall/diff verification for the N1-006 evaluator.
-3. If evaluator verification passes, retain N1-006 as Provisional until a 30–93 day labeled SEC/IR-vs-News benchmark is executed.
-4. Do not fabricate benchmark metrics from fixtures.
-5. Keep `L1-003/SMOKE-007`, Worker changes, and live-provider scheduler registration separately gated.
+1. Treat L1-006 as Accepted with measured 21 / 468 / compileall / diff evidence.
+2. Treat the N1-006 evaluator framework as Accepted with measured 7 / 475 / compileall / diff evidence.
+3. Run focused benchmark-manifest + CLI tests, then full pytest, compileall, and diff check.
+4. If those pass, accept the benchmark ingestion/report path but keep N1-006 Provisional until real/reference 30–93 day data is populated and executed.
+5. Do not fabricate benchmark values or silently infer article-event equivalence.
+6. Keep `L1-003/SMOKE-007`, Worker changes, and live-provider scheduler registration separately gated.
 
 ## 9. Latest acceptance evidence
 
@@ -147,6 +155,7 @@ The following `PX0-*` IDs remain non-normative tracking IDs defined in `POST_X0_
 | L1-004 fixture | focused 11; full 372; diff clean |
 | L1-005 fixture | focused 12; full 391; diff clean |
 | L1-006 fixture | focused command 21; full 468; compileall success; diff clean |
+| N1-006 evaluator | focused 7; full 475; compileall success; diff clean |
 | X0-001 | focused 7; full 398; diff clean |
 | X0-002 | focused 9; full 407; diff clean |
 | X0-003 | focused 14; full 432; compileall success; diff clean |
@@ -156,8 +165,8 @@ The following `PX0-*` IDs remain non-normative tracking IDs defined in `POST_X0_
 
 ## 10. Unresolved items
 
-- `N1-006` local evaluator acceptance evidence.
-- `N1-006` real/reference 1–3 month SEC/IR-vs-News benchmark dataset and measured results.
+- `N1-006` benchmark manifest/CLI local acceptance evidence.
+- `N1-006` real/reference 1–3 month SEC/IR-vs-News benchmark population and measured results.
 - `PX0-001` operational scheduler job registry.
 - `PX0-002` durable scheduler run evidence / stale-lock recovery.
 - `PX0-003` retention/reprocessing operator CLI.
