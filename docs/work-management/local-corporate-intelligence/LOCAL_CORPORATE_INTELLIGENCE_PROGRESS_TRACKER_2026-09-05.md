@@ -1,7 +1,7 @@
 # OrderScope — Local Corporate Intelligence Progress Tracker
 
 Status: **Active integrated runtime tracker**
-Date: 2026-09-09
+Date: 2026-09-10
 Scope: Local Corporate Intelligence / X0 integration
 
 This file is the sole integrated authority for Local Corporate Intelligence runtime progress after the 2026-09-05 consolidation. Detailed implementation notes remain in task-specific handoffs.
@@ -39,36 +39,31 @@ This file is the sole integrated authority for Local Corporate Intelligence runt
 | X0-001 | Accepted | focused 7; full 398; diff clean |
 | X0-002 | Accepted | focused 9; full 407; diff clean |
 | X0-003 | Accepted | focused 14; full 432; compileall success; diff clean |
-| X0-004 | Provisional result | Scheduler implementation complete; local verification pending |
-| X0-005 | Blocked by X0-004 acceptance | End-to-end fixture test starts after scheduler acceptance |
+| X0-004 | Accepted | focused 16; full 457; compileall success; diff clean |
+| X0-005 | Ready | X0-001..004 are Accepted; implement deterministic end-to-end fixture test next |
 | X0-006 | Not started | Depends on X0-005 |
 
 Real D1 promotion remains separately gated by L1-003 and must not be conflated with fixture-path X0 development.
 
-## 4. Current X0-004 implementation boundary
+## 4. Current X0-004 acceptance boundary
 
 `analysis/app/orderscope_local/integration/scheduler.py` implements the bounded local scheduler core.
 
-Properties:
+Local acceptance evidence:
 
-- manual CLI start through `orderscope schedule run`;
-- deterministic injected job order;
-- `max_jobs` bounded to 1..100;
-- filesystem single-instance lock beneath configured `data_root`;
-- job-boundary resume via explicit `resume_after` name;
-- unknown resume names fail closed;
-- dry-run selects without executing jobs or taking the runtime lock;
-- provider cursors remain opaque and adapter-owned;
-- no HTTP scheduler mutation route, daemon, remote D1 action, or Worker control is introduced.
+```text
+focused X0-004 tests -> 16 passed
+full pytest suite    -> 457 passed
+compileall           -> success / no errors
+git diff --check     -> clean / no findings
+```
 
-Focused X0-004 verification consists of 8 scheduler-core cases plus 2 CLI cases. Local verification is pending. Task-specific details are in `X0-004_WEB_IMPLEMENTATION_HANDOFF_2026-09-09.md`.
+X0-004 is Accepted.
 
 ## 5. Primary integration path
 
 ```text
-X0-004 local verification
-  -> X0-004 Accepted
-  -> X0-005 end-to-end fixture test
+X0-005 end-to-end fixture test
   -> X0-006 Canary operations runbook
 ```
 
@@ -76,7 +71,7 @@ X0-004 local verification
 
 ## 6. Parallel/deferred lanes
 
-- `X0-004` local verification is the current primary integration gate.
+- `X0-005` is the current primary integration task.
 - `L1-006` is Ready as a parallel read-only API extension.
 - `L1-003` remains externally Blocked.
 - `N1-006` remains important for News quality but is not the current X0 integration blocker.
@@ -85,8 +80,8 @@ X0-004 local verification
 
 ## 7. Current restart rule
 
-1. Run X0-004 focused/full/compileall/diff verification.
-2. If X0-004 passes, promote it to Accepted and start `X0-005 — end-to-end fixture test`.
+1. Start `X0-005 — end-to-end fixture test`.
+2. After X0-005 acceptance, create `X0-006 — Canary operations runbook`.
 3. `L1-006` may proceed in a separate bounded API cycle.
 4. Keep L1-003/SMOKE-007 real-D1 work separate.
 
@@ -105,10 +100,11 @@ X0-004 local verification
 | X0-001 | focused 7; full 398; diff clean |
 | X0-002 | focused 9; full 407; diff clean |
 | X0-003 | focused 14; full 432; compileall success; diff clean |
+| X0-004 | focused 16; full 457; compileall success; diff clean |
 
 ## 9. Unresolved items
 
-- `X0-004` local acceptance evidence remains pending.
+- `X0-005` end-to-end fixture test remains pending.
 - `L1-003` / `SMOKE-007` real-D1 approval window.
 - `L1-006` read-only import/dataset API remains Ready.
 - `N1-006` News quality work.
