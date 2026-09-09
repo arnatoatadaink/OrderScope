@@ -28,8 +28,9 @@ def test_empty_databases_rebuild_to_identical_catalog_schema(tmp_path: Path) -> 
     assert [(item.version, item.name, item.checksum) for item in first_applied] == [
         (item.version, item.name, item.checksum) for item in second_applied
     ]
+    assert first_applied
     with sqlite3.connect(first) as connection:
-        assert connection.execute("PRAGMA user_version").fetchone() == (1,)
+        assert connection.execute("PRAGMA user_version").fetchone() == (first_applied[-1].version,)
         assert connection.execute(
             "SELECT value FROM catalog_metadata WHERE key = 'schema_kind'"
         ).fetchone() == ("orderscope-local-metadata",)
@@ -42,7 +43,7 @@ def test_reapplying_current_migrations_is_idempotent(tmp_path: Path) -> None:
 
     assert second == first
     with sqlite3.connect(database) as connection:
-        assert connection.execute("SELECT count(*) FROM schema_migrations").fetchone() == (1,)
+        assert connection.execute("SELECT count(*) FROM schema_migrations").fetchone() == (len(first),)
 
 
 def test_applied_migration_checksum_drift_is_rejected(tmp_path: Path) -> None:
