@@ -203,42 +203,42 @@ def _decode_response(
     payload: Mapping[str, Any], *, request: AdapterRequest, query_symbol: str
 ) -> tuple[tuple[AdapterItem, ...], str | None]:
     if not isinstance(payload, Mapping):
-        raise AlpacaNewsRequestFailure("invalid_response", False)
+        raise AlpacaNewsRequestFailure("invalid_response_root", False)
     raw_items = payload.get("news")
     if not isinstance(raw_items, list):
-        raise AlpacaNewsRequestFailure("invalid_response", False)
+        raise AlpacaNewsRequestFailure("invalid_response_news", False)
     next_cursor = payload.get("next_page_token")
     if next_cursor is not None and (not isinstance(next_cursor, str) or not next_cursor.strip() or len(next_cursor) > 2048):
-        raise AlpacaNewsRequestFailure("invalid_response", False)
+        raise AlpacaNewsRequestFailure("invalid_response_next_page_token", False)
     if next_cursor is not None and request.cursor is not None and next_cursor == request.cursor:
         raise AlpacaNewsRequestFailure("cursor_loop", False)
     if len(raw_items) > request.page_size:
-        raise AlpacaNewsRequestFailure("invalid_response", False)
+        raise AlpacaNewsRequestFailure("invalid_response_page_size", False)
     items = tuple(_normalize_article(value, query_symbol=query_symbol) for value in raw_items)
     return items, next_cursor
 
 
 def _normalize_article(value: object, *, query_symbol: str) -> AdapterItem:
     if not isinstance(value, Mapping):
-        raise AlpacaNewsRequestFailure("invalid_response", False)
+        raise AlpacaNewsRequestFailure("invalid_response_article", False)
 
     # Alpaca may include a `content` member in the response shape even when the
     # request explicitly sets include_content=false. N0-002 is metadata-only:
     # never inspect, normalize, hash, persist, or expose that member. Body access
     # remains owned by N0-004 through its separate temporary-content boundary.
-    article_id = _required_text(value.get("id"), coerce_int=True, maximum=512)
-    headline = _required_text(value.get("headline"), maximum=2048)
-    source = _optional_text(value.get("source"), maximum=256)
-    url = _optional_text(value.get("url"), maximum=2048)
-    created = decode_alpaca_news_timestamp(value.get("created_at"))
+    article_id = _required_text(value.get("id"), field="id", coerce_int=True, maximum=512)
+    headline = _required_text(value.get("headline"), field="headline", maximum=2048)
+    source = _optional_text(value.get("source"), field="source", maximum=256)
+    url = _optional_text(value.get("url"), field="url", maximum=2048)
+    created = decode_alpaca_news_timestamp(value.get("created_at"), field="created_at")
     updated_raw = value.get("updated_at")
-    updated = decode_alpaca_news_timestamp(updated_raw) if updated_raw is not None else None
+    updated = decode_alpaca_news_timestamp(updated_raw, field="updated_at") if updated_raw is not None else None
     if updated is not None and _timestamp_instant(updated) < _timestamp_instant(created):
-        raise AlpacaNewsRequestFailure("invalid_response", False)
+        raise AlpacaNewsRequestFailure("invalid_response_updated_at", False)
 
-    symbols = _string_tuple(value.get("symbols", ()), maximum=32)
-    author = _optional_text(value.get("author"), maximum=512)
-    summary = _optional_text(value.get("summary"), maximum=8192)
+    symbols = _string_tuple(value.get("symbols", ()), field="symbols", maximum=32)
+    author = _optional_text(value.get("author"), field="author", maximum=512)
+    summary = _optional_text(value.get("summary"), field="summary", maximum=8192)
     metadata = NewsArticleMetadata(
         provider_key=ALPACA_NEWS_PROVIDER_KEY,
         provider_article_id=article_id,
@@ -262,43 +262,43 @@ def _normalize_article(value: object, *, query_symbol: str) -> AdapterItem:
     return AdapterItem(normalized=normalized, content_identity=identity)
 
 
-def decode_alpaca_news_timestamp(value: object) -> SourceTimestamp:
+def decode_alpaca_news_timestamp(value: object, *, field: str = "timestamp") -> SourceTimestamp:
     if not isinstance(value, str) or not value.strip() or value != value.strip():
-        raise AlpacaNewsRequestFailure("invalid_response", False)
+        raise AlpacaNewsRequestFailure(f"invalid_response_{field}", False)
     text = value[:-1] + "+00:00" if value.endswith("Z") else value
     try:
         parsed = datetime.fromisoformat(text)
     except ValueError as exc:
-        raise AlpacaNewsRequestFailure("invalid_response", False) from exc
+        raise AlpacaNewsRequestFailure(f"invalid_response_{field}", False) from exc
     if parsed.tzinfo is None:
-        raise AlpacaNewsRequestFailure("invalid_response", False)
+        raise AlpacaNewsRequestFailure(f"invalid_response_{field}", False)
     parsed = parsed.astimezone(timezone.utc)
     return SourceTimestamp.at(parsed)
 
 
-def _required_text(value: object, *, maximum: int, coerce_int: bool = False) -> str:
+def _required_text(value: object, *, field: str, maximum: int, coerce_int: bool = False) -> str:
     if coerce_int and isinstance(value, int) and not isinstance(value, bool):
         value = str(value)
     if not isinstance(value, str) or not value.strip() or value != value.strip() or len(value) > maximum:
-        raise AlpacaNewsRequestFailure("invalid_response", False)
+        raise AlpacaNewsRequestFailure(f"invalid_response_{field}", False)
     return value
 
 
-def _optional_text(value: object, *, maximum: int) -> str | None:
+def _optional_text(value: object, *, field: str, maximum: int) -> str | None:
     if value is None:
         return None
     if not isinstance(value, str) or value != value.strip() or len(value) > maximum:
-        raise AlpacaNewsRequestFailure("invalid_response", False)
+        raise AlpacaNewsRequestFailure(f"invalid_response_{field}", False)
     return value or None
 
 
-def _string_tuple(value: object, *, maximum: int) -> tuple[str, ...]:
+def _string_tuple(value: object, *, field: str, maximum: int) -> tuple[str, ...]:
     if not isinstance(value, Sequence) or isinstance(value, (str, bytes, bytearray)):
-        raise AlpacaNewsRequestFailure("invalid_response", False)
+        raise AlpacaNewsRequestFailure(f"invalid_response_{field}", False)
     result: list[str] = []
     for item in value:
         if not isinstance(item, str) or not item.strip() or item != item.strip() or len(item) > maximum:
-            raise AlpacaNewsRequestFailure("invalid_response", False)
+            raise AlpacaNewsRequestFailure(f"invalid_response_{field}", False)
         if item not in result:
             result.append(item)
     return tuple(result)
@@ -323,7 +323,7 @@ def _identity_payload(normalized: Mapping[str, object]) -> str:
 
 def _timestamp_instant(value: SourceTimestamp) -> datetime:
     if value.instant is None:
-        raise AlpacaNewsRequestFailure("invalid_response", False)
+        raise AlpacaNewsRequestFailure("invalid_response_timestamp", False)
     return value.instant
 
 
