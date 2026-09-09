@@ -21,6 +21,7 @@ from orderscope_local.news import (
     render_news_recall_markdown,
     write_news_recall_candidates,
 )
+from orderscope_local.news.recall_labeling import finalize_benchmark, write_label_template
 
 
 app = typer.Typer(help="OrderScope local analysis CLI", no_args_is_help=True)
@@ -100,6 +101,48 @@ def quality_news_recall_candidates(
         candidates=candidates,
     )
     typer.echo(f"candidate_count={len(candidates)} output={destination}")
+
+
+@quality_app.command("news-recall-label-template")
+def quality_news_recall_label_template(
+    candidates: Path = typer.Option(..., exists=True, dir_okay=False, readable=True),
+    filename: str = typer.Option("amd-nvda-news-labels.json"),
+) -> None:
+    """Create an explicit review template for every acquired News candidate."""
+
+    config = load_local_config(os.environ)
+    destination = write_label_template(
+        data_root=config.data_root,
+        filename=filename,
+        candidate_path=candidates,
+    )
+    typer.echo(f"label_template={destination}")
+
+
+@quality_app.command("news-recall-finalize")
+def quality_news_recall_finalize(
+    references: Path = typer.Option(..., exists=True, dir_okay=False, readable=True),
+    candidates: Path = typer.Option(..., exists=True, dir_okay=False, readable=True),
+    labels: Path = typer.Option(..., exists=True, dir_okay=False, readable=True),
+    filename: str = typer.Option("amd-nvda-news-benchmark-final.json"),
+) -> None:
+    """Finalize a fully reviewed candidate set into the N1-006 benchmark schema."""
+
+    config = load_local_config(os.environ)
+    if Path(filename).name != filename or not filename.endswith(".json"):
+        raise ContractViolation("filename must be a simple .json filename")
+    destination = config.data_root / "benchmarks" / "n1-006" / filename
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    benchmark = finalize_benchmark(
+        reference_path=references,
+        candidate_path=candidates,
+        label_path=labels,
+        output_path=destination,
+    )
+    typer.echo(
+        f"references={len(benchmark.references)} discoveries={len(benchmark.discoveries)} "
+        f"unresolved={len(benchmark.unresolved_labels)} output={destination}"
+    )
 
 
 @schedule_app.command("run")
