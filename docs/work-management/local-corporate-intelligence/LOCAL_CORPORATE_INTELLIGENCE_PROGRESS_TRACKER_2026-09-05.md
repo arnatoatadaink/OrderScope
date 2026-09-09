@@ -119,14 +119,23 @@ git diff --check                -> clean / no findings
 
 Retrospective lag uses Alpaca provider publication time versus SEC/IR reference availability. It does not reconstruct local scheduler delay.
 
-### Explicit labeling/finalization path — Provisional result
+### Explicit labeling/finalization path — Accepted implementation
 
-Added:
+Implemented:
 
 - `analysis/app/orderscope_local/news/recall_labeling.py`
 - `analysis/tests/news/test_news_recall_labeling.py`
 - `quality news-recall-label-template`
 - `quality news-recall-finalize`
+
+Measured evidence:
+
+```text
+focused labeling/CLI command -> 15 passed
+full pytest suite             -> 494 passed
+compileall                    -> success / no errors
+git diff --check              -> clean / no findings
+```
 
 Label decisions:
 
@@ -136,23 +145,38 @@ unrelated
 unresolved
 ```
 
-Generated templates begin as `unreviewed`. Finalization fails until every candidate is explicitly reviewed. `matched` requires an explicit reference ID and News-side assigned subject; `unresolved` remains unresolved rather than guessed. Unknown reference IDs fail closed.
+Generated templates begin as `unreviewed`; finalization fails until every candidate is explicitly reviewed. `matched` requires an explicit reference ID and News-side assigned subject. `unresolved` remains unresolved rather than guessed. Unknown reference IDs fail closed.
+
+### Complete non-live N1-006 toolchain — Accepted
+
+All code required to acquire metadata, generate a review template, finalize a labeled benchmark, and render the quality report has local acceptance evidence.
+
+The remaining task is data execution, not another fixture implementation cycle.
+
+Real News acquisition requires authenticated Alpaca Market Data News API access via the existing process-local secret boundary:
+
+```text
+ORDERSCOPE_SECRET_ALPACA_API_KEY
+ORDERSCOPE_SECRET_ALPACA_API_SECRET
+```
 
 Current sequence:
 
 ```text
-Evaluator framework                         Accepted
-Benchmark manifest/report path              Accepted
-Official reference seed                     Complete
-Candidate population implementation         Accepted
-Explicit labeling/finalization implementation Provisional
-  -> local verification
-  -> live 30-day metadata fetch
+Evaluator framework                           Accepted
+Benchmark manifest/report path                Accepted
+Official reference seed                       Complete
+Candidate population implementation           Accepted
+Explicit labeling/finalization implementation Accepted
+Complete non-live toolchain                    Accepted
+  -> authenticated Alpaca 30-day metadata fetch
   -> explicit review of every candidate
   -> final benchmark JSON
   -> measured quality news-recall report
   -> N1-006 Accepted
 ```
+
+Synthetic fixture metrics must never substitute for final measured benchmark values.
 
 ## 5. Post-X0 operational follow-ups
 
@@ -167,7 +191,7 @@ These remain non-normative tracking IDs pending future WBS incorporation/remap.
 
 ## 6. Parallel/deferred lanes
 
-- `N1-006` labeling verification/execution is the selected current lane.
+- `N1-006` real 30-day benchmark execution is the selected current lane.
 - `L1-003` remains externally Blocked behind `SMOKE-007` approval.
 - `PX0-001..004` remain separate operations/recovery follow-ups.
 - `A0-001` remains Provisional and `A0-002` remains separate validation work.
@@ -177,14 +201,15 @@ These remain non-normative tracking IDs pending future WBS incorporation/remap.
 ## 7. Current restart rule
 
 1. Treat N1-006 population implementation as Accepted with measured 15 / 488 / compileall / diff evidence.
-2. Run labeling/finalization focused tests plus CLI tests, then full pytest, compileall, and diff check.
-3. If clean, accept the complete non-live N1-006 toolchain.
-4. Run bounded Alpaca metadata-only acquisition locally using process-local credentials.
-5. Generate a label template and explicitly review every candidate.
-6. Finalize against the machine-readable reference seed.
-7. Execute `quality news-recall` and record measured recall, signed lag, misattribution, and unresolved counts.
-8. Only then promote N1-006 itself to Accepted.
-9. Keep `L1-003/SMOKE-007`, Worker changes, and live scheduler registration separately gated.
+2. Treat N1-006 labeling/finalization implementation as Accepted with measured 15 / 494 / compileall / diff evidence.
+3. Treat the complete non-live N1-006 toolchain as Accepted.
+4. Configure Alpaca Market Data credentials only in process-local environment variables.
+5. Run bounded metadata-only acquisition for the 2026-08-11 through 2026-09-10 window.
+6. Generate the label template and explicitly review every candidate.
+7. Finalize against the machine-readable reference seed.
+8. Execute `quality news-recall` and record measured recall, signed lag, misattribution, and unresolved counts.
+9. Only then promote N1-006 itself to Accepted.
+10. Keep `L1-003/SMOKE-007`, Worker changes, and live scheduler registration separately gated.
 
 ## 8. Latest acceptance evidence
 
@@ -194,14 +219,14 @@ These remain non-normative tracking IDs pending future WBS incorporation/remap.
 | N1-006 evaluator | focused 7; full 475; compileall success; diff clean |
 | N1-006 benchmark path | focused command 15; full 482; compileall success; diff clean |
 | N1-006 population path | focused command 15; full 488; compileall success; diff clean |
+| N1-006 labeling path | focused command 15; full 494; compileall success; diff clean |
 | X0-006 | operator/external review accepted for policy-level fixture path; F1-F4 deferred to PX0-001..004 |
 
-Earlier accepted task evidence remains preserved in the task-specific handoffs.
+Earlier accepted task evidence remains preserved in task-specific handoffs.
 
 ## 9. Unresolved items
 
-- N1-006 labeling/finalization local acceptance evidence.
-- N1-006 actual 30-day Alpaca metadata acquisition.
+- N1-006 authenticated 30-day Alpaca metadata acquisition.
 - N1-006 explicit candidate/reference review and measured final report.
 - PX0-001..004 operations/recovery backlog.
 - L1-003 / SMOKE-007 real-D1 approval window.
