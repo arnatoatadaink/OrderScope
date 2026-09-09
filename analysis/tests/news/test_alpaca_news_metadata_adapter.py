@@ -184,6 +184,22 @@ def test_content_field_is_discarded_at_n0_002_boundary():
     assert transport.calls[0]["include_content"] is False
 
 
+def test_invalid_article_fields_report_only_sanitized_field_name():
+    cases = (
+        ("headline", {"headline": ""}, "invalid_response_headline"),
+        ("created_at", {"created_at": "not-a-timestamp"}, "invalid_response_created_at"),
+        ("symbols", {"symbols": None}, "invalid_response_symbols"),
+    )
+    for _name, overrides, expected in cases:
+        page = AlpacaNewsAdapter(
+            transport=FakeTransport({"news": [_article(**overrides)], "next_page_token": None}),
+            clock=lambda: RETRIEVED,
+        ).fetch(_request())
+        assert page.error is not None
+        assert page.error.category == expected
+        assert page.error.message == "Alpaca News request failed"
+
+
 def test_429_style_failure_is_retryable_and_keeps_cursor_unadvanced():
     failure = AlpacaNewsRequestFailure("rate_limited", True, timedelta(seconds=30))
     transport = FakeTransport(failure=failure)
@@ -237,7 +253,7 @@ def test_updated_before_created_is_rejected_as_invalid_response():
     page = adapter.fetch(_request())
 
     assert page.error is not None
-    assert page.error.category == "invalid_response"
+    assert page.error.category == "invalid_response_updated_at"
 
 
 def test_same_article_metadata_reproduces_same_content_identity():
