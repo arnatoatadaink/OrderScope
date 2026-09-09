@@ -1,0 +1,139 @@
+# OrderScope — WBS-Unreflected Task Backlog
+
+Status: **Active append-only planning backlog — not yet incorporated into the main WBS**
+Date: 2026-09-10
+Primary WBS checked: `docs/WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
+Related extension checked: `docs/WORK_BREAKDOWN_ANALYST_CROSS_MARKET_2026-09-05.md`
+
+## 1. Purpose
+
+This document is the holding area for tasks that have been identified after the current WBS was written but are not yet formally incorporated into a normative/primary work package.
+
+It exists so new task ideas can be appended without silently changing the meaning of accepted WBS items.
+
+Rules:
+
+1. Do not rewrite an existing WBS task merely to absorb a newly discovered scope item.
+2. Record every new item here first with source/provenance, proposed owner/package, dependency, and completion condition.
+3. Use provisional `UWBS-*` IDs in this file only. They are tracking IDs, not final WBS IDs.
+4. When a future WBS revision adopts an item, add the final WBS ID in the `Disposition` column instead of deleting the backlog history.
+5. If an item is later shown to be already covered by an existing WBS task, mark it `Covered by existing WBS` and record the evidence.
+6. Keep Fact / Derived Metric / Interpretation / Prediction boundaries unchanged while planning extensions.
+7. Do not use this backlog to authorize remote D1, Worker mutation, live-provider activation, or another gated operation.
+
+## 2. Status vocabulary
+
+| Status | Meaning |
+|---|---|
+| `Captured` | Scope is known well enough not to lose it, but task decomposition may still change |
+| `Ready for WBS design` | Completion condition and dependencies are sufficiently clear for formal WBS incorporation |
+| `Needs source re-link` | Scope is known from prior work/discussion, but the exact remote source report has not yet been located on the active branch |
+| `Needs decomposition` | One captured item should probably become multiple formal WBS tasks |
+| `Covered by existing WBS` | No new WBS task is required; retain the record for traceability |
+| `Deferred` | Intentionally not part of the current completion target |
+| `Incorporated` | Added/remapped into a later WBS revision; final ID must be recorded |
+
+## 3. Confirmed WBS-unreflected operational follow-ups
+
+These four items come from `POST_X0_OPERATIONAL_FOLLOWUPS_2026-09-10.md`, itself derived from the accepted X0-006 runbook review. They are not completion gaps for accepted X0 fixture-path work; they are production-operations follow-ups.
+
+| UWBS ID | Source tracking ID | Proposed task | Proposed package | Completion condition summary | Dependencies / related work | Status | Disposition |
+|---|---|---|---|---|---|---|---|
+| UWBS-001 | PX0-001 | Register reviewed operational scheduler jobs | Operations / Integration | At least one reviewed adapter-owned scheduler plan is registered; dry-run displays intended jobs; zero-job success cannot be mistaken for workload completion; HTTP mutation remains prohibited | X0-004, owning adapters, provider/terms gates | Ready for WBS design | Pending |
+| UWBS-002 | PX0-002 | Durable scheduler run evidence and stale-lock recovery | Operations / Recovery | Persist run/job identity, status, completion boundary, revision and sanitized failure state; make last completed boundary inspectable; stale-lock ownership/clearance is testable and robust against PID reuse | X0-004; I0-003 remains provider/source checkpoint owner | Ready for WBS design | Pending |
+| UWBS-003 | PX0-003 | Retention and bounded-reprocessing operator CLI | News / Operations integration | Operator can inspect backlog/overdue state, perform bounded delete/retry through concrete storage, and plan/run bounded replay without exposing bodies/secrets | N1-005, L0-006, integration/storage layer | Ready for WBS design | Pending |
+| UWBS-004 | PX0-004 | Reproducible backup/restore and restore drill | Storage / Recovery | Freeze data-root layout and backup set; implement consistent SQLite snapshot and dataset/catalog validation; define manifest/hashes, destination protections, generations/RPO, restore validation and drill evidence | L0-005, L1 storage/datasets, X0-006 policy | Ready for WBS design | Pending |
+
+## 4. Corporate-action / M&A / TOB expansion
+
+The current WBS already includes `M&A` as one event-taxonomy category under `N1-001`, so a generic "recognize M&A news" task is **not** missing. The unreflected scope is the deeper corporate-action lifecycle around tender offers, acquisitions, delisting/cash-out, ownership thresholds, and post-transaction company-value/regime changes.
+
+The exact recently added M&A/TOB report referenced in project discussion was not located in the active branch tree during this backlog pass. Therefore the following entries are captured with `Needs source re-link`; they must not be treated as a verbatim reconstruction of a missing report.
+
+| UWBS ID | Proposed task | Proposed package | Completion condition summary | Likely inputs / dependencies | Status | Disposition |
+|---|---|---|---|---|---|---|
+| UWBS-005 | Define Corporate Action / Transaction lifecycle contract | New Corporate Action package or I0 extension | Represent announcement, proposal, definitive agreement, tender-open, tender-close, ownership-threshold crossing, shareholder/board/regulatory approval, closing, termination, delisting and cash-out as distinct historical states/events; preserve event/available/accepted times and source provenance | I0-002/004/005; N1-001 taxonomy; SEC/IR/news sources | Needs source re-link | Pending |
+| UWBS-006 | Implement M&A / TOB / tender-offer acquisition and reconciliation | Corporate Action acquisition | Detect transaction events from Tier-1 SEC/IR where available and secondary news as discovery; deduplicate/reconcile multiple sources without overwriting conflicting states; retain offeror/target/consideration/terms only when explicit | S0 filing path, N0/N1 news path, company IR, I0 idempotency | Needs source re-link | Pending |
+| UWBS-007 | Implement ownership-threshold / control-change monitoring | Corporate Action / SEC | Track relevant 13D/13G and other explicit ownership/control disclosures; distinguish stake-building, control intent, passive ownership, amendment and withdrawal without inferring intent absent source evidence | S0-004 target forms, S0 filing records, Fact Store | Needs decomposition | Pending |
+| UWBS-008 | Model delisting, compulsory cash-out and security termination outcomes | Corporate Action / Instrument lifecycle | Track announced vs effective delisting, merger consideration, cash-out/stock conversion, security termination and successor instrument/entity relationships; avoid treating an announced transaction as completed before effective evidence | I0 registry/history, SEC/IR, exchange/official notices | Needs source re-link | Pending |
+| UWBS-009 | Post-transaction enterprise-value / Regime-change linkage | Corporate Action + Regime | Keep observed transaction facts separate from derived valuation/repricing and `COMPANY_REGIME_CHANGE`; represent acquired/divested businesses, segment changes, financing/consideration and resulting company-scope changes as evidence for later Regime/valuation analysis rather than immediate prediction | I0 Fact/Derived Metric/Interpretation separation; E0 segment identity/revenue; Regime spec | Needs source re-link | Pending |
+| UWBS-010 | Corporate-action Canary acceptance cases | Corporate Action QA | Fixture cases cover pending → amended → completed, failed/withdrawn offer, competing bid, partial ownership threshold, delisting/cash-out, stock-vs-cash consideration and conflicting secondary-news vs SEC/IR assertions | UWBS-005..009 after decomposition | Needs decomposition | Pending |
+
+## 5. Existing extension work that is NOT counted as WBS-unreflected
+
+Do not duplicate these in this backlog unless new scope exceeds their completion conditions:
+
+- `A0-001` / `A0-002` already exist in `WORK_BREAKDOWN_ANALYST_CROSS_MARKET_2026-09-05.md`.
+- `N1-001` already includes M&A in the news event taxonomy.
+- `L1-006`, `L1-003`, `N1-006`, and the existing A0 tasks are already represented in WBS/tracker state even when unfinished.
+- `SMOKE-*` / `CANARY-*` Worker items are already explicit deferred Worker backlog items in the main WBS.
+
+## 6. Discovery inbox — append new task ideas here first
+
+Use this section for newly proposed work before deciding whether it deserves a full row in §3/§4 or another package-specific section.
+
+| Discovery ID | Date | Proposal / question | Source | Suspected package | Triage state |
+|---|---|---|---|---|---|
+| DISC-001 | 2026-09-10 | Reserved for next newly discovered WBS-unreflected item | — | — | Empty placeholder; replace/append, do not infer scope |
+
+When a proposal is accepted for tracking:
+
+1. append a new `UWBS-*` row in the appropriate section;
+2. copy the source report/file/chat decision exactly enough to recover provenance;
+3. define completion condition and dependencies;
+4. mark the Discovery row `Promoted to UWBS-xxx`;
+5. do not delete the original discovery record.
+
+## 7. Add-a-task template
+
+Copy this block when a new idea is raised:
+
+```markdown
+### UWBS-XXX — <short task name>
+
+- Date captured: YYYY-MM-DD
+- Source: `<report/path>` or explicit project decision
+- Status: Captured | Ready for WBS design | Needs source re-link | Needs decomposition | Deferred
+- Proposed package: <existing/new package>
+- Problem / gap:
+- Scope:
+- Explicit non-goals:
+- Dependencies:
+- Completion condition:
+- Required fixtures / acceptance evidence:
+- Security / retention / provider constraints:
+- Candidate final WBS ID: Pending
+- Disposition: Pending
+```
+
+## 8. WBS incorporation procedure
+
+A future WBS revision should review this file row by row and choose exactly one disposition:
+
+- `Incorporate as new task`
+- `Merge with another UWBS item`
+- `Covered by existing WBS`
+- `Move to another project/WBS`
+- `Defer beyond current release`
+- `Reject with reason`
+
+The revision must preserve a mapping table:
+
+| UWBS ID | Final WBS ID / disposition | Revision | Reason |
+|---|---|---|---|
+| UWBS-001 | Pending | — | — |
+| UWBS-002 | Pending | — | — |
+| UWBS-003 | Pending | — | — |
+| UWBS-004 | Pending | — | — |
+| UWBS-005 | Pending | — | — |
+| UWBS-006 | Pending | — | — |
+| UWBS-007 | Pending | — | — |
+| UWBS-008 | Pending | — | — |
+| UWBS-009 | Pending | — | — |
+| UWBS-010 | Pending | — | — |
+
+## 9. Current planning interpretation
+
+This backlog does not change the current completion path. X0 fixture-path is accepted. The next already-Ready implementation task remains `L1-006 — read-only import/dataset API` unless priorities are explicitly changed.
+
+The purpose of this file is to prevent later ideas—especially production operations and deeper corporate-action handling—from being lost or accidentally smuggled into already accepted tasks.
