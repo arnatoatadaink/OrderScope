@@ -30,7 +30,7 @@ This file is the sole integrated authority for Local Corporate Intelligence runt
 | L1-003 | Blocked | Requires separately approved `SMOKE-007` remote D1 window |
 | L1-004 | Accepted — fixture path | focused 11; full 372; diff clean |
 | L1-005 | Accepted — fixture path | focused 12; full 391; diff clean |
-| L1-006 | Provisional result | Read-only `/imports`, `/coverage/latest`, `/datasets`, `/quality/latest` implemented; local verification pending |
+| L1-006 | Accepted — fixture path | focused command 21; full 468; compileall success; diff clean |
 
 ## 3. X0 runtime state
 
@@ -45,44 +45,11 @@ This file is the sole integrated authority for Local Corporate Intelligence runt
 
 Real D1 promotion remains separately gated by L1-003 and must not be conflated with fixture-path X0 development.
 
-## 4. X0 fixture-path completion
+## 4. Completed fixture-path boundaries
 
 `X0-001..006` is complete for the fixture-path integration boundary.
 
-X0-006 acceptance basis:
-
-- external review concluded the runbook is suitable as the policy-level procedure for the current fixture-path integration boundary;
-- credentials, rate limits, stop/resume, reprocessing, deletion, backup, and incident decisions are documented;
-- localhost/config/scheduler/retention/Worker-D1 boundaries were found consistent;
-- four production-operations gaps are explicitly tracked rather than hidden inside X0-006.
-
-Acceptance does **not** mean production recovery is complete and does not authorize remote D1, Worker mutation, or live-provider registration.
-
-Review authority:
-
-`X0-006_CANARY_OPERATIONS_RUNBOOK_REVIEW_2026-09-10.md`
-
-## 5. Post-X0 operational follow-ups
-
-The 2026-09-03 WBS contains adjacent contracts but no task whose completion condition fully covers the four review findings. Until the next WBS revision, the following `PX0-*` IDs are non-normative tracking IDs defined in `POST_X0_OPERATIONAL_FOLLOWUPS_2026-09-10.md`.
-
-| Follow-up | Status | Boundary |
-|---|---|---|
-| PX0-001 | Not started | Reviewed operational scheduler job registration; zero-job success must not imply workload completion |
-| PX0-002 | Not started | Durable scheduler run/job evidence and reproducible stale-lock recovery; do not redefine I0-003 provider checkpoints |
-| PX0-003 | Not started | Operator CLI for retention backlog/overdue/delete-retry and bounded reprocessing; preserve accepted N1-005 semantics |
-| PX0-004 | Not started | Reproducible backup/restore implementation, validation evidence, RPO/generations, and restore drills |
-
-Interim limitations:
-
-- scheduler may select zero built-in jobs;
-- stale-lock clearance/resume requires manual engineering review until PX0-002;
-- retention/reprocessing operator checks remain fixture/programmatic until PX0-003;
-- backup/restore remains policy-level until PX0-004.
-
-## 6. Current L1-006 verification boundary
-
-`analysis/app/orderscope_local/local_api/read_api.py` now exposes the remaining fixture-path market read surfaces required by L1-006:
+`L1-006` is also Accepted for the fixture-path market read API boundary. It exposes read-only localhost routes:
 
 ```text
 GET /imports
@@ -91,43 +58,83 @@ GET /datasets
 GET /quality/latest
 ```
 
-The snapshot consumes immutable accepted `RawImportResult`, `CanonicalBarDataset`, and `MarketDataQualityReport` descriptors. Responses do not expose raw SQL/Parquet bodies, provider responses, credentials, or arbitrary filesystem paths.
-
-`/quality/latest` and `/coverage/latest` do not fabricate state when no accepted quality report exists. Because the L1-005 quality contract has no acceptance timestamp, the snapshot builder owns accepted quality ordering and supplies its latest accepted report last.
-
-Focused test module `analysis/tests/local_api/test_import_dataset_api.py` contains 7 L1-006 cases. Required local acceptance command also includes the existing read API tests.
-
-## 7. Primary integration path
-
-The X0 fixture-path lane is complete. The current implementation gate is:
+L1-006 acceptance evidence:
 
 ```text
-L1-006 Provisional result
-  -> local verification
-  -> L1-006 Accepted
+focused API command -> 21 passed
+full pytest suite   -> 468 passed
+compileall          -> success / no errors
+git diff --check    -> clean / no findings
 ```
 
-`L1-003 / SMOKE-007` remains separately gated and is not implied by L1-006 fixture-path acceptance.
+This does not complete `L1-003` real-D1 export.
 
-## 8. Parallel/deferred lanes
+## 5. Current N1-006 evaluation boundary
 
-- `L1-006` local verification is the current selected lane.
-- `PX0-001..004` remain explicit post-X0 operational/recovery follow-ups.
+`N1-006 — Evaluate news recall` is the selected next non-gated WBS lane.
+
+Dependencies are satisfied:
+
+- `E0-007` Accepted;
+- `N1-005` Accepted.
+
+Implemented Web-side evaluation framework:
+
+- `analysis/app/orderscope_local/news/recall.py`
+- `analysis/tests/news/test_news_recall_evaluator.py`
+- exports via `analysis/app/orderscope_local/news/__init__.py`
+
+The evaluator uses explicitly labeled SEC/IR reference events and News discoveries. It does not infer event equivalence from headline similarity.
+
+Measured outputs:
+
+- discovery rate / recall;
+- signed first-discovery lag;
+- ticker/subject misattribution count/rate;
+- deterministic per-reference result.
+
+The evaluation window is constrained to 30–93 days.
+
+Current state:
+
+```text
+N1-006 Provisional result
+  -> local evaluator verification
+  -> real/reference 1–3 month benchmark execution
+  -> N1-006 Accepted
+```
+
+The evaluator/fixture path alone is not sufficient for final N1-006 acceptance; the WBS explicitly requires measured 1–3 month discovery quality against SEC/IR reference events.
+
+## 6. Post-X0 operational follow-ups
+
+The following `PX0-*` IDs remain non-normative tracking IDs defined in `POST_X0_OPERATIONAL_FOLLOWUPS_2026-09-10.md`:
+
+| Follow-up | Status | Boundary |
+|---|---|---|
+| PX0-001 | Not started | Reviewed operational scheduler job registration |
+| PX0-002 | Not started | Durable scheduler run/job evidence and stale-lock recovery |
+| PX0-003 | Not started | Operator CLI for retention and bounded reprocessing |
+| PX0-004 | Not started | Reproducible backup/restore and restore drills |
+
+## 7. Parallel/deferred lanes
+
+- `N1-006` evaluator verification and benchmark preparation is the current selected lane.
 - `L1-003` remains externally Blocked behind `SMOKE-007` approval.
-- `N1-006` remains important for News quality.
+- `PX0-001..004` remain explicit post-X0 operational/recovery follow-ups.
 - `A0-001` remains Provisional and `A0-002` remains separate validation work.
-- WBS-unreflected task ideas are tracked separately in `WBS_UNREFLECTED_TASK_BACKLOG_2026-09-10.md`.
+- WBS-unreflected task ideas are tracked in `WBS_UNREFLECTED_TASK_BACKLOG_2026-09-10.md`.
 - Worker remains Shadow; Local does not directly control Worker runtime.
 
-## 9. Current restart rule
+## 8. Current restart rule
 
-1. Run L1-006 focused local API tests, full pytest, compileall, and diff check.
-2. If all pass, promote L1-006 to Accepted and preserve the exact measured evidence.
-3. Keep L1-003/SMOKE-007 real-D1 work separately gated.
-4. Then select the next unfinished WBS lane explicitly; do not let UWBS/PX0 follow-ups silently redefine accepted tasks.
-5. Do not implicitly open a Worker change window or register live provider jobs.
+1. Treat `L1-006` as Accepted with measured 21 / 468 / compileall / diff evidence.
+2. Run focused/full/compileall/diff verification for the N1-006 evaluator.
+3. If evaluator verification passes, retain N1-006 as Provisional until a 30–93 day labeled SEC/IR-vs-News benchmark is executed.
+4. Do not fabricate benchmark metrics from fixtures.
+5. Keep `L1-003/SMOKE-007`, Worker changes, and live-provider scheduler registration separately gated.
 
-## 10. Latest acceptance evidence
+## 9. Latest acceptance evidence
 
 | Task | Evidence |
 |---|---|
@@ -139,6 +146,7 @@ L1-006 Provisional result
 | L1-002 | storage 7; focused 8; full 368; compileall success; diff clean |
 | L1-004 fixture | focused 11; full 372; diff clean |
 | L1-005 fixture | focused 12; full 391; diff clean |
+| L1-006 fixture | focused command 21; full 468; compileall success; diff clean |
 | X0-001 | focused 7; full 398; diff clean |
 | X0-002 | focused 9; full 407; diff clean |
 | X0-003 | focused 14; full 432; compileall success; diff clean |
@@ -146,21 +154,21 @@ L1-006 Provisional result
 | X0-005 | focused 4; full 461; compileall success; diff clean |
 | X0-006 | operator/external review accepted for policy-level fixture path; F1-F4 explicitly deferred to PX0-001..004 |
 
-## 11. Unresolved items
+## 10. Unresolved items
 
-- `L1-006` local acceptance evidence.
+- `N1-006` local evaluator acceptance evidence.
+- `N1-006` real/reference 1–3 month SEC/IR-vs-News benchmark dataset and measured results.
 - `PX0-001` operational scheduler job registry.
 - `PX0-002` durable scheduler run evidence / stale-lock recovery.
 - `PX0-003` retention/reprocessing operator CLI.
 - `PX0-004` reproducible backup/restore and restore drills.
 - `L1-003` / `SMOKE-007` real-D1 approval window.
-- `N1-006` News quality work.
 - `A0-001` provisional validation.
-- A0-002 AI/Semiconductor proxy.
+- `A0-002` AI/Semiconductor proxy.
 - short/borrow provider for H4 validation.
 - whether A0-002 becomes mandatory for v0.1 release acceptance.
 - FastAPI/Starlette/AnyIO test-client deprecation warnings should be handled in dependency maintenance.
 
-## 12. Progress-update rule
+## 11. Progress-update rule
 
 When a task changes state, update this integrated tracker in the same bounded work cycle and preserve task-specific acceptance evidence in the corresponding handoff/runbook when one exists.
