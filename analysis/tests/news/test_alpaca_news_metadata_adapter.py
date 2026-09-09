@@ -157,6 +157,17 @@ def test_missing_article_url_is_retained_as_nullable_metadata():
     assert page.items[0].normalized["provider_article_id"] == "12345"
 
 
+def test_blank_or_missing_source_is_retained_as_nullable_publisher():
+    for article in (_article(source=""), {key: value for key, value in _article().items() if key != "source"}):
+        page = AlpacaNewsAdapter(
+            transport=FakeTransport({"news": [article], "next_page_token": None}),
+            clock=lambda: RETRIEVED,
+        ).fetch(_request())
+
+        assert page.error is None
+        assert page.items[0].normalized["publisher"] is None
+
+
 def test_content_field_is_discarded_at_n0_002_boundary():
     raw_body = "raw body must not cross"
     transport = FakeTransport({"news": [_article(content=raw_body)], "next_page_token": None})
