@@ -1,10 +1,10 @@
 """Contradiction and pending-review boundary for News Facts (N1-004).
 
 Source-grounded SEC/IR/News Facts remain immutable. Ambiguity and conflicts are
-represented by a separate PENDING_REVIEW Fact that references the source Fact IDs
-and records an explicit bounded reason. A later confirmation produces an
-Interpretation that resolves the review case without deleting or rewriting any
-source Fact.
+represented by a separate PENDING_REVIEW Fact that records bounded scalar review
+metadata while the typed NewsReviewCase retains the full immutable source-Fact
+lineage. A later confirmation produces an Interpretation that resolves the review
+case without deleting or rewriting any source Fact.
 """
 
 from __future__ import annotations
@@ -59,8 +59,11 @@ class NewsReviewCase:
         if not isinstance(self.reason_kind, NewsReviewReasonKind):
             raise ContractViolation("news review reason kind is invalid")
         _reason(self.exception_reason)
-        if tuple(self.review_fact.value["source_fact_ids"]) != self.source_fact_ids:
-            raise ContractViolation("news review Fact source references must match case")
+        expected_hash = _source_ids_hash(self.source_fact_ids)
+        if self.review_fact.value["source_fact_count"] != len(self.source_fact_ids):
+            raise ContractViolation("news review Fact source count must match case")
+        if self.review_fact.value["source_fact_ids_hash"] != expected_hash:
+            raise ContractViolation("news review Fact source lineage hash must match case")
         if self.review_fact.value["reason_kind"] != self.reason_kind.value:
             raise ContractViolation("news review Fact reason kind must match case")
         if self.review_fact.value["exception_reason"] != self.exception_reason:
@@ -149,7 +152,8 @@ def open_news_review_case(
             "status": "pending_review",
             "reason_kind": reason_kind.value,
             "exception_reason": exception_reason,
-            "source_fact_ids": source_ids,
+            "source_fact_count": len(source_ids),
+            "source_fact_ids_hash": _source_ids_hash(source_ids),
         },
         assertion_kind=FactAssertionKind.PENDING_REVIEW,
         evidence_record_ids=(),
@@ -217,6 +221,10 @@ def resolve_news_review_case(
         confirmation_fact_id=confirmation_fact.record_id,
         resolution_reason=resolution_reason,
     )
+
+
+def _source_ids_hash(source_fact_ids: tuple[str, ...]) -> str:
+    return hashlib.sha256("|".join(source_fact_ids).encode("utf-8")).hexdigest()
 
 
 def _identifier(value: object) -> bool:
