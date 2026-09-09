@@ -137,48 +137,65 @@ compileall                    -> success / no errors
 git diff --check              -> clean / no findings
 ```
 
-Label decisions:
-
-```text
-matched
-unrelated
-unresolved
-```
-
-Generated templates begin as `unreviewed`; finalization fails until every candidate is explicitly reviewed. `matched` requires an explicit reference ID and News-side assigned subject. `unresolved` remains unresolved rather than guessed. Unknown reference IDs fail closed.
+Generated templates begin as `unreviewed`; finalization fails until every candidate is explicitly reviewed. `matched` requires an explicit reference ID and News-side assigned subject. `unresolved` remains unresolved rather than guessed.
 
 ### Complete non-live N1-006 toolchain — Accepted
 
 All code required to acquire metadata, generate a review template, finalize a labeled benchmark, and render the quality report has local acceptance evidence.
 
-The remaining task is data execution, not another fixture implementation cycle.
+Remaining N1-006 work is real-data execution:
 
-Real News acquisition requires authenticated Alpaca Market Data News API access via the existing process-local secret boundary:
+```text
+authenticated Alpaca 30-day metadata fetch
+  -> explicit candidate review
+  -> final benchmark JSON
+  -> measured quality news-recall report
+  -> N1-006 Accepted
+```
+
+Real News acquisition uses the same authenticated Alpaca Market Data credential pair already used for Alpaca market data; credentials remain process-local through:
 
 ```text
 ORDERSCOPE_SECRET_ALPACA_API_KEY
 ORDERSCOPE_SECRET_ALPACA_API_SECRET
 ```
 
-Current sequence:
-
-```text
-Evaluator framework                           Accepted
-Benchmark manifest/report path                Accepted
-Official reference seed                       Complete
-Candidate population implementation           Accepted
-Explicit labeling/finalization implementation Accepted
-Complete non-live toolchain                    Accepted
-  -> authenticated Alpaca 30-day metadata fetch
-  -> explicit review of every candidate
-  -> final benchmark JSON
-  -> measured quality news-recall report
-  -> N1-006 Accepted
-```
-
 Synthetic fixture metrics must never substitute for final measured benchmark values.
 
-## 5. Post-X0 operational follow-ups
+## 5. News Worker/Schedule production follow-up
+
+A steady-state production News acquisition design is now recorded separately from N1-006 retrospective benchmarking:
+
+`docs/work-management/local-corporate-intelligence/NEWS_WORKER_ACQUISITION_DESIGN_2026-09-10.md`
+
+WBS-unreflected tracking ID:
+
+```text
+UWBS-016 — Implement Worker/Schedule News metadata acquisition job
+```
+
+Boundary:
+
+- `N0-002` continues to own provider normalization;
+- `UWBS-016` owns Worker/Schedule orchestration of that accepted adapter;
+- initial Canary remains AMD/NVDA only;
+- metadata-only baseline; no News body in Worker acquisition;
+- planning cadence is every 5 minutes during the configured U.S. observation day;
+- cadence is provisional and should be validated/adjusted from N1-006 measured recall/lag;
+- I0-003 checkpoint and I0-004 idempotency are reused;
+- live Worker registration/change remains separately gated and Worker remains Shadow.
+
+Current dependency sequence:
+
+```text
+N1-006 measured benchmark
+  -> confirm/adjust News cadence
+  -> future WBS incorporation/remap of UWBS-016
+  -> reviewed Worker change window
+  -> AMD/NVDA Worker News Canary activation
+```
+
+## 6. Post-X0 operational follow-ups
 
 | Follow-up | Status | Boundary |
 |---|---|---|
@@ -189,29 +206,30 @@ Synthetic fixture metrics must never substitute for final measured benchmark val
 
 These remain non-normative tracking IDs pending future WBS incorporation/remap.
 
-## 6. Parallel/deferred lanes
+## 7. Parallel/deferred lanes
 
 - `N1-006` real 30-day benchmark execution is the selected current lane.
+- `UWBS-016` News Worker/Schedule acquisition is Ready for WBS design but deliberately waits for N1-006 measured cadence evidence before activation.
 - `L1-003` remains externally Blocked behind `SMOKE-007` approval.
 - `PX0-001..004` remain separate operations/recovery follow-ups.
 - `A0-001` remains Provisional and `A0-002` remains separate validation work.
 - WBS-unreflected work is tracked in `WBS_UNREFLECTED_TASK_BACKLOG_2026-09-10.md`.
 - Worker remains Shadow.
 
-## 7. Current restart rule
+## 8. Current restart rule
 
-1. Treat N1-006 population implementation as Accepted with measured 15 / 488 / compileall / diff evidence.
-2. Treat N1-006 labeling/finalization implementation as Accepted with measured 15 / 494 / compileall / diff evidence.
-3. Treat the complete non-live N1-006 toolchain as Accepted.
-4. Configure Alpaca Market Data credentials only in process-local environment variables.
-5. Run bounded metadata-only acquisition for the 2026-08-11 through 2026-09-10 window.
-6. Generate the label template and explicitly review every candidate.
-7. Finalize against the machine-readable reference seed.
-8. Execute `quality news-recall` and record measured recall, signed lag, misattribution, and unresolved counts.
-9. Only then promote N1-006 itself to Accepted.
-10. Keep `L1-003/SMOKE-007`, Worker changes, and live scheduler registration separately gated.
+1. Treat the complete non-live N1-006 toolchain as Accepted through measured 15 / 494 / compileall / diff evidence.
+2. Configure Alpaca credentials only in process-local environment variables.
+3. Run bounded metadata-only acquisition for the 2026-08-11 through 2026-09-10 window.
+4. Generate the label template and explicitly review every candidate.
+5. Finalize against the machine-readable reference seed.
+6. Execute `quality news-recall` and record measured recall, signed lag, misattribution, and unresolved counts.
+7. Promote N1-006 itself to Accepted only after those real measurements exist.
+8. Use N1-006 measured lag/recall to confirm or adjust the proposed 5-minute Worker News cadence.
+9. Keep UWBS-016 planning separate from live Worker activation; do not register the job without its reviewed WBS/change window.
+10. Keep `L1-003/SMOKE-007` and other Worker mutations separately gated.
 
-## 8. Latest acceptance evidence
+## 9. Latest acceptance evidence
 
 | Task | Evidence |
 |---|---|
@@ -224,10 +242,11 @@ These remain non-normative tracking IDs pending future WBS incorporation/remap.
 
 Earlier accepted task evidence remains preserved in task-specific handoffs.
 
-## 9. Unresolved items
+## 10. Unresolved items
 
 - N1-006 authenticated 30-day Alpaca metadata acquisition.
 - N1-006 explicit candidate/reference review and measured final report.
+- UWBS-016 future WBS incorporation and reviewed Worker News activation.
 - PX0-001..004 operations/recovery backlog.
 - L1-003 / SMOKE-007 real-D1 approval window.
 - A0-001 provisional validation.
@@ -236,6 +255,6 @@ Earlier accepted task evidence remains preserved in task-specific handoffs.
 - whether A0-002 becomes mandatory for v0.1 release acceptance.
 - FastAPI/Starlette/AnyIO test-client deprecation warnings remain dependency-maintenance work.
 
-## 10. Progress-update rule
+## 11. Progress-update rule
 
 When a task changes state, update this integrated tracker in the same bounded work cycle and preserve detailed acceptance evidence in the corresponding handoff/runbook.
