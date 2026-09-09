@@ -1,6 +1,6 @@
 # OrderScope — N1-006 Web Implementation Handoff
 
-Status: **Provisional result — evaluator, benchmark, and candidate-population paths accepted; explicit labeling implementation pending local verification; real execution pending**
+Status: **Provisional result — complete non-live toolchain accepted; real 30-day execution pending**
 Date: 2026-09-10
 Task: `N1-006`
 Parent WBS: `docs/WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
@@ -100,7 +100,7 @@ Candidate acquisition forces `include_content=false`, uses bounded pagination, a
 ORDERSCOPE_DATA_ROOT/benchmarks/n1-006/
 ```
 
-Measured acceptance evidence reported by the operator:
+Measured acceptance evidence:
 
 ```text
 focused population/CLI command -> 15 passed
@@ -109,11 +109,11 @@ compileall                      -> success / no errors
 git diff --check                -> clean / no findings
 ```
 
-This accepts the implementation only. No live provider benchmark values are inferred from tests.
+This accepts implementation only; no provider benchmark values are inferred from tests.
 
-## 7. Explicit labeling / finalization path — pending local verification
+## 7. Explicit labeling / finalization path — Accepted implementation
 
-Added:
+Implemented:
 
 - `analysis/app/orderscope_local/news/recall_labeling.py`
 - `analysis/tests/news/test_news_recall_labeling.py`
@@ -142,45 +142,82 @@ Rules:
 - `unresolved` becomes an explicit unresolved label, not a guessed match.
 - every candidate must have exactly one label.
 - unknown reference IDs fail closed.
-- final discovery `observed_at` preserves the provider publication timestamp.
+- final discovery `observed_at` preserves provider publication timestamp.
 
-No headline-similarity auto-match is implemented.
+Measured acceptance evidence reported by the operator:
 
-## 8. Required next local verification
-
-Run:
-
-```bash
-uv run pytest -q analysis/tests/news/test_news_recall_labeling.py analysis/tests/cli/test_cli.py
-uv run pytest -q
-python3 -m compileall -q analysis/app analysis/tests
-git diff --check
+```text
+focused labeling/CLI command -> 15 passed
+full pytest suite             -> 494 passed
+compileall                    -> success / no errors
+git diff --check              -> clean / no findings
 ```
 
-If clean, the complete non-live N1-006 preparation/toolchain can be accepted.
+The entire non-live N1-006 preparation/toolchain is now accepted.
 
-## 9. Real execution sequence after verification
+## 8. API requirement for real execution
+
+The real News population step requires authenticated Alpaca Market Data News API access.
+
+Process-local environment variables already used by the accepted config boundary:
+
+```text
+ORDERSCOPE_SECRET_ALPACA_API_KEY
+ORDERSCOPE_SECRET_ALPACA_API_SECRET
+```
+
+The transport maps these to Alpaca's key/secret authentication headers. Credentials are never written into candidate JSON, benchmark JSON, logs, or Git.
+
+Real execution does not require article-body access; the collector forces `include_content=false`.
+
+## 9. Real execution sequence
 
 With local Alpaca credentials configured:
 
 ```bash
+export ORDERSCOPE_SECRET_ALPACA_API_KEY='<key-id>'
+export ORDERSCOPE_SECRET_ALPACA_API_SECRET='<secret-key>'
+
 uv run orderscope quality news-recall-candidates \
   --start 2026-08-11T00:00:00Z \
   --end 2026-09-10T00:00:00Z \
   --filename amd-nvda-news-candidates.json
 ```
 
-Then generate the review template, manually review every article, finalize against:
+Then:
+
+```bash
+uv run orderscope quality news-recall-label-template \
+  --candidates "$ORDERSCOPE_DATA_ROOT/benchmarks/n1-006/amd-nvda-news-candidates.json"
+```
+
+Explicitly review all generated labels, then finalize against:
 
 ```text
 analysis/config/benchmarks/n1-006-amd-nvda-20260811-20260910-reference.json
 ```
 
-and execute `quality news-recall` on the final benchmark.
+Finally execute `quality news-recall` on the final benchmark.
 
 Final N1-006 acceptance requires measured reference count, discovery rate, signed lags, misattribution, and unresolved cases from that real bounded run.
 
-## 10. Safety / non-scope
+## 10. Current acceptance sequence
+
+```text
+Evaluator framework                         Accepted
+Benchmark manifest/report path              Accepted
+Official reference seed                     Complete
+Candidate population implementation         Accepted
+Explicit labeling/finalization implementation Accepted
+Complete non-live N1-006 toolchain          Accepted
+  -> authenticated Alpaca metadata fetch
+  -> explicit candidate review
+  -> final benchmark JSON
+  -> measured quality news-recall report
+  -> N1-006 Accepted
+```
+
+## 11. Safety / non-scope
 
 N1-006 does not:
 
