@@ -79,23 +79,43 @@ Planning notes:
 - The previously discussed rough 1–3 week stabilization window is a scenario estimate, not a system constant or Fact. Historical validation would be required before introducing any duration model.
 - Fund-flow values, MMF flows, ETF flows, gross deleveraging, and market-cap changes must not be blindly summed into one observed `capital_outflow` figure because scopes overlap and double counting is likely.
 
-## 6. Existing extension work that is NOT counted as WBS-unreflected
+## 6. Worker/Schedule News acquisition
+
+Source design: `docs/work-management/local-corporate-intelligence/NEWS_WORKER_ACQUISITION_DESIGN_2026-09-10.md`.
+
+The current WBS `N0-002` already owns the News metadata adapter. The missing scope is steady-state invocation of that accepted adapter from the Cloudflare Worker/Schedule layer. This is therefore an orchestration/operations task, not a rewrite of N0-002.
+
+| UWBS ID | Proposed task | Proposed package | Completion condition summary | Likely inputs / dependencies | Status | Disposition |
+|---|---|---|---|---|---|---|
+| UWBS-016 | Implement Worker/Schedule News metadata acquisition job | Worker acquisition / Operations integration | Run reviewed AMD/NVDA metadata-only News jobs on bounded session-aware cadence; reuse I0-003 checkpoint and I0-004 idempotency; preserve cross-symbol article identity; bound pagination/call budget; expose retryable failure state; keep secrets out of persistence/logs; require separate Worker activation review/change window | N0-002; I0-003/004; X0-002; N1-006 measured recall for cadence validation; UWBS-001/PX0-001; SMOKE-006; SMOKE-007 only for approved historical catch-up | Ready for WBS design | Pending |
+
+Planning default:
+
+- Initial Canary: AMD/NVDA only.
+- Metadata-only baseline; no News body in steady-state Worker acquisition.
+- Initial cadence proposal: every 5 minutes during the configured U.S. observation day, reusing existing market-session configuration rather than a separate hard-coded clock.
+- The 5-minute cadence is a planning default, not a frozen constant; N1-006 measured recall/lag should confirm or adjust it before activation.
+- Live Worker registration remains separately gated. This backlog entry does not change Worker Shadow mode.
+
+## 7. Existing extension work that is NOT counted as WBS-unreflected
 
 Do not duplicate these in this backlog unless new scope exceeds their completion conditions:
 
 - `A0-001` / `A0-002` already exist in `WORK_BREAKDOWN_ANALYST_CROSS_MARKET_2026-09-05.md`.
 - `N1-001` already includes M&A in the news event taxonomy.
+- `N0-002` already owns News metadata normalization; `UWBS-016` owns Worker/Schedule orchestration around that accepted adapter.
 - `L1-006`, `L1-003`, `N1-006`, and the existing A0 tasks are already represented in WBS/tracker state even when unfinished.
 - `SMOKE-*` / `CANARY-*` Worker items are already explicit deferred Worker backlog items in the main WBS.
 
-## 7. Discovery inbox — append new task ideas here first
+## 8. Discovery inbox — append new task ideas here first
 
-Use this section for newly proposed work before deciding whether it deserves a full row in §3/§4/§5 or another package-specific section.
+Use this section for newly proposed work before deciding whether it deserves a full row in §3/§4/§5/§6 or another package-specific section.
 
 | Discovery ID | Date | Proposal / question | Source | Suspected package | Triage state |
 |---|---|---|---|---|---|
 | DISC-001 | 2026-09-10 | Reserved for next newly discovered WBS-unreflected item | — | — | Empty placeholder; replace/append, do not infer scope |
 | DISC-002 | 2026-09-10 | Capture structured rate/FX Facts and carry-unwind/deleveraging interpretation instead of relying on news-only rate context | `docs/REPORT_MACRO_RATES_CARRY_UNWIND_NON_PRICE_FACTS_2026-09-10.md` | A0 / I0 / Provider contracts | Promoted to UWBS-011..015 |
+| DISC-003 | 2026-09-10 | Move steady-state News metadata acquisition to Cloudflare Worker/Schedule while keeping Local as analysis layer | `docs/work-management/local-corporate-intelligence/NEWS_WORKER_ACQUISITION_DESIGN_2026-09-10.md` | Worker acquisition / Operations | Promoted to UWBS-016 |
 
 When a proposal is accepted for tracking:
 
@@ -105,7 +125,7 @@ When a proposal is accepted for tracking:
 4. mark the Discovery row `Promoted to UWBS-xxx`;
 5. do not delete the original discovery record.
 
-## 8. Add-a-task template
+## 9. Add-a-task template
 
 Copy this block when a new idea is raised:
 
@@ -127,7 +147,7 @@ Copy this block when a new idea is raised:
 - Disposition: Pending
 ```
 
-## 9. WBS incorporation procedure
+## 10. WBS incorporation procedure
 
 A future WBS revision should review this file row by row and choose exactly one disposition:
 
@@ -157,9 +177,10 @@ The revision must preserve a mapping table:
 | UWBS-013 | Pending | — | — |
 | UWBS-014 | Pending | — | — |
 | UWBS-015 | Pending | — | — |
+| UWBS-016 | Pending | — | — |
 
-## 10. Current planning interpretation
+## 11. Current planning interpretation
 
-This backlog does not change the current completion path. X0 fixture-path is accepted. The next already-Ready implementation task remains `L1-006 — read-only import/dataset API` unless priorities are explicitly changed.
+This backlog does not authorize remote changes. X0 fixture-path and the complete non-live N1-006 toolchain are accepted; N1-006 itself still requires the real 30-day Alpaca metadata benchmark and measured recall report.
 
-The purpose of this file is to prevent later ideas—especially production operations, deeper corporate-action handling, and macro-rate/carry-unwind context—from being lost or accidentally smuggled into already accepted tasks.
+`UWBS-016` is now ready for WBS design but should not be activated before N1-006 supplies real recall/lag evidence that can confirm or adjust the proposed News polling cadence. Worker remains Shadow, and any Worker/Schedule job registration still requires its separately reviewed task/change window.
