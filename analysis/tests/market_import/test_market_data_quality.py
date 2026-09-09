@@ -247,7 +247,7 @@ def test_expected_symbol_without_rows_produces_full_grid_gap(tmp_path: Path) -> 
     assert len(missing_nvda) == 3
 
 
-def test_session_windows_must_be_utc_aligned_nonoverlapping_and_positive() -> None:
+def test_session_window_constructor_rejects_invalid_clock_and_cadence() -> None:
     with pytest.raises(ContractViolation, match="normalized to UTC"):
         SessionWindow(name="bad", start=BASE.replace(tzinfo=None), end=(BASE + timedelta(minutes=1)).replace(tzinfo=None), cadence=timedelta(minutes=1))
     with pytest.raises(ContractViolation, match="positive"):
@@ -255,13 +255,18 @@ def test_session_windows_must_be_utc_aligned_nonoverlapping_and_positive() -> No
     with pytest.raises(ContractViolation, match="align"):
         SessionWindow(name="bad", start=BASE, end=BASE + timedelta(seconds=90), cadence=timedelta(minutes=1))
 
-    dataset_root = Path("unused")
-    # Overlap is validated by the evaluator before any dataset path is touched.
+
+def test_overlapping_session_windows_are_rejected_before_quality_evaluation(tmp_path: Path) -> None:
+    dataset = _dataset(tmp_path)
     window_a = SessionWindow(name="a", start=BASE, end=BASE + timedelta(minutes=2), cadence=timedelta(minutes=1))
     window_b = SessionWindow(name="b", start=BASE + timedelta(minutes=1), end=BASE + timedelta(minutes=3), cadence=timedelta(minutes=1))
-    fake = object()
-    with pytest.raises(ContractViolation, match="dataset must"):
-        evaluate_market_data_quality(dataset=fake, dataset_root=dataset_root, expected_symbols=("AMD",), session_windows=(window_a, window_b))
+    with pytest.raises(ContractViolation, match="cannot overlap"):
+        evaluate_market_data_quality(
+            dataset=dataset,
+            dataset_root=tmp_path,
+            expected_symbols=("AMD",),
+            session_windows=(window_a, window_b),
+        )
 
 
 def test_quality_report_is_deterministic_for_same_dataset_and_grid(tmp_path: Path) -> None:
