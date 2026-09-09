@@ -9,7 +9,7 @@ This file is the sole integrated authority for Local Corporate Intelligence runt
 ## 1. Working rules
 
 - `Accepted` means the implementation has passed its explicitly required local acceptance evidence.
-- `Provisional result` means Web-side implementation is complete but required local verification is still pending.
+- `Provisional result` means Web-side implementation/documentation is complete but required local/operator acceptance is still pending.
 - `Ready` means prerequisites are satisfied and the task can be started without another dependency decision.
 - `Blocked` means an external approval, dependency, or explicitly gated task must complete first.
 - Real D1 work remains separate from fixture-path development unless an approved change window explicitly opens it.
@@ -40,58 +40,72 @@ This file is the sole integrated authority for Local Corporate Intelligence runt
 | X0-002 | Accepted | focused 9; full 407; diff clean |
 | X0-003 | Accepted | focused 14; full 432; compileall success; diff clean |
 | X0-004 | Accepted | focused 16; full 457; compileall success; diff clean |
-| X0-005 | Provisional result | End-to-end fixture implementation complete; local verification pending |
-| X0-006 | Blocked by X0-005 acceptance | Canary operations runbook starts after fixture acceptance |
+| X0-005 | Accepted | focused 4; full 461; compileall success; diff clean |
+| X0-006 | Provisional result | Canary operations runbook drafted; operator review/acceptance pending |
 
 Real D1 promotion remains separately gated by L1-003 and must not be conflated with fixture-path X0 development.
 
-## 4. Current X0-005 implementation boundary
+## 4. Current X0-005 acceptance boundary
 
 `analysis/tests/integration/test_end_to_end_fixture.py` replays one bounded fixture across the accepted integration path.
 
-Fixture path:
+Local acceptance evidence:
 
 ```text
-SEC filing-style input
-company IR earnings-style input
-secondary-news input
-official-government input
-  -> deterministic Fact + Evidence
-  -> news temporary-content deletion
-  -> unified information-time timeline
+focused X0-005 tests -> 4 passed
+full pytest suite    -> 461 passed
+compileall           -> success / no errors
+git diff --check     -> clean / no findings
 ```
 
-The replay is executed through X0-004 scheduler jobs and includes a job-boundary resume case. Stable Fact/Evidence IDs derive from canonical fixture input hashes. The test-only fixture builder does not replace the source-specific adapter/extractor tests.
+X0-005 is Accepted.
 
-Focused X0-005 verification contains 4 cases. Local verification is pending. Task-specific details are in `X0-005_WEB_IMPLEMENTATION_HANDOFF_2026-09-10.md`.
+## 5. Current X0-006 documentation boundary
 
-## 5. Primary integration path
+`docs/work-management/local-corporate-intelligence/X0-006_CANARY_OPERATIONS_RUNBOOK_2026-09-10.md` documents the v0.1 Canary operating boundary.
+
+Covered topics:
+
+- local credential and non-secret configuration handling;
+- provider rate/access-condition verification and runtime response;
+- localhost API and manual scheduler startup;
+- normal stop, interrupted-run recovery, lock handling, and job-boundary resume;
+- bounded/idempotent reprocessing rules;
+- temporary-news retention/deletion and expiry incidents;
+- WSL-native backup/restore procedure;
+- incident decision table and pre/post-run checklists.
+
+Explicit exclusions remain preserved: no remote D1 action outside L1-003/SMOKE-007, no Worker mutation, no HTTP mutation/job start, no external API bind, and no unreviewed live-provider job registration.
+
+X0-006 is Provisional until the operator accepts the runbook as the Canary procedure.
+
+## 6. Primary integration path
 
 ```text
-X0-005 local verification
-  -> X0-005 Accepted
-  -> X0-006 Canary operations runbook
+X0-005 Accepted
+  -> X0-006 operator review / acceptance
 ```
 
-`L1-006` remains independently Ready.
+After X0-006 acceptance, the X0-001..006 fixture-path integration lane is complete. This does not complete separately gated real-D1, L1-006, N1-006, A0, or Worker work.
 
-## 6. Parallel/deferred lanes
+## 7. Parallel/deferred lanes
 
-- `X0-005` local verification is the current primary integration gate.
-- `L1-006` is Ready as a parallel read-only API extension.
+- `X0-006` operator review is the current primary X0 gate.
+- `L1-006` is Ready as a separate read-only API extension.
 - `L1-003` remains externally Blocked.
-- `N1-006` remains important for News quality but is not the current X0 integration blocker.
+- `N1-006` remains important for News quality but is not an X0 runbook blocker.
 - `A0-001` remains Provisional and `A0-002` remains separate validation work.
 - Worker remains Shadow; Local does not directly control Worker runtime.
 
-## 7. Current restart rule
+## 8. Current restart rule
 
-1. Run X0-005 focused/full/compileall/diff verification.
-2. If X0-005 passes, promote it to Accepted and create `X0-006 — Canary operations runbook`.
-3. `L1-006` may proceed in a separate bounded API cycle.
-4. Keep L1-003/SMOKE-007 real-D1 work separate.
+1. Review `X0-006_CANARY_OPERATIONS_RUNBOOK_2026-09-10.md`.
+2. If the runbook matches the intended Canary operating procedure, promote X0-006 to Accepted.
+3. After X0-006 acceptance, treat X0-001..006 fixture-path integration as complete.
+4. Choose the next separate lane explicitly: `L1-006`, `L1-003/SMOKE-007`, `N1-006`, or the A0 validation backlog.
+5. Do not implicitly open a real-D1 or Worker change window.
 
-## 8. Latest acceptance evidence
+## 9. Latest acceptance evidence
 
 | Task | Evidence |
 |---|---|
@@ -107,10 +121,11 @@ X0-005 local verification
 | X0-002 | focused 9; full 407; diff clean |
 | X0-003 | focused 14; full 432; compileall success; diff clean |
 | X0-004 | focused 16; full 457; compileall success; diff clean |
+| X0-005 | focused 4; full 461; compileall success; diff clean |
 
-## 9. Unresolved items
+## 10. Unresolved items
 
-- `X0-005` local acceptance evidence remains pending.
+- `X0-006` operator acceptance of the Canary operations runbook.
 - `L1-003` / `SMOKE-007` real-D1 approval window.
 - `L1-006` read-only import/dataset API remains Ready.
 - `N1-006` News quality work.
@@ -120,6 +135,6 @@ X0-005 local verification
 - whether A0-002 becomes mandatory for v0.1 release acceptance.
 - FastAPI/Starlette/AnyIO test-client deprecation warnings should be handled in dependency maintenance.
 
-## 10. Progress-update rule
+## 11. Progress-update rule
 
-When a task changes state, update this integrated tracker in the same bounded work cycle and preserve task-specific acceptance evidence in the corresponding handoff when one exists.
+When a task changes state, update this integrated tracker in the same bounded work cycle and preserve task-specific acceptance evidence in the corresponding handoff/runbook when one exists.
