@@ -35,7 +35,7 @@ This file is the sole integrated authority for Local Corporate Intelligence runt
 | L0-001 | Accepted / inherited prerequisite | Reference only |
 | L0-002 | Accepted | Scaffold/Git boundary complete |
 | L0-003 | Ready | Config/secret boundary remains separate work |
-| L0-004 | Ready | Localhost health is the remaining API gate after X0-002 |
+| L0-004 | Provisional result | Localhost-only health implementation complete; local verification pending |
 | L0-005 | Accepted | focused 7; full 352; compileall success; diff clean |
 | L0-006 | Not started | Waits for L0-003/L0-004/L0-005 |
 | L1-001 | Accepted | focused 8; full 360; diff clean |
@@ -50,48 +50,60 @@ This file is the sole integrated authority for Local Corporate Intelligence runt
 | Task | Status | Reason / next action |
 |---|---|---|
 | X0-001 | Accepted | focused 7; full 398; diff clean |
-| X0-002 | Provisional result | Coverage-summary implementation complete; local verification pending |
-| X0-003 | Blocked | After X0-002 acceptance, only L0-004 remains |
+| X0-002 | Accepted | focused 9; full 407; diff clean |
+| X0-003 | Blocked by L0-004 acceptance only | X0-001/X0-002 are Accepted; complete localhost-health verification next |
 | X0-004 | Blocked | Depends on adapter availability + L0-006 |
 | X0-005 | Not started | Depends on X0-001..004 |
 | X0-006 | Not started | Depends on X0-005 |
 
 Real D1 promotion remains separately gated by L1-003 and must not be conflated with fixture-path X0 development.
 
-## 4. X0-002 implementation boundary
+## 4. Current L0-004 implementation boundary
 
-`analysis/app/orderscope_local/integration/coverage.py` implements read-only source coverage over accepted checkpoint/lifecycle contracts.
+`analysis/app/orderscope_local/local_api/health.py` implements the minimal localhost-only health surface:
 
-Per `(provider_key, source_key)` it reports:
+- `LocalServerBinding` accepts only literal `127.0.0.1`;
+- wildcard, alias, IPv6, LAN, and external bind values are rejected fail-closed;
+- `create_health_app()` creates the FastAPI health-only application after bind validation;
+- `GET /health` returns only status, schema version, and the validated loopback host;
+- the validated bind contract is retained on `app.state.local_binding` for reuse by the later CLI/server entrypoint;
+- no facts/data/provider body/credential/mutation routes are exposed in L0-004.
 
-- latest completed checkpoint as `last_success_at`;
-- latest visible checkpoint observation/state;
-- opaque resume cursor;
-- lag from last success to query `as_of`;
-- sanitized error category/retryability/retry-not-before;
-- explicit-source temporary-content pending count;
-- overdue retention count and next due time.
+Focused local verification is pending before L0-004 can become Accepted.
 
-Only `CheckpointState.COMPLETE` establishes success. Future checkpoint/lifecycle records are excluded from historical as-of output. Temporary content is associated with a source explicitly; X0-002 never infers source ownership from a content reference or filename.
+## 5. Primary integration path
 
-## 5. Parallel/deferred lanes
+The shortest path to the read-only local API is now:
 
-- `L0-004` should be the next primary integration task after X0-002 acceptance because it opens X0-003.
-- `L0-003` remains Ready and is still required with L0-004/L0-005 before L0-006/X0-004.
+```text
+L0-004 acceptance
+  -> X0-003 read-only API
+```
+
+Separately, scheduler work still requires:
+
+```text
+L0-003 + L0-004 + L0-005
+  -> L0-006 CLI
+  -> X0-004 scheduler
+```
+
+## 6. Parallel/deferred lanes
+
+- `L0-003` remains Ready and should be completed before L0-006/X0-004.
 - `L1-003` remains externally Blocked and does not invalidate fixture-path work.
 - `N1-006` remains important for News quality but is not the current X0 integration blocker.
 - `A0-001` remains Provisional and `A0-002` remains separate validation work.
 - Worker remains Shadow; Local does not directly control Worker runtime.
 
-## 6. Current restart rule
+## 7. Current restart rule
 
-1. Run X0-002 focused/full/compileall/diff verification.
-2. If X0-002 passes, promote it to Accepted.
-3. Complete `L0-004 — localhost health` next; this opens X0-003 because X0-001/002 will then be Accepted.
-4. Complete L0-003 and then L0-006 before scheduler work X0-004.
-5. Keep L1-003/SMOKE-007 real-D1 work separate.
+1. Run L0-004 focused/full/compileall/diff verification.
+2. If L0-004 passes, promote it to Accepted and start `X0-003 — extend read-only API`.
+3. Complete L0-003 before L0-006/X0-004 scheduler work.
+4. Keep L1-003/SMOKE-007 real-D1 work separate.
 
-## 7. Latest acceptance evidence
+## 8. Latest acceptance evidence
 
 | Task | Evidence |
 |---|---|
@@ -101,8 +113,9 @@ Only `CheckpointState.COMPLETE` establishes success. Future checkpoint/lifecycle
 | L1-004 fixture | focused 11; full 372; diff clean |
 | L1-005 fixture | focused 12; full 391; diff clean |
 | X0-001 | focused 7; full 398; diff clean |
+| X0-002 | focused 9; full 407; diff clean |
 
-## 8. Unresolved items
+## 9. Unresolved items
 
 - `SMOKE-007` / L1-003 approved remote D1 export window and real-data evidence.
 - Production exchange calendar/holiday/short-session source.
@@ -112,6 +125,6 @@ Only `CheckpointState.COMPLETE` establishes success. Future checkpoint/lifecycle
 - short/borrow provider for H4 validation.
 - whether A0-002 becomes mandatory for v0.1 release acceptance.
 
-## 9. Progress-update rule
+## 10. Progress-update rule
 
 Update this tracker for normal execution progress. Update WBS/CP only when completion definitions, dependency structure, permanent gates, or safe-parallelization rules actually change.
