@@ -73,11 +73,6 @@ Dependencies are satisfied:
 
 ### Evaluator framework — Accepted
 
-Implemented:
-
-- `analysis/app/orderscope_local/news/recall.py`
-- `analysis/tests/news/test_news_recall_evaluator.py`
-
 Measured acceptance evidence:
 
 ```text
@@ -87,31 +82,75 @@ compileall               -> success / no errors
 git diff --check         -> clean / no findings
 ```
 
-The evaluator uses explicit SEC/IR reference-to-News labels and measures discovery rate, signed first-discovery lag, and subject/ticker misattribution without inferring event equivalence.
+### Benchmark manifest/report CLI — Accepted
 
-### Benchmark ingestion/report path — Provisional
+Implemented metadata-only benchmark loading/reporting and:
 
-No existing active-branch artifact was found that already contains a 30–93 day explicit SEC/IR-reference-to-News labeled dataset suitable for final N1-006 measurement.
+```text
+quality news-recall --benchmark <json>
+```
+
+Measured acceptance evidence:
+
+```text
+focused benchmark/CLI command -> 15 passed
+full pytest suite              -> 482 passed
+compileall                     -> success / no errors
+git diff --check               -> clean / no findings
+```
+
+### Official 30-day reference seed — Complete
 
 Added:
 
-- `analysis/app/orderscope_local/news/recall_benchmark.py`
-- `analysis/tests/news/test_news_recall_benchmark.py`
-- `quality news-recall --benchmark <json>` CLI command
+`N1-006_REFERENCE_SEED_2026-08-11_2026-09-10.md`
 
-The benchmark schema is metadata-only and records unresolved label cases explicitly. It excludes raw filing/IR/News bodies and credentials.
+Reference window:
+
+```text
+2026-08-11T00:00:00Z <= timestamp < 2026-09-10T00:00:00Z
+```
+
+Seeded real SEC events:
+
+- AMD financing — SEC available 2026-08-17T16:05:40Z;
+- NVIDIA / SB Energy partnership — 2026-08-17T08:41:33Z;
+- AMD board/leadership change — 2026-08-19T16:16:56Z;
+- NVIDIA Q2 FY2027 earnings — 2026-08-26T16:21:19Z.
+
+The seed is not evaluated as zero recall before News population.
+
+### News candidate population — Provisional result
+
+Added:
+
+- concrete Alpaca News HTTP transport (`include_content=false` only);
+- retrospective AMD/NVDA metadata candidate collector;
+- candidate JSON writer constrained beneath `ORDERSCOPE_DATA_ROOT/benchmarks/n1-006/`;
+- `quality news-recall-candidates` manual CLI;
+- 6 focused tests.
+
+Retrospective timestamp rule:
+
+- SEC/IR reference side uses accepted `available_at`;
+- News side uses Alpaca article `created_at` normalized as provider `published_at`;
+- this measures provider News availability lag, not reconstructed historical local scheduler latency.
 
 Current transition:
 
 ```text
-N1-006 evaluator framework Accepted
-  -> benchmark manifest/CLI local verification
-  -> populate real/reference 30–93 day benchmark
-  -> execute measured recall report
+N1-006 evaluator              Accepted
+N1-006 benchmark path         Accepted
+30-day official reference     Complete
+News population implementation Provisional
+  -> local verification
+  -> execute 30-day Alpaca metadata fetch
+  -> explicit article/reference labeling
+  -> final benchmark execution
   -> N1-006 Accepted
 ```
 
-Synthetic fixture metrics must never substitute for the final real/reference benchmark.
+Synthetic fixture metrics must never substitute for final measured benchmark values.
 
 ## 6. Post-X0 operational follow-ups
 
@@ -126,7 +165,7 @@ The following `PX0-*` IDs remain non-normative tracking IDs defined in `POST_X0_
 
 ## 7. Parallel/deferred lanes
 
-- `N1-006` benchmark manifest/CLI verification is the current selected lane.
+- `N1-006` candidate-population verification/execution is the current selected lane.
 - `L1-003` remains externally Blocked behind `SMOKE-007` approval.
 - `PX0-001..004` remain explicit post-X0 operational/recovery follow-ups.
 - `A0-001` remains Provisional and `A0-002` remains separate validation work.
@@ -136,11 +175,13 @@ The following `PX0-*` IDs remain non-normative tracking IDs defined in `POST_X0_
 ## 8. Current restart rule
 
 1. Treat L1-006 as Accepted with measured 21 / 468 / compileall / diff evidence.
-2. Treat the N1-006 evaluator framework as Accepted with measured 7 / 475 / compileall / diff evidence.
-3. Run focused benchmark-manifest + CLI tests, then full pytest, compileall, and diff check.
-4. If those pass, accept the benchmark ingestion/report path but keep N1-006 Provisional until real/reference 30–93 day data is populated and executed.
-5. Do not fabricate benchmark values or silently infer article-event equivalence.
-6. Keep `L1-003/SMOKE-007`, Worker changes, and live-provider scheduler registration separately gated.
+2. Treat N1-006 evaluator as Accepted with measured 7 / 475 / compileall / diff evidence.
+3. Treat N1-006 benchmark manifest/report path as Accepted with measured 15 / 482 / compileall / diff evidence.
+4. Run the new candidate-population focused tests, full pytest, compileall, and diff check.
+5. If clean, perform the bounded 30-day Alpaca metadata-only acquisition using local credentials.
+6. Explicitly label candidate articles to the four reference IDs; do not infer matches from headline similarity.
+7. Execute `quality news-recall` on the final labeled JSON and record measured recall/lag/misattribution/unresolved values.
+8. Keep `L1-003/SMOKE-007`, Worker changes, and live scheduler registration separately gated.
 
 ## 9. Latest acceptance evidence
 
@@ -156,6 +197,7 @@ The following `PX0-*` IDs remain non-normative tracking IDs defined in `POST_X0_
 | L1-005 fixture | focused 12; full 391; diff clean |
 | L1-006 fixture | focused command 21; full 468; compileall success; diff clean |
 | N1-006 evaluator | focused 7; full 475; compileall success; diff clean |
+| N1-006 benchmark path | focused command 15; full 482; compileall success; diff clean |
 | X0-001 | focused 7; full 398; diff clean |
 | X0-002 | focused 9; full 407; diff clean |
 | X0-003 | focused 14; full 432; compileall success; diff clean |
@@ -165,8 +207,9 @@ The following `PX0-*` IDs remain non-normative tracking IDs defined in `POST_X0_
 
 ## 10. Unresolved items
 
-- `N1-006` benchmark manifest/CLI local acceptance evidence.
-- `N1-006` real/reference 1–3 month SEC/IR-vs-News benchmark population and measured results.
+- `N1-006` News candidate population local acceptance evidence.
+- `N1-006` actual 30-day Alpaca metadata candidate acquisition.
+- `N1-006` explicit candidate/reference labeling and final measured report.
 - `PX0-001` operational scheduler job registry.
 - `PX0-002` durable scheduler run evidence / stale-lock recovery.
 - `PX0-003` retention/reprocessing operator CLI.
