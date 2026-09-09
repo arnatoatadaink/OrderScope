@@ -40,30 +40,36 @@ This file is the sole integrated authority for Local Corporate Intelligence runt
 | X0-002 | Accepted | focused 9; full 407; diff clean |
 | X0-003 | Accepted | focused 14; full 432; compileall success; diff clean |
 | X0-004 | Accepted | focused 16; full 457; compileall success; diff clean |
-| X0-005 | Ready | X0-001..004 are Accepted; implement deterministic end-to-end fixture test next |
-| X0-006 | Not started | Depends on X0-005 |
+| X0-005 | Provisional result | End-to-end fixture implementation complete; local verification pending |
+| X0-006 | Blocked by X0-005 acceptance | Canary operations runbook starts after fixture acceptance |
 
 Real D1 promotion remains separately gated by L1-003 and must not be conflated with fixture-path X0 development.
 
-## 4. Current X0-004 acceptance boundary
+## 4. Current X0-005 implementation boundary
 
-`analysis/app/orderscope_local/integration/scheduler.py` implements the bounded local scheduler core.
+`analysis/tests/integration/test_end_to_end_fixture.py` replays one bounded fixture across the accepted integration path.
 
-Local acceptance evidence:
+Fixture path:
 
 ```text
-focused X0-004 tests -> 16 passed
-full pytest suite    -> 457 passed
-compileall           -> success / no errors
-git diff --check     -> clean / no findings
+SEC filing-style input
+company IR earnings-style input
+secondary-news input
+official-government input
+  -> deterministic Fact + Evidence
+  -> news temporary-content deletion
+  -> unified information-time timeline
 ```
 
-X0-004 is Accepted.
+The replay is executed through X0-004 scheduler jobs and includes a job-boundary resume case. Stable Fact/Evidence IDs derive from canonical fixture input hashes. The test-only fixture builder does not replace the source-specific adapter/extractor tests.
+
+Focused X0-005 verification contains 4 cases. Local verification is pending. Task-specific details are in `X0-005_WEB_IMPLEMENTATION_HANDOFF_2026-09-10.md`.
 
 ## 5. Primary integration path
 
 ```text
-X0-005 end-to-end fixture test
+X0-005 local verification
+  -> X0-005 Accepted
   -> X0-006 Canary operations runbook
 ```
 
@@ -71,7 +77,7 @@ X0-005 end-to-end fixture test
 
 ## 6. Parallel/deferred lanes
 
-- `X0-005` is the current primary integration task.
+- `X0-005` local verification is the current primary integration gate.
 - `L1-006` is Ready as a parallel read-only API extension.
 - `L1-003` remains externally Blocked.
 - `N1-006` remains important for News quality but is not the current X0 integration blocker.
@@ -80,8 +86,8 @@ X0-005 end-to-end fixture test
 
 ## 7. Current restart rule
 
-1. Start `X0-005 — end-to-end fixture test`.
-2. After X0-005 acceptance, create `X0-006 — Canary operations runbook`.
+1. Run X0-005 focused/full/compileall/diff verification.
+2. If X0-005 passes, promote it to Accepted and create `X0-006 — Canary operations runbook`.
 3. `L1-006` may proceed in a separate bounded API cycle.
 4. Keep L1-003/SMOKE-007 real-D1 work separate.
 
@@ -104,7 +110,7 @@ X0-005 end-to-end fixture test
 
 ## 9. Unresolved items
 
-- `X0-005` end-to-end fixture test remains pending.
+- `X0-005` local acceptance evidence remains pending.
 - `L1-003` / `SMOKE-007` real-D1 approval window.
 - `L1-006` read-only import/dataset API remains Ready.
 - `N1-006` News quality work.
