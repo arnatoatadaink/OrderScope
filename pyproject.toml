@@ -10,6 +10,9 @@ dependencies = [
   "uvicorn>=0.35,<1",
 ]
 
+[project.scripts]
+orderscope = "orderscope_local.cli:app"
+
 [dependency-groups]
 dev = [
   "httpx>=0.28,<1",
