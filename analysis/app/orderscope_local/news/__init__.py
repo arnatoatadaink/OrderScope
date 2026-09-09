@@ -48,6 +48,15 @@ from .event_taxonomy import (
     event_taxonomy_entry,
     news_event_taxonomy,
 )
+from .recall import (
+    NEWS_RECALL_EVALUATOR_VERSION,
+    NEWS_RECALL_REPORT_SCHEMA_VERSION,
+    NewsRecallDiscovery,
+    NewsRecallReferenceEvent,
+    NewsRecallReferenceResult,
+    NewsRecallReport,
+    evaluate_news_recall,
+)
 from .retention import (
     NEWS_RETENTION_CONTROLLER_VERSION,
     RetentionDecision,
@@ -86,6 +95,8 @@ __all__ = [
     "NEWS_EVENT_EVIDENCE_SCHEMA_VERSION",
     "NEWS_EVENT_FACT_SCHEMA_VERSION",
     "NEWS_EVENT_TAXONOMY_VERSION",
+    "NEWS_RECALL_EVALUATOR_VERSION",
+    "NEWS_RECALL_REPORT_SCHEMA_VERSION",
     "NEWS_RETENTION_CONTROLLER_VERSION",
     "NEWS_REVIEW_METHOD_VERSION",
     "NEWS_REVIEW_RESOLUTION_SCHEMA_VERSION",
@@ -97,6 +108,10 @@ __all__ = [
     "NewsBodyTransport",
     "NewsEventType",
     "NewsFactCandidate",
+    "NewsRecallDiscovery",
+    "NewsRecallReferenceEvent",
+    "NewsRecallReferenceResult",
+    "NewsRecallReport",
     "NewsReviewCase",
     "NewsReviewReasonKind",
     "NewsReviewResolution",
@@ -109,6 +124,7 @@ __all__ = [
     "compare_news_articles",
     "decode_alpaca_news_timestamp",
     "delete_due_content",
+    "evaluate_news_recall",
     "event_taxonomy_entry",
     "exception_record",
     "extract_body_fact_candidates",
