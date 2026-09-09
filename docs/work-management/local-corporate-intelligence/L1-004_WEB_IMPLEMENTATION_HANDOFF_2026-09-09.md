@@ -1,6 +1,6 @@
 # OrderScope — L1-004 Web Implementation Handoff
 
-Status: **Provisional result — fixture-path implementation complete / local test pending**
+Status: **Accepted — fixture-path local verification complete**
 Date: 2026-09-09
 Task: `L1-004`
 Parent WBS: `WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
@@ -18,9 +18,19 @@ compileall              -> success
 git diff --check        -> clean / no findings
 ```
 
+L1-004 fixture-path local acceptance is now also complete:
+
+```text
+focused L1-004 tests -> 11 passed
+full pytest suite    -> 372 passed
+git diff --check     -> clean / no findings
+```
+
+The focused test count collected as 11 in the user's local environment; acceptance uses the actual local result rather than the earlier handoff estimate.
+
 ## 2. WBS completion boundary
 
-L1-004 must produce a deterministic-order canonical bar dataset while preserving bar/receipt provenance. This cycle implements the fixture path only. It does not claim real D1 completion while `L1-003` remains behind the separate SMOKE-007 change window.
+L1-004 produces a deterministic-order canonical bar dataset while preserving bar/receipt provenance. This Accepted state covers the fixture path only. It does not claim real D1 completion while `L1-003` remains behind the separate SMOKE-007 change window.
 
 ## 3. Changed/added files
 
@@ -103,22 +113,21 @@ The returned `CanonicalBarDataset` contains only schema/version, manifest identi
 
 Generating from the same manifest and artifact reproduces the same path, metadata, row order, and expected Parquet bytes in the same runtime/library version. If the target dataset path already exists with different bytes, generation fails closed rather than overwriting silently.
 
-## 8. Focused fixtures encoded
+## 8. Local acceptance result
 
-The focused module currently collects 12 cases (8 test functions including a 4-case parametrization) covering:
+The user reported:
 
-1. deterministic ordering and source provenance columns;
-2. same-input dataset identity/byte replay;
-3. manifest size/hash and row-count enforcement;
-4. exact fixture table schema / manifest table existence;
-5. out-of-window, invalid OHLC, negative volume, and receipt-before-bar rejection;
-6. duplicate/conflicting bar-key rejection;
-7. existing-path tamper rejection;
-8. absence of raw SQL/credential fields in result/Parquet schema.
+```text
+focused L1-004 tests -> 11 passed
+full pytest suite    -> 372 passed
+git diff --check     -> clean / no findings
+```
+
+This satisfies the fixture-path acceptance boundary. Real-data promotion remains separately gated by L1-003.
 
 ## 9. Explicit non-scope
 
-L1-004 fixture path does not:
+L1-004 fixture acceptance does not:
 
 - execute or approve the remote D1 export;
 - claim real-data completion;
@@ -129,30 +138,17 @@ L1-004 fixture path does not:
 
 `L1-005` owns market-data quality checks. `L1-003` remains the real D1 change-window gate.
 
-## 10. Local verification boundary
-
-Run:
-
-```bash
-uv run pytest -q analysis/tests/market_import/test_canonical_bar_dataset.py
-uv run pytest -q
-python3 -m compileall -q analysis/app analysis/tests
-git diff --check
-```
-
-Acceptance requires focused fixture tests, full regression, compileall success, and clean diff check.
-
-## 11. Lane state
+## 10. Lane state
 
 ```text
 L0-005 Accepted
 L1-001 Accepted
 L1-002 Accepted
 L1-003 Blocked on separate SMOKE-007 change window
-L1-004 Provisional result — fixture path local test pending
-L1-005 waits for L1-004 fixture acceptance
+L1-004 Accepted — fixture path
+L1-005 Ready
 ```
 
-## 12. Next action after acceptance
+## 11. Next action
 
-Proceed to `L1-005 — market-data quality checks` on the fixture dataset. Keep real-D1 promotion separately gated by L1-003.
+Proceed to `L1-005 — market-data quality checks` on the Accepted fixture dataset. Keep real-D1 promotion separately gated by L1-003.
