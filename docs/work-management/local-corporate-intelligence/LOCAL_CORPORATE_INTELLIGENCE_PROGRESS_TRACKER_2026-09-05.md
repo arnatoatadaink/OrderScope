@@ -21,10 +21,10 @@ This file is the sole integrated authority for Local Corporate Intelligence runt
 |---|---|---|
 | L0-001 | Accepted / inherited prerequisite | Reference only |
 | L0-002 | Accepted | Scaffold/Git boundary complete |
-| L0-003 | Provisional result | Config/secret boundary implementation complete; local verification pending |
+| L0-003 | Provisional result | focused 9; full 441; diff clean; compileall evidence pending |
 | L0-004 | Accepted | focused 11; full 418; diff clean; upstream deprecation warnings non-blocking |
 | L0-005 | Accepted | focused 7; full 352; compileall success; diff clean |
-| L0-006 | Blocked by L0-003 acceptance only | L0-004/L0-005 are Accepted; complete L0-003 verification next |
+| L0-006 | Blocked by L0-003 acceptance only | L0-004/L0-005 are Accepted; compileall is the only remaining L0-003 acceptance check |
 | L1-001 | Accepted | focused 8; full 360; diff clean |
 | L1-002 | Accepted | storage 7; focused 8; full 368; compileall success; diff clean |
 | L1-003 | Blocked | Requires separately approved `SMOKE-007` remote D1 window |
@@ -74,7 +74,16 @@ Properties:
 - operational data root remains configurable so canary runs can use a WSL-native path without committing a machine-specific path;
 - tests operate on supplied synthetic mappings and do not read the operator environment.
 
-Focused local verification is pending. Task-specific details are in `L0-003_WEB_IMPLEMENTATION_HANDOFF_2026-09-09.md`.
+Observed local verification:
+
+```text
+focused L0-003 tests -> 9 passed
+full pytest suite    -> 441 passed
+git diff --check     -> clean / no findings
+compileall           -> not yet reported
+```
+
+Task-specific details are in `L0-003_WEB_IMPLEMENTATION_HANDOFF_2026-09-09.md`.
 
 ## 5. Primary integration path
 
@@ -90,7 +99,7 @@ L0-003 acceptance
 
 ## 6. Parallel/deferred lanes
 
-- `L0-003` local verification is the current primary foundation gate.
+- `L0-003` compileall verification is the current primary foundation gate.
 - `L1-006` is Ready as a parallel read-only API extension.
 - `L1-003` remains externally Blocked and does not invalidate fixture-path work.
 - `N1-006` remains important for News quality but is not the current X0 integration blocker.
@@ -99,8 +108,8 @@ L0-003 acceptance
 
 ## 7. Current restart rule
 
-1. Run L0-003 focused/full/compileall/diff verification.
-2. If L0-003 passes, promote it to Accepted and start `L0-006 — CLI entry point`.
+1. Run `python3 -m compileall -q analysis/app analysis/tests`.
+2. If compileall succeeds, promote L0-003 to Accepted and start `L0-006 — CLI entry point`.
 3. Complete L0-006 before X0-004 scheduler work.
 4. `L1-006` may proceed in a separate bounded API cycle.
 5. Keep L1-003/SMOKE-007 real-D1 work separate.
@@ -121,7 +130,7 @@ L0-003 acceptance
 
 ## 9. Unresolved items
 
-- `L0-003` local acceptance remains pending.
+- `L0-003` compileall acceptance evidence remains pending.
 - `L0-006` CLI entry point is gated only by L0-003 acceptance.
 - `L1-003` / `SMOKE-007` real-D1 approval window.
 - `N1-006` News quality work.
