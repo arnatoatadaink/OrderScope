@@ -1,6 +1,6 @@
 # OrderScope — N1-006 Web Implementation Handoff
 
-Status: **Provisional result — evaluator/fixture path implemented; local verification and 1–3 month benchmark execution pending**
+Status: **Provisional result — evaluator accepted; benchmark manifest/CLI implementation pending local verification; real 1–3 month execution pending**
 Date: 2026-09-10
 Task: `N1-006`
 Parent WBS: `docs/WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
@@ -16,16 +16,13 @@ Measure News discovery quality over a 1–3 month comparison window against SEC/
 
 The evaluation must not promote inferred article-event equivalence into Fact.
 
-## 2. Implementation
+## 2. Evaluator implementation — Accepted framework
 
-Added:
+Implemented:
 
 - `analysis/app/orderscope_local/news/recall.py`
 - `analysis/tests/news/test_news_recall_evaluator.py`
-
-Updated:
-
-- `analysis/app/orderscope_local/news/__init__.py`
+- exports through `analysis/app/orderscope_local/news/__init__.py`
 
 Versioned contracts:
 
@@ -34,7 +31,18 @@ news-recall-evaluator-v0.1
 news-recall-report-v0.1
 ```
 
-## 3. Benchmark boundary
+Local acceptance evidence reported by the operator:
+
+```text
+focused evaluator tests -> 7 passed
+full pytest suite        -> 475 passed
+compileall               -> success / no errors
+git diff --check         -> clean / no findings
+```
+
+This accepts the evaluator/framework only. It does not satisfy the WBS-required real/reference benchmark execution.
+
+## 3. Evaluator benchmark boundary
 
 The evaluator consumes an explicitly labeled benchmark rather than guessing matches from headline similarity.
 
@@ -55,7 +63,7 @@ The evaluator consumes an explicitly labeled benchmark rather than guessing matc
 
 Unknown reference IDs fail closed.
 
-This separation means benchmark preparation owns event equivalence. The evaluator only measures the labeled result.
+Benchmark preparation owns event equivalence. The evaluator only measures the labeled result.
 
 ## 4. Metrics
 
@@ -69,7 +77,7 @@ This separation means benchmark preparation owns event equivalence. The evaluato
 - per-reference earliest discovery ID;
 - signed first-discovery lag in seconds.
 
-Signed lag is intentional:
+Signed lag:
 
 ```text
 positive = News observed after SEC/IR reference availability
@@ -77,7 +85,7 @@ zero     = same timestamp
 negative = News observed before the SEC/IR reference availability
 ```
 
-The evaluator never converts negative lag into an error or silently clamps it.
+The evaluator never clamps negative lag.
 
 ## 5. Evaluation-window rule
 
@@ -91,25 +99,77 @@ window_start <= timestamp < window_end
 
 An empty benchmark returns explicit zero counts/rates; it is not represented as successful recall.
 
-## 6. Focused fixture cases
+## 6. Real-benchmark ingestion path
 
-`analysis/tests/news/test_news_recall_evaluator.py` contains 7 cases covering:
+Repository inspection after evaluator acceptance found no existing 30–93 day dataset that already contains explicit SEC/IR-reference-to-News labels suitable for N1-006 execution.
 
-1. discovery rate plus positive/negative signed lag;
-2. deterministic earliest-discovery selection;
-3. ticker/subject misattribution rate;
-4. unknown reference rejection;
-5. out-of-window reference/discovery rejection;
-6. 30–93 day window enforcement;
-7. empty benchmark explicit-zero behavior.
+To avoid fabricating benchmark metrics or committing article bodies, the next Web implementation adds a narrow metadata-only benchmark path:
 
-Fixtures are synthetic acceptance data only and are not factual claims about AMD/NVDA news coverage.
+- `analysis/app/orderscope_local/news/recall_benchmark.py`
+- `analysis/tests/news/test_news_recall_benchmark.py`
+- `quality news-recall --benchmark <json>` CLI command
 
-## 7. Remaining acceptance gap
+Versioned benchmark schema:
 
-The implementation/fixture path alone does **not** satisfy the complete WBS N1-006 result.
+```text
+news-recall-benchmark-v0.1
+```
 
-Final N1-006 acceptance also requires executing at least one real/reference comparison dataset covering 1–3 months of SEC/IR reference events and News discoveries, then recording measured:
+The JSON manifest contains only:
+
+- benchmark ID;
+- 30–93 day window;
+- explicit SEC/IR reference metadata;
+- explicit News discovery labels;
+- unresolved benchmark-label cases with bounded reasons.
+
+It does not contain raw SEC filings, issuer-IR bodies, News bodies, provider credentials, or inferred unlabeled article-event matches.
+
+Unknown JSON fields fail closed so a benchmark cannot silently add unreviewed semantics.
+
+## 7. Benchmark report
+
+`render_news_recall_markdown()` produces deterministic Markdown with:
+
+- reference count;
+- discovered-reference count / discovery rate;
+- News discovery count;
+- subject/ticker misattribution count/rate;
+- per-reference signed lag;
+- minimum / maximum / median signed lag;
+- unresolved benchmark-label cases.
+
+The CLI prints this report to stdout and performs no HTTP mutation, provider call, scheduler registration, or body retention.
+
+## 8. Current focused test boundary
+
+Previously accepted evaluator module:
+
+- `analysis/tests/news/test_news_recall_evaluator.py` — 7 passed measured.
+
+New benchmark-path tests pending local verification:
+
+- `analysis/tests/news/test_news_recall_benchmark.py` — 6 cases;
+- existing `analysis/tests/cli/test_cli.py` gains one `quality news-recall` case.
+
+The new cases cover JSON decoding/loading, exact-field validation, taxonomy validation, unresolved-label window validation, deterministic report output, and CLI execution.
+
+## 9. Required next local verification
+
+Run:
+
+```bash
+uv run pytest -q analysis/tests/news/test_news_recall_benchmark.py analysis/tests/cli/test_cli.py
+uv run pytest -q
+python3 -m compileall -q analysis/app analysis/tests
+git diff --check
+```
+
+If these pass, the benchmark ingestion/reporting path can be accepted. `N1-006` itself remains Provisional until a real/reference 30–93 day benchmark is populated and executed.
+
+## 10. Final N1-006 acceptance gap
+
+Final task acceptance still requires at least one real/reference comparison dataset and measured:
 
 - reference count;
 - discovered-reference count / discovery rate;
@@ -117,22 +177,9 @@ Final N1-006 acceptance also requires executing at least one real/reference comp
 - ticker/subject misattribution count/rate;
 - unresolved benchmark labeling cases.
 
-No such real benchmark values are fabricated in this handoff.
+Synthetic fixture values are never substituted for these measurements.
 
-## 8. Required local verification
-
-Run:
-
-```bash
-uv run pytest -q analysis/tests/news/test_news_recall_evaluator.py
-uv run pytest -q
-python3 -m compileall -q analysis/app analysis/tests
-git diff --check
-```
-
-If these pass, the evaluator implementation can be accepted as the N1-006 fixture/evaluation framework, while the task remains Provisional until the required 1–3 month benchmark is executed.
-
-## 9. Non-scope
+## 11. Non-scope
 
 N1-006 does not:
 
