@@ -122,6 +122,21 @@ def test_provider_symbols_are_observations_not_query_identity_truth():
     assert item.normalized["provider_symbols"] == ("NVDA",)
 
 
+def test_provider_symbols_are_trimmed_and_deduplicated_in_first_observed_order():
+    transport = FakeTransport(
+        {
+            "news": [_article(symbols=[" MA", " V", "ALLY", "MA", "NVDA", "V"])],
+            "next_page_token": None,
+        }
+    )
+    adapter = AlpacaNewsAdapter(transport=transport, clock=lambda: RETRIEVED)
+
+    page = adapter.fetch(_request(source_key="news:alpaca:nvda"))
+
+    assert page.error is None
+    assert page.items[0].normalized["provider_symbols"] == ("MA", "V", "ALLY", "NVDA")
+
+
 def test_article_created_before_window_can_be_retained_when_provider_returns_update():
     transport = FakeTransport(
         {
@@ -209,6 +224,28 @@ def test_invalid_article_fields_report_only_sanitized_field_name():
         assert page.error is not None
         assert page.error.category == expected
         assert page.error.message == "Alpaca News request failed"
+
+
+@pytest.mark.parametrize(
+    "symbols",
+    (
+        None,
+        "AMD",
+        ["AMD", 7],
+        ["AMD", "   "],
+        ["AMD", f" {'X' * 33} "],
+    ),
+)
+def test_invalid_provider_symbol_shapes_remain_fail_closed(symbols):
+    page = AlpacaNewsAdapter(
+        transport=FakeTransport({"news": [_article(symbols=symbols)], "next_page_token": None}),
+        clock=lambda: RETRIEVED,
+    ).fetch(_request())
+
+    assert page.items == ()
+    assert page.error is not None
+    assert page.error.category == "invalid_response_symbols"
+    assert page.error.message == "Alpaca News request failed"
 
 
 def test_429_style_failure_is_retryable_and_keeps_cursor_unadvanced():

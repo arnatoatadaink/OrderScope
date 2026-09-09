@@ -310,10 +310,13 @@ def _string_tuple(value: object, *, field: str, maximum: int) -> tuple[str, ...]
         raise AlpacaNewsRequestFailure(f"invalid_response_{field}", False)
     result: list[str] = []
     for item in value:
-        if not isinstance(item, str) or not item.strip() or item != item.strip() or len(item) > maximum:
+        if not isinstance(item, str):
             raise AlpacaNewsRequestFailure(f"invalid_response_{field}", False)
-        if item not in result:
-            result.append(item)
+        normalized = item.strip()
+        if not normalized or len(normalized) > maximum:
+            raise AlpacaNewsRequestFailure(f"invalid_response_{field}", False)
+        if normalized not in result:
+            result.append(normalized)
     return tuple(result)
 
 
