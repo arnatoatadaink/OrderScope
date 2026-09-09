@@ -157,16 +157,20 @@ def test_missing_article_url_is_retained_as_nullable_metadata():
     assert page.items[0].normalized["provider_article_id"] == "12345"
 
 
-def test_body_field_is_rejected_at_n0_002_boundary():
-    transport = FakeTransport({"news": [_article(content="raw body must not cross")], "next_page_token": None})
+def test_content_field_is_discarded_at_n0_002_boundary():
+    raw_body = "raw body must not cross"
+    transport = FakeTransport({"news": [_article(content=raw_body)], "next_page_token": None})
     adapter = AlpacaNewsAdapter(transport=transport, clock=lambda: RETRIEVED)
 
     page = adapter.fetch(_request())
 
-    assert page.items == ()
-    assert page.error is not None
-    assert page.error.category == "body_leak"
-    assert page.error.retryable is False
+    assert page.error is None
+    assert len(page.items) == 1
+    item = page.items[0]
+    assert "content" not in item.normalized
+    assert raw_body not in repr(item.normalized)
+    assert item.temporary_content is None
+    assert transport.calls[0]["include_content"] is False
 
 
 def test_429_style_failure_is_retryable_and_keeps_cursor_unadvanced():
