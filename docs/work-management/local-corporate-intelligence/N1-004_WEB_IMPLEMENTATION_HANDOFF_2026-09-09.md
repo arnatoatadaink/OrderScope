@@ -1,6 +1,6 @@
 # OrderScope — N1-004 Web Implementation Handoff
 
-Status: **Provisional result — Web implementation complete / local test pending**
+Status: **Provisional result — Fact value scalar fix applied / local recheck pending**
 Date: 2026-09-09
 Task: `N1-004`
 Parent WBS: `WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
@@ -47,13 +47,18 @@ Every review case also requires a bounded human-readable `exception_reason`. The
 The returned `NewsReviewCase` contains a new Fact:
 
 ```text
-fact_type       = news.review.pending
-assertion_kind  = pending_review
-status          = pending_review
-reason_kind     = <versioned enum>
-exception_reason
-source_fact_ids = immutable canonical tuple
+fact_type             = news.review.pending
+assertion_kind        = pending_review
+status                = pending_review
+reason_kind           = <versioned enum>
+exception_reason      = <bounded scalar text>
+source_fact_count     = <scalar integer>
+source_fact_ids_hash  = <scalar SHA-256>
 ```
+
+The complete canonical `source_fact_ids` tuple is retained by the typed `NewsReviewCase`, not embedded inside `Fact.value`.
+
+This is required by the Accepted Fact Store contract: object/map values may contain only scalar members. A tuple nested inside `Fact.value` is invalid even though a top-level Fact value may itself be a tuple.
 
 A pending-review Fact is intentionally not promoted into an observed corporate event. Its purpose is to record that accepted source evidence is insufficient or contradictory.
 
@@ -68,7 +73,9 @@ All source Facts in one review case must:
 
 The source Fact IDs are sorted canonically before the review identity is computed. Reversing input order therefore cannot create a second review record with the same semantic inputs.
 
-The original source records retain their own provenance/evidence. The review record references their IDs rather than copying or rewriting those source claims.
+The full canonical source tuple remains available on `NewsReviewCase.source_fact_ids`. The review Fact carries only deterministic scalar audit metadata (`source_fact_count` and `source_fact_ids_hash`) so it stays inside the Fact Store storage-neutral value contract.
+
+The original source records retain their own provenance/evidence. The review controller never copies or rewrites those source claims.
 
 ## 7. Later confirmation / resolution
 
@@ -101,7 +108,36 @@ Likewise, N1-004 does not guess:
 - which source is correct merely from publisher class;
 - a future confirmation that has not yet been accepted.
 
-## 9. Focused fixtures encoded
+## 9. First local failure and fix
+
+The first local focused run reported:
+
+```text
+12 failed, 2 passed
+```
+
+All 12 failures shared one contract cause. The initial implementation placed the canonical tuple of source Fact IDs inside the mapping used as `Fact.value`:
+
+```text
+source_fact_ids = (<id>, <id>, ...)
+```
+
+The Accepted Fact Store `RecordValue` permits a mapping only when every mapping value is scalar. Therefore the nested tuple was rejected with:
+
+```text
+ContractViolation: value object members must be scalar values
+```
+
+The fix keeps the Fact Store contract unchanged and changes N1-004 instead:
+
+- `NewsReviewCase.source_fact_ids` retains the full immutable canonical tuple;
+- `Fact.value` records `source_fact_count` as an integer;
+- `Fact.value` records `source_fact_ids_hash` as deterministic SHA-256 text;
+- `NewsReviewCase.__post_init__` verifies count/hash against its typed source tuple.
+
+No widening of the shared Fact Store value schema was required.
+
+## 10. Focused fixtures encoded
 
 The focused module currently collects 14 cases (10 test functions, including a 5-value reason-kind parametrization) covering:
 
@@ -116,9 +152,11 @@ The focused module currently collects 14 cases (10 test functions, including a 5
 9. review/resolution timestamp ordering is enforced;
 10. blank exception/resolution reasons are rejected.
 
+The existing focused set exercises the scalar-value fix because every successfully opened review Fact passes through the shared Fact Store constructor.
+
 Fixtures are storage-neutral and use no live provider access.
 
-## 10. Explicit non-scope
+## 11. Explicit non-scope
 
 N1-004 does not:
 
@@ -133,9 +171,9 @@ N1-004 does not:
 
 N1-005 owns the temporary-content retention controller.
 
-## 11. Local verification boundary
+## 12. Local verification boundary
 
-Before promoting N1-004 to Accepted, run:
+Before promoting N1-004 to Accepted, rerun:
 
 ```bash
 uv run pytest -q analysis/tests/news/test_news_contradiction_review.py
@@ -145,17 +183,17 @@ git diff --check
 
 Acceptance requires focused tests, full regression, and clean diff check.
 
-## 12. News lane state
+## 13. News lane state
 
 ```text
 N0-001..004 Accepted
 N1-001 Accepted
 N1-002 Accepted
 N1-003 Accepted
-N1-004 Provisional result — local test pending
+N1-004 Provisional result — scalar-value fix applied / local recheck pending
 N1-005 waits for N1-004 acceptance
 ```
 
-## 13. Next action after acceptance
+## 14. Next action after acceptance
 
 After N1-004 acceptance, proceed to `N1-005 — retention controller`. That task must promptly delete successful bodies after extraction, delete exception bodies by the 30-day maximum, and retain durable metadata/Fact/delete proof without retaining the body itself.
