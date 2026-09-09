@@ -30,7 +30,7 @@ This file is the sole integrated authority for Local Corporate Intelligence runt
 | L1-003 | Blocked | Requires separately approved `SMOKE-007` remote D1 window |
 | L1-004 | Accepted — fixture path | focused 11; full 372; diff clean |
 | L1-005 | Accepted — fixture path | focused 12; full 391; diff clean |
-| L1-006 | Ready | L0-004 and L1-005 are Accepted; separate import/dataset API task remains |
+| L1-006 | Provisional result | Read-only `/imports`, `/coverage/latest`, `/datasets`, `/quality/latest` implemented; local verification pending |
 
 ## 3. X0 runtime state
 
@@ -80,35 +80,54 @@ Interim limitations:
 - retention/reprocessing operator checks remain fixture/programmatic until PX0-003;
 - backup/restore remains policy-level until PX0-004.
 
-## 6. Primary integration path
+## 6. Current L1-006 verification boundary
 
-The original X0 primary path is complete:
+`analysis/app/orderscope_local/local_api/read_api.py` now exposes the remaining fixture-path market read surfaces required by L1-006:
 
 ```text
-X0-001 -> X0-002 -> X0-003 -> X0-004 -> X0-005 -> X0-006
-                                                       Accepted
+GET /imports
+GET /coverage/latest
+GET /datasets
+GET /quality/latest
 ```
 
-The next separate implementation lane remains `L1-006 — read-only import/dataset API` unless a different explicitly gated lane is selected.
+The snapshot consumes immutable accepted `RawImportResult`, `CanonicalBarDataset`, and `MarketDataQualityReport` descriptors. Responses do not expose raw SQL/Parquet bodies, provider responses, credentials, or arbitrary filesystem paths.
 
-## 7. Parallel/deferred lanes
+`/quality/latest` and `/coverage/latest` do not fabricate state when no accepted quality report exists. Because the L1-005 quality contract has no acceptance timestamp, the snapshot builder owns accepted quality ordering and supplies its latest accepted report last.
 
-- `L1-006` is Ready as a separate read-only API extension.
-- `PX0-001..004` are explicit post-X0 operational/recovery follow-ups and do not reopen X0 acceptance.
+Focused test module `analysis/tests/local_api/test_import_dataset_api.py` contains 7 L1-006 cases. Required local acceptance command also includes the existing read API tests.
+
+## 7. Primary integration path
+
+The X0 fixture-path lane is complete. The current implementation gate is:
+
+```text
+L1-006 Provisional result
+  -> local verification
+  -> L1-006 Accepted
+```
+
+`L1-003 / SMOKE-007` remains separately gated and is not implied by L1-006 fixture-path acceptance.
+
+## 8. Parallel/deferred lanes
+
+- `L1-006` local verification is the current selected lane.
+- `PX0-001..004` remain explicit post-X0 operational/recovery follow-ups.
 - `L1-003` remains externally Blocked behind `SMOKE-007` approval.
 - `N1-006` remains important for News quality.
 - `A0-001` remains Provisional and `A0-002` remains separate validation work.
+- WBS-unreflected task ideas are tracked separately in `WBS_UNREFLECTED_TASK_BACKLOG_2026-09-10.md`.
 - Worker remains Shadow; Local does not directly control Worker runtime.
 
-## 8. Current restart rule
+## 9. Current restart rule
 
-1. Treat `X0-001..006` fixture-path integration as Accepted/complete.
-2. Continue with `L1-006 — read-only import/dataset API` as the next Ready implementation lane unless priorities are explicitly changed.
-3. Preserve `PX0-001..004` for future operations/recovery implementation and incorporate/remap them in the next WBS revision.
-4. Keep `L1-003/SMOKE-007` real-D1 work separately gated.
+1. Run L1-006 focused local API tests, full pytest, compileall, and diff check.
+2. If all pass, promote L1-006 to Accepted and preserve the exact measured evidence.
+3. Keep L1-003/SMOKE-007 real-D1 work separately gated.
+4. Then select the next unfinished WBS lane explicitly; do not let UWBS/PX0 follow-ups silently redefine accepted tasks.
 5. Do not implicitly open a Worker change window or register live provider jobs.
 
-## 9. Latest acceptance evidence
+## 10. Latest acceptance evidence
 
 | Task | Evidence |
 |---|---|
@@ -127,14 +146,14 @@ The next separate implementation lane remains `L1-006 — read-only import/datas
 | X0-005 | focused 4; full 461; compileall success; diff clean |
 | X0-006 | operator/external review accepted for policy-level fixture path; F1-F4 explicitly deferred to PX0-001..004 |
 
-## 10. Unresolved items
+## 11. Unresolved items
 
+- `L1-006` local acceptance evidence.
 - `PX0-001` operational scheduler job registry.
 - `PX0-002` durable scheduler run evidence / stale-lock recovery.
 - `PX0-003` retention/reprocessing operator CLI.
 - `PX0-004` reproducible backup/restore and restore drills.
 - `L1-003` / `SMOKE-007` real-D1 approval window.
-- `L1-006` read-only import/dataset API remains Ready.
 - `N1-006` News quality work.
 - `A0-001` provisional validation.
 - A0-002 AI/Semiconductor proxy.
@@ -142,6 +161,6 @@ The next separate implementation lane remains `L1-006 — read-only import/datas
 - whether A0-002 becomes mandatory for v0.1 release acceptance.
 - FastAPI/Starlette/AnyIO test-client deprecation warnings should be handled in dependency maintenance.
 
-## 11. Progress-update rule
+## 12. Progress-update rule
 
 When a task changes state, update this integrated tracker in the same bounded work cycle and preserve task-specific acceptance evidence in the corresponding handoff/runbook when one exists.
