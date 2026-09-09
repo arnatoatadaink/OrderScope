@@ -15,6 +15,11 @@ from orderscope_local.integration import (
     query_unified_timeline,
 )
 from orderscope_local.integration.timeline import MarketTimelineBar
+from orderscope_local.market_import import (
+    CanonicalBarDataset,
+    MarketDataQualityReport,
+    RawImportResult,
+)
 from .health import LOCAL_HEALTH_SCHEMA_VERSION, LocalServerBinding
 
 
@@ -26,6 +31,9 @@ class LocalReadSnapshot:
     facts: tuple[Fact, ...] = ()
     market_bars: tuple[MarketTimelineBar, ...] = ()
     coverage: CorporateCoverageSummary | None = None
+    imports: tuple[RawImportResult, ...] = ()
+    datasets: tuple[CanonicalBarDataset, ...] = ()
+    quality_reports: tuple[MarketDataQualityReport, ...] = ()
 
     def __post_init__(self) -> None:
         if not isinstance(self.facts, tuple) or any(not isinstance(item, Fact) for item in self.facts):
@@ -34,6 +42,12 @@ class LocalReadSnapshot:
             raise ContractViolation("market_bars must be an immutable tuple of MarketTimelineBar records")
         if self.coverage is not None and not isinstance(self.coverage, CorporateCoverageSummary):
             raise ContractViolation("coverage must be CorporateCoverageSummary")
+        if not isinstance(self.imports, tuple) or any(not isinstance(item, RawImportResult) for item in self.imports):
+            raise ContractViolation("imports must be an immutable tuple of RawImportResult records")
+        if not isinstance(self.datasets, tuple) or any(not isinstance(item, CanonicalBarDataset) for item in self.datasets):
+            raise ContractViolation("datasets must be an immutable tuple of CanonicalBarDataset records")
+        if not isinstance(self.quality_reports, tuple) or any(not isinstance(item, MarketDataQualityReport) for item in self.quality_reports):
+            raise ContractViolation("quality_reports must be an immutable tuple of MarketDataQualityReport records")
 
 
 def create_read_app(
@@ -102,7 +116,69 @@ def create_read_app(
             "sources": [_coverage_record(source) for source in coverage.sources],
         }
 
+    @app.get("/imports")
+    def imports() -> dict[str, object]:
+        records = tuple(sorted(snapshot.imports, key=lambda item: (item.registered_at, item.manifest_id, item.sha256)))
+        return {
+            "schema_version": LOCAL_READ_API_SCHEMA_VERSION,
+            "collection": "imports",
+            "count": len(records),
+            "items": [_import_record(item) for item in records],
+        }
+
+    @app.get("/datasets")
+    def datasets() -> dict[str, object]:
+        records = tuple(sorted(snapshot.datasets, key=lambda item: (item.manifest_id, item.parquet_sha256)))
+        return {
+            "schema_version": LOCAL_READ_API_SCHEMA_VERSION,
+            "collection": "datasets",
+            "count": len(records),
+            "items": [_dataset_record(item) for item in records],
+        }
+
+    @app.get("/quality/latest")
+    def quality_latest() -> dict[str, object]:
+        report = _latest_quality(snapshot)
+        if report is None:
+            return {
+                "schema_version": LOCAL_READ_API_SCHEMA_VERSION,
+                "quality": None,
+            }
+        return {
+            "schema_version": LOCAL_READ_API_SCHEMA_VERSION,
+            "quality": _quality_record(report),
+        }
+
+    @app.get("/coverage/latest")
+    def coverage_latest() -> dict[str, object]:
+        report = _latest_quality(snapshot)
+        if report is None:
+            return {
+                "schema_version": LOCAL_READ_API_SCHEMA_VERSION,
+                "coverage": None,
+            }
+        dataset = next((item for item in snapshot.datasets if item.manifest_id == report.dataset_manifest_id), None)
+        return {
+            "schema_version": LOCAL_READ_API_SCHEMA_VERSION,
+            "coverage": {
+                "dataset_manifest_id": report.dataset_manifest_id,
+                "row_count": report.row_count,
+                "symbols": list(report.symbols),
+                "expected_grid_points": report.expected_grid_points,
+                "issue_count": len(report.issues),
+                "passed": report.passed,
+                "dataset_relative_path": None if dataset is None else dataset.relative_path,
+                "dataset_parquet_sha256": report.dataset_parquet_sha256,
+            },
+        }
+
     return app
+
+
+def _latest_quality(snapshot: LocalReadSnapshot) -> MarketDataQualityReport | None:
+    if not snapshot.quality_reports:
+        return None
+    return max(snapshot.quality_reports, key=lambda item: (item.dataset_manifest_id, item.dataset_parquet_sha256))
 
 
 def _fact_subset(*, snapshot: LocalReadSnapshot, cutoff: datetime, kind: TimelineSourceKind, subject_ref: str | None, name: str) -> dict[str, object]:
@@ -155,6 +231,48 @@ def _coverage_record(source) -> dict[str, object]:
         "retention_pending_count": source.retention_pending_count,
         "retention_overdue_count": source.retention_overdue_count,
         "retention_next_due_at": _iso(source.retention_next_due_at),
+    }
+
+
+def _import_record(item: RawImportResult) -> dict[str, object]:
+    return {
+        "status": item.status,
+        "manifest_id": item.manifest_id,
+        "sha256": item.sha256,
+        "raw_relative_path": item.raw_relative_path,
+        "registered_at": item.registered_at.isoformat(),
+    }
+
+
+def _dataset_record(item: CanonicalBarDataset) -> dict[str, object]:
+    return {
+        "schema_version": item.schema_version,
+        "manifest_id": item.manifest_id,
+        "artifact_sha256": item.artifact_sha256,
+        "row_count": item.row_count,
+        "relative_path": item.relative_path,
+        "parquet_sha256": item.parquet_sha256,
+    }
+
+
+def _quality_record(item: MarketDataQualityReport) -> dict[str, object]:
+    return {
+        "schema_version": item.schema_version,
+        "dataset_manifest_id": item.dataset_manifest_id,
+        "dataset_parquet_sha256": item.dataset_parquet_sha256,
+        "row_count": item.row_count,
+        "symbols": list(item.symbols),
+        "expected_grid_points": item.expected_grid_points,
+        "passed": item.passed,
+        "issues": [
+            {
+                "kind": issue.kind.value,
+                "symbol": issue.symbol,
+                "bar_time": _iso(issue.bar_time),
+                "detail": issue.detail,
+            }
+            for issue in item.issues
+        ],
     }
 
 
