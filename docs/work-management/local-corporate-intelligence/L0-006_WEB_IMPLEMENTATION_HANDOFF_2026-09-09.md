@@ -1,6 +1,6 @@
 # OrderScope — L0-006 Web Implementation Handoff
 
-Status: **Provisional result — Web implementation complete / local test pending**
+Status: **Accepted**
 Date: 2026-09-09
 Task: `L0-006`
 Parent WBS: `WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
@@ -59,24 +59,24 @@ The focused module contains 6 cases covering:
 5. external host override is rejected because no `--host` option exists;
 6. invalid port is rejected.
 
-## 5. Local verification boundary
+## 5. Local acceptance evidence
 
-Run from repository root:
+Observed user-reported evidence on 2026-09-09:
 
-```bash
-uv run pytest -q analysis/tests/cli/test_cli.py
-uv run pytest -q
-python3 -m compileall -q analysis/app analysis/tests
-git diff --check
+```text
+focused CLI tests -> 6 passed
+full pytest suite -> 447 passed
+compileall        -> success / no errors
+git diff --check  -> clean / no findings
 ```
 
-Acceptance requires all four checks to pass.
+All required acceptance checks passed. L0-006 is Accepted.
 
-## 6. Next action after acceptance
+## 6. Next action
 
 ```text
 L0-006 Accepted
   -> X0-004 local scheduler
 ```
 
-X0-004 remains responsible for manual-CLI start, single-instance lock, bounded run, resume, and dry-run behavior. L0-006 does not implement scheduler semantics itself.
+X0-004 owns manual-CLI start, single-instance lock, bounded run, resume, and dry-run behavior. L0-006 does not define scheduler semantics itself.
