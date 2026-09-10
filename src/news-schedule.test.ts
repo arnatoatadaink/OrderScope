@@ -11,33 +11,47 @@ const calendar: MarketCalendarSnapshot = { market: "US_EQUITIES", revision: "fix
     { marketDate: "2026-09-10", sessionKind: "REGULAR", opensAt: "2026-09-10T13:30:00.000Z", closesAt: "2026-09-10T20:00:00.000Z", isShortened: false, calendarRevision: "fixture-v1" },
   ] };
 
-test("plans once only on an eligible five-minute boundary", () => {
-  assert.equal(planNewsAcquisition(config, calendar, undefined, new Date("2026-09-10T14:00:00Z")).length, 1);
-  assert.equal(planNewsAcquisition(config, calendar, undefined, new Date("2026-09-10T14:01:00Z")).length, 0);
-  assert.equal(planNewsAcquisition(config, calendar, undefined, new Date("2026-09-10T21:00:00Z")).length, 0);
+test("plans on an eligible five-minute UTC minute bucket regardless of Cron seconds offset", () => {
+  assert.equal(planNewsAcquisition(config, calendar, undefined, new Date("2026-09-10T14:00:00.000Z")).length, 1);
+  assert.equal(planNewsAcquisition(config, calendar, undefined, new Date("2026-09-10T14:00:15.000Z")).length, 1);
+  assert.equal(planNewsAcquisition(config, calendar, undefined, new Date("2026-09-10T14:00:59.999Z")).length, 1);
 });
+
+test("does not plan on a non-cadence minute or outside an authoritative session", () => {
+  assert.equal(planNewsAcquisition(config, calendar, undefined, new Date("2026-09-10T14:01:15.000Z")).length, 0);
+  assert.equal(planNewsAcquisition(config, calendar, undefined, new Date("2026-09-10T20:00:15.000Z")).length, 0);
+  assert.equal(planNewsAcquisition(config, calendar, undefined, new Date("2026-09-10T21:00:15.000Z")).length, 0);
+});
+
+test("session open remains eligible when its minute bucket matches cadence with non-zero seconds", () => {
+  assert.equal(planNewsAcquisition(config, calendar, undefined, new Date("2026-09-10T13:30:15.000Z")).length, 1);
+});
+
 test("no checkpoint is bounded and an existing checkpoint receives overlap", () => {
-  const initial = planNewsAcquisition(config, calendar, undefined, new Date("2026-09-10T14:00:00Z"))[0]!;
-  assert.deepEqual(initial.requestedRange, { startInclusive: "2026-09-10T13:45:00.000Z", endExclusive: "2026-09-10T14:00:00.000Z" });
+  const initial = planNewsAcquisition(config, calendar, undefined, new Date("2026-09-10T14:00:15Z"))[0]!;
+  assert.deepEqual(initial.requestedRange, { startInclusive: "2026-09-10T13:45:15.000Z", endExclusive: "2026-09-10T14:00:15.000Z" });
   const incremental = planNewsAcquisition(config, calendar, { coverageKey: NEWS_COVERAGE_KEY,
-    completeThrough: "2026-09-10T13:55:00.000Z", version: 2 }, new Date("2026-09-10T14:05:00Z"))[0]!;
-  assert.deepEqual(incremental.requestedRange, { startInclusive: "2026-09-10T13:40:00.000Z", endExclusive: "2026-09-10T14:05:00.000Z" });
+    completeThrough: "2026-09-10T13:55:00.000Z", version: 2 }, new Date("2026-09-10T14:05:15Z"))[0]!;
+  assert.deepEqual(incremental.requestedRange, { startInclusive: "2026-09-10T13:40:00.000Z", endExclusive: "2026-09-10T14:05:15.000Z" });
 });
+
 test("missed ticks recover through the next bounded range and dry-run is side-effect free", () => {
   const job = planNewsAcquisition(config, calendar, { coverageKey: NEWS_COVERAGE_KEY,
-    completeThrough: "2026-09-10T13:50:00.000Z", version: 1 }, new Date("2026-09-10T14:10:00Z"))[0]!;
-  assert.deepEqual(job.requestedRange, { startInclusive: "2026-09-10T13:35:00.000Z", endExclusive: "2026-09-10T14:10:00.000Z" });
+    completeThrough: "2026-09-10T13:50:00.000Z", version: 1 }, new Date("2026-09-10T14:10:15Z"))[0]!;
+  assert.deepEqual(job.requestedRange, { startInclusive: "2026-09-10T13:35:00.000Z", endExclusive: "2026-09-10T14:10:15.000Z" });
   assert.deepEqual(newsDryRun(job), { mutationCount: 0, providerCalls: 0, job: {
     jobId: job.jobId, symbols: ["AMD", "NVDA"], requestedRange: job.requestedRange,
     maxPagesPerSymbol: 2, maxArticlesPerRun: 200,
   } });
 });
+
 test("disabled news does not affect market scheduling", () => {
-  assert.deepEqual(planNewsAcquisition({ ...config, enabled: false }, calendar, undefined, new Date("2026-09-10T14:00:00Z")), []);
+  assert.deepEqual(planNewsAcquisition({ ...config, enabled: false }, calendar, undefined, new Date("2026-09-10T14:00:15Z")), []);
 });
+
 test("plans News during an authoritative After-hours session", () => {
   const afterHours = { ...calendar, sessions: [{ marketDate: "2026-09-10", sessionKind: "AFTER_HOURS" as const,
     opensAt: "2026-09-10T20:00:00Z", closesAt: "2026-09-11T00:00:00Z", isShortened: false,
     calendarRevision: calendar.revision }] };
-  assert.equal(planNewsAcquisition(config, afterHours, undefined, new Date("2026-09-10T21:00:00Z")).length, 1);
+  assert.equal(planNewsAcquisition(config, afterHours, undefined, new Date("2026-09-10T21:00:15Z")).length, 1);
 });
