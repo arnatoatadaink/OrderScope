@@ -1,9 +1,29 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { StoredCoverageCheckpoint } from "./checkpoint.ts";
+import type { CoverageCheckpointPort } from "./checkpoint.ts";
 import { gapRetryEligibility } from "./gap-retry.ts";
 import { prioritizeAcquisitionJobs } from "./job-priority.ts";
 import type { AcquisitionJob } from "./schedule.ts";
+import { loadUniverseSnapshot } from "./universe.ts";
+import { loadMarketCheckpoints } from "./market-checkpoint-load.ts";
+
+test("full-v0.1 checkpoint fan-out issues 106 point reads before acquisition", async () => {
+  const coverageKeys: string[] = [];
+  const checkpoints = {
+    get: async (coverageKey: string) => { coverageKeys.push(coverageKey); return undefined; },
+  } as CoverageCheckpointPort;
+
+  const stored = await loadMarketCheckpoints(loadUniverseSnapshot("full-v0.1"), checkpoints, "iex");
+
+  assert.deepEqual(stored, []);
+  assert.equal(coverageKeys.length, 106);
+  assert.equal(new Set(coverageKeys).size, 106);
+  assert.ok(coverageKeys.includes("BTCUSD|1Min|ALL_TRADING|crypto:us"));
+  assert.ok(coverageKeys.includes("ETHUSD|1Day|ALL_TRADING|crypto:us"));
+  assert.ok(coverageKeys.includes("NVDA|1Min|REGULAR|stock:iex:raw"));
+  assert.ok(coverageKeys.includes("EWJ|1Day|REGULAR|stock:iex:raw"));
+});
 
 const partial: StoredCoverageCheckpoint = {
   coverageKey: "BTCUSD|1Min|ALL_TRADING|crypto:us",

@@ -17,6 +17,7 @@ import { D1NewsCheckpointPort, executeNewsAcquisition, type NewsCheckpointPort }
 import { D1NewsStore, type NewsStore } from "./news-store";
 import type { NewsExecutionOptions } from "./news-execution";
 import { D1_QUERY_CEILING, EXTERNAL_SUBREQUEST_CEILING, InvocationBudget } from "./invocation-budget";
+import { loadMarketCheckpoints } from "./market-checkpoint-load";
 
 type PredictionMode = "off" | "shadow";
 
@@ -176,10 +177,7 @@ async function runScheduledTick(
     includeAfterHours: newsConfig.enabled,
   }).getCalendar(calendarStart, calendarEnd);
   const checkpoints = dependencies.checkpointPort?.(env.STATE_DB) ?? new D1CoverageCheckpointPort(env.STATE_DB);
-  const stored = (await Promise.all(universe.instruments.map((instrument) => {
-    const scope = instrument.providerRoute === "alpaca_crypto_bars" ? "ALL_TRADING" : "REGULAR";
-    return checkpoints.get(coverageKeyFor(instrument, scope, logicalVariant(instrument, env.ALPACA_FEED)));
-  }))).filter((checkpoint) => checkpoint !== undefined);
+  const stored = await loadMarketCheckpoints(universe, checkpoints, env.ALPACA_FEED);
   const policy = new SchedulePolicy({
     retentionFloor,
     overlapMs: acquisitionConfig.overlapMs,

@@ -23,11 +23,11 @@ The current `src/universe.ts` implementation already follows this model:
 ```text
 Tier A = 25 instruments
 Tier B = 28 instruments
-Tier C = 52 instruments
-Total  = 105 instruments
+Tier C = 53 instruments
+Total  = 106 instruments
 ```
 
-Therefore any `105 symbols × 390 one-minute bars/day` budget model is invalid for the current full-v0.1 normal operating model.
+Therefore any `106 symbols × 390 one-minute bars/day` budget model is invalid for the current full-v0.1 normal operating model.
 
 ## 2. Current full-v0.1 distribution
 
@@ -56,9 +56,9 @@ MARA CLSK CORZ IREN CIFR
 
 All 28 are US-equity routes.
 
-### Tier C — 1Day — 52
+### Tier C — 1Day — 53
 
-Country proxy, macro/cross-asset, software, storage, financial, industrial, defense, energy/materials, consumer and healthcare instruments. ETHUSD is the crypto route; the remaining 51 are stock/ETF routes.
+Country proxy, macro/cross-asset, software, storage, financial, industrial, defense, energy/materials, consumer and healthcare instruments. ETHUSD is the crypto route; the remaining 52 are stock/ETF routes.
 
 ## 3. First-order normal-day bar-volume model
 
@@ -70,15 +70,15 @@ For a normal US equity regular session of 390 minutes:
 Tier A equities: 24 × 390 = 9,360 bars/day
 Tier A BTCUSD:    1 × 1,440 = 1,440 bars/day, if the 1Min crypto route covers a full UTC day
 Tier B equities: 28 × 26 = 728 bars/day
-Tier C:           52 × 1 = 52 bars/day
+Tier C:           53 × 1 = 53 bars/day
 -------------------------------------------------
-first-order total ≈ 11,580 bars/day
+first-order total ≈ 11,581 bars/day
 ```
 
-This is materially different from the invalid all-105-at-1Min model:
+This is materially different from the invalid all-106-at-1Min model:
 
 ```text
-105 × 390 = 40,950 bars/day
+106 × 390 = 41,340 bars/day
 ```
 
 Shortened equity sessions and actual crypto scheduling/checkpoint boundaries change the exact total.
@@ -93,10 +93,10 @@ same-receipt replay           -> 0 row writes
 100 same bars/new receipts    -> 200 row writes equivalent
 ```
 
-A naive first-order application of 3 writes/new bar to 11,580 bars gives:
+A naive first-order application of 3 writes/new bar to 11,581 bars gives:
 
 ```text
-~34,740 Market row writes/day before overlap, retry, checkpoint, lease, attempt, digest and News writes
+~34,743 Market row writes/day before overlap, retry, checkpoint, lease, attempt, digest and News writes
 ```
 
 This is not an acceptance metric. It is only a baseline showing that the tiered Universe is potentially compatible with the D1 Free daily-write envelope whereas an all-105-at-1Min model is not.

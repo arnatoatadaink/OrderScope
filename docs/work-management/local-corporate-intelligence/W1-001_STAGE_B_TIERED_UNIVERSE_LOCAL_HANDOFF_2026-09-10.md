@@ -17,8 +17,8 @@ Expected current mapping:
 ```text
 Tier A / 1Min  = 25
 Tier B / 15Min = 28
-Tier C / 1Day  = 52
-Total          = 105
+Tier C / 1Day  = 53
+Total          = 106
 ```
 
 ## 2. Required implementation/test work
@@ -30,8 +30,8 @@ Add tests that assert exact counts and representative symbols:
 ```text
 1Min  = 25
 15Min = 28
-1Day  = 52
-Total = 105
+1Day  = 53
+Total = 106
 ```
 
 At minimum verify:
@@ -207,6 +207,6 @@ Worker mode changed: no
 
 ## 5. Expected interpretation
 
-A likely first-order normal-day volume is much closer to ~11.6k bars/day than 40.95k bars/day, because only Tier A is 1Min. This is a planning expectation, not a test oracle.
+A likely first-order normal-day volume is much closer to ~11.6k bars/day than 41.34k bars/day, because only Tier A is 1Min. This is a planning expectation, not a test oracle.
 
 The decisive Stage-B numbers are the measured steady-state row-write amplification and scheduler backlog under the actual mixed cadence configuration.
