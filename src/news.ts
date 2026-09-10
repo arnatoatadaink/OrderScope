@@ -7,7 +7,7 @@ export type NewsMetadata = {
 export type NewsPage = { articles: readonly NewsMetadata[]; nextPageToken?: string };
 export type NewsRequest = { symbol: "AMD" | "NVDA"; startInclusive: string; endExclusive: string; pageToken?: string; limit?: number };
 export type NewsFetchOptions = { retry?: ProviderRetryPolicy; sleep?: (ms: number) => Promise<void>;
-  onAttempt?: () => void };
+  onAttempt?: () => void; now?: () => number };
 
 export class NewsProviderError extends Error {
   readonly category: "RATE_LIMIT" | "PROVIDER_UNAVAILABLE" | "INVALID_RESPONSE";
@@ -67,7 +67,13 @@ export async function fetchNewsPage(credentials: AlpacaCredentials, request: New
     if (response.ok) return normalizeNewsPayload(await response.json());
     const retryable = response.status === 429 || response.status >= 500;
     if (!retryable || attempt === attempts) throw new NewsProviderError(response.status === 429 ? "RATE_LIMIT" : "PROVIDER_UNAVAILABLE", retryable);
-    const delay = Math.min(retry!.baseBackoffMs * 2 ** (attempt - 1), retry!.maxBackoffMs, retry!.maxRetryAfterMs);
+    const header = response.headers.get("retry-after");
+    const seconds = header === null ? NaN : Number(header);
+    const dateDelay = header === null ? NaN : Date.parse(header) - (options.now ?? Date.now)();
+    const requested = Number.isFinite(seconds) && seconds >= 0 ? seconds * 1_000
+      : Number.isFinite(dateDelay) ? Math.max(0, dateDelay) : undefined;
+    const exponential = Math.min(retry!.baseBackoffMs * 2 ** (attempt - 1), retry!.maxBackoffMs);
+    const delay = Math.min(requested ?? exponential, retry!.maxRetryAfterMs);
     await (options.sleep ?? ((ms) => new Promise((resolve) => setTimeout(resolve, ms))))(delay);
   }
   throw new NewsProviderError("PROVIDER_UNAVAILABLE", true);

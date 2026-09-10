@@ -20,6 +20,11 @@ test("D1 keeps one provider identity with both query memberships and no body col
   assert.deepEqual(await store.acceptBatch([{ article: { ...article, headline: "revised headline",
     providerUpdatedAt: "2026-09-10T14:03:00Z" }, querySymbol: "AMD",
     retrievedAt: "2026-09-10T14:03:01Z", acceptedAt: "2026-09-10T14:03:01Z" }]), [{ outcome: "UPDATED" }]);
+  assert.deepEqual(await store.acceptBatch([{ article: { ...article, headline: "unversioned conflict" },
+    querySymbol: "AMD", retrievedAt: "2026-09-10T14:04:00Z", acceptedAt: "2026-09-10T14:04:00Z" }]),
+  [{ outcome: "CONFLICT" }]);
+  assert.equal((await db.prepare("SELECT headline FROM news_article WHERE provider_article_id = '123'").first<{ headline: string }>())?.headline,
+    "revised headline");
   assert.deepEqual(await db.prepare("SELECT COUNT(*) count FROM news_article").first(), { count: 1 });
   const memberships = await db.prepare("SELECT query_symbol FROM news_query_membership ORDER BY query_symbol").all<{ query_symbol: string }>();
   assert.deepEqual(memberships.results.map((row) => row.query_symbol), ["AMD", "NVDA"]);

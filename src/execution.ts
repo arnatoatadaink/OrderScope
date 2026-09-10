@@ -1,6 +1,7 @@
 import { fetchHistoricalBars, type AlpacaCredentials, type HistoricalBarFetchOptions, type HistoricalBarRequest } from "./alpaca.ts";
 import { normalizeMarketBar } from "./bar.ts";
 import type { NormalizedBarStore } from "./bar-store";
+import type { InvocationBudget } from "./invocation-budget";
 import type { MarketCalendarSnapshot } from "./calendar";
 import type { CoverageCheckpointPort, StoredCoverageCheckpoint } from "./checkpoint";
 import type { AcquisitionJob, TimeRange } from "./schedule";
@@ -26,6 +27,7 @@ export type AcquisitionExecutorOptions = {
   maxBars: number;
   gapRetryDelayMs?: number;
   providerFetchOptions?: HistoricalBarFetchOptions;
+  budget?: InvocationBudget;
   now?: () => Date;
   fetchPage?: (credentials: AlpacaCredentials, request: HistoricalBarRequest, options?: HistoricalBarFetchOptions) => ReturnType<typeof fetchHistoricalBars>;
 };
@@ -100,20 +102,38 @@ export async function executeAcquisitionJob(
   try {
     do {
       if (counts.pages >= options.maxPages) throw new Error(`acquisition page limit exceeded: ${options.maxPages}`);
+      // An injected adapter is charged once before invocation; if it implements
+      // retry-attempt callbacks, its first callback corresponds to that prepaid
+      // attempt and subsequent callbacks charge retries.
+      const prepaidInjectedAttempt = options.fetchPage !== undefined;
+      if (prepaidInjectedAttempt) options.budget?.consume("external");
+      let reportedAttempts = 0;
+      const providerFetchOptions = { ...options.providerFetchOptions,
+        onAttempt: () => {
+          reportedAttempts += 1;
+          if (!(prepaidInjectedAttempt && reportedAttempts === 1)) options.budget?.consume("external");
+          options.providerFetchOptions?.onAttempt?.();
+        } };
       const page = await fetchPage(options.credentials, {
         instrument, ...job.requestedRange, pageToken, feed: options.feed,
-      }, options.providerFetchOptions);
+      }, providerFetchOptions);
       counts.pages += 1;
       const acceptedCount = counts.inserted + counts.matched + counts.conflicts + counts.rejected;
       if (acceptedCount + page.bars.length > options.maxBars) {
         throw new Error(`acquisition bar limit exceeded: ${options.maxBars}`);
       }
-      for (let index = 0; index < page.bars.length; index += 1) {
-        const normalized = normalizeMarketBar(page.bars[index]!, instrument, options.calendar, job.sessionScope);
-        const receipt = await options.bars.accept(normalized, {
-          idempotencyKey: `${attemptId}:page:${counts.pages}:bar:${index}`,
-          jobId: job.jobId, retrievedAt: now().toISOString(),
-        });
+      const acceptanceInputs = page.bars.map((rawBar, index) => ({
+        candidate: normalizeMarketBar(rawBar, instrument, options.calendar, job.sessionScope),
+        provenance: { idempotencyKey: `${attemptId}:page:${counts.pages}:bar:${index}`,
+          jobId: job.jobId, retrievedAt: now().toISOString() },
+      }));
+      const receipts = options.bars.acceptBatch
+        ? await options.bars.acceptBatch(acceptanceInputs)
+        : await Promise.all(acceptanceInputs.map((input) => options.bars.accept(input.candidate, input.provenance)));
+      if (receipts.length !== acceptanceInputs.length) throw new Error("bar acceptance result count mismatch");
+      for (let index = 0; index < receipts.length; index += 1) {
+        const normalized = acceptanceInputs[index]!.candidate;
+        const receipt = receipts[index]!;
         if (receipt.outcome === "INSERTED" || receipt.outcome === "MATCHED") {
           counts[receipt.outcome === "INSERTED" ? "inserted" : "matched"] += 1;
           if (normalized.outcome === "NORMALIZED") acceptedStarts.add(normalized.bar.barStartUtc);

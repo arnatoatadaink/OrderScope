@@ -33,7 +33,7 @@ export function planNewsAcquisition(
   const cadenceMs = config.cadenceMinutes * 60_000;
   if (nowMs % cadenceMs !== 0) return [];
   const session = calendar.sessions.find((candidate) =>
-    (candidate.sessionKind === "PREMARKET" || candidate.sessionKind === "REGULAR")
+    (candidate.sessionKind === "PREMARKET" || candidate.sessionKind === "REGULAR" || candidate.sessionKind === "AFTER_HOURS")
     && nowMs >= Date.parse(candidate.opensAt) && nowMs <= Date.parse(candidate.closesAt));
   if (!session) return [];
   const boundary = Math.min(nowMs, Date.parse(session.closesAt));

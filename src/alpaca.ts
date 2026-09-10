@@ -41,9 +41,10 @@ export type ProviderRetryPolicy = {
 };
 
 export type HistoricalBarFetchOptions = {
-  retry: ProviderRetryPolicy;
+  retry?: ProviderRetryPolicy;
   sleep?: (delayMs: number) => Promise<void>;
   now?: () => number;
+  onAttempt?: () => void;
 };
 
 type AlpacaBar = {
@@ -243,6 +244,7 @@ async function fetchWithRetry(
   const maxAttempts = retry?.maxAttempts ?? 1;
   const sleep = options?.sleep ?? ((delayMs) => new Promise((resolve) => setTimeout(resolve, delayMs)));
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    options?.onAttempt?.();
     const response = await fetch(url, { headers: headers(credentials) });
     if (response.ok) return response;
     if (!retry || !isTransientStatus(response.status) || attempt === maxAttempts) {

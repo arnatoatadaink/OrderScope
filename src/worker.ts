@@ -106,7 +106,7 @@ function currentDigest(
 export type ScheduledOrchestrationDependencies = {
   calendarProvider: (
     credentials: { keyId: string; secretKey: string },
-    options: { includePremarket: boolean },
+    options: { includePremarket: boolean; includeAfterHours: boolean },
   ) => MarketCalendarProvider;
   universe: (profile: string) => UniverseSnapshot;
   predictionRegistries?: (profile: string) => PredictionRegistryBundle;
@@ -173,6 +173,7 @@ async function runScheduledTick(
   const calendarEnd = new Date(now.getTime() + 2 * 24 * 60 * 60_000).toISOString().slice(0, 10);
   const calendar = await dependencies.calendarProvider(credentials, {
     includePremarket: predictionConfig.mode === "shadow",
+    includeAfterHours: newsConfig.enabled,
   }).getCalendar(calendarStart, calendarEnd);
   const checkpoints = dependencies.checkpointPort?.(env.STATE_DB) ?? new D1CoverageCheckpointPort(env.STATE_DB);
   const stored = (await Promise.all(universe.instruments.map((instrument) => {
@@ -253,6 +254,7 @@ async function runScheduledTick(
     | { jobId: string; outcome: "FAILED" | "SKIPPED_LOCKED" }> = [];
   const staleBefore = new Date(now.getTime() - acquisitionConfig.staleAttemptMinutes * 60_000).toISOString();
   let supersededStaleAttempts = 0;
+  const invocationBudget = new InvocationBudget();
   const leases = dependencies.leaseStore?.(env.STATE_DB) ?? new D1AcquisitionLeaseStore(env.STATE_DB);
   for (const job of runnableJobs) {
     const coverageKey = job.checkpointExpectations[0]!.coverageKey;
@@ -275,6 +277,7 @@ async function runScheduledTick(
         providerFetchOptions: { retry: acquisitionConfig.providerRetry },
         now: () => now,
         fetchPage: dependencies.fetchPage,
+        budget: invocationBudget,
       }));
     } catch {
       // Detailed diagnostics are already recorded on the attempt row. Keep the
@@ -285,9 +288,7 @@ async function runScheduledTick(
     }
   }
   const staleAttempts = await checkpoints.summarizeStaleAttempts(staleBefore);
-  const invocationBudget = new InvocationBudget();
-  const marketExternalSubrequests = summaries.reduce((sum, summary) => sum + ("pages" in summary ? summary.pages : 0), 0);
-  invocationBudget.consume("external", marketExternalSubrequests);
+  const marketExternalSubrequests = invocationBudget.snapshot().externalSubrequests;
   const newsCheckpoints = dependencies.newsCheckpointPort?.(env.STATE_DB) ?? new D1NewsCheckpointPort(env.STATE_DB);
   if (newsConfig.enabled) invocationBudget.consume("d1");
   const newsStored = newsConfig.enabled ? await newsCheckpoints.get(NEWS_COVERAGE_KEY) : undefined;

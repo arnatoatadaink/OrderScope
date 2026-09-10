@@ -35,3 +35,9 @@ test("missed ticks recover through the next bounded range and dry-run is side-ef
 test("disabled news does not affect market scheduling", () => {
   assert.deepEqual(planNewsAcquisition({ ...config, enabled: false }, calendar, undefined, new Date("2026-09-10T14:00:00Z")), []);
 });
+test("plans News during an authoritative After-hours session", () => {
+  const afterHours = { ...calendar, sessions: [{ marketDate: "2026-09-10", sessionKind: "AFTER_HOURS" as const,
+    opensAt: "2026-09-10T20:00:00Z", closesAt: "2026-09-11T00:00:00Z", isShortened: false,
+    calendarRevision: calendar.revision }] };
+  assert.equal(planNewsAcquisition(config, afterHours, undefined, new Date("2026-09-10T21:00:00Z")).length, 1);
+});
