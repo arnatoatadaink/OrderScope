@@ -30,8 +30,11 @@ export function planNewsAcquisition(
 ): readonly NewsAcquisitionJob[] {
   if (!config.enabled || !Number.isFinite(now.getTime())) return [];
   const nowMs = now.getTime();
-  const cadenceMs = config.cadenceMinutes * 60_000;
-  if (nowMs % cadenceMs !== 0) return [];
+  // Cron delivery can carry a stable seconds offset (for example :15) even
+  // though the trigger itself is minute-based. Cadence eligibility therefore
+  // belongs to the UTC minute bucket, not exact epoch-millisecond divisibility.
+  const utcMinuteBucket = Math.floor(nowMs / 60_000);
+  if (utcMinuteBucket % config.cadenceMinutes !== 0) return [];
   const session = calendar.sessions.find((candidate) =>
     (candidate.sessionKind === "PREMARKET" || candidate.sessionKind === "REGULAR" || candidate.sessionKind === "AFTER_HOURS")
     && nowMs >= Date.parse(candidate.opensAt) && nowMs <= Date.parse(candidate.closesAt));
