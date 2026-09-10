@@ -252,9 +252,13 @@ Earlier accepted task evidence remains preserved in task-specific handoffs.
 
 ## 10. Unresolved items
 
-- W1-001 Stage-B Universe is resolved at `25 / 28 / 53 = 106`. Stage B remains
-  Blocked at T7 because the full-profile scheduler issues 106 individual checkpoint
-  reads before acquisition, already exceeding the combined D1 ceiling of 40.
+- W1-003 resolved the 106-point checkpoint-read blocker with a bounded bulk read
+  and shared fail-closed D1 accounting.
+- W1-004 is Blocked by the unchanged `ACQUISITION_MAX_JOBS_PER_TICK=1` runtime:
+  the deterministic full-v0.1 fixture measured 69 minutes maximum Tier A age and
+  nine 1Min jobs still outstanding 30 minutes after a normal close. See
+  `W1-004_TIERED_RUNTIME_CAPACITY_BLOCKER_REPORT_2026-09-11.md`. Scheduler
+  semantics/configuration require separate Web review before measurement resumes.
 - UWBS-016 future WBS incorporation and reviewed Worker News activation.
 - PX0-001..004 operations/recovery backlog.
 - L1-003 / SMOKE-007 real-D1 approval window.
