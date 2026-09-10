@@ -11,6 +11,12 @@ import { loadPredictionRegistries, type PredictionRegistryBundle } from "./predi
 import { buildPredictionPremarketUniverse, planPredictionPremarketAcquisition } from "./prediction";
 import { coverageKeyFor, SchedulePolicy } from "./schedule";
 import { loadUniverseSnapshot, type UniverseInstrument, type UniverseSnapshot } from "./universe";
+import { loadNewsAcquisitionRuntimeConfig, type NewsAcquisitionConfigEnv } from "./news-acquisition-config";
+import { NEWS_COVERAGE_KEY, planNewsAcquisition } from "./news-schedule";
+import { D1NewsCheckpointPort, executeNewsAcquisition, type NewsCheckpointPort } from "./news-execution";
+import { D1NewsStore, type NewsStore } from "./news-store";
+import type { NewsExecutionOptions } from "./news-execution";
+import { D1_QUERY_CEILING, EXTERNAL_SUBREQUEST_CEILING, InvocationBudget } from "./invocation-budget";
 
 type PredictionMode = "off" | "shadow";
 
@@ -23,6 +29,7 @@ type Digest = {
   predictionMode?: PredictionMode;
   predictionTargetProfile?: string;
   notes: string[];
+  news?: Readonly<Record<string, unknown>>;
 };
 
 // `Env` is generated from wrangler.jsonc. Dashboard secrets and bindings that
@@ -34,11 +41,11 @@ type ProvisionedBindings = {
   BAR_ARCHIVE?: R2Bucket;
 };
 
-type RuntimeEnv = Omit<Env, "WORKER_MODE" | "PREDICTION_MODE" | "PREDICTION_TARGET_PROFILE"> & ProvisionedBindings & {
+type RuntimeEnv = Omit<Env, "WORKER_MODE" | "PREDICTION_MODE" | "PREDICTION_TARGET_PROFILE" | keyof NewsAcquisitionConfigEnv> & ProvisionedBindings & {
   WORKER_MODE: "shadow" | "live";
   PREDICTION_MODE?: PredictionMode;
   PREDICTION_TARGET_PROFILE?: string;
-};
+} & NewsAcquisitionConfigEnv;
 
 type PredictionRuntimeConfig = {
   mode: PredictionMode;
@@ -74,6 +81,7 @@ function currentDigest(
   const hasState = "STATE_DB" in env && Boolean(env.STATE_DB);
   const hasArchive = "BAR_ARCHIVE" in env && Boolean(env.BAR_ARCHIVE);
   const liveRequested = env.WORKER_MODE === "live";
+  const newsConfig = loadNewsAcquisitionRuntimeConfig(env);
 
   return {
     generatedAt: now.toISOString(),
@@ -83,6 +91,9 @@ function currentDigest(
     feed: env.ALPACA_FEED ?? "iex",
     ...(env.PREDICTION_MODE !== undefined ? { predictionMode: predictionConfig.mode } : {}),
     ...(predictionConfig.targetProfile ? { predictionTargetProfile: predictionConfig.targetProfile } : {}),
+    news: { mode: newsConfig.enabled && liveRequested ? "active" : newsConfig.enabled ? "shadow-plan" : "disabled",
+      cadenceMinutes: newsConfig.cadenceMinutes, plannedJobs: 0, selectedJobs: 0, completedJobs: 0,
+      partialJobs: 0, failedJobs: 0, articlesObserved: 0, duplicates: 0, updates: 0, pages: 0 },
     notes: [
       hasCredentials ? "alpaca credentials configured" : "alpaca credentials not configured",
       hasState ? "D1 state binding configured" : "D1 state binding not configured",
@@ -104,6 +115,9 @@ export type ScheduledOrchestrationDependencies = {
   checkpointPort?: (db: D1Database) => CoverageCheckpointPort;
   leaseStore?: (db: D1Database) => AcquisitionLeaseStore;
   barStore?: (db: D1Database) => NormalizedBarStore;
+  newsCheckpointPort?: (db: D1Database) => NewsCheckpointPort;
+  newsStore?: (db: D1Database) => NewsStore;
+  fetchNewsPage?: NewsExecutionOptions["fetchPage"];
 };
 
 const productionDependencies: ScheduledOrchestrationDependencies = {
@@ -142,6 +156,7 @@ async function runScheduledTick(
 
   const credentials = { keyId: env.ALPACA_API_KEY, secretKey: env.ALPACA_API_SECRET };
   const acquisitionConfig = loadAcquisitionRuntimeConfig(env);
+  const newsConfig = loadNewsAcquisitionRuntimeConfig(env);
   const universe = dependencies.universe(env.UNIVERSE_PROFILE);
   const predictionRegistries = predictionConfig.mode === "shadow"
     ? (dependencies.predictionRegistries ?? productionDependencies.predictionRegistries!)(predictionConfig.targetProfile!)
@@ -270,6 +285,51 @@ async function runScheduledTick(
     }
   }
   const staleAttempts = await checkpoints.summarizeStaleAttempts(staleBefore);
+  const invocationBudget = new InvocationBudget();
+  const marketExternalSubrequests = summaries.reduce((sum, summary) => sum + ("pages" in summary ? summary.pages : 0), 0);
+  invocationBudget.consume("external", marketExternalSubrequests);
+  const newsCheckpoints = dependencies.newsCheckpointPort?.(env.STATE_DB) ?? new D1NewsCheckpointPort(env.STATE_DB);
+  if (newsConfig.enabled) invocationBudget.consume("d1");
+  const newsStored = newsConfig.enabled ? await newsCheckpoints.get(NEWS_COVERAGE_KEY) : undefined;
+  const newsPlanned = planNewsAcquisition(newsConfig, calendar, newsStored, now);
+  const newsSummaries = [];
+  for (const newsJob of newsPlanned) {
+    newsSummaries.push(await executeNewsAcquisition(newsJob, {
+      credentials, checkpoints: newsCheckpoints,
+      store: dependencies.newsStore?.(env.STATE_DB) ?? new D1NewsStore(env.STATE_DB),
+      retry: acquisitionConfig.providerRetry,
+      retryDelayMs: acquisitionConfig.gapRetryMinutes * 60_000,
+      now: () => now, fetchPage: dependencies.fetchNewsPage, budget: invocationBudget,
+    }));
+  }
+  const news = {
+    mode: newsConfig.enabled ? "active" : "disabled",
+    cadenceMinutes: newsConfig.cadenceMinutes,
+    plannedJobs: newsPlanned.length,
+    selectedJobs: newsPlanned.length,
+    completedJobs: newsSummaries.filter((summary) => summary.outcome === "SUCCEEDED").length,
+    partialJobs: newsSummaries.filter((summary) => summary.outcome === "PARTIAL").length,
+    failedJobs: newsSummaries.filter((summary) => summary.outcome === "FAILED").length,
+    articlesObserved: newsSummaries.reduce((sum, summary) => sum + summary.articlesObserved, 0),
+    duplicates: newsSummaries.reduce((sum, summary) => sum + summary.duplicates, 0),
+    updates: newsSummaries.reduce((sum, summary) => sum + summary.updates, 0),
+    pages: newsSummaries.reduce((sum, summary) => sum + summary.pages, 0),
+    externalSubrequests: newsSummaries.reduce((sum, summary) => sum + summary.externalSubrequests, 0),
+    d1Queries: (newsConfig.enabled ? 1 : 0) + newsSummaries.reduce((sum, summary) => sum + summary.d1Queries, 0),
+    nextCheckpoint: newsSummaries.at(-1)?.nextCheckpoint ?? newsStored?.completeThrough,
+  };
+  const budget = {
+    marketExternalSubrequests,
+    newsExternalSubrequests: news.externalSubrequests,
+    totalExternalSubrequests: invocationBudget.snapshot().externalSubrequests,
+    marketD1Queries: null,
+    newsD1Queries: news.d1Queries,
+    totalD1Queries: null,
+    externalBudgetCeiling: EXTERNAL_SUBREQUEST_CEILING,
+    d1BudgetCeiling: D1_QUERY_CEILING,
+    withinBudget: false,
+    blocker: "market D1 queries are not yet instrumented against the combined ceiling",
+  };
   const persistedDigest = { ...digest, plannedJobs: jobs.length, jobPlans,
     maxJobsPerTick: acquisitionConfig.maxJobsPerTick, retryPolicy: acquisitionConfig.retryPolicy,
     gapRetryMinutes: acquisitionConfig.gapRetryMinutes,
@@ -280,7 +340,7 @@ async function runScheduledTick(
     } : {}),
     staleAttemptThresholdMinutes: acquisitionConfig.staleAttemptMinutes,
     staleAttempts, supersededStaleAttempts, summaries,
-    ...(predictionShadow ? { predictionShadow } : {}) };
+    news, budget, ...(predictionShadow ? { predictionShadow } : {}) };
   await new D1LatestDigestStore(env.STATE_DB).put(LATEST_DIGEST_KEY, digest.generatedAt, persistedDigest);
   console.log(JSON.stringify({ event: "scheduler_tick_live", ...persistedDigest }));
 }

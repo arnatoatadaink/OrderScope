@@ -50,7 +50,7 @@ async function bundleWorker(entry = "import worker from './index.ts'; export def
 }
 
 async function migrateStateDb(db: D1Database): Promise<void> {
-  for (const migration of ["0001_state.sql", "0002_attempt_coverage_key.sql", "0003_normalized_bar.sql", "0004_acquisition_lease.sql", "0005_gap_retry_eligibility.sql", "0006_digest_history.sql"]) {
+  for (const migration of ["0001_state.sql", "0002_attempt_coverage_key.sql", "0003_normalized_bar.sql", "0004_acquisition_lease.sql", "0005_gap_retry_eligibility.sql", "0006_digest_history.sql", "0007_news_metadata.sql"]) {
     const sql = await readFile(new URL(`../migrations/${migration}`, import.meta.url), "utf8");
     for (const statement of unstable_splitSqlQuery(sql)) await db.prepare(statement).run();
   }
@@ -92,6 +92,11 @@ test("scheduled shadow tick persists a digest exposed by /digest/latest", async 
         "R2 archive binding not configured",
         "calendar-aware acquisition is intentionally not simulated from weekday/UTC rules",
       ],
+      news: {
+        mode: "disabled", cadenceMinutes: 5, plannedJobs: 0, selectedJobs: 0,
+        completedJobs: 0, partialJobs: 0, failedJobs: 0, articlesObserved: 0,
+        duplicates: 0, updates: 0, pages: 0,
+      },
     },
   });
 
