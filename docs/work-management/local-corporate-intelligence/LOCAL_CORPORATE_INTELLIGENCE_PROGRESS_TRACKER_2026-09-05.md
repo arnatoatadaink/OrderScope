@@ -1,7 +1,7 @@
 # OrderScope — Local Corporate Intelligence Progress Tracker
 
 Status: **Active integrated runtime tracker**
-Date: 2026-09-10
+Date: 2026-09-11
 Scope: Local Corporate Intelligence / X0 integration
 
 This file is the sole integrated authority for Local Corporate Intelligence runtime progress after the 2026-09-05 consolidation. Detailed implementation notes remain in task-specific handoffs.
@@ -208,6 +208,23 @@ N1-006 measured benchmark Accepted
   -> AMD/NVDA Worker News Canary activation
 ```
 
+### W1-001 live Canary change-window result — Rolled back
+
+The reviewed live-canary window was opened twice on 2026-09-11 JST and safely
+rolled back twice. Migration `0007_news_metadata.sql` is applied to the isolated
+live-canary D1 database. The first activation exposed an Alpaca calendar 401;
+the managed secrets were updated and the calendar endpoint subsequently returned
+HTTP 200. The resumed live tick completed one Market job within the shared
+budget (`external=1/40`, `D1=21/40`) but planned no News job.
+
+Live Cron evidence showed a stable `:15` seconds offset while the News planner
+requires the full scheduled timestamp to be exactly divisible by five minutes.
+Therefore no eligible News opportunity can occur under the current implementation.
+The final Worker version `c2aebaa7-d82a-4f79-986a-5700b01a5146` is `shadow` with
+News disabled. W1-001 live acceptance is blocked until the cadence predicate is
+repaired, tested, reviewed, and a new change window is approved. See
+`W1-001_LIVE_CANARY_CHANGE_WINDOW_REPORT_2026-09-11.md`.
+
 ## 6. Post-X0 operational follow-ups
 
 | Follow-up | Status | Boundary |
@@ -222,7 +239,7 @@ These remain non-normative tracking IDs pending future WBS incorporation/remap.
 ## 7. Parallel/deferred lanes
 
 - `N1-006` real 30-day benchmark is Accepted.
-- `UWBS-016` News Worker/Schedule acquisition is Ready for WBS design; its proposed cadence now needs confirmation against the accepted N1-006 measurements before activation.
+- `W1-001` live Canary is Blocked after safe rollback; repair and review the News cadence predicate before reopening the window.
 - `L1-003` remains externally Blocked behind `SMOKE-007` approval.
 - `PX0-001..004` remain separate operations/recovery follow-ups.
 - `A0-001` remains Provisional and `A0-002` remains separate validation work.
@@ -232,8 +249,8 @@ These remain non-normative tracking IDs pending future WBS incorporation/remap.
 ## 8. Current restart rule
 
 1. Treat N1-006 as Accepted through the real 645-candidate review, 4/4 recall measurement, and 19 / 503 / compileall / diff evidence.
-2. Use the measured provider-publication lag/recall to confirm or adjust the proposed 5-minute Worker News cadence.
-3. Keep UWBS-016 planning separate from live Worker activation; do not register the job without its reviewed WBS/change window.
+2. Repair the News cadence predicate so non-zero Cron seconds offsets can still select the intended five-minute bucket; add focused tests and review the technical delta.
+3. Reopen W1-001 only after the repair passes full local acceptance and a new reviewed Worker change window is approved.
 4. Keep `L1-003/SMOKE-007` and other Worker mutations separately gated.
 
 ## 9. Latest acceptance evidence
@@ -248,6 +265,7 @@ These remain non-normative tracking IDs pending future WBS incorporation/remap.
 | N1-006 real-data benchmark | 645/645 reviewed; 51 matched; 594 unrelated; 0 unresolved; 4/4 discovered; recall 1.0000; misattribution 0; focused 19; full 503; compileall success; diff clean |
 | X0-006 | operator/external review accepted for policy-level fixture path; F1-F4 deferred to PX0-001..004 |
 | W1-005 | local multi-symbol scheduler accepted; 106 instruments preserved; normal/shortened Tier A max age 3m; close+30m outstanding 1Min=0; full TypeScript suite 124; focused 33; typecheck and Wrangler dry-run passed |
+| W1-001 live Canary | rolled back; migration 0007 applied; Alpaca 401 repaired; first completed live tick external 1/40 and D1 21/40; News eligibility blocked by stable `:15` Cron seconds offset |
 
 Earlier accepted task evidence remains preserved in task-specific handoffs.
 
@@ -262,6 +280,10 @@ Earlier accepted task evidence remains preserved in task-specific handoffs.
   jobs outstanding at close+30 minutes with two groups per tick. See
   `W1-005_MULTI_SYMBOL_TIER_SCHEDULER_LOCAL_ACCEPTANCE_2026-09-11.md`. Remote D1,
   deployment, Cron, Worker mode, and live profile activation remain unauthorized.
+- W1-001 live Canary is safely rolled back and Blocked. The Worker is `shadow`
+  with News disabled. The cadence predicate must be repaired and reviewed before
+  another live window because actual Cron timestamps carry a stable 15-second
+  offset and never satisfy the current exact-millisecond modulo test.
 - UWBS-016 future WBS incorporation and reviewed Worker News activation.
 - PX0-001..004 operations/recovery backlog.
 - L1-003 / SMOKE-007 real-D1 approval window.
