@@ -3,7 +3,7 @@ import test from "node:test";
 import type { MarketCalendarSnapshot } from "./calendar.ts";
 import type { StoredCoverageCheckpoint } from "./checkpoint.ts";
 import { prioritizeAcquisitionJobs } from "./job-priority.ts";
-import { coverageKeyFor, SchedulePolicy } from "./schedule.ts";
+import { batchAcquisitionJobs, coverageKeyFor, SchedulePolicy } from "./schedule.ts";
 import { loadUniverseSnapshot, type Cadence, type UniverseInstrument } from "./universe.ts";
 
 const MINUTE = 60_000;
@@ -54,7 +54,7 @@ type Simulation = {
   selected: Record<Cadence, number>;
 };
 
-export function simulateSession(close: string): Simulation {
+export function simulateSession(close: string, maxGroupsPerTick = 2): Simulation {
   const calendar = fixtureCalendar(close);
   const openMs = Date.parse("2026-09-10T13:30:00.000Z");
   const closeMs = Date.parse(close);
@@ -87,12 +87,15 @@ export function simulateSession(close: string): Simulation {
       const age = Math.max(0, nowMs - Date.parse(prior.completeThrough!)) / MINUTE;
       maxAgeMinutes[job.interval] = Math.max(maxAgeMinutes[job.interval], age);
     }
-    const job = prioritizeAcquisitionJobs(jobs, stored)[0];
-    if (!job) continue;
-    const prior = checkpoints.get(job.checkpointExpectations[0]!.coverageKey)!;
-    checkpoints.set(prior.coverageKey, { ...prior, completeThrough: job.requestedRange.endExclusive,
-      version: prior.version + 1 });
-    selected[job.interval] += 1;
+    const selectedGroups = batchAcquisitionJobs(prioritizeAcquisitionJobs(jobs, stored)).slice(0, maxGroupsPerTick);
+    for (const job of selectedGroups) {
+      for (const expectation of job.checkpointExpectations) {
+        const prior = checkpoints.get(expectation.coverageKey)!;
+        checkpoints.set(prior.coverageKey, { ...prior, completeThrough: job.requestedRange.endExclusive,
+          version: prior.version + 1 });
+      }
+      selected[job.interval] += 1;
+    }
   }
 
   const atClose = new Date(closeMs + 30 * MINUTE);
@@ -116,17 +119,17 @@ test("full-v0.1 normal and shortened days retain the authoritative tiered bar vo
   assert.deepEqual(plannedBars("2026-09-10T17:00:00.000Z"), { "1Min": 6_480, "15Min": 392, "1Day": 53 });
 });
 
-test("configured one-job scheduler is deterministic and materially misses Tier A cadence", () => {
+test("multi-symbol tier scheduler is deterministic and meets Tier A freshness", () => {
   const first = simulateSession("2026-09-10T20:00:00.000Z");
   const second = simulateSession("2026-09-10T20:00:00.000Z");
   assert.deepEqual(first, second);
-  assert.ok(first.maxAgeMinutes["1Min"] > 1, JSON.stringify(first));
-  assert.ok(first.outstandingAtClose["1Min"] > 0, JSON.stringify(first));
+  assert.ok(first.maxAgeMinutes["1Min"] <= 3, JSON.stringify(first));
+  assert.equal(first.outstandingAtClose["1Min"], 0, JSON.stringify(first));
 });
 
 test("shortened session and empty-checkpoint catch-up remain bounded by real job selection", () => {
   const shortened = simulateSession("2026-09-10T17:00:00.000Z");
-  assert.equal(Object.values(shortened.selected).reduce((sum, count) => sum + count, 0), 239);
+  assert.ok(Object.values(shortened.selected).reduce((sum, count) => sum + count, 0) <= 3 * 239);
 
   const now = new Date("2026-09-10T20:30:00.000Z");
   const jobs = new SchedulePolicy({
@@ -138,7 +141,10 @@ test("shortened session and empty-checkpoint catch-up remain bounded by real job
   }).plan(universe, fixtureCalendar(), [], now);
   assert.equal(jobs.length, 106);
   assert.ok(jobs.every((job) => job.dueReason === "NO_CHECKPOINT"));
-  assert.equal(prioritizeAcquisitionJobs(jobs, [])[0]?.interval, "15Min");
+  const groups = batchAcquisitionJobs(prioritizeAcquisitionJobs(jobs, []));
+  assert.equal(groups.filter((job) => job.interval === "1Min" && job.providerRoute === "alpaca_stock_bars")[0]?.instruments.length, 24);
+  assert.equal(groups.filter((job) => job.interval === "15Min")[0]?.instruments.length, 28);
+  assert.equal(groups.filter((job) => job.interval === "1Day" && job.providerRoute === "alpaca_stock_bars")[0]?.instruments.length, 52);
 });
 
 test("steady-state overlap produces MATCHED observations without changing planned NEW volume", () => {

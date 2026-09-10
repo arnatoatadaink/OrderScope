@@ -7,6 +7,9 @@ export type AlpacaCredentials = {
 
 export type HistoricalBarRequest = {
   instrument: UniverseInstrument;
+  /** All instruments for a compatible provider request; instrument remains the
+   * first member for source compatibility with injected single-symbol adapters. */
+  instruments?: readonly UniverseInstrument[];
   startInclusive: string;
   endExclusive: string;
   pageToken?: string;
@@ -88,6 +91,22 @@ function parseStockPayload(value: unknown): { bars: AlpacaBar[]; nextPageToken?:
     throw new Error("alpaca stock bars response has an invalid schema");
   }
   return { bars, nextPageToken: typeof token === "string" ? token : undefined };
+}
+
+function parseGroupedPayload(value: unknown): { bars: Record<string, AlpacaBar[]>; nextPageToken?: string } {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new Error("alpaca grouped bars response has an invalid schema");
+  }
+  const payload = value as Record<string, unknown>;
+  const groups = payload.bars ?? {};
+  const token = payload.next_page_token;
+  if (typeof groups !== "object" || groups === null || Array.isArray(groups)
+    || !Object.values(groups).every((bars) => Array.isArray(bars) && bars.every(isAlpacaBar))
+    || (token !== undefined && token !== null && typeof token !== "string")) {
+    throw new Error("alpaca grouped bars response has an invalid schema");
+  }
+  return { bars: groups as Record<string, AlpacaBar[]>,
+    nextPageToken: typeof token === "string" ? token : undefined };
 }
 
 function parseCryptoPayload(value: unknown, symbol: string): { bars: AlpacaBar[]; nextPageToken?: string } {
@@ -263,12 +282,21 @@ export async function fetchHistoricalBars(
   options?: HistoricalBarFetchOptions,
 ): Promise<HistoricalBarPage> {
   const { instrument } = request;
+  const instruments = request.instruments ?? [instrument];
+  if (instruments.length === 0 || instruments.some((candidate) =>
+    candidate.providerRoute !== instrument.providerRoute || candidate.cadence !== instrument.cadence)) {
+    throw new Error("historical bar batch must have one compatible route and cadence");
+  }
   const limit = Math.min(Math.max(request.limit ?? 1000, 1), 10000);
 
   if (instrument.providerRoute === "alpaca_stock_bars") {
     const logicalFeed = request.feed ?? "iex";
     const apiFeed = logicalFeed === "delayed_sip" ? "sip" : logicalFeed;
-    const url = new URL(`https://data.alpaca.markets/v2/stocks/${encodeURIComponent(instrument.symbol)}/bars`);
+    const batched = instruments.length > 1;
+    const url = new URL(batched
+      ? "https://data.alpaca.markets/v2/stocks/bars"
+      : `https://data.alpaca.markets/v2/stocks/${encodeURIComponent(instrument.symbol)}/bars`);
+    if (batched) url.searchParams.set("symbols", instruments.map((item) => item.symbol).join(","));
     url.searchParams.set("timeframe", timeframe(instrument.cadence));
     const providerRange = providerStockRange(request);
     url.searchParams.set("start", providerRange.startInclusive);
@@ -282,18 +310,22 @@ export async function fetchHistoricalBars(
     if (request.pageToken) url.searchParams.set("page_token", request.pageToken);
 
     const response = await fetchWithRetry(url, credentials, "alpaca stock bars", options);
-    const payload = parseStockPayload(await response.json());
+    const rawPayload: unknown = await response.json();
+    const payload = batched ? parseGroupedPayload(rawPayload) : parseStockPayload(rawPayload);
+    const groups = batched ? payload.bars as Record<string, AlpacaBar[]>
+      : { [instrument.symbol]: payload.bars as AlpacaBar[] };
     return {
-      bars: payload.bars
-        .filter((bar) => insideRequestedStockRange(bar, request))
-        .map((bar) => normalize(instrument.symbol, bar, `stock:${logicalFeed}:raw`)),
+      bars: instruments.flatMap((item) => (groups[item.symbol] ?? [])
+        .filter((bar) => insideRequestedStockRange(bar, { ...request, instrument: item }))
+        .map((bar) => normalize(item.symbol, bar, `stock:${logicalFeed}:raw`))),
       nextPageToken: payload.nextPageToken,
     };
   }
 
-  const alpacaSymbol = instrument.symbol === "BTCUSD" ? "BTC/USD" : instrument.symbol === "ETHUSD" ? "ETH/USD" : instrument.symbol;
+  const providerSymbol = (symbol: string) => symbol === "BTCUSD" ? "BTC/USD" : symbol === "ETHUSD" ? "ETH/USD" : symbol;
+  const providerSymbols = instruments.map((item) => providerSymbol(item.symbol));
   const url = new URL("https://data.alpaca.markets/v1beta3/crypto/us/bars");
-  url.searchParams.set("symbols", alpacaSymbol);
+  url.searchParams.set("symbols", providerSymbols.join(","));
   url.searchParams.set("timeframe", timeframe(instrument.cadence));
   url.searchParams.set("start", request.startInclusive);
   url.searchParams.set("end", request.endExclusive);
@@ -302,11 +334,17 @@ export async function fetchHistoricalBars(
   if (request.pageToken) url.searchParams.set("page_token", request.pageToken);
 
   const response = await fetchWithRetry(url, credentials, "alpaca crypto bars", options);
-  const payload = parseCryptoPayload(await response.json(), alpacaSymbol);
+  const rawPayload: unknown = await response.json();
+  const payload = instruments.length === 1
+    ? parseCryptoPayload(rawPayload, providerSymbols[0]!)
+    : parseGroupedPayload(rawPayload);
+  const groups = instruments.length === 1
+    ? { [providerSymbols[0]!]: payload.bars as AlpacaBar[] }
+    : payload.bars as Record<string, AlpacaBar[]>;
   return {
-    bars: payload.bars
+    bars: instruments.flatMap((item, index) => (groups[providerSymbols[index]!] ?? [])
       .filter((bar) => insideHalfOpen(bar, request.startInclusive, request.endExclusive))
-      .map((bar) => normalize(instrument.symbol, bar, "crypto:us")),
+      .map((bar) => normalize(item.symbol, bar, "crypto:us"))),
     nextPageToken: payload.nextPageToken,
   };
 }

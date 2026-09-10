@@ -28,6 +28,8 @@ export type CompareAndSetOutcome =
   | { outcome: "UPDATED"; checkpoint: StoredCoverageCheckpoint }
   | { outcome: "VERSION_CONFLICT" };
 
+export type CheckpointUpdate = { expectedVersion: number | undefined; proposed: StoredCoverageCheckpoint };
+
 export type AcquisitionAttempt = {
   attemptId: string;
   coverageKey: string;
@@ -58,6 +60,7 @@ export interface CoverageCheckpointPort {
     expectedVersion: number | undefined,
     proposed: StoredCoverageCheckpoint,
   ): Promise<CompareAndSetOutcome>;
+  compareAndSetMany?(updates: readonly CheckpointUpdate[]): Promise<readonly CompareAndSetOutcome[]>;
   recordAttempt(attempt: AcquisitionAttempt): Promise<void>;
   summarizeStaleAttempts(staleBefore: string): Promise<StaleAttemptSummary>;
   supersedeStaleAttempts(command: SupersedeStaleAttemptsCommand): Promise<number>;
@@ -308,6 +311,62 @@ export class D1CoverageCheckpointPort implements CoverageCheckpointPort {
       ).first<CheckpointRow>();
     }
     return row ? { outcome: "UPDATED", checkpoint: fromRow(row) } : { outcome: "VERSION_CONFLICT" };
+  }
+
+  async compareAndSetMany(updates: readonly CheckpointUpdate[]): Promise<readonly CompareAndSetOutcome[]> {
+    if (updates.length === 0) return [];
+    if (updates.length > 500) throw new Error("checkpoint batch update is limited to 500 keys");
+    updates.forEach(({ expectedVersion, proposed }) => {
+      validateProposal(proposed);
+      if (expectedVersion !== undefined && (!Number.isSafeInteger(expectedVersion) || expectedVersion < 0)) {
+        throw new Error("expectedVersion must be a non-negative integer");
+      }
+    });
+    const payload = updates.map(({ expectedVersion, proposed }) => ({
+      expectedVersion: expectedVersion ?? null,
+      values: values(proposed),
+    }));
+    const result = await this.db.prepare(`
+      INSERT INTO coverage_checkpoint (
+        coverage_key, symbol, interval, session_scope, logical_data_variant,
+        complete_through, state, missing_ranges_json, last_success_at,
+        last_attempt_at, source_observed_through, universe_revision, blocker_json,
+        retry_not_before, version
+      )
+      SELECT
+        json_extract(value, '$.values[0]'), json_extract(value, '$.values[1]'),
+        json_extract(value, '$.values[2]'), json_extract(value, '$.values[3]'),
+        json_extract(value, '$.values[4]'), json_extract(value, '$.values[5]'),
+        json_extract(value, '$.values[6]'), json_extract(value, '$.values[7]'),
+        json_extract(value, '$.values[8]'), json_extract(value, '$.values[9]'),
+        json_extract(value, '$.values[10]'), json_extract(value, '$.values[11]'),
+        json_extract(value, '$.values[12]'), json_extract(value, '$.values[13]'), 0
+      FROM json_each(?)
+      WHERE json_extract(value, '$.expectedVersion') IS NULL
+         OR EXISTS (SELECT 1 FROM coverage_checkpoint current
+           WHERE current.coverage_key = json_extract(value, '$.values[0]')
+             AND current.version = json_extract(value, '$.expectedVersion'))
+      ON CONFLICT(coverage_key) DO UPDATE SET
+        symbol=excluded.symbol, interval=excluded.interval, session_scope=excluded.session_scope,
+        logical_data_variant=excluded.logical_data_variant, complete_through=excluded.complete_through,
+        state=excluded.state, missing_ranges_json=excluded.missing_ranges_json,
+        last_success_at=excluded.last_success_at, last_attempt_at=excluded.last_attempt_at,
+        source_observed_through=excluded.source_observed_through, universe_revision=excluded.universe_revision,
+        blocker_json=excluded.blocker_json, retry_not_before=excluded.retry_not_before,
+        version=coverage_checkpoint.version + 1
+      WHERE (coverage_checkpoint.complete_through IS NULL
+          OR (excluded.complete_through IS NOT NULL AND excluded.complete_through >= coverage_checkpoint.complete_through))
+        AND coverage_checkpoint.version = (
+          SELECT json_extract(value, '$.expectedVersion') FROM json_each(?)
+          WHERE json_extract(value, '$.values[0]') = excluded.coverage_key
+        )
+      RETURNING ${SELECT_COLUMNS}
+    `).bind(JSON.stringify(payload), JSON.stringify(payload)).all<CheckpointRow>();
+    const byKey = new Map(result.results.map(fromRow).map((checkpoint) => [checkpoint.coverageKey, checkpoint]));
+    return updates.map(({ proposed }) => {
+      const checkpoint = byKey.get(proposed.coverageKey);
+      return checkpoint ? { outcome: "UPDATED" as const, checkpoint } : { outcome: "VERSION_CONFLICT" as const };
+    });
   }
 
   async recordAttempt(attempt: AcquisitionAttempt): Promise<void> {

@@ -247,6 +247,7 @@ These remain non-normative tracking IDs pending future WBS incorporation/remap.
 | N1-006 labeling path | focused command 15; full 494; compileall success; diff clean |
 | N1-006 real-data benchmark | 645/645 reviewed; 51 matched; 594 unrelated; 0 unresolved; 4/4 discovered; recall 1.0000; misattribution 0; focused 19; full 503; compileall success; diff clean |
 | X0-006 | operator/external review accepted for policy-level fixture path; F1-F4 deferred to PX0-001..004 |
+| W1-005 | local multi-symbol scheduler accepted; 106 instruments preserved; normal/shortened Tier A max age 3m; close+30m outstanding 1Min=0; full TypeScript suite 124; focused 33; typecheck and Wrangler dry-run passed |
 
 Earlier accepted task evidence remains preserved in task-specific handoffs.
 
@@ -254,11 +255,13 @@ Earlier accepted task evidence remains preserved in task-specific handoffs.
 
 - W1-003 resolved the 106-point checkpoint-read blocker with a bounded bulk read
   and shared fail-closed D1 accounting.
-- W1-004 is Blocked by the unchanged `ACQUISITION_MAX_JOBS_PER_TICK=1` runtime:
-  the deterministic full-v0.1 fixture measured 69 minutes maximum Tier A age and
-  nine 1Min jobs still outstanding 30 minutes after a normal close. See
-  `W1-004_TIERED_RUNTIME_CAPACITY_BLOCKER_REPORT_2026-09-11.md`. Scheduler
-  semantics/configuration require separate Web review before measurement resumes.
+- W1-005 is Accepted for the local/non-live boundary. Compatible Market work is
+  now batched by provider/cadence/session/variant/mode/range/revisions with
+  per-symbol checkpoint CAS truth retained. The deterministic full-v0.1 normal
+  and shortened fixtures measured 3-minute maximum Tier A age and zero 1Min
+  jobs outstanding at close+30 minutes with two groups per tick. See
+  `W1-005_MULTI_SYMBOL_TIER_SCHEDULER_LOCAL_ACCEPTANCE_2026-09-11.md`. Remote D1,
+  deployment, Cron, Worker mode, and live profile activation remain unauthorized.
 - UWBS-016 future WBS incorporation and reviewed Worker News activation.
 - PX0-001..004 operations/recovery backlog.
 - L1-003 / SMOKE-007 real-D1 approval window.

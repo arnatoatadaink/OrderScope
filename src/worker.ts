@@ -9,7 +9,7 @@ import { D1AcquisitionLeaseStore, type AcquisitionLeaseStore } from "./lease";
 import { gapRetryEligibility, type DeferredGapRetry } from "./gap-retry";
 import { loadPredictionRegistries, type PredictionRegistryBundle } from "./prediction-registry";
 import { buildPredictionPremarketUniverse, planPredictionPremarketAcquisition } from "./prediction";
-import { coverageKeyFor, SchedulePolicy } from "./schedule";
+import { batchAcquisitionJobs, coverageKeyFor, SchedulePolicy } from "./schedule";
 import { loadUniverseSnapshot, type UniverseInstrument, type UniverseSnapshot } from "./universe";
 import { loadNewsAcquisitionRuntimeConfig, type NewsAcquisitionConfigEnv } from "./news-acquisition-config";
 import { NEWS_COVERAGE_KEY, planNewsAcquisition } from "./news-schedule";
@@ -247,7 +247,9 @@ async function runScheduledTick(
       })),
     };
   }
-  const runnableJobs = prioritizeAcquisitionJobs(jobs, stored).slice(0, acquisitionConfig.maxJobsPerTick);
+  const runnableJobs = batchAcquisitionJobs(
+    prioritizeAcquisitionJobs(jobs, stored),
+  ).slice(0, acquisitionConfig.maxJobsPerTick);
   const jobPlans = runnableJobs.map((job) => ({
     jobId: job.jobId,
     dueReason: job.dueReason,
@@ -261,7 +263,9 @@ async function runScheduledTick(
   let supersededStaleAttempts = 0;
   const leases = dependencies.leaseStore?.(stateDb) ?? new D1AcquisitionLeaseStore(stateDb);
   for (const job of runnableJobs) {
-    const coverageKey = job.checkpointExpectations[0]!.coverageKey;
+    const coverageKey = job.instruments.length === 1
+      ? job.checkpointExpectations[0]!.coverageKey
+      : `batch:${job.jobId}`;
     const ownerId = `${job.jobId}:${now.toISOString()}`;
     const acquired = await leases.acquire(coverageKey, ownerId, now.toISOString(), 5 * 60_000);
     if (!acquired) {
