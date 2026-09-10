@@ -252,6 +252,10 @@ Earlier accepted task evidence remains preserved in task-specific handoffs.
 
 ## 10. Unresolved items
 
+- W1-001 Stage-B tiered-Universe review is Blocked at T1: the authoritative
+  specification and implementation contain `25 / 28 / 53 = 106`, while the local
+  handoff requires `25 / 28 / 52 = 105`. Web must resolve the Tier-C authority before
+  capacity projections continue.
 - UWBS-016 future WBS incorporation and reviewed Worker News activation.
 - PX0-001..004 operations/recovery backlog.
 - L1-003 / SMOKE-007 real-D1 approval window.
