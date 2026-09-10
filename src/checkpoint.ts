@@ -52,6 +52,7 @@ export type SupersedeStaleAttemptsCommand = {
 
 export interface CoverageCheckpointPort {
   get(coverageKey: string): Promise<StoredCoverageCheckpoint | undefined>;
+  getMany(coverageKeys: readonly string[]): Promise<readonly StoredCoverageCheckpoint[]>;
   listDue(query: DueCheckpointQuery): Promise<readonly StoredCoverageCheckpoint[]>;
   compareAndSet(
     expectedVersion: number | undefined,
@@ -211,6 +212,23 @@ export class D1CoverageCheckpointPort implements CoverageCheckpointPort {
       .bind(coverageKey)
       .first<CheckpointRow>();
     return row ? fromRow(row) : undefined;
+  }
+
+  async getMany(coverageKeys: readonly string[]): Promise<readonly StoredCoverageCheckpoint[]> {
+    const uniqueKeys = [...new Set(coverageKeys)];
+    if (uniqueKeys.length === 0) return [];
+    if (uniqueKeys.length > 500) throw new Error("coverage key bulk read is limited to 500 keys");
+    if (uniqueKeys.some((key) => !key)) throw new Error("coverage keys must be non-empty");
+    const result = await this.db.prepare(`
+      SELECT ${SELECT_COLUMNS}
+      FROM coverage_checkpoint
+      WHERE coverage_key IN (SELECT value FROM json_each(?))
+    `).bind(JSON.stringify(uniqueKeys)).all<CheckpointRow>();
+    const byKey = new Map(result.results.map(fromRow).map((checkpoint) => [checkpoint.coverageKey, checkpoint]));
+    return uniqueKeys.flatMap((key) => {
+      const checkpoint = byKey.get(key);
+      return checkpoint ? [checkpoint] : [];
+    });
   }
 
   async listDue(query: DueCheckpointQuery): Promise<readonly StoredCoverageCheckpoint[]> {

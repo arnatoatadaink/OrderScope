@@ -49,7 +49,6 @@ export type NewsExecutionOptions = { credentials: AlpacaCredentials; store: News
 export async function executeNewsAcquisition(job: NewsAcquisitionJob, options: NewsExecutionOptions): Promise<NewsExecutionSummary> {
   const now = options.now ?? (() => new Date()); const fetchPage = options.fetchPage ?? fetchNewsPage;
   const budget = options.budget ?? new InvocationBudget(); const before = budget.snapshot();
-  budget.consume("d1");
   const existing = await options.checkpoints.get(job.checkpointExpectations[0]!.coverageKey);
   const counts = { pages: 0, articlesObserved: 0, newArticles: 0, duplicates: 0, updates: 0, conflicts: 0 };
   try {
@@ -66,7 +65,6 @@ export async function executeNewsAcquisition(job: NewsAcquisitionJob, options: N
         if (counts.articlesObserved + page.articles.length > job.maxArticlesPerRun) throw new Error("ARTICLE_LIMIT");
         const commands = page.articles.map((article) => { const observedAt = now().toISOString();
           return { article, querySymbol: symbol, retrievedAt: observedAt, acceptedAt: observedAt }; });
-        if (commands.length) budget.consume("d1", 3);
         const acceptedBatch = await options.store.acceptBatch(commands);
         for (const accepted of acceptedBatch) {
           counts.articlesObserved += 1;
@@ -82,7 +80,6 @@ export async function executeNewsAcquisition(job: NewsAcquisitionJob, options: N
     const proposed: StoredNewsCheckpoint = { coverageKey: job.checkpointExpectations[0]!.coverageKey,
       completeThrough: job.requestedRange.endExclusive, state: "COMPLETE", lastAttemptAt: finishedAt,
       lastSuccessAt: finishedAt, version: existing?.version ?? 0, diagnostic: counts };
-    budget.consume("d1");
     if (await options.checkpoints.compareAndSet(existing?.version, proposed) === "VERSION_CONFLICT") throw new Error("CHECKPOINT_CONFLICT");
     const used = budget.snapshot();
     return { outcome: "SUCCEEDED", ...counts, externalSubrequests: used.externalSubrequests - before.externalSubrequests,
@@ -96,7 +93,7 @@ export async function executeNewsAcquisition(job: NewsAcquisitionJob, options: N
       lastAttemptAt: finishedAt, lastSuccessAt: existing?.lastSuccessAt,
       retryNotBefore: retryable ? new Date(Date.parse(finishedAt) + (options.retryDelayMs ?? 300_000)).toISOString() : undefined,
       version: existing?.version ?? 0, diagnostic: { category, ...counts } };
-    try { budget.consume("d1"); await options.checkpoints.compareAndSet(existing?.version, proposed); } catch (checkpointError) {
+    try { await options.checkpoints.compareAndSet(existing?.version, proposed); } catch (checkpointError) {
       if (category !== "D1_BUDGET" && checkpointError instanceof Error && checkpointError.message !== "D1_BUDGET") throw checkpointError;
     }
     const used = budget.snapshot();

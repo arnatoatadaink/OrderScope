@@ -8,10 +8,10 @@ import type { AcquisitionJob } from "./schedule.ts";
 import { loadUniverseSnapshot } from "./universe.ts";
 import { loadMarketCheckpoints } from "./market-checkpoint-load.ts";
 
-test("full-v0.1 checkpoint fan-out issues 106 point reads before acquisition", async () => {
+test("full-v0.1 checkpoint bootstrap resolves 106 unique keys in one bulk read", async () => {
   const coverageKeys: string[] = [];
   const checkpoints = {
-    get: async (coverageKey: string) => { coverageKeys.push(coverageKey); return undefined; },
+    getMany: async (keys: readonly string[]) => { coverageKeys.push(...keys); return []; },
   } as CoverageCheckpointPort;
 
   const stored = await loadMarketCheckpoints(loadUniverseSnapshot("full-v0.1"), checkpoints, "iex");

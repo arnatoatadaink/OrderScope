@@ -72,7 +72,7 @@ test("scheduled shadow tick persists a digest exposed by /digest/latest", async 
   const scheduledTime = new Date("2026-08-30T12:34:00.000Z");
   const worker = await mf.getWorker();
   const result = await worker.scheduled({ cron: "* * * * *", scheduledTime });
-  assert.equal(result.outcome, "ok");
+  assert.equal(result.outcome, "ok", JSON.stringify(result));
 
   const response = await mf.dispatchFetch("http://integration.test/digest/latest");
   assert.equal(response.status, 200);
@@ -198,7 +198,7 @@ test("prediction shadow plans Premarket target coverage without executing or wri
   const result = await (await mf.getWorker()).scheduled({
     cron: "* * * * *", scheduledTime: new Date("2026-07-06T08:03:00.000Z"),
   });
-  assert.equal(result.outcome, "ok");
+  assert.equal(result.outcome, "ok", JSON.stringify(result));
   const envelope = await (await mf.dispatchFetch("http://integration.test/digest/latest")).json() as {
     payload: Record<string, unknown>;
   };
@@ -216,6 +216,8 @@ test("prediction shadow plans Premarket target coverage without executing or wri
     targetCount: 1,
     acquisitionInstrumentCount: 1,
     plannedPremarketJobs: 1,
+    checkpointKeys: 1,
+    checkpointBootstrapD1Queries: 1,
     deferredGapRetries: 0,
     jobPlans: undefined,
   });
@@ -259,6 +261,7 @@ test("scheduled live tick executes with injected providers and persists a saniti
         open: 100, high: 102, low: 99, close: 101, volume: 500, tradeCount: 7, vwap: 100.5,
         provider: "alpaca", dataVariant: "stock:iex:raw",
       }] }),
+      fetchNewsPage: async () => ({ articles: [] }),
     });
   `);
   const mf = new Miniflare({
@@ -266,7 +269,12 @@ test("scheduled live tick executes with injected providers and persists a saniti
     script,
     compatibilityDate: "2026-08-06",
     d1Databases: ["STATE_DB"],
-    bindings: LIVE_BINDINGS,
+    bindings: {
+      ...LIVE_BINDINGS,
+      NEWS_ACQUISITION_ENABLED: "true",
+      NEWS_ACQUISITION_CADENCE_MINUTES: "1",
+      NEWS_ACQUISITION_OVERLAP_MINUTES: "1",
+    },
   });
   t.after(() => mf.dispose());
 
@@ -304,6 +312,14 @@ test("scheduled live tick executes with injected providers and persists a saniti
   assert.equal(envelope.payload.retryPolicy, "NEXT_CRON");
   assert.equal(envelope.payload.staleAttemptThresholdMinutes, 15);
   assert.equal(envelope.payload.supersededStaleAttempts, 1);
+  const budget = envelope.payload.budget as Record<string, unknown>;
+  assert.equal(budget.marketCheckpointBootstrapD1Queries, 1);
+  assert.equal(budget.marketD1Queries, 16);
+  assert.equal(budget.newsD1Queries, 3);
+  assert.equal(budget.totalD1Queries, 22);
+  assert.equal(budget.withinBudget, true);
+  assert.ok((budget.totalD1Queries as number) <= 40);
+  assert.equal((envelope.payload.news as Record<string, unknown>).plannedJobs, 1);
   assert.deepEqual(envelope.payload.staleAttempts, {
     count: 1, oldestStartedAt: "2026-08-28T13:59:00.000Z",
   });
@@ -600,6 +616,7 @@ test("CAS conflict is sanitized publicly and replanned successfully on the next 
         const durable = new D1CoverageCheckpointPort(db);
         return {
           get: (key) => durable.get(key),
+          getMany: (keys) => durable.getMany(keys),
           listDue: (query) => durable.listDue(query),
           recordAttempt: (attempt) => durable.recordAttempt(attempt),
           summarizeStaleAttempts: (staleBefore) => durable.summarizeStaleAttempts(staleBefore),

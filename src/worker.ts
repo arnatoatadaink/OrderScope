@@ -18,6 +18,7 @@ import { D1NewsStore, type NewsStore } from "./news-store";
 import type { NewsExecutionOptions } from "./news-execution";
 import { D1_QUERY_CEILING, EXTERNAL_SUBREQUEST_CEILING, InvocationBudget } from "./invocation-budget";
 import { loadMarketCheckpoints } from "./market-checkpoint-load";
+import { budgetedD1 } from "./budgeted-d1";
 
 type PredictionMode = "off" | "shadow";
 
@@ -156,6 +157,8 @@ async function runScheduledTick(
   }
 
   const credentials = { keyId: env.ALPACA_API_KEY, secretKey: env.ALPACA_API_SECRET };
+  const invocationBudget = new InvocationBudget();
+  const stateDb = budgetedD1(env.STATE_DB, invocationBudget);
   const acquisitionConfig = loadAcquisitionRuntimeConfig(env);
   const newsConfig = loadNewsAcquisitionRuntimeConfig(env);
   const universe = dependencies.universe(env.UNIVERSE_PROFILE);
@@ -176,8 +179,9 @@ async function runScheduledTick(
     includePremarket: predictionConfig.mode === "shadow",
     includeAfterHours: newsConfig.enabled,
   }).getCalendar(calendarStart, calendarEnd);
-  const checkpoints = dependencies.checkpointPort?.(env.STATE_DB) ?? new D1CoverageCheckpointPort(env.STATE_DB);
+  const checkpoints = dependencies.checkpointPort?.(stateDb) ?? new D1CoverageCheckpointPort(stateDb);
   const stored = await loadMarketCheckpoints(universe, checkpoints, env.ALPACA_FEED);
+  const marketBootstrapD1Queries = invocationBudget.snapshot().d1Queries;
   const policy = new SchedulePolicy({
     retentionFloor,
     overlapMs: acquisitionConfig.overlapMs,
@@ -195,9 +199,10 @@ async function runScheduledTick(
     || !deferredCoverageKeys.has(job.checkpointExpectations[0]?.coverageKey ?? ""));
   let predictionShadow: Record<string, unknown> | undefined;
   if (predictionRegistries && predictionUniverse) {
-    const predictionStored = (await Promise.all(predictionUniverse.instruments.map((instrument) =>
-      checkpoints.get(coverageKeyFor(instrument, "PREMARKET", logicalVariant(instrument, env.ALPACA_FEED))),
-    ))).filter((checkpoint) => checkpoint !== undefined);
+    const predictionKeys = predictionUniverse.instruments.map((instrument) =>
+      coverageKeyFor(instrument, "PREMARKET", logicalVariant(instrument, env.ALPACA_FEED)));
+    const predictionBefore = invocationBudget.snapshot().d1Queries;
+    const predictionStored = await checkpoints.getMany(predictionKeys);
     const predictionPlanned = planPredictionPremarketAcquisition({
       acquisitionUniverse: predictionUniverse,
       calendar,
@@ -231,6 +236,8 @@ async function runScheduledTick(
       targetCount: predictionRegistries.target.targets.length,
       acquisitionInstrumentCount: predictionUniverse.instruments.length,
       plannedPremarketJobs: predictionJobs.length,
+      checkpointKeys: new Set(predictionKeys).size,
+      checkpointBootstrapD1Queries: invocationBudget.snapshot().d1Queries - predictionBefore,
       deferredGapRetries: predictionDeferredGapRetries.length,
       jobPlans: predictionJobs.slice(0, acquisitionConfig.maxJobsPerTick).map((job) => ({
         jobId: job.jobId,
@@ -252,8 +259,7 @@ async function runScheduledTick(
     | { jobId: string; outcome: "FAILED" | "SKIPPED_LOCKED" }> = [];
   const staleBefore = new Date(now.getTime() - acquisitionConfig.staleAttemptMinutes * 60_000).toISOString();
   let supersededStaleAttempts = 0;
-  const invocationBudget = new InvocationBudget();
-  const leases = dependencies.leaseStore?.(env.STATE_DB) ?? new D1AcquisitionLeaseStore(env.STATE_DB);
+  const leases = dependencies.leaseStore?.(stateDb) ?? new D1AcquisitionLeaseStore(stateDb);
   for (const job of runnableJobs) {
     const coverageKey = job.checkpointExpectations[0]!.coverageKey;
     const ownerId = `${job.jobId}:${now.toISOString()}`;
@@ -268,7 +274,7 @@ async function runScheduledTick(
       });
       summaries.push(await executeAcquisitionJob(job, {
         credentials, calendar, checkpoints,
-        bars: dependencies.barStore?.(env.STATE_DB) ?? new D1NormalizedBarStore(env.STATE_DB),
+        bars: dependencies.barStore?.(stateDb) ?? new D1NormalizedBarStore(stateDb),
         feed: env.ALPACA_FEED, maxPages: acquisitionConfig.maxPagesPerJob,
         maxBars: acquisitionConfig.maxBarsPerJob,
         gapRetryDelayMs: acquisitionConfig.gapRetryMinutes * 60_000,
@@ -287,15 +293,16 @@ async function runScheduledTick(
   }
   const staleAttempts = await checkpoints.summarizeStaleAttempts(staleBefore);
   const marketExternalSubrequests = invocationBudget.snapshot().externalSubrequests;
-  const newsCheckpoints = dependencies.newsCheckpointPort?.(env.STATE_DB) ?? new D1NewsCheckpointPort(env.STATE_DB);
-  if (newsConfig.enabled) invocationBudget.consume("d1");
+  const marketD1Queries = invocationBudget.snapshot().d1Queries;
+  const newsCheckpoints = dependencies.newsCheckpointPort?.(stateDb) ?? new D1NewsCheckpointPort(stateDb);
+  const newsBefore = invocationBudget.snapshot().d1Queries;
   const newsStored = newsConfig.enabled ? await newsCheckpoints.get(NEWS_COVERAGE_KEY) : undefined;
   const newsPlanned = planNewsAcquisition(newsConfig, calendar, newsStored, now);
   const newsSummaries = [];
   for (const newsJob of newsPlanned) {
     newsSummaries.push(await executeNewsAcquisition(newsJob, {
       credentials, checkpoints: newsCheckpoints,
-      store: dependencies.newsStore?.(env.STATE_DB) ?? new D1NewsStore(env.STATE_DB),
+      store: dependencies.newsStore?.(stateDb) ?? new D1NewsStore(stateDb),
       retry: acquisitionConfig.providerRetry,
       retryDelayMs: acquisitionConfig.gapRetryMinutes * 60_000,
       now: () => now, fetchPage: dependencies.fetchNewsPage, budget: invocationBudget,
@@ -314,20 +321,24 @@ async function runScheduledTick(
     updates: newsSummaries.reduce((sum, summary) => sum + summary.updates, 0),
     pages: newsSummaries.reduce((sum, summary) => sum + summary.pages, 0),
     externalSubrequests: newsSummaries.reduce((sum, summary) => sum + summary.externalSubrequests, 0),
-    d1Queries: (newsConfig.enabled ? 1 : 0) + newsSummaries.reduce((sum, summary) => sum + summary.d1Queries, 0),
+    d1Queries: invocationBudget.snapshot().d1Queries - newsBefore,
     nextCheckpoint: newsSummaries.at(-1)?.nextCheckpoint ?? newsStored?.completeThrough,
   };
+  // Digest persistence is a three-statement batch. Reserve it so the persisted
+  // payload's total includes its own writes without double charging the raw DB.
+  invocationBudget.consume("d1", 3);
+  const totalD1Queries = invocationBudget.snapshot().d1Queries;
   const budget = {
     marketExternalSubrequests,
     newsExternalSubrequests: news.externalSubrequests,
     totalExternalSubrequests: invocationBudget.snapshot().externalSubrequests,
-    marketD1Queries: null,
+    marketD1Queries,
     newsD1Queries: news.d1Queries,
-    totalD1Queries: null,
+    totalD1Queries,
     externalBudgetCeiling: EXTERNAL_SUBREQUEST_CEILING,
     d1BudgetCeiling: D1_QUERY_CEILING,
-    withinBudget: false,
-    blocker: "market D1 queries are not yet instrumented against the combined ceiling",
+    withinBudget: totalD1Queries <= D1_QUERY_CEILING,
+    marketCheckpointBootstrapD1Queries: marketBootstrapD1Queries,
   };
   const persistedDigest = { ...digest, plannedJobs: jobs.length, jobPlans,
     maxJobsPerTick: acquisitionConfig.maxJobsPerTick, retryPolicy: acquisitionConfig.retryPolicy,
