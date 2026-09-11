@@ -116,6 +116,8 @@ Use this section for newly proposed work before deciding whether it deserves a f
 | DISC-001 | 2026-09-10 | Reserved for next newly discovered WBS-unreflected item | — | — | Empty placeholder; replace/append, do not infer scope |
 | DISC-002 | 2026-09-10 | Capture structured rate/FX Facts and carry-unwind/deleveraging interpretation instead of relying on news-only rate context | `docs/REPORT_MACRO_RATES_CARRY_UNWIND_NON_PRICE_FACTS_2026-09-10.md` | A0 / I0 / Provider contracts | Promoted to UWBS-011..015 |
 | DISC-003 | 2026-09-10 | Move steady-state News metadata acquisition to Cloudflare Worker/Schedule while keeping Local as analysis layer | `docs/work-management/local-corporate-intelligence/NEWS_WORKER_ACQUISITION_DESIGN_2026-09-10.md` | Worker acquisition / Operations | Promoted to UWBS-016 |
+| DISC-004 | 2026-09-11 | Track convertible-debt lifecycle, maturity/conversion windows, financing-to-debt-resolution evidence and dilution-overhang removal using TNON as the reference case | `docs/work-management/local-corporate-intelligence/REPORT_TNON_CONVERTIBLE_DEBT_REPAYMENT_CASE_2026-09-11.md` | Capital Structure / SEC / I0 | Promoted to UWBS-017..019 |
+| DISC-005 | 2026-09-11 | Distinguish price spike, active price discovery, delayed repricing and persistent price rediscovery using CHPT and TNON reference cases | `docs/work-management/local-corporate-intelligence/REPORT_TNON_CHPT_PRICE_REDISCOVERY_2026-09-11.md` | Market Reaction / Derived Metrics / Regime | Promoted to UWBS-020..022 |
 
 When a proposal is accepted for tracking:
 
@@ -178,9 +180,43 @@ The revision must preserve a mapping table:
 | UWBS-014 | Pending | — | — |
 | UWBS-015 | Pending | — | — |
 | UWBS-016 | Pending | — | — |
+| UWBS-017 | Pending | — | — |
+| UWBS-018 | Pending | — | — |
+| UWBS-019 | Pending | — | — |
+| UWBS-020 | Pending | — | — |
+| UWBS-021 | Pending | — | — |
+| UWBS-022 | Pending | — | — |
 
 ## 11. Current planning interpretation
 
 This backlog does not authorize remote changes. X0 fixture-path and the complete non-live N1-006 toolchain are accepted; N1-006 itself still requires the real 30-day Alpaca metadata benchmark and measured recall report.
 
 `UWBS-016` is now ready for WBS design but should not be activated before N1-006 supplies real recall/lag evidence that can confirm or adjust the proposed News polling cadence. Worker remains Shadow, and any Worker/Schedule job registration still requires its separately reviewed task/change window.
+
+The TNON / CHPT additions below are design work only. They do not establish trading signals or normative thresholds. Historical fixtures and validation must precede any promotion of catalyst strength, price-discovery persistence, or attention-score thresholds into accepted specification.
+
+## 12. Capital structure / catalyst and price-discovery expansion
+
+Source reports:
+
+- `docs/work-management/local-corporate-intelligence/REPORT_TNON_CONVERTIBLE_DEBT_REPAYMENT_CASE_2026-09-11.md`
+- `docs/work-management/local-corporate-intelligence/REPORT_TNON_CHPT_PRICE_REDISCOVERY_2026-09-11.md`
+
+The existing News / SEC work can discover filings and articles, but the newly identified gap is a stateful capital-instrument lifecycle plus a reusable layer that compares a material catalyst with subsequent price/volume behavior. The two layers must remain separate: a capital-structure event is a source-grounded Fact; price rediscovery and catalyst-price divergence are Derived Metric / Interpretation outputs.
+
+| UWBS ID | Proposed task | Proposed package | Completion condition summary | Likely inputs / dependencies | Status | Disposition |
+|---|---|---|---|---|---|---|
+| UWBS-017 | Define stateful Capital Instrument / Convertible Debt lifecycle contract | Capital Structure / I0 | Represent issue, outstanding state, maturity, optional extension, conversion-window opening, conversion formula, required/optional prepayment, partial/full repayment, refinancing and termination as historical state transitions; preserve instrument identity, terms, event/available/accepted times and source provenance | S0 SEC filing records; I0-002/004/005; N1 discovery path; provider/terms gates | Ready for WBS design | Pending |
+| UWBS-018 | Implement maturity/conversion-window Attention and financing-to-debt-resolution linkage | Capital Structure / Attention | Schedule bounded attention from disclosed contractual dates; connect recent financing and explicit use-of-proceeds debt-repayment language to outstanding instruments without asserting repayment before confirmation; expose `DEBT_RESOLUTION_WINDOW` as Interpretation and keep heuristic thresholds configurable / non-normative until validated | UWBS-017; scheduler/calendar primitives; SEC/IR/news acquisition; Fact/Interpretation boundary | Needs decomposition | Pending |
+| UWBS-019 | Model dilution-overhang and capital-structure regime transitions | Capital Structure / Regime | Distinguish instrument-specific overhang creation/reduction/removal from company-wide dilution risk; retain replacement warrants/pre-funded warrants separately; support evidence-backed `CONVERTIBLE_NOTE_DILUTION_OVERHANG_REMOVED` and higher-level capital-structure regime transition without converting it directly into a price prediction | UWBS-017/018; I0 Fact/Derived Metric/Interpretation separation; Regime model | Ready for WBS design | Pending |
+| UWBS-020 | Define catalyst-to-market-reaction observation contract | Market Reaction / Price-Volume | For material source-grounded catalysts, persist fixed-window returns, volume/volatility ratios and session-aware observations across premarket, regular, after-hours and subsequent sessions; preserve catalyst identity and avoid treating OHLCV response as proof of causation | M0/minute bars; session model; I0 history; accepted event taxonomy; volume work | Needs decomposition | Pending |
+| UWBS-021 | Define Price Discovery / Catalyst-Price Divergence interpretation state machine | Derived Metrics / Regime | Distinguish `PRICE_SPIKE`, `PRICE_DISCOVERY_ACTIVE`, `NEW_EQUILIBRIUM_CANDIDATE`, `PRICE_REDISCOVERY_CONFIRMED/FAILED`, `CATALYST_PRICE_DIVERGENCE` and `DELAYED_REPRICING`; base confirmation on persistence/retest/participation rather than peak percentage alone; keep `VALUATION_REGIME_CHANGE` distinct from `COMPANY_REGIME_CHANGE` | UWBS-020; Fact/Derived Metric/Interpretation boundary; Regime specification | Needs decomposition | Pending |
+| UWBS-022 | TNON / CHPT capital-event and price-rediscovery Canary fixtures | Capital Structure + Market Reaction QA | Add reproducible fixtures where TNON validates maturity-window → full repayment → instrument-specific overhang removal → same-session divergence → delayed repricing, while CHPT validates earnings catalyst → extreme participation → multi-session higher-range persistence; include false-positive cases for low-float spike/retrace, offsetting dilution, stronger conflicting news and market-wide movement | UWBS-017..021; historical minute/daily bars; source snapshots permitted by retention rules | Needs decomposition | Pending |
+
+Planning notes:
+
+- TNON is a reference case for capital-structure resolution and delayed repricing, not proof that convertible-debt repayment predicts a positive return.
+- CHPT is a reference case for persistent post-catalyst repricing, not proof that a multi-session market range equals intrinsic fair value.
+- No fixed `+X%`, number-of-hours, or number-of-sessions threshold should become normative from these two examples alone.
+- `DILUTION_RISK_REMOVED` is too broad when replacement warrants or other potential issuance remain outstanding. Instrument-specific state is required.
+- The newswire-vs-SEC latency problem belongs to discovery/confirmation routing; source cost/licensing should be reviewed separately rather than embedded in the Fact model.
