@@ -96,6 +96,12 @@ export class D1SchedulerRunEvidenceStore implements SchedulerRunEvidenceStore {
     parseInstant(record.startedAt, "startedAt");
     if (record.boundaryStart) parseInstant(record.boundaryStart, "boundaryStart");
     if (record.boundaryEnd) parseInstant(record.boundaryEnd, "boundaryEnd");
+    if ((record.boundaryStart === undefined) !== (record.boundaryEnd === undefined)) {
+      throw new Error("boundaryStart and boundaryEnd must be provided together");
+    }
+    if (record.boundaryStart && record.boundaryEnd && record.boundaryStart >= record.boundaryEnd) {
+      throw new Error("boundaryStart must be before boundaryEnd");
+    }
     const result = await this.db.prepare(`
       INSERT INTO scheduler_run_job (
         run_id, job_id, job_kind, source, started_at, finished_at, status,
@@ -130,12 +136,18 @@ export class D1SchedulerRunEvidenceStore implements SchedulerRunEvidenceStore {
     parseInstant(staleBefore, "staleBefore");
     parseInstant(finishedAt, "finishedAt");
     if (!replacementRunId) throw new Error("replacementRunId must be non-empty");
-    const result = await this.db.prepare(`
+    const diagnostic = JSON.stringify({ replacementRunId });
+    const jobs = await this.db.prepare(`
       UPDATE scheduler_run_job
       SET finished_at = ?, status = 'SUPERSEDED', failure_category = 'STALE_RUN_JOB',
           diagnostic_json = ?
       WHERE status = 'RUNNING' AND started_at < ?
-    `).bind(finishedAt, JSON.stringify({ replacementRunId }), staleBefore).run();
-    return result.meta.changes;
+    `).bind(finishedAt, diagnostic, staleBefore).run();
+    await this.db.prepare(`
+      UPDATE scheduler_run
+      SET finished_at = ?, status = 'SUPERSEDED', diagnostic_json = ?
+      WHERE status = 'RUNNING' AND started_at < ? AND run_id <> ?
+    `).bind(finishedAt, diagnostic, staleBefore, replacementRunId).run();
+    return jobs.meta.changes;
   }
 }
