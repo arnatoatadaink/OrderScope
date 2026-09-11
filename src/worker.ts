@@ -25,6 +25,13 @@ import { SchedulerRunEvidenceSession } from "./run-evidence-session";
 type PredictionMode = "off" | "shadow";
 
 const SCHEDULER_EVIDENCE_REVISION = "packet-d-v1";
+const DISABLED_RUN_EVIDENCE_STORE: SchedulerRunEvidenceStore = {
+  async startRun() {},
+  async finishRun() {},
+  async startJob() {},
+  async finishJob() {},
+  async supersedeStaleJobs() { return 0; },
+};
 
 type Digest = {
   generatedAt: string;
@@ -45,6 +52,7 @@ type ProvisionedBindings = {
   ALPACA_API_SECRET?: string;
   STATE_DB?: D1Database;
   BAR_ARCHIVE?: R2Bucket;
+  SCHEDULER_RUN_EVIDENCE_ENABLED?: string;
 };
 
 type RuntimeEnv = Omit<Env, "WORKER_MODE" | "PREDICTION_MODE" | "PREDICTION_TARGET_PROFILE" | keyof NewsAcquisitionConfigEnv> & ProvisionedBindings & {
@@ -76,6 +84,14 @@ function predictionRuntimeConfig(env: RuntimeEnv): PredictionRuntimeConfig {
     throw new Error("PREDICTION_TARGET_PROFILE is required in prediction shadow mode");
   }
   return { mode, ...(targetProfile ? { targetProfile } : {}) };
+}
+
+function schedulerRunEvidenceEnabled(env: RuntimeEnv): boolean {
+  const value = env.SCHEDULER_RUN_EVIDENCE_ENABLED ?? "false";
+  if (value !== "true" && value !== "false") {
+    throw new Error("SCHEDULER_RUN_EVIDENCE_ENABLED must be true or false");
+  }
+  return value === "true";
 }
 
 function currentDigest(
@@ -176,6 +192,7 @@ async function runScheduledTick(
   const stateDb = budgetedD1(env.STATE_DB, invocationBudget);
   const acquisitionConfig = loadAcquisitionRuntimeConfig(env);
   const newsConfig = loadNewsAcquisitionRuntimeConfig(env);
+  const evidenceEnabled = schedulerRunEvidenceEnabled(env);
   const universe = dependencies.universe(env.UNIVERSE_PROFILE);
   const predictionRegistries = predictionConfig.mode === "shadow"
     ? (dependencies.predictionRegistries ?? productionDependencies.predictionRegistries!)(predictionConfig.targetProfile!)
@@ -275,7 +292,9 @@ async function runScheduledTick(
   const staleBefore = new Date(now.getTime() - acquisitionConfig.staleAttemptMinutes * 60_000).toISOString();
   const runId = `scheduler:${now.toISOString()}:${crypto.randomUUID()}`;
   const runEvidence = await SchedulerRunEvidenceSession.start({
-    store: dependencies.runEvidenceStore?.(stateDb) ?? new D1SchedulerRunEvidenceStore(stateDb),
+    store: evidenceEnabled
+      ? (dependencies.runEvidenceStore?.(stateDb) ?? new D1SchedulerRunEvidenceStore(stateDb))
+      : DISABLED_RUN_EVIDENCE_STORE,
     runId,
     scheduledAt: now.toISOString(),
     schedulerRevision: SCHEDULER_EVIDENCE_REVISION,
@@ -422,7 +441,10 @@ async function runScheduledTick(
     } : {}),
     staleAttemptThresholdMinutes: acquisitionConfig.staleAttemptMinutes,
     staleAttempts, supersededStaleAttempts,
-    runEvidence: { runId, schedulerRevision: SCHEDULER_EVIDENCE_REVISION, supersededStaleRunJobs },
+    runEvidence: {
+      mode: evidenceEnabled ? "active" : "disabled",
+      runId, schedulerRevision: SCHEDULER_EVIDENCE_REVISION, supersededStaleRunJobs,
+    },
     summaries, news, budget, ...(predictionShadow ? { predictionShadow } : {}) };
   await new D1LatestDigestStore(env.STATE_DB).put(LATEST_DIGEST_KEY, digest.generatedAt, persistedDigest);
   console.log(JSON.stringify({ event: "scheduler_tick_live", ...persistedDigest }));
