@@ -12,9 +12,14 @@ const calendar: MarketCalendarSnapshot = { market: "US_EQUITIES", revision: "fix
   ] };
 
 test("plans on an eligible five-minute UTC minute bucket regardless of Cron seconds offset", () => {
-  assert.equal(planNewsAcquisition(config, calendar, undefined, new Date("2026-09-10T14:00:00.000Z")).length, 1);
-  assert.equal(planNewsAcquisition(config, calendar, undefined, new Date("2026-09-10T14:00:15.000Z")).length, 1);
-  assert.equal(planNewsAcquisition(config, calendar, undefined, new Date("2026-09-10T14:00:59.999Z")).length, 1);
+  const jobs = ["00", "15", "30", "59"].map((seconds) =>
+    planNewsAcquisition(config, calendar, undefined, new Date(`2026-09-10T14:00:${seconds}.000Z`))[0]);
+  assert.equal(jobs.every(Boolean), true);
+  assert.deepEqual(jobs.map((job) => job!.requestedRange), Array(4).fill({
+    startInclusive: "2026-09-10T13:45:00.000Z",
+    endExclusive: "2026-09-10T14:00:00.000Z",
+  }));
+  assert.equal(new Set(jobs.map((job) => job!.jobId)).size, 1);
 });
 
 test("does not plan on a non-cadence minute or outside an authoritative session", () => {
@@ -23,22 +28,23 @@ test("does not plan on a non-cadence minute or outside an authoritative session"
   assert.equal(planNewsAcquisition(config, calendar, undefined, new Date("2026-09-10T21:00:15.000Z")).length, 0);
 });
 
-test("session open remains eligible when its minute bucket matches cadence with non-zero seconds", () => {
-  assert.equal(planNewsAcquisition(config, calendar, undefined, new Date("2026-09-10T13:30:15.000Z")).length, 1);
+test("session open does not create an empty window and the next cadence remains eligible", () => {
+  assert.equal(planNewsAcquisition(config, calendar, undefined, new Date("2026-09-10T13:30:15.000Z")).length, 0);
+  assert.equal(planNewsAcquisition(config, calendar, undefined, new Date("2026-09-10T13:35:15.000Z")).length, 1);
 });
 
 test("no checkpoint is bounded and an existing checkpoint receives overlap", () => {
   const initial = planNewsAcquisition(config, calendar, undefined, new Date("2026-09-10T14:00:15Z"))[0]!;
-  assert.deepEqual(initial.requestedRange, { startInclusive: "2026-09-10T13:45:15.000Z", endExclusive: "2026-09-10T14:00:15.000Z" });
+  assert.deepEqual(initial.requestedRange, { startInclusive: "2026-09-10T13:45:00.000Z", endExclusive: "2026-09-10T14:00:00.000Z" });
   const incremental = planNewsAcquisition(config, calendar, { coverageKey: NEWS_COVERAGE_KEY,
     completeThrough: "2026-09-10T13:55:00.000Z", version: 2 }, new Date("2026-09-10T14:05:15Z"))[0]!;
-  assert.deepEqual(incremental.requestedRange, { startInclusive: "2026-09-10T13:40:00.000Z", endExclusive: "2026-09-10T14:05:15.000Z" });
+  assert.deepEqual(incremental.requestedRange, { startInclusive: "2026-09-10T13:40:00.000Z", endExclusive: "2026-09-10T14:05:00.000Z" });
 });
 
 test("missed ticks recover through the next bounded range and dry-run is side-effect free", () => {
   const job = planNewsAcquisition(config, calendar, { coverageKey: NEWS_COVERAGE_KEY,
     completeThrough: "2026-09-10T13:50:00.000Z", version: 1 }, new Date("2026-09-10T14:10:15Z"))[0]!;
-  assert.deepEqual(job.requestedRange, { startInclusive: "2026-09-10T13:35:00.000Z", endExclusive: "2026-09-10T14:10:15.000Z" });
+  assert.deepEqual(job.requestedRange, { startInclusive: "2026-09-10T13:35:00.000Z", endExclusive: "2026-09-10T14:10:00.000Z" });
   assert.deepEqual(newsDryRun(job), { mutationCount: 0, providerCalls: 0, job: {
     jobId: job.jobId, symbols: ["AMD", "NVDA"], requestedRange: job.requestedRange,
     maxPagesPerSymbol: 2, maxArticlesPerRun: 200,

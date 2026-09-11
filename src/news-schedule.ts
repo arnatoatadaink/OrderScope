@@ -39,7 +39,11 @@ export function planNewsAcquisition(
     (candidate.sessionKind === "PREMARKET" || candidate.sessionKind === "REGULAR" || candidate.sessionKind === "AFTER_HOURS")
     && nowMs >= Date.parse(candidate.opensAt) && nowMs <= Date.parse(candidate.closesAt));
   if (!session) return [];
-  const boundary = Math.min(nowMs, Date.parse(session.closesAt));
+  // Use the same canonical boundary for every observation of this minute.
+  // Otherwise :00 followed by :15 would be eligible twice with different job
+  // identities and could advance the checkpoint a second time by 15 seconds.
+  const opportunityBoundary = utcMinuteBucket * 60_000;
+  const boundary = Math.min(opportunityBoundary, Date.parse(session.closesAt));
   const initialLookbackMs = config.overlapMinutes * 60_000;
   const checkpointMs = checkpoint?.completeThrough ? Date.parse(checkpoint.completeThrough) : undefined;
   if (checkpointMs !== undefined && checkpointMs >= boundary) return [];

@@ -346,6 +346,115 @@ test("scheduled live tick executes with injected providers and persists a saniti
   }]);
 });
 
+test("repeated observations of one eligible News opportunity remain canonical and do not double-advance", async (t) => {
+  const script = await bundleWorker(`
+    import { createWorker } from "./worker.ts";
+    let newsProviderCalls = 0;
+    const calendar = {
+      market: "US_EQUITIES",
+      dateRange: { startInclusive: "2026-09-10", endExclusive: "2026-09-11" },
+      sessions: [{
+        marketDate: "2026-09-10", sessionKind: "REGULAR",
+        opensAt: "2026-09-10T13:30:00.000Z", closesAt: "2026-09-10T20:00:00.000Z",
+        isShortened: false, calendarRevision: "integration-calendar-v1",
+      }],
+      generatedAt: "2026-09-10T14:00:00.000Z", revision: "integration-calendar-v1",
+    };
+    const article = {
+      provider: "alpaca", providerArticleId: "same-opportunity-1", headline: "AMD and NVDA update",
+      publisher: "fixture", url: "https://example.test/same-opportunity-1",
+      providerPublishedAt: "2026-09-10T13:59:00.000Z", providerSymbols: ["AMD", "NVDA"],
+    };
+    const worker = createWorker({
+      calendarProvider: () => ({ getCalendar: async () => calendar }),
+      universe: () => ({
+        revision: "integration-universe-v1", generatedAt: calendar.generatedAt, instruments: [],
+      }),
+      fetchNewsPage: async () => { newsProviderCalls += 1; return { articles: [article] }; },
+    });
+    export default {
+      scheduled: worker.scheduled,
+      async fetch(request, env, ctx) {
+        if (new URL(request.url).pathname === "/control/news-provider-calls") {
+          return new Response(String(newsProviderCalls));
+        }
+        return worker.fetch(request, env, ctx);
+      },
+    };
+  `);
+  const mf = new Miniflare({
+    modules: true, script, compatibilityDate: "2026-08-06", d1Databases: ["STATE_DB"],
+    bindings: { ...LIVE_BINDINGS, NEWS_ACQUISITION_ENABLED: "true" },
+  });
+  t.after(() => mf.dispose());
+  const db = await mf.getD1Database("STATE_DB");
+  await migrateStateDb(db as unknown as D1Database);
+  const worker = await mf.getWorker();
+
+  assert.equal((await worker.scheduled({
+    cron: "* * * * *", scheduledTime: new Date("2026-09-10T14:00:00.000Z"),
+  })).outcome, "ok");
+  const first = await (await mf.dispatchFetch("http://integration.test/digest/latest")).json() as {
+    payload: { news: Record<string, unknown> };
+  };
+  assert.equal(first.payload.news.plannedJobs, 1);
+  assert.equal(first.payload.news.completedJobs, 1);
+  assert.equal(first.payload.news.articlesObserved, 2);
+  assert.equal(first.payload.news.duplicates, 1);
+
+  assert.equal((await worker.scheduled({
+    cron: "* * * * *", scheduledTime: new Date("2026-09-10T14:00:15.000Z"),
+  })).outcome, "ok");
+  const repeated = await (await mf.dispatchFetch("http://integration.test/digest/latest")).json() as {
+    payload: { news: Record<string, unknown> };
+  };
+  assert.equal(repeated.payload.news.plannedJobs, 0);
+  assert.equal(repeated.payload.news.completedJobs, 0);
+  assert.equal(await (await mf.dispatchFetch("http://integration.test/control/news-provider-calls")).text(), "2");
+  assert.deepEqual(await db.prepare(`SELECT
+    (SELECT COUNT(*) FROM news_article) AS articles,
+    (SELECT COUNT(*) FROM news_query_membership) AS memberships,
+    (SELECT version FROM news_checkpoint WHERE coverage_key = ?) AS checkpoint_version,
+    (SELECT complete_through FROM news_checkpoint WHERE coverage_key = ?) AS complete_through
+  `).bind("news|alpaca|AMD,NVDA|metadata-v0.1", "news|alpaca|AMD,NVDA|metadata-v0.1").first(), {
+    articles: 1, memberships: 2, checkpoint_version: 0,
+    complete_through: "2026-09-10T14:00:00.000Z",
+  });
+});
+
+test("shadow mode with News enabled performs no News provider or D1 mutation", async (t) => {
+  const script = await bundleWorker(`
+    import { createWorker } from "./worker.ts";
+    export default createWorker({
+      calendarProvider: () => { throw new Error("shadow mode must not acquire a calendar"); },
+      universe: () => { throw new Error("shadow mode must not load a universe"); },
+      fetchNewsPage: async () => { throw new Error("shadow mode must not call News"); },
+    });
+  `);
+  const mf = new Miniflare({
+    modules: true, script, compatibilityDate: "2026-08-06", d1Databases: ["STATE_DB"],
+    bindings: { ...SHADOW_BINDINGS, NEWS_ACQUISITION_ENABLED: "true" },
+  });
+  t.after(() => mf.dispose());
+  const db = await mf.getD1Database("STATE_DB");
+  await migrateStateDb(db as unknown as D1Database);
+
+  assert.equal((await (await mf.getWorker()).scheduled({
+    cron: "* * * * *", scheduledTime: new Date("2026-09-10T14:00:30.000Z"),
+  })).outcome, "ok");
+  const digest = await (await mf.dispatchFetch("http://integration.test/digest/latest")).json() as {
+    payload: { news: Record<string, unknown> };
+  };
+  assert.equal(digest.payload.news.mode, "shadow-plan");
+  assert.equal(digest.payload.news.plannedJobs, 0);
+  assert.equal(digest.payload.news.completedJobs, 0);
+  assert.deepEqual(await db.prepare(`SELECT
+    (SELECT COUNT(*) FROM news_article) AS articles,
+    (SELECT COUNT(*) FROM news_query_membership) AS memberships,
+    (SELECT COUNT(*) FROM news_checkpoint) AS checkpoints
+  `).first(), { articles: 0, memberships: 0, checkpoints: 0 });
+});
+
 test("holiday tick publishes an empty summary without acquisition state writes", async (t) => {
   const script = await bundleWorker(`
     import { createWorker } from "./worker.ts";

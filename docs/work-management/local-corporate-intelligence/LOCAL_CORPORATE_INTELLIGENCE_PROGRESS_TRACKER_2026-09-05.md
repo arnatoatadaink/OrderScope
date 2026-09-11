@@ -270,6 +270,44 @@ Next CP gate: Web review of the W1-007 evidence, then a separately authorized
 short monitored W1-001 confirmation/closeout window. The cadence predicate is
 already repaired and live-confirmed; it is no longer the active blocker.
 
+### Packet A scheduler / cadence regression hardening — Accepted locally
+
+On 2026-09-12, the News scheduler opportunity boundary was canonicalized to the
+start of its eligible UTC minute bucket. Seconds offsets `00`, `15`, `30`, and
+`59` now produce the same requested range and job identity. A repeated
+observation within one eligible opportunity is therefore already covered by the
+durable checkpoint rather than becoming a second sub-minute acquisition.
+
+Miniflare integration evidence executes one metadata-only AMD/NVDA opportunity,
+observes the same provider article through both symbol queries, and then repeats
+the opportunity at a different seconds offset. The repeat performs no provider
+call, creates no additional canonical article or membership, and does not
+advance checkpoint version or `complete_through`. Its digest reports zero
+planned and zero completed News jobs, so absence of planned work is not counted
+as successful workload completion. A separate shadow-mode fixture with News
+configuration enabled proves that no calendar/provider path or News D1 table is
+mutated.
+
+Changed files:
+
+- `src/news-schedule.ts`
+- `src/news-schedule.test.ts`
+- `src/worker-orchestration.integration.test.ts`
+
+Assignment: GPT-5.6 Sol acceptance role, medium reasoning, because the bounded
+scheduler correction required cross-reading the runtime tracker and handoff and
+promoting local Packet A evidence at a review boundary.
+
+Acceptance evidence: focused TypeScript 23 passed; full TypeScript 130 passed;
+full Python 503 passed with the two previously recorded dependency deprecation
+warnings; TypeScript typecheck passed; Wrangler dry-run passed with News disabled
+and Worker mode shadow; Python compileall passed; `git diff --check` passed.
+
+Packet A does not authorize Worker deployment, Cron mutation, News activation,
+or a live Canary. The next safe local packet is Packet B shared budget /
+idempotency / checkpoint regression. W1-007 Web review and a separate approved
+change window remain mandatory before any confirmation/closeout Canary.
+
 ## 6. Post-X0 operational follow-ups
 
 | Follow-up | Status | Boundary |
@@ -296,7 +334,8 @@ These remain non-normative tracking IDs pending future WBS incorporation/remap.
 1. Treat N1-006 as Accepted through the real 645-candidate review, 4/4 recall measurement, and 19 / 503 / compileall / diff evidence.
 2. Treat the W1-006 cadence repair as live-evidence-confirmed for non-zero Cron seconds offsets through the 12-opportunity reopen window.
 3. Treat W1-007 as locally Accepted through two successful read-only passes; obtain Web review before any separately authorized short W1-001 confirmation/closeout window.
-4. Keep `L1-003/SMOKE-007` and other Worker mutations separately gated.
+4. Treat Packet A scheduler/cadence regression hardening as locally Accepted through canonical minute-boundary and repeated-opportunity evidence; select Packet B as the next safe local packet.
+5. Keep `L1-003/SMOKE-007` and other Worker mutations separately gated.
 
 ## 9. Latest acceptance evidence
 
@@ -312,6 +351,7 @@ These remain non-normative tracking IDs pending future WBS incorporation/remap.
 | W1-005 | local multi-symbol scheduler accepted; 106 instruments preserved; normal/shortened Tier A max age 3m; close+30m outstanding 1Min=0; full TypeScript suite 124; focused 33; typecheck and Wrangler dry-run passed |
 | W1-001 live Canary | reopen collected 12 distinct eligible News opportunities at stable `:30` offset; 13/13 News jobs completed; max external 2/40 and D1 21/40; safely rolled back after Cloudflare API control loss |
 | W1-007 | locally Accepted; two read-only passes of whoami, D1 info, SELECT 1, and PRAGMA succeeded; no 7403/quota error; rollback version remains shadow with News disabled |
+| Packet A | locally Accepted; focused TypeScript 23; full TypeScript 130; full Python 503; typecheck, compileall, Wrangler dry-run, and diff check passed; same minute opportunity is canonical across `00/15/30/59` seconds and repeat execution does not re-call News or advance its checkpoint |
 
 Earlier accepted task evidence remains preserved in task-specific handoffs.
 
@@ -331,6 +371,9 @@ Earlier accepted task evidence remains preserved in task-specific handoffs.
   by 12 live eligible opportunities. W1-007 restored the read-only Cloudflare
   control path locally; Web evidence review and separate authorization for a
   short monitored confirmation/closeout window are still required.
+- Packet A is locally Accepted. Packet B shared budget / idempotency /
+  checkpoint regression is the next safe local packet; this state change does
+  not authorize a remote Worker or D1 mutation.
 - UWBS-016 future WBS incorporation and reviewed Worker News activation.
 - PX0-001..004 operations/recovery backlog.
 - L1-003 / SMOKE-007 real-D1 approval window.
