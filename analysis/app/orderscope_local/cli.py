@@ -13,6 +13,7 @@ from orderscope_local.config import load_local_config
 from orderscope_local.contracts import ContractViolation
 from orderscope_local.integration import run_scheduler
 from orderscope_local.integration.operator import (
+    execute_deletions,
     inspect_retention,
     load_operator_snapshot,
     plan_bounded_replay,
@@ -28,6 +29,7 @@ from orderscope_local.news import (
     write_news_recall_candidates,
 )
 from orderscope_local.news.recall_labeling import finalize_benchmark, write_label_template
+from orderscope_local.news.temporary_store import LocalTemporaryNewsStore
 
 
 app = typer.Typer(help="OrderScope local analysis CLI", no_args_is_help=True)
@@ -226,6 +228,23 @@ def operator_delete_plan(
     instant = _utc_timestamp(now, "now") if now is not None else datetime.now(timezone.utc)
     selected = select_due_deletions(snapshot=loaded, now=instant, content_refs=content_ref, max_items=max_items)
     typer.echo(f"selected={len(selected)} dry_run=true content_refs={','.join(item.content_ref for item in selected)}")
+
+
+@operator_app.command("delete-execute")
+def operator_delete_execute(
+    snapshot: Path = typer.Option(..., exists=True, dir_okay=False, readable=True),
+    content_ref: list[str] = typer.Option(..., "--content-ref", help="Explicit due content ref; repeat option for multiple refs."),
+    now: str | None = typer.Option(None, help="Deletion instant as ISO-8601 UTC; defaults to current UTC."),
+    max_items: int = typer.Option(10, min=1, max=100),
+) -> None:
+    """Delete only explicitly selected, due local temporary-content refs."""
+
+    loaded = load_operator_snapshot(snapshot)
+    instant = _utc_timestamp(now, "now") if now is not None else datetime.now(timezone.utc)
+    selected = select_due_deletions(snapshot=loaded, now=instant, content_refs=content_ref, max_items=max_items)
+    config = load_local_config(os.environ)
+    proofs = execute_deletions(items=selected, deleter=LocalTemporaryNewsStore(data_root=config.data_root))
+    typer.echo(f"selected={len(selected)} deleted={len(proofs)}")
 
 
 def _utc_timestamp(value: str, field: str) -> datetime:
