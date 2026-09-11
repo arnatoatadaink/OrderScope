@@ -225,6 +225,33 @@ News disabled. W1-001 live acceptance is blocked until the cadence predicate is
 repaired, tested, reviewed, and a new change window is approved. See
 `W1-001_LIVE_CANARY_CHANGE_WINDOW_REPORT_2026-09-11.md`.
 
+### W1-001 live Canary reopen result — Evidence collected, safely rolled back
+
+The reviewed W1-006 release was safely deployed and the AMD/NVDA metadata-only
+News Canary was reopened on 2026-09-11. The repaired UTC minute-bucket predicate
+produced News jobs at all 12 distinct reviewed five-minute opportunities despite
+the stable `:30` Cron seconds offset. All 12 completed, with no News partial or
+failure, no budget crossing, and no Cron change. The reviewed maximum was
+`external=2/40` and `D1=21/40`; Market gap retries remained fail-closed and did
+not falsely advance coverage.
+
+One canonical NVDA article and one query membership were created during the
+reviewed window. Publication-to-retrieval lag was 351 seconds and
+publication-to-acceptance lag was 951 seconds. A repeat observation was counted
+as a duplicate rather than another canonical article, and the D1 schema contains
+no News body column.
+
+Final disposition is `ROLLED_BACK`, not because of a cadence, News correctness,
+Market, or budget failure, but because a closeout Cloudflare D1 evidence request
+stalled and ultimately returned API authorization error `7403`, preventing
+reliable continued monitoring. Safe rollback version
+`16af6aeb-6818-4a09-be58-10aa7931a2de` is `shadow` with News disabled; a
+subsequent shadow tick confirmed zero News calls/mutations. See
+`W1-001_LIVE_CANARY_REOPEN_CHANGE_WINDOW_REPORT_2026-09-11.md`.
+
+Next CP gate: review the reopen evidence and Cloudflare API authorization/control
+failure before authorizing any further live Canary or `full-v0.1` activation.
+
 ## 6. Post-X0 operational follow-ups
 
 | Follow-up | Status | Boundary |
@@ -239,7 +266,7 @@ These remain non-normative tracking IDs pending future WBS incorporation/remap.
 ## 7. Parallel/deferred lanes
 
 - `N1-006` real 30-day benchmark is Accepted.
-- `W1-001` live Canary is Blocked after safe rollback; repair and review the News cadence predicate before reopening the window.
+- `W1-001` reopen collected 12 successful eligible News opportunities and then safely rolled back after Cloudflare API authorization/control loss; review the evidence and control failure before another live window.
 - `L1-003` remains externally Blocked behind `SMOKE-007` approval.
 - `PX0-001..004` remain separate operations/recovery follow-ups.
 - `A0-001` remains Provisional and `A0-002` remains separate validation work.
@@ -249,8 +276,8 @@ These remain non-normative tracking IDs pending future WBS incorporation/remap.
 ## 8. Current restart rule
 
 1. Treat N1-006 as Accepted through the real 645-candidate review, 4/4 recall measurement, and 19 / 503 / compileall / diff evidence.
-2. Repair the News cadence predicate so non-zero Cron seconds offsets can still select the intended five-minute bucket; add focused tests and review the technical delta.
-3. Reopen W1-001 only after the repair passes full local acceptance and a new reviewed Worker change window is approved.
+2. Treat the W1-006 cadence repair as live-evidence-confirmed for non-zero Cron seconds offsets through the 12-opportunity reopen window.
+3. Review the Cloudflare API authorization/control loss and establish a reliable bounded closeout/rollback observation path before another W1-001 live window.
 4. Keep `L1-003/SMOKE-007` and other Worker mutations separately gated.
 
 ## 9. Latest acceptance evidence
