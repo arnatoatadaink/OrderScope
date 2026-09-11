@@ -257,9 +257,9 @@ failure before authorizing any further live Canary or `full-v0.1` activation.
 On 2026-09-11, two consecutive read-only control-path passes succeeded against
 the expected `live-canary` account and D1 database. Wrangler identity, `d1 info`,
 remote `SELECT 1`, and `PRAGMA table_list` all passed without `7403` or a
-quota-specific error. The earlier `7403` is not currently reproducible and is
-classified as likely transient or stale OAuth/control-plane state; current
-evidence cannot distinguish those recovered causes.
+quota-specific error. The earlier `7403` is not currently reproducible. Root
+cause remains unknown; transient control-plane state or stale authentication
+state remain hypotheses only and are not encoded as the failure classification.
 
 Rollback version `16af6aeb-6818-4a09-be58-10aa7931a2de` remains deployed.
 Read-only `/health` verification returned `mode=shadow` and News disabled. No
@@ -333,15 +333,41 @@ Changed files:
 
 Acceptance evidence: focused Packet C TypeScript 17 passed; full TypeScript 141 passed; full Python 503 passed with the two existing dependency deprecation warnings; TypeScript typecheck passed; Python compileall passed; Wrangler dry-run passed with Worker mode shadow and News disabled; `git diff --check` passed.
 
-Packet C does not establish that `7403` was caused by stale OAuth or any other specific control-plane cause. Root cause remains unknown. The next safe local packet is Packet D durable run evidence / restart-recovery boundary.
+Packet C does not establish that `7403` was caused by stale OAuth or any other specific control-plane cause. Root cause remains unknown.
+
+### Packet D durable run evidence / restart-recovery boundary — Accepted locally
+
+Packet D adds durable scheduler run/job evidence without changing I0-003 checkpoint ownership. `scheduler_run` and `scheduler_run_job` persist invocation/job identity, scheduler revision, bounded execution window, final status, retry relation and sanitized failure category. Restart recovery compares the recorded bounded window with the provider/source checkpoint; evidence never substitutes for `completeThrough` or advances coverage by itself.
+
+The worker integration is feature-gated by `SCHEDULER_RUN_EVIDENCE_ENABLED`. When disabled, existing behavior remains unchanged. When enabled after migration `0008_scheduler_run_evidence.sql` is present, live Market and News work record run/job evidence through the same `budgetedD1` / shared `InvocationBudget`. Shadow mode performs no scheduler-evidence mutation even when the feature flag is enabled.
+
+Recovery behavior covers stop-before-checkpoint, stop-after-checkpoint, bounded replay, duplicate/retry behavior, stale job replacement, parent stale-run supersession, and lease ownership ambiguity. Lease takeover remains governed by expiry rather than PID/owner-name inference. Stale scheduler job/run evidence is operational evidence only; checkpoint state remains the coverage truth.
+
+Changed files include:
+
+- `migrations/0008_scheduler_run_evidence.sql`
+- `src/run-evidence.ts`
+- `src/run-evidence-session.ts`
+- `src/restart-recovery.ts`
+- `src/worker.ts`
+- `src/packet-d-run-evidence.test.ts`
+- `src/packet-d-restart-recovery.test.ts`
+- `src/packet-d-run-session.test.ts`
+- `src/packet-d-worker-evidence.test.ts`
+
+Key implementation commits include `91bbf3b`, `75079a6`, `f3f6280`, `042a248`, `5b44883`, `1c23344`, `969e15a`, `42e3adf`, `a24258e`, `9fbef3d`, `1586d3e`, and `55866e5`.
+
+Acceptance evidence: focused Packet D TypeScript 16 passed; full TypeScript 157 passed; full Python 503 passed with the two existing dependency deprecation warnings; TypeScript typecheck passed; Python compileall passed; Wrangler dry-run passed with top-level Worker mode shadow and News disabled; `git diff --check` passed with no findings.
+
+Packet D does not authorize migration `0008` against remote D1, Worker deployment, Cron mutation, scheduler-evidence activation, News activation, or another live Canary. Those remain separately gated. The next safe local packet is Packet E retention / retry / bounded replay operator path.
 
 ## 6. Post-X0 operational follow-ups
 
 | Follow-up | Status | Boundary |
 |---|---|---|
 | PX0-001 | Not started | Reviewed operational scheduler job registration |
-| PX0-002 | Ready — Packet D selected | Durable scheduler run/job evidence and stale-lock recovery |
-| PX0-003 | Not started | Operator CLI for retention and bounded reprocessing |
+| PX0-002 | Accepted locally through Packet D | Durable scheduler run/job evidence and stale-lock/restart recovery implemented and locally accepted; formal WBS incorporation/remap remains pending |
+| PX0-003 | Ready — Packet E selected | Operator CLI for retention, failed/retryable inspection, and bounded reprocessing; connect to D1 drain lifecycle without unbounded replay |
 | PX0-004 | Not started | Reproducible backup/restore and restore drills |
 
 These remain non-normative tracking IDs pending future WBS incorporation/remap.
@@ -351,7 +377,8 @@ These remain non-normative tracking IDs pending future WBS incorporation/remap.
 - `N1-006` real 30-day benchmark is Accepted.
 - `W1-001` reopen collected 12 successful eligible News opportunities and then safely rolled back after Cloudflare API authorization/control loss; W1-007 has restored the read-only control-path gate locally, pending Web review before another live window.
 - `L1-003` remains externally Blocked behind `SMOKE-007` approval.
-- `PX0-002` is the next safe local packet through Packet D; PX0-001/003/004 remain separate operations/recovery follow-ups.
+- `PX0-002` local Packet D boundary is Accepted; `PX0-003` / Packet E is the next safe local packet. PX0-001/004 remain separate operations/recovery follow-ups.
+- `UWBS-023..026` record the D1 hot-store drain lifecycle design and should inform Packet E without silently expanding it into remote D1 mutation.
 - `A0-001` remains Provisional and `A0-002` remains separate validation work.
 - WBS-unreflected work is tracked in `WBS_UNREFLECTED_TASK_BACKLOG_2026-09-10.md`.
 - Worker remains Shadow.
@@ -360,10 +387,10 @@ These remain non-normative tracking IDs pending future WBS incorporation/remap.
 
 1. Treat N1-006 as Accepted through the real 645-candidate review, 4/4 recall measurement, and 19 / 503 / compileall / diff evidence.
 2. Treat the W1-006 cadence repair as live-evidence-confirmed for non-zero Cron seconds offsets through the 12-opportunity reopen window.
-3. Treat W1-007 as locally Accepted through two successful read-only passes; obtain Web review before any separately authorized short W1-001 confirmation/closeout window.
-4. Treat Packets A, B, and C as locally Accepted through their recorded deterministic regression and full-suite evidence.
-5. Select Packet D — durable run evidence / restart-recovery boundary — as the next safe local packet. This is PX0-002 preparation only and does not formally complete the non-normative PX0 item.
-6. Keep `L1-003/SMOKE-007` and other Worker mutations separately gated.
+3. Treat W1-007 as locally Accepted through two successful read-only passes; obtain Web review before any separately authorized short W1-001 confirmation/closeout window. Root cause of the earlier `7403` remains unknown.
+4. Treat Packets A, B, C, and D as locally Accepted through their recorded deterministic regression and full-suite evidence.
+5. Select Packet E — retention / retry / bounded replay operator path — as the next safe local packet. Use `PX0-003` as the operational scope and `UWBS-023..026` as the newly captured D1 drain-lifecycle design inputs; do not implement unbounded reprocessing or remote purge as part of local acceptance.
+6. Keep `L1-003/SMOKE-007`, migration `0008` remote application, scheduler-evidence activation, and other Worker mutations separately gated.
 
 ## 9. Latest acceptance evidence
 
@@ -378,10 +405,11 @@ These remain non-normative tracking IDs pending future WBS incorporation/remap.
 | X0-006 | operator/external review accepted for policy-level fixture path; F1-F4 deferred to PX0-001..004 |
 | W1-005 | local multi-symbol scheduler accepted; 106 instruments preserved; normal/shortened Tier A max age 3m; close+30m outstanding 1Min=0; full TypeScript suite 124; focused 33; typecheck and Wrangler dry-run passed |
 | W1-001 live Canary | reopen collected 12 distinct eligible News opportunities at stable `:30` offset; 13/13 News jobs completed; max external 2/40 and D1 21/40; safely rolled back after Cloudflare API control loss |
-| W1-007 | locally Accepted; two read-only passes of whoami, D1 info, SELECT 1, and PRAGMA succeeded; no 7403/quota error; rollback version remains shadow with News disabled |
+| W1-007 | locally Accepted; two read-only passes of whoami, D1 info, SELECT 1, and PRAGMA succeeded; no 7403/quota error; earlier 7403 root cause remains unknown; rollback version remains shadow with News disabled |
 | Packet A | locally Accepted; focused TypeScript 23; full TypeScript 130; full Python 503; typecheck, compileall, Wrangler dry-run, and diff check passed; same minute opportunity is canonical across `00/15/30/59` seconds and repeat execution does not re-call News or advance its checkpoint |
 | Packet B | locally Accepted; focused TypeScript 4; full TypeScript 134; full Python 503; typecheck, compileall, Wrangler dry-run, and diff check passed; shared budget, CAS conflict, retry canonicalization, and D1 ceiling regressions covered |
 | Packet C | locally Accepted; focused TypeScript 17; full TypeScript 141; full Python 503; typecheck, compileall, Wrangler dry-run, and diff check passed; provider/control-path failures classified and fail closed without guessing `7403` root cause |
+| Packet D | locally Accepted; focused TypeScript 16; full TypeScript 157; full Python 503; typecheck, compileall, Wrangler dry-run, and diff check passed; durable bounded run/job evidence, restart recovery, stale parent/job supersession, lease ambiguity, feature-gated Worker integration, shared D1 budget accounting, and Shadow no-mutation covered |
 
 Earlier accepted task evidence remains preserved in task-specific handoffs.
 
@@ -401,11 +429,11 @@ Earlier accepted task evidence remains preserved in task-specific handoffs.
   by 12 live eligible opportunities. W1-007 restored the read-only Cloudflare
   control path locally; Web evidence review and separate authorization for a
   short monitored confirmation/closeout window are still required.
-- Packets A, B, and C are locally Accepted. Packet D durable run evidence /
-  restart-recovery boundary is the next safe local packet; this state change does
-  not authorize a remote Worker or D1 mutation and does not yet mark PX0-002 complete.
+- Packet D is locally Accepted. Remote migration `0008`, scheduler-evidence activation, Worker deployment/Cron mutation, and any live confirmation remain separately gated.
+- Packet E / PX0-003 is the next safe local packet. Scope must remain operator-only/CLI-only, bounded, metadata-only where applicable, and must not introduce arbitrary HTTP job starts or unbounded `reprocess everything` behavior.
+- `UWBS-023..026` D1 hot-store drain lifecycle is captured for future WBS/CP incorporation. Packet E may prototype the bounded local operator boundary but must not treat remote export/purge as authorized.
 - UWBS-016 future WBS incorporation and reviewed Worker News activation.
-- PX0-001/003/004 operations/recovery backlog; PX0-002 is being prepared through Packet D.
+- PX0-001/004 operations/recovery backlog.
 - L1-003 / SMOKE-007 real-D1 approval window.
 - A0-001 provisional validation.
 - A0-002 AI/Semiconductor proxy.
