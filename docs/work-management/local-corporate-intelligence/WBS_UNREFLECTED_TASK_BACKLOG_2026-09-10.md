@@ -118,6 +118,7 @@ Use this section for newly proposed work before deciding whether it deserves a f
 | DISC-003 | 2026-09-10 | Move steady-state News metadata acquisition to Cloudflare Worker/Schedule while keeping Local as analysis layer | `docs/work-management/local-corporate-intelligence/NEWS_WORKER_ACQUISITION_DESIGN_2026-09-10.md` | Worker acquisition / Operations | Promoted to UWBS-016 |
 | DISC-004 | 2026-09-11 | Track convertible-debt lifecycle, maturity/conversion windows, financing-to-debt-resolution evidence and dilution-overhang removal using TNON as the reference case | `docs/work-management/local-corporate-intelligence/REPORT_TNON_CONVERTIBLE_DEBT_REPAYMENT_CASE_2026-09-11.md` | Capital Structure / SEC / I0 | Promoted to UWBS-017..019 |
 | DISC-005 | 2026-09-11 | Distinguish price spike, active price discovery, delayed repricing and persistent price rediscovery using CHPT and TNON reference cases | `docs/work-management/local-corporate-intelligence/REPORT_TNON_CHPT_PRICE_REDISCOVERY_2026-09-11.md` | Market Reaction / Derived Metrics / Regime | Promoted to UWBS-020..022 |
+| DISC-006 | 2026-09-12 | Keep D1 as a lightweight hot operational store by incrementally exporting verified bounded history to the local analysis server, then purging only acknowledged/grace-complete historical rows while preserving checkpoint/control truth | `docs/work-management/local-corporate-intelligence/REPORT_D1_HOT_STORE_DRAIN_LIFECYCLE_DESIGN_2026-09-12.md` | L1 / Storage / Operations / Recovery | Promoted to UWBS-023..026 |
 
 When a proposal is accepted for tracking:
 
@@ -186,6 +187,10 @@ The revision must preserve a mapping table:
 | UWBS-020 | Pending | — | — |
 | UWBS-021 | Pending | — | — |
 | UWBS-022 | Pending | — | — |
+| UWBS-023 | Pending | — | — |
+| UWBS-024 | Pending | — | — |
+| UWBS-025 | Pending | — | — |
+| UWBS-026 | Pending | — | — |
 
 ## 11. Current planning interpretation
 
@@ -194,6 +199,8 @@ This backlog does not authorize remote changes. X0 fixture-path and the complete
 `UWBS-016` is now ready for WBS design but should not be activated before N1-006 supplies real recall/lag evidence that can confirm or adjust the proposed News polling cadence. Worker remains Shadow, and any Worker/Schedule job registration still requires its separately reviewed task/change window.
 
 The TNON / CHPT additions below are design work only. They do not establish trading signals or normative thresholds. Historical fixtures and validation must precede any promotion of catalyst strength, price-discovery persistence, or attention-score thresholds into accepted specification.
+
+The D1 drain additions are lifecycle/design work only. They do not authorize `L1-003`, remote export, remote purge, Worker mutation, or automatic deletion. `I0-003` remains checkpoint/cursor truth; local archive custody and D1 acquisition state must not be conflated.
 
 ## 12. Capital structure / catalyst and price-discovery expansion
 
@@ -220,3 +227,40 @@ Planning notes:
 - No fixed `+X%`, number-of-hours, or number-of-sessions threshold should become normative from these two examples alone.
 - `DILUTION_RISK_REMOVED` is too broad when replacement warrants or other potential issuance remain outstanding. Instrument-specific state is required.
 - The newswire-vs-SEC latency problem belongs to discovery/confirmation routing; source cost/licensing should be reviewed separately rather than embedded in the Fact model.
+
+## 13. D1 hot-store / local-history drain lifecycle expansion
+
+Source report:
+
+- `docs/work-management/local-corporate-intelligence/REPORT_D1_HOT_STORE_DRAIN_LIFECYCLE_DESIGN_2026-09-12.md`
+
+The current WBS already has export/import primitives under `L1-001..006`, and the operational backlog already has retention/reprocessing (`UWBS-003`) plus backup/restore (`UWBS-004`). The missing scope is the explicit custody-transfer lifecycle that connects them while keeping D1 as a lightweight hot operational store rather than a long-term analytical warehouse.
+
+Target architectural boundary:
+
+```text
+Worker/D1 hot state
+  -> bounded incremental export
+  -> local immutable custody + manifest/hash verification
+  -> local import + quality acceptance
+  -> explicit acknowledgement
+  -> grace period
+  -> bounded purge of eligible D1 history
+```
+
+`I0-003` remains provider/source checkpoint truth. Export acknowledgement must not become a second acquisition cursor, and historical purge must not delete current checkpoint/cursor/lease/schema state.
+
+| UWBS ID | Proposed task | Proposed package | Completion condition summary | Likely inputs / dependencies | Status | Disposition |
+|---|---|---|---|---|---|---|
+| UWBS-023 | Define D1 hot-store / local-history retention contract | L1 / Storage / Operations | Classify D1 rows into current control state, hot acquired data, acceptance/idempotency evidence, operational evidence and exception/blocker state; define authoritative store, configurable retention/grace policy and purge eligibility; explicitly separate acquisition lookback from deletion eligibility | L1-001..006; I0-003/004; UWBS-002/003/004; current D1 schema | Ready for WBS design | Pending |
+| UWBS-024 | Implement bounded incremental D1 export and custody manifest | L1 export / Local ingestion | Export explicit half-open table/source/time windows with generation ID, source environment/database identity, schema/source revision, row count, size/hash and local destination; retries are idempotent; steady-state path does not repeatedly full-scan/download all history | UWBS-023; L1-001/002/003/004; local catalog/import path; remote export remains change-window gated | Needs decomposition | Pending |
+| UWBS-025 | Implement export acknowledgement and bounded D1 purge lifecycle | Operations / Retention | Implement `PLANNED -> EXPORTED -> HASH_VERIFIED -> IMPORTED -> QUALITY_ACCEPTED -> ACKNOWLEDGED -> GRACE -> PURGE_ELIGIBLE -> PURGED`; dry-run shows bounded purge candidates; purge requires verified local custody and preserves checkpoint/control truth; purge retry is idempotent and bounded | UWBS-023/024; L1-005; UWBS-003; I0-003; Packet D/UWBS-002 evidence boundary | Needs decomposition | Pending |
+| UWBS-026 | D1 drain lifecycle acceptance and failure fixtures | Storage / Recovery QA | Fixtures cover Local unavailable/backlog growth, export failure/retry, hash mismatch, duplicate export, import/quality block, update after earlier export, purge failure/retry, checkpoint preservation, unresolved retention blocker, local queryability after D1 purge and bounded D1 budget behavior | UWBS-023..025; UWBS-004 backup/restore remains separate | Needs decomposition | Pending |
+
+Planning notes:
+
+- `ACQUISITION_RETENTION_MINUTES` or another lookback value is not deletion proof. Purge requires explicit verified custody/ACK state.
+- Do not freeze 24h/7d/30d durations from the design discussion alone; use measured D1 size/read/write cost, incident-response needs and replay requirements.
+- Export/archive is not automatically a complete backup. `UWBS-004` remains independently required for disaster-recovery generation and restore drills.
+- Initial mutation path should remain operator/CLI controlled. Scheduled automatic drain/purge should be a later promotion after bounded dry-run/execute and recovery tests are accepted.
+- No remote D1 export or purge is authorized by these backlog rows.
