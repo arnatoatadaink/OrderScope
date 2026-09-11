@@ -252,6 +252,24 @@ subsequent shadow tick confirmed zero News calls/mutations. See
 Next CP gate: review the reopen evidence and Cloudflare API authorization/control
 failure before authorizing any further live Canary or `full-v0.1` activation.
 
+### W1-007 Cloudflare control-path diagnostic — Accepted locally
+
+On 2026-09-11, two consecutive read-only control-path passes succeeded against
+the expected `live-canary` account and D1 database. Wrangler identity, `d1 info`,
+remote `SELECT 1`, and `PRAGMA table_list` all passed without `7403` or a
+quota-specific error. The earlier `7403` is not currently reproducible and is
+classified as likely transient or stale OAuth/control-plane state; current
+evidence cannot distinguish those recovered causes.
+
+Rollback version `16af6aeb-6818-4a09-be58-10aa7931a2de` remains deployed.
+Read-only `/health` verification returned `mode=shadow` and News disabled. No
+Worker/config, Cron, activation, or D1 data mutation was performed. See
+`W1-007_CLOUDFLARE_API_CONTROL_PATH_DIAGNOSTIC_LOCAL_REPORT_2026-09-11.md`.
+
+Next CP gate: Web review of the W1-007 evidence, then a separately authorized
+short monitored W1-001 confirmation/closeout window. The cadence predicate is
+already repaired and live-confirmed; it is no longer the active blocker.
+
 ## 6. Post-X0 operational follow-ups
 
 | Follow-up | Status | Boundary |
@@ -266,7 +284,7 @@ These remain non-normative tracking IDs pending future WBS incorporation/remap.
 ## 7. Parallel/deferred lanes
 
 - `N1-006` real 30-day benchmark is Accepted.
-- `W1-001` reopen collected 12 successful eligible News opportunities and then safely rolled back after Cloudflare API authorization/control loss; review the evidence and control failure before another live window.
+- `W1-001` reopen collected 12 successful eligible News opportunities and then safely rolled back after Cloudflare API authorization/control loss; W1-007 has restored the read-only control-path gate locally, pending Web review before another live window.
 - `L1-003` remains externally Blocked behind `SMOKE-007` approval.
 - `PX0-001..004` remain separate operations/recovery follow-ups.
 - `A0-001` remains Provisional and `A0-002` remains separate validation work.
@@ -277,7 +295,7 @@ These remain non-normative tracking IDs pending future WBS incorporation/remap.
 
 1. Treat N1-006 as Accepted through the real 645-candidate review, 4/4 recall measurement, and 19 / 503 / compileall / diff evidence.
 2. Treat the W1-006 cadence repair as live-evidence-confirmed for non-zero Cron seconds offsets through the 12-opportunity reopen window.
-3. Review the Cloudflare API authorization/control loss and establish a reliable bounded closeout/rollback observation path before another W1-001 live window.
+3. Treat W1-007 as locally Accepted through two successful read-only passes; obtain Web review before any separately authorized short W1-001 confirmation/closeout window.
 4. Keep `L1-003/SMOKE-007` and other Worker mutations separately gated.
 
 ## 9. Latest acceptance evidence
@@ -292,7 +310,8 @@ These remain non-normative tracking IDs pending future WBS incorporation/remap.
 | N1-006 real-data benchmark | 645/645 reviewed; 51 matched; 594 unrelated; 0 unresolved; 4/4 discovered; recall 1.0000; misattribution 0; focused 19; full 503; compileall success; diff clean |
 | X0-006 | operator/external review accepted for policy-level fixture path; F1-F4 deferred to PX0-001..004 |
 | W1-005 | local multi-symbol scheduler accepted; 106 instruments preserved; normal/shortened Tier A max age 3m; close+30m outstanding 1Min=0; full TypeScript suite 124; focused 33; typecheck and Wrangler dry-run passed |
-| W1-001 live Canary | rolled back; migration 0007 applied; Alpaca 401 repaired; first completed live tick external 1/40 and D1 21/40; News eligibility blocked by stable `:15` Cron seconds offset |
+| W1-001 live Canary | reopen collected 12 distinct eligible News opportunities at stable `:30` offset; 13/13 News jobs completed; max external 2/40 and D1 21/40; safely rolled back after Cloudflare API control loss |
+| W1-007 | locally Accepted; two read-only passes of whoami, D1 info, SELECT 1, and PRAGMA succeeded; no 7403/quota error; rollback version remains shadow with News disabled |
 
 Earlier accepted task evidence remains preserved in task-specific handoffs.
 
@@ -307,10 +326,11 @@ Earlier accepted task evidence remains preserved in task-specific handoffs.
   jobs outstanding at close+30 minutes with two groups per tick. See
   `W1-005_MULTI_SYMBOL_TIER_SCHEDULER_LOCAL_ACCEPTANCE_2026-09-11.md`. Remote D1,
   deployment, Cron, Worker mode, and live profile activation remain unauthorized.
-- W1-001 live Canary is safely rolled back and Blocked. The Worker is `shadow`
-  with News disabled. The cadence predicate must be repaired and reviewed before
-  another live window because actual Cron timestamps carry a stable 15-second
-  offset and never satisfy the current exact-millisecond modulo test.
+- W1-001 live Canary is safely rolled back and remains gated. The Worker is
+  `shadow` with News disabled. The cadence predicate is repaired and confirmed
+  by 12 live eligible opportunities. W1-007 restored the read-only Cloudflare
+  control path locally; Web evidence review and separate authorization for a
+  short monitored confirmation/closeout window are still required.
 - UWBS-016 future WBS incorporation and reviewed Worker News activation.
 - PX0-001..004 operations/recovery backlog.
 - L1-003 / SMOKE-007 real-D1 approval window.
