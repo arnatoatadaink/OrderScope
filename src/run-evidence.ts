@@ -27,6 +27,25 @@ export type SchedulerRunJobRecord = {
   diagnostic?: Readonly<Record<string, unknown>>;
 };
 
+export interface SchedulerRunEvidenceStore {
+  startRun(record: SchedulerRunRecord): Promise<void>;
+  finishRun(
+    runId: string,
+    status: Exclude<SchedulerRunStatus, "RUNNING">,
+    finishedAt: string,
+    diagnostic?: Readonly<Record<string, unknown>>,
+  ): Promise<void>;
+  startJob(record: SchedulerRunJobRecord): Promise<void>;
+  finishJob(
+    runId: string,
+    jobId: string,
+    status: Exclude<SchedulerRunJobStatus, "RUNNING">,
+    finishedAt: string,
+    options?: { failureCategory?: string; diagnostic?: Readonly<Record<string, unknown>> },
+  ): Promise<void>;
+  supersedeStaleJobs(staleBefore: string, finishedAt: string, replacementRunId: string): Promise<number>;
+}
+
 function parseInstant(value: string, name: string): void {
   if (!Number.isFinite(Date.parse(value))) throw new Error(`${name} must be a valid instant`);
 }
@@ -36,7 +55,7 @@ function cleanDiagnostic(value: Readonly<Record<string, unknown>> | undefined): 
   return JSON.stringify(value);
 }
 
-export class D1SchedulerRunEvidenceStore {
+export class D1SchedulerRunEvidenceStore implements SchedulerRunEvidenceStore {
   private readonly db: D1Database;
 
   constructor(db: D1Database) {
