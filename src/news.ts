@@ -10,7 +10,7 @@ export type NewsFetchOptions = { retry?: ProviderRetryPolicy; sleep?: (ms: numbe
   onAttempt?: () => void; now?: () => number };
 
 export class NewsProviderError extends Error {
-  readonly category: "RATE_LIMIT" | "PROVIDER_UNAVAILABLE" | "INVALID_RESPONSE";
+  readonly category: "AUTHENTICATION" | "AUTHORIZATION" | "TRANSPORT" | "RATE_LIMIT" | "PROVIDER_UNAVAILABLE" | "INVALID_RESPONSE";
   readonly retryable: boolean;
   constructor(category: NewsProviderError["category"], retryable: boolean) {
     super(`news provider ${category.toLowerCase()}`);
@@ -63,8 +63,18 @@ export async function fetchNewsPage(credentials: AlpacaCredentials, request: New
   const retry = options.retry; const attempts = retry?.maxAttempts ?? 1;
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     options.onAttempt?.();
-    const response = await fetch(url, { headers: { "APCA-API-KEY-ID": credentials.keyId, "APCA-API-SECRET-KEY": credentials.secretKey } });
+    let response: Response;
+    try {
+      response = await fetch(url, { headers: { "APCA-API-KEY-ID": credentials.keyId, "APCA-API-SECRET-KEY": credentials.secretKey } });
+    } catch {
+      if (attempt === attempts) throw new NewsProviderError("TRANSPORT", true);
+      const exponential = Math.min(retry!.baseBackoffMs * 2 ** (attempt - 1), retry!.maxBackoffMs);
+      await (options.sleep ?? ((ms) => new Promise((resolve) => setTimeout(resolve, ms))))(exponential);
+      continue;
+    }
     if (response.ok) return normalizeNewsPayload(await response.json());
+    if (response.status === 401) throw new NewsProviderError("AUTHENTICATION", false);
+    if (response.status === 403) throw new NewsProviderError("AUTHORIZATION", false);
     const retryable = response.status === 429 || response.status >= 500;
     if (!retryable || attempt === attempts) throw new NewsProviderError(response.status === 429 ? "RATE_LIMIT" : "PROVIDER_UNAVAILABLE", retryable);
     const header = response.headers.get("retry-after");
