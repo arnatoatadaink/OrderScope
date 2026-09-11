@@ -1,7 +1,7 @@
 # OrderScope — Local Corporate Intelligence Progress Tracker
 
 Status: **Active integrated runtime tracker**
-Date: 2026-09-11
+Date: 2026-09-12
 Scope: Local Corporate Intelligence / X0 integration
 
 This file is the sole integrated authority for Local Corporate Intelligence runtime progress after the 2026-09-05 consolidation. Detailed implementation notes remain in task-specific handoffs.
@@ -304,16 +304,43 @@ warnings; TypeScript typecheck passed; Wrangler dry-run passed with News disable
 and Worker mode shadow; Python compileall passed; `git diff --check` passed.
 
 Packet A does not authorize Worker deployment, Cron mutation, News activation,
-or a live Canary. The next safe local packet is Packet B shared budget /
-idempotency / checkpoint regression. W1-007 Web review and a separate approved
-change window remain mandatory before any confirmation/closeout Canary.
+or a live Canary. W1-007 Web review and a separate approved change window remain mandatory before any confirmation/closeout Canary.
+
+### Packet B shared budget / idempotency / checkpoint regression — Accepted locally
+
+Packet B fixed deterministic regression coverage around the already-shared `InvocationBudget` boundary. Market and News now have explicit acceptance evidence showing that one invocation-level external-call budget is consumed across both paths, News fails closed at the remaining limit, D1 budget preflight never increments beyond its ceiling, a News checkpoint CAS conflict preserves current checkpoint truth, and overlapping retries preserve one canonical article with separate AMD/NVDA query membership.
+
+Changed files:
+
+- `src/packet-b-regression.test.ts`
+
+Acceptance evidence: focused Packet B TypeScript 4 passed; full TypeScript 134 passed; full Python 503 passed with the two existing dependency deprecation warnings; TypeScript typecheck passed; Python compileall passed; Wrangler dry-run passed with Worker mode shadow and News disabled; `git diff --check` passed.
+
+Packet B does not authorize Worker deployment, Cron mutation, News activation, or remote D1 mutation.
+
+### Packet C control-path failure classification / fail-safe — Accepted locally
+
+Packet C distinguishes provider/auth/control-path failures without asserting an unproven root cause for the prior Cloudflare `7403`. News provider failures are categorized as authentication, authorization, transport, rate-limit, provider-unavailable, or invalid-response. Execution failures separately distinguish D1 control read, D1 control write, News store failure, budget failure, and checkpoint conflict. Raw provider bodies, credentials, socket text, and raw D1 error strings are not promoted into persisted/public diagnostics.
+
+The fail-closed regression boundary proves that checkpoint-read failure prevents provider acquisition, News-store failure preserves prior `completeThrough`, checkpoint-write failure cannot be reported as successful new coverage, authentication failure remains a sanitized non-retryable provider category, and retryable control/data failures leave retryable state where safe.
+
+Changed files:
+
+- `src/news.ts`
+- `src/news.test.ts`
+- `src/news-execution.ts`
+- `src/packet-c-control-path.test.ts`
+
+Acceptance evidence: focused Packet C TypeScript 17 passed; full TypeScript 141 passed; full Python 503 passed with the two existing dependency deprecation warnings; TypeScript typecheck passed; Python compileall passed; Wrangler dry-run passed with Worker mode shadow and News disabled; `git diff --check` passed.
+
+Packet C does not establish that `7403` was caused by stale OAuth or any other specific control-plane cause. Root cause remains unknown. The next safe local packet is Packet D durable run evidence / restart-recovery boundary.
 
 ## 6. Post-X0 operational follow-ups
 
 | Follow-up | Status | Boundary |
 |---|---|---|
 | PX0-001 | Not started | Reviewed operational scheduler job registration |
-| PX0-002 | Not started | Durable scheduler run/job evidence and stale-lock recovery |
+| PX0-002 | Ready — Packet D selected | Durable scheduler run/job evidence and stale-lock recovery |
 | PX0-003 | Not started | Operator CLI for retention and bounded reprocessing |
 | PX0-004 | Not started | Reproducible backup/restore and restore drills |
 
@@ -324,7 +351,7 @@ These remain non-normative tracking IDs pending future WBS incorporation/remap.
 - `N1-006` real 30-day benchmark is Accepted.
 - `W1-001` reopen collected 12 successful eligible News opportunities and then safely rolled back after Cloudflare API authorization/control loss; W1-007 has restored the read-only control-path gate locally, pending Web review before another live window.
 - `L1-003` remains externally Blocked behind `SMOKE-007` approval.
-- `PX0-001..004` remain separate operations/recovery follow-ups.
+- `PX0-002` is the next safe local packet through Packet D; PX0-001/003/004 remain separate operations/recovery follow-ups.
 - `A0-001` remains Provisional and `A0-002` remains separate validation work.
 - WBS-unreflected work is tracked in `WBS_UNREFLECTED_TASK_BACKLOG_2026-09-10.md`.
 - Worker remains Shadow.
@@ -334,8 +361,9 @@ These remain non-normative tracking IDs pending future WBS incorporation/remap.
 1. Treat N1-006 as Accepted through the real 645-candidate review, 4/4 recall measurement, and 19 / 503 / compileall / diff evidence.
 2. Treat the W1-006 cadence repair as live-evidence-confirmed for non-zero Cron seconds offsets through the 12-opportunity reopen window.
 3. Treat W1-007 as locally Accepted through two successful read-only passes; obtain Web review before any separately authorized short W1-001 confirmation/closeout window.
-4. Treat Packet A scheduler/cadence regression hardening as locally Accepted through canonical minute-boundary and repeated-opportunity evidence; select Packet B as the next safe local packet.
-5. Keep `L1-003/SMOKE-007` and other Worker mutations separately gated.
+4. Treat Packets A, B, and C as locally Accepted through their recorded deterministic regression and full-suite evidence.
+5. Select Packet D — durable run evidence / restart-recovery boundary — as the next safe local packet. This is PX0-002 preparation only and does not formally complete the non-normative PX0 item.
+6. Keep `L1-003/SMOKE-007` and other Worker mutations separately gated.
 
 ## 9. Latest acceptance evidence
 
@@ -352,6 +380,8 @@ These remain non-normative tracking IDs pending future WBS incorporation/remap.
 | W1-001 live Canary | reopen collected 12 distinct eligible News opportunities at stable `:30` offset; 13/13 News jobs completed; max external 2/40 and D1 21/40; safely rolled back after Cloudflare API control loss |
 | W1-007 | locally Accepted; two read-only passes of whoami, D1 info, SELECT 1, and PRAGMA succeeded; no 7403/quota error; rollback version remains shadow with News disabled |
 | Packet A | locally Accepted; focused TypeScript 23; full TypeScript 130; full Python 503; typecheck, compileall, Wrangler dry-run, and diff check passed; same minute opportunity is canonical across `00/15/30/59` seconds and repeat execution does not re-call News or advance its checkpoint |
+| Packet B | locally Accepted; focused TypeScript 4; full TypeScript 134; full Python 503; typecheck, compileall, Wrangler dry-run, and diff check passed; shared budget, CAS conflict, retry canonicalization, and D1 ceiling regressions covered |
+| Packet C | locally Accepted; focused TypeScript 17; full TypeScript 141; full Python 503; typecheck, compileall, Wrangler dry-run, and diff check passed; provider/control-path failures classified and fail closed without guessing `7403` root cause |
 
 Earlier accepted task evidence remains preserved in task-specific handoffs.
 
@@ -371,11 +401,11 @@ Earlier accepted task evidence remains preserved in task-specific handoffs.
   by 12 live eligible opportunities. W1-007 restored the read-only Cloudflare
   control path locally; Web evidence review and separate authorization for a
   short monitored confirmation/closeout window are still required.
-- Packet A is locally Accepted. Packet B shared budget / idempotency /
-  checkpoint regression is the next safe local packet; this state change does
-  not authorize a remote Worker or D1 mutation.
+- Packets A, B, and C are locally Accepted. Packet D durable run evidence /
+  restart-recovery boundary is the next safe local packet; this state change does
+  not authorize a remote Worker or D1 mutation and does not yet mark PX0-002 complete.
 - UWBS-016 future WBS incorporation and reviewed Worker News activation.
-- PX0-001..004 operations/recovery backlog.
+- PX0-001/003/004 operations/recovery backlog; PX0-002 is being prepared through Packet D.
 - L1-003 / SMOKE-007 real-D1 approval window.
 - A0-001 provisional validation.
 - A0-002 AI/Semiconductor proxy.
