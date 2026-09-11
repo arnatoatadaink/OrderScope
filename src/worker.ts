@@ -13,14 +13,18 @@ import { batchAcquisitionJobs, coverageKeyFor, SchedulePolicy } from "./schedule
 import { loadUniverseSnapshot, type UniverseInstrument, type UniverseSnapshot } from "./universe";
 import { loadNewsAcquisitionRuntimeConfig, type NewsAcquisitionConfigEnv } from "./news-acquisition-config";
 import { NEWS_COVERAGE_KEY, planNewsAcquisition } from "./news-schedule";
-import { D1NewsCheckpointPort, executeNewsAcquisition, type NewsCheckpointPort } from "./news-execution";
+import { D1NewsCheckpointPort, executeNewsAcquisition, type NewsCheckpointPort, type NewsExecutionSummary } from "./news-execution";
 import { D1NewsStore, type NewsStore } from "./news-store";
 import type { NewsExecutionOptions } from "./news-execution";
 import { D1_QUERY_CEILING, EXTERNAL_SUBREQUEST_CEILING, InvocationBudget } from "./invocation-budget";
 import { loadMarketCheckpoints } from "./market-checkpoint-load";
 import { budgetedD1 } from "./budgeted-d1";
+import { D1SchedulerRunEvidenceStore, type SchedulerRunEvidenceStore } from "./run-evidence";
+import { SchedulerRunEvidenceSession } from "./run-evidence-session";
 
 type PredictionMode = "off" | "shadow";
+
+const SCHEDULER_EVIDENCE_REVISION = "packet-d-v1";
 
 type Digest = {
   generatedAt: string;
@@ -120,6 +124,7 @@ export type ScheduledOrchestrationDependencies = {
   newsCheckpointPort?: (db: D1Database) => NewsCheckpointPort;
   newsStore?: (db: D1Database) => NewsStore;
   fetchNewsPage?: NewsExecutionOptions["fetchPage"];
+  runEvidenceStore?: (db: D1Database) => SchedulerRunEvidenceStore;
 };
 
 const productionDependencies: ScheduledOrchestrationDependencies = {
@@ -128,6 +133,16 @@ const productionDependencies: ScheduledOrchestrationDependencies = {
   predictionRegistries: (profile) => loadPredictionRegistries(profile),
   predictionUniverse: () => loadUniverseSnapshot("full-v0.1"),
 };
+
+function schedulerEvidenceRunStatus(
+  marketSummaries: readonly (AcquisitionExecutionSummary | { jobId: string; outcome: "FAILED" | "SKIPPED_LOCKED" })[],
+  newsSummaries: readonly NewsExecutionSummary[],
+): "SUCCEEDED" | "PARTIAL" {
+  return marketSummaries.some((summary) => summary.outcome !== "SUCCEEDED")
+    || newsSummaries.some((summary) => summary.outcome !== "SUCCEEDED")
+    ? "PARTIAL"
+    : "SUCCEEDED";
+}
 
 async function runScheduledTick(
   controller: ScheduledController,
@@ -255,20 +270,35 @@ async function runScheduledTick(
     dueReason: job.dueReason,
     requestedRange: job.requestedRange,
   }));
-  // Keep the first live boundary deliberately bounded by reviewed configuration.
-  // Failed work is retried by deterministic replanning on the next cron tick.
   const summaries: Array<AcquisitionExecutionSummary
     | { jobId: string; outcome: "FAILED" | "SKIPPED_LOCKED" }> = [];
   const staleBefore = new Date(now.getTime() - acquisitionConfig.staleAttemptMinutes * 60_000).toISOString();
+  const runId = `scheduler:${now.toISOString()}:${crypto.randomUUID()}`;
+  const runEvidence = await SchedulerRunEvidenceSession.start({
+    store: dependencies.runEvidenceStore?.(stateDb) ?? new D1SchedulerRunEvidenceStore(stateDb),
+    runId,
+    scheduledAt: now.toISOString(),
+    schedulerRevision: SCHEDULER_EVIDENCE_REVISION,
+    workerMode: env.WORKER_MODE,
+  });
+  const supersededStaleRunJobs = await runEvidence.supersedeStaleJobs(staleBefore);
   let supersededStaleAttempts = 0;
   const leases = dependencies.leaseStore?.(stateDb) ?? new D1AcquisitionLeaseStore(stateDb);
   for (const job of runnableJobs) {
+    const evidenceDescriptor = {
+      jobId: job.jobId,
+      jobKind: "MARKET_BARS",
+      source: "alpaca-market-data",
+      boundaryStart: job.requestedRange.startInclusive,
+      boundaryEnd: job.requestedRange.endExclusive,
+    };
     const coverageKey = job.instruments.length === 1
       ? job.checkpointExpectations[0]!.coverageKey
       : `batch:${job.jobId}`;
     const ownerId = `${job.jobId}:${now.toISOString()}`;
     const acquired = await leases.acquire(coverageKey, ownerId, now.toISOString(), 5 * 60_000);
     if (!acquired) {
+      await runEvidence.recordLocked(evidenceDescriptor);
       summaries.push({ jobId: job.jobId, outcome: "SKIPPED_LOCKED" });
       continue;
     }
@@ -276,20 +306,33 @@ async function runScheduledTick(
       supersededStaleAttempts += await checkpoints.supersedeStaleAttempts({
         coverageKey, staleBefore, finishedAt: now.toISOString(), replacementJobId: job.jobId,
       });
-      summaries.push(await executeAcquisitionJob(job, {
-        credentials, calendar, checkpoints,
-        bars: dependencies.barStore?.(stateDb) ?? new D1NormalizedBarStore(stateDb),
-        feed: env.ALPACA_FEED, maxPages: acquisitionConfig.maxPagesPerJob,
-        maxBars: acquisitionConfig.maxBarsPerJob,
-        gapRetryDelayMs: acquisitionConfig.gapRetryMinutes * 60_000,
-        providerFetchOptions: { retry: acquisitionConfig.providerRetry },
-        now: () => now,
-        fetchPage: dependencies.fetchPage,
-        budget: invocationBudget,
-      }));
+      const summary = await runEvidence.runJob(evidenceDescriptor, async () => {
+        const value = await executeAcquisitionJob(job, {
+          credentials, calendar, checkpoints,
+          bars: dependencies.barStore?.(stateDb) ?? new D1NormalizedBarStore(stateDb),
+          feed: env.ALPACA_FEED, maxPages: acquisitionConfig.maxPagesPerJob,
+          maxBars: acquisitionConfig.maxBarsPerJob,
+          gapRetryDelayMs: acquisitionConfig.gapRetryMinutes * 60_000,
+          providerFetchOptions: { retry: acquisitionConfig.providerRetry },
+          now: () => now,
+          fetchPage: dependencies.fetchPage,
+          budget: invocationBudget,
+        });
+        return {
+          value,
+          completion: {
+            status: value.outcome,
+            diagnostic: {
+              pages: value.pages, inserted: value.inserted, matched: value.matched,
+              conflicts: value.conflicts, rejected: value.rejected, missing: value.missing,
+            },
+          },
+        };
+      });
+      summaries.push(summary);
     } catch {
-      // Detailed diagnostics are already recorded on the attempt row. Keep the
-      // public operational digest compact and free of provider response details.
+      // Detailed diagnostics are already recorded on the attempt/evidence rows.
+      // Keep the public operational digest compact and free of provider details.
       summaries.push({ jobId: job.jobId, outcome: "FAILED" });
     } finally {
       await leases.release(coverageKey, ownerId);
@@ -302,15 +345,36 @@ async function runScheduledTick(
   const newsBefore = invocationBudget.snapshot().d1Queries;
   const newsStored = newsConfig.enabled ? await newsCheckpoints.get(NEWS_COVERAGE_KEY) : undefined;
   const newsPlanned = planNewsAcquisition(newsConfig, calendar, newsStored, now);
-  const newsSummaries = [];
+  const newsSummaries: NewsExecutionSummary[] = [];
   for (const newsJob of newsPlanned) {
-    newsSummaries.push(await executeNewsAcquisition(newsJob, {
-      credentials, checkpoints: newsCheckpoints,
-      store: dependencies.newsStore?.(stateDb) ?? new D1NewsStore(stateDb),
-      retry: acquisitionConfig.providerRetry,
-      retryDelayMs: acquisitionConfig.gapRetryMinutes * 60_000,
-      now: () => now, fetchPage: dependencies.fetchNewsPage, budget: invocationBudget,
-    }));
+    const summary = await runEvidence.runJob({
+      jobId: newsJob.jobId,
+      jobKind: "NEWS_METADATA",
+      source: "alpaca-news",
+      boundaryStart: newsJob.requestedRange.startInclusive,
+      boundaryEnd: newsJob.requestedRange.endExclusive,
+    }, async () => {
+      const value = await executeNewsAcquisition(newsJob, {
+        credentials, checkpoints: newsCheckpoints,
+        store: dependencies.newsStore?.(stateDb) ?? new D1NewsStore(stateDb),
+        retry: acquisitionConfig.providerRetry,
+        retryDelayMs: acquisitionConfig.gapRetryMinutes * 60_000,
+        now: () => now, fetchPage: dependencies.fetchNewsPage, budget: invocationBudget,
+      });
+      return {
+        value,
+        completion: {
+          status: value.outcome,
+          ...(value.errorCategory ? { failureCategory: value.errorCategory } : {}),
+          diagnostic: {
+            pages: value.pages, articlesObserved: value.articlesObserved,
+            newArticles: value.newArticles, duplicates: value.duplicates,
+            updates: value.updates, conflicts: value.conflicts,
+          },
+        },
+      };
+    });
+    newsSummaries.push(summary);
   }
   const news = {
     mode: newsConfig.enabled ? "active" : "disabled",
@@ -328,6 +392,10 @@ async function runScheduledTick(
     d1Queries: invocationBudget.snapshot().d1Queries - newsBefore,
     nextCheckpoint: newsSummaries.at(-1)?.nextCheckpoint ?? newsStored?.completeThrough,
   };
+  await runEvidence.finish(schedulerEvidenceRunStatus(summaries, newsSummaries), {
+    marketJobs: summaries.length,
+    newsJobs: newsSummaries.length,
+  });
   // Digest persistence is a three-statement batch. Reserve it so the persisted
   // payload's total includes its own writes without double charging the raw DB.
   invocationBudget.consume("d1", 3);
@@ -353,8 +421,9 @@ async function runScheduledTick(
         .map((retry) => retry.retryEligibleAt).sort()[0],
     } : {}),
     staleAttemptThresholdMinutes: acquisitionConfig.staleAttemptMinutes,
-    staleAttempts, supersededStaleAttempts, summaries,
-    news, budget, ...(predictionShadow ? { predictionShadow } : {}) };
+    staleAttempts, supersededStaleAttempts,
+    runEvidence: { runId, schedulerRevision: SCHEDULER_EVIDENCE_REVISION, supersededStaleRunJobs },
+    summaries, news, budget, ...(predictionShadow ? { predictionShadow } : {}) };
   await new D1LatestDigestStore(env.STATE_DB).put(LATEST_DIGEST_KEY, digest.generatedAt, persistedDigest);
   console.log(JSON.stringify({ event: "scheduler_tick_live", ...persistedDigest }));
 }
