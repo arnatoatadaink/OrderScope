@@ -37,7 +37,11 @@ function cleanDiagnostic(value: Readonly<Record<string, unknown>> | undefined): 
 }
 
 export class D1SchedulerRunEvidenceStore {
-  constructor(private readonly db: D1Database) {}
+  private readonly db: D1Database;
+
+  constructor(db: D1Database) {
+    this.db = db;
+  }
 
   async startRun(record: SchedulerRunRecord): Promise<void> {
     if (!record.runId || !record.schedulerRevision || !record.workerMode) throw new Error("run identity fields must be non-empty");
