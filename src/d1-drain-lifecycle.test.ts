@@ -49,18 +49,18 @@ test("idempotency evidence requires replay horizon before purge eligibility", ()
   let current = record("bar_acceptance_receipt");
   current = advanceThroughGrace(current, { graceElapsed: true });
   assert.throws(() => advanceD1DrainLifecycle(current, "PURGE_ELIGIBLE"), /REPLAY_HORIZON_NOT_ELAPSED/);
-  current = { ...current, replayHorizonElapsed: true };
-  current = advanceD1DrainLifecycle(current, "PURGE_ELIGIBLE");
+  current = advanceD1DrainLifecycle(current, "PURGE_ELIGIBLE", { replayHorizonElapsed: true });
   assert.equal(current.state, "PURGE_ELIGIBLE");
+  assert.equal(current.replayHorizonElapsed, true);
 });
 
 test("unresolved conflict cannot become purge eligible", () => {
   let current = record("bar_conflict", { replay: true });
   current = advanceThroughGrace(current, { graceElapsed: true });
   assert.throws(() => advanceD1DrainLifecycle(current, "PURGE_ELIGIBLE"), /UNRESOLVED_BLOCKER/);
-  current = { ...current, resolved: true };
-  current = advanceD1DrainLifecycle(current, "PURGE_ELIGIBLE");
+  current = advanceD1DrainLifecycle(current, "PURGE_ELIGIBLE", { resolved: true });
   assert.equal(current.state, "PURGE_ELIGIBLE");
+  assert.equal(current.resolved, true);
 });
 
 test("current control truth never reaches purge eligibility", () => {
