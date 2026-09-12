@@ -1,12 +1,13 @@
 """Registered bounded replay execution for Packet E.
 
-Only explicitly registered local/operator replay sources may execute.  The first
-concrete source is the accepted metadata-only Alpaca News AMD/NVDA canary.  Raw
+Only explicitly registered local/operator replay sources may execute. The first
+concrete source is the accepted metadata-only Alpaca News AMD/NVDA canary. Raw
 article bodies are never requested or persisted by this module.
 """
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 import hashlib
@@ -62,7 +63,7 @@ class AlpacaNewsMetadataReplay:
     data_root: Path
     page_size: int = 50
     max_pages_per_symbol: int = 10
-    clock: callable | None = None
+    clock: Callable[[], datetime] | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.data_root, Path):
@@ -77,6 +78,7 @@ class AlpacaNewsMetadataReplay:
     def replay(self, *, start: datetime, end: datetime, work_ids: Sequence[str]) -> int:
         _window(start, end)
         ids = _work_ids(work_ids)
+        assert self.clock is not None
         generated_at = self.clock()
         _utc(generated_at, "replay generated_at")
         adapter = AlpacaNewsAdapter(transport=self.transport, clock=lambda: generated_at)
