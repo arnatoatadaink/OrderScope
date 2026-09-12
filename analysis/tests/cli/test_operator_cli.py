@@ -30,6 +30,25 @@ def _write_snapshot(tmp_path, *, due_ref="temp://due"):
     return path
 
 
+class ReplayTransport:
+    def get_news(self, **kwargs):
+        symbol = kwargs["symbol"]
+        return {
+            "news": [{
+                "id": 100 if symbol == "AMD" else 200,
+                "headline": f"{symbol} replay fixture",
+                "author": "fixture",
+                "created_at": "2026-09-11T22:30:00Z",
+                "updated_at": "2026-09-11T22:31:00Z",
+                "summary": "fixture summary",
+                "url": f"https://example.test/{symbol.lower()}",
+                "symbols": [symbol],
+                "source": "fixture",
+            }],
+            "next_page_token": None,
+        }
+
+
 def test_operator_inspect_reports_metadata_counts_only(tmp_path):
     path = _write_snapshot(tmp_path)
     result = runner.invoke(cli.app, [
@@ -53,6 +72,33 @@ def test_operator_replay_plan_is_dry_run_and_bounded(tmp_path):
     assert "dry_run=true" in result.stdout
     assert "work_ids=r1" in result.stdout
     assert "done" not in result.stdout
+
+
+def test_operator_replay_execute_uses_registered_metadata_only_source(tmp_path, monkeypatch):
+    path = _write_snapshot(tmp_path)
+    data_root = tmp_path / "data"
+    monkeypatch.setenv("ORDERSCOPE_DATA_ROOT", str(data_root))
+    monkeypatch.setattr(cli, "AlpacaNewsHttpTransport", lambda *, environ: ReplayTransport())
+
+    result = runner.invoke(cli.app, [
+        "operator", "replay-execute", "--snapshot", str(path), "--source", "alpaca-news",
+        "--start", "2026-09-11T21:00:00Z", "--end", "2026-09-12T00:00:00Z", "--max-items", "1",
+    ])
+    assert result.exit_code == 0
+    assert "source=alpaca-news selected=1 completed=1" in result.stdout
+    receipts = list((data_root / "operator" / "replays").glob("*.json"))
+    assert len(receipts) == 1
+    payload = json.loads(receipts[0].read_text(encoding="utf-8"))
+    assert payload["work_ids"] == ["r1"]
+    assert payload["item_count"] == 2
+    assert "body" not in json.dumps(payload)
+
+    rejected = runner.invoke(cli.app, [
+        "operator", "replay-execute", "--snapshot", str(path), "--source", "sec",
+        "--start", "2026-09-11T21:00:00Z", "--end", "2026-09-12T00:00:00Z", "--max-items", "1",
+    ])
+    assert rejected.exit_code == 0
+    assert "selected=0 completed=0" in rejected.stdout
 
 
 def test_operator_delete_plan_requires_explicit_due_reference(tmp_path):
