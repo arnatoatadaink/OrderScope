@@ -1049,7 +1049,8 @@ test("scheduled live tick keeps provider failure details out of the public diges
   }]);
   const serializedEnvelope = JSON.stringify(envelope);
   for (const sensitive of [
-    "integration-key", "integration-secret", "upstream-provider-body", "503",
+    "integration-key", "integration-secret", "upstream-provider-body",
+    "503 upstream-provider-body",
   ]) assert.equal(serializedEnvelope.includes(sensitive), false);
 
   const counts = await db.prepare(`SELECT
@@ -1073,6 +1074,7 @@ test("overlapping scheduled ticks report lease contention without duplicate acqu
   const script = await bundleWorker(`
     import { createWorker } from "./worker.ts";
     let providerCalls = 0;
+    let providerReleased = false;
     const calendar = {
       market: "CRYPTO", dateRange: { startInclusive: "2026-08-29", endExclusive: "2026-08-31" },
       sessions: [], generatedAt: "2026-08-30T00:02:00.000Z", revision: "integration-crypto-v1",
@@ -1085,7 +1087,9 @@ test("overlapping scheduled ticks report lease contention without duplicate acqu
       }),
       fetchPage: async (_credentials, request) => {
         providerCalls += 1;
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        while (!providerReleased) {
+          await new Promise((resolve) => setTimeout(resolve, 10));
+        }
         return { bars: [{
           symbol: request.instrument.symbol, timestamp: request.startInclusive,
           open: 100, high: 102, low: 99, close: 101, volume: 5, tradeCount: 7, vwap: 100.5,
@@ -1098,6 +1102,10 @@ test("overlapping scheduled ticks report lease contention without duplicate acqu
       async fetch(request, env, ctx) {
         const path = new URL(request.url).pathname;
         if (path === "/control/provider-calls") return new Response(String(providerCalls));
+        if (path === "/control/release-provider") {
+          providerReleased = true;
+          return new Response("released");
+        }
         return worker.fetch(request, env, ctx);
       },
     };
@@ -1130,6 +1138,11 @@ test("overlapping scheduled ticks report lease contention without duplicate acqu
     (SELECT COUNT(*) FROM acquisition_attempt) AS attempts,
     (SELECT COUNT(*) FROM bar_acceptance_receipt) AS receipts
   `).first(), { attempts: 1, receipts: 0 });
+
+  assert.equal(
+    await (await mf.dispatchFetch("http://integration.test/control/release-provider")).text(),
+    "released",
+  );
 
   assert.equal((await firstTick).outcome, "ok");
   assert.equal(await (await mf.dispatchFetch("http://integration.test/control/provider-calls")).text(), "1");

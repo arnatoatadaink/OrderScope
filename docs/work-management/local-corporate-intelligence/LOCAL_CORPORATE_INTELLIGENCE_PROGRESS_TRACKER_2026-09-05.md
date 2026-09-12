@@ -1,7 +1,7 @@
 # OrderScope — Local Corporate Intelligence Progress Tracker
 
 Status: **Active integrated runtime tracker**
-Date: 2026-09-12
+Date: 2026-09-13
 Scope: Local Corporate Intelligence / X0 integration
 
 This file is the sole integrated authority for Local Corporate Intelligence runtime progress after the 2026-09-05 consolidation. Detailed implementation notes remain in task-specific handoffs.
@@ -404,20 +404,36 @@ Packet F covers the local reproducible recovery boundary only. It does not creat
 
 | Follow-up | Status | Boundary |
 |---|---|---|
-| PX0-001 | Not started | Reviewed operational scheduler job registration |
-| PX0-002 | Accepted locally through Packet D | Durable scheduler run/job evidence and stale-lock/restart recovery implemented and locally accepted; formal WBS incorporation/remap remains pending |
-| PX0-003 | Accepted locally through Packet E | CLI-only retention inspection, explicit due-content deletion, and registered bounded replay accepted; remote D1 export/purge remains separate |
-| PX0-004 | Accepted locally through Packet F | Explicit local backup/restore and restore drill accepted; remote D1 backup/restore remains separate |
+| PX0-001 | Accepted locally / remapped to R0-001 | Reviewed scheduler registration plan accepted locally; deploy/trigger mutation remains separately gated |
+| PX0-002 | Accepted locally / remapped to R0-002 | Durable scheduler run/job evidence and stale-lock/restart recovery accepted through Packet D |
+| PX0-003 | Accepted locally / remapped to R0-003 | CLI-only retention inspection, explicit due-content deletion, and registered bounded replay accepted through Packet E; remote D1 export/purge remains separate |
+| PX0-004 | Accepted locally / remapped to R0-004 | Explicit local backup/restore and restore drill accepted through Packet F; remote D1 backup/restore remains separate |
 
-These remain non-normative tracking IDs pending future WBS incorporation/remap.
+These legacy PX0 IDs are now formally incorporated as R0-001..004 in the main WBS; retain them here for traceability.
+
+### Formal R0 operations/recovery status
+
+| Task | Status | Evidence / boundary |
+|---|---|---|
+| R0-001 | Accepted locally | Scheduler registration review accepted; no live Cron/Worker mutation authorized |
+| R0-002 | Accepted locally | Packet D durable run evidence/restart recovery accepted |
+| R0-003 | Accepted locally | Packet E bounded retention/replay operator path accepted |
+| R0-004 | Accepted locally | Packet F backup/restore/restore-drill boundary accepted |
+| R0-005 | Accepted evidence boundary; activation gated | AMD/NVDA metadata-only Worker/Schedule orchestration exercised through accepted local regressions and reviewed live Canary evidence; Worker remains Shadow after rollback and reactivation requires a separate change window |
+| R0-006 | Accepted locally | D1 retention contract accepted; current control truth never purge eligible |
+| R0-007 | Accepted locally / fixture export+custody | Deterministic half-open bounded export/custody accepted; remote D1 export remains change-window gated |
+| R0-008 | Accepted locally through `PURGE_ELIGIBLE` | Ordered ACK/quality/grace/replay/resolution lifecycle accepted; `PURGED` remains remote-only and separately authorized |
+| R0-009 | Accepted locally | Failure/recovery fixtures accepted; final full TypeScript 178/178, typecheck passed, full Python 555/555, compileall passed |
+
+Detailed R0-006..009 acceptance: `R0_D1_DRAIN_LOCAL_ACCEPTANCE_2026-09-13.md`.
 
 ## 7. Parallel/deferred lanes
 
 - `N1-006` real 30-day benchmark is Accepted.
 - `W1-001` reopen collected 12 successful eligible News opportunities and then safely rolled back after Cloudflare API authorization/control loss; W1-007 has restored the read-only control-path gate locally, pending Web review before another live window.
 - `L1-003` remains externally Blocked behind `SMOKE-007` approval.
-- `PX0-002..004` local hardening boundaries are Accepted. `PX0-001` reviewed operational scheduler registration remains Not started.
-- `UWBS-023..026` record the D1 hot-store drain lifecycle design; remote export/purge remains separately gated.
+- `PX0-001..004` are Accepted locally and formally remapped to `R0-001..004`.
+- `R0-006..009` D1 hot-store drain local/fixture boundaries are Accepted; remote export/purge and the actual `PURGED` transition remain separately gated.
 - `A0-001` remains Provisional and `A0-002` remains separate validation work.
 - WBS-unreflected work is tracked in `WBS_UNREFLECTED_TASK_BACKLOG_2026-09-10.md`.
 - Worker remains Shadow.
@@ -428,8 +444,8 @@ These remain non-normative tracking IDs pending future WBS incorporation/remap.
 2. Treat the W1-006 cadence repair as live-evidence-confirmed for non-zero Cron seconds offsets through the 12-opportunity reopen window.
 3. Treat W1-007 as locally Accepted through two successful read-only passes; obtain Web review before any separately authorized short W1-001 confirmation/closeout window. Root cause of the earlier `7403` remains unknown.
 4. Treat Packets A through F as locally Accepted through their recorded deterministic regression, operator, recovery, and full-suite evidence.
-5. The next safe local post-X0 follow-up is `PX0-001` reviewed operational scheduler job registration. Do not silently convert that into live scheduler/Cron activation; registration design/review remains separate from any deployment window.
-6. Keep `L1-003/SMOKE-007`, migration `0008` remote application, scheduler-evidence activation, remote D1 export/purge/backup/restore, and other Worker mutations separately gated.
+5. Treat `R0-001..004` and `R0-006..009` as locally Accepted at their recorded non-live boundaries. Treat `R0-005` as evidence-complete for reviewed orchestration while activation remains separately gated after rollback.
+6. Keep `L1-003/SMOKE-007`, migration `0008` remote application, scheduler-evidence activation, actual D1 export/purge/`PURGED`, remote backup/restore, and other Worker/Cron mutations separately gated.
 
 ## 9. Latest acceptance evidence
 
@@ -451,6 +467,15 @@ These remain non-normative tracking IDs pending future WBS incorporation/remap.
 | Packet D | locally Accepted; focused TypeScript 16; full TypeScript 157; full Python 503; typecheck, compileall, Wrangler dry-run, and diff check passed; durable bounded run/job evidence, restart recovery, stale parent/job supersession, lease ambiguity, feature-gated Worker integration, shared D1 budget accounting, and Shadow no-mutation covered |
 | Packet E | locally Accepted; focused Python 24; full Python 527; compileall and diff check passed; bounded CLI-only retention/deletion/replay, registered Alpaca News metadata replay, opaque temporary refs, and no arbitrary HTTP/unbounded replay covered |
 | Packet F | locally Accepted; focused backup/restore 5 then focused backup/restore+drill 10; full Python 537; compileall and diff check passed; clean restore, hash verification, SQLite integrity/migration checks, and Parquet/manifest provenance validation covered |
+| R0-001 | locally Accepted; reviewed scheduler registration plan; no live trigger mutation |
+| R0-002 | locally Accepted through Packet D |
+| R0-003 | locally Accepted through Packet E |
+| R0-004 | locally Accepted through Packet F |
+| R0-005 | reviewed orchestration evidence complete; activation still change-window gated |
+| R0-006 | locally Accepted; retention contract focused 6; TypeScript 167; Python 537 |
+| R0-007 | locally Accepted fixture export/custody; focused 22; Python 551; compileall passed |
+| R0-008 | locally Accepted through `PURGE_ELIGIBLE`; focused 13/13; TypeScript 174/174; Python 551/551; typecheck/compileall passed |
+| R0-009 | locally Accepted; targeted provider-digest fixture 5/5 after false-positive repair; lease contention 6/6 after deterministic barrier repair; full TypeScript 178/178; typecheck passed; full Python 555/555; compileall passed |
 
 Earlier accepted task evidence remains preserved in task-specific handoffs.
 
@@ -473,9 +498,9 @@ Earlier accepted task evidence remains preserved in task-specific handoffs.
 - Packet D is locally Accepted. Remote migration `0008`, scheduler-evidence activation, Worker deployment/Cron mutation, and any live confirmation remain separately gated.
 - Packet E / PX0-003 is locally Accepted. Remote D1 export/purge and unrestricted provider execution remain outside that acceptance boundary.
 - Packet F / PX0-004 is locally Accepted. Remote D1 backup/restore and live recovery operations remain outside that acceptance boundary.
-- `UWBS-023..026` D1 hot-store drain lifecycle is captured for future WBS/CP incorporation; local Packet E/F hardening does not authorize remote drain/purge operations.
-- UWBS-016 future WBS incorporation and reviewed Worker News activation.
-- PX0-001 reviewed scheduler registration remains Not started.
+- `UWBS-023..026` are formally incorporated as `R0-006..009` and locally accepted; remote D1 drain/purge remains unauthorized.
+- `UWBS-016` is incorporated as `R0-005`; reviewed Worker News activation remains separately gated after rollback.
+- `PX0-001` is incorporated as `R0-001` and accepted locally; live scheduler/Cron mutation remains separately gated.
 - L1-003 / SMOKE-007 real-D1 approval window.
 - A0-001 provisional validation.
 - A0-002 AI/Semiconductor proxy.
