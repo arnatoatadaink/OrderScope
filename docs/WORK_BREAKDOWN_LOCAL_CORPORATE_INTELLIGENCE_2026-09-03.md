@@ -39,6 +39,17 @@ Principles:
 - Never leak provider credentials into Worker, local DB, dumps, API responses, or Git.
 - Each task should normally be independently reviewable, testable, and rollbackable.
 
+### 2.1 Market-calendar execution constraint
+
+Market-calendar availability constrains **acceptance evidence**, not ordinary implementation work.
+
+- Fixture work, unit/integration tests, historical replay, dry-run planning, backup/restore, schema/migration work, operator tooling, WBS/CP updates, and configuration-drift review may proceed on weekends, exchange holidays, and other non-trading days.
+- Live acceptance that requires fresh bars or actual session transitions must be collected on an applicable market trading day and in the relevant session. This includes fresh-data latency/freshness, premarket/regular/after-hours transition behavior, live catch-up after a session boundary, and market-close completeness evidence.
+- A task must not be marked failed merely because a non-trading day cannot supply fresh market observations. Record the missing evidence as `market-day gated` and continue all independent local work.
+- Historical data may validate deterministic calculations on non-trading days, but it does not substitute for a completion condition that explicitly requires real-time operational evidence.
+- Exchange holidays and shortened sessions must use provider/exchange calendar data rather than weekday assumptions.
+- Market-day gating is independent from approval gating. Remote D1 mutation, Worker/Cron deployment, live activation, and other change-window operations still require their own approvals even when the market is open.
+
 ## 3. Dependency order
 
 ```mermaid
@@ -56,6 +67,7 @@ flowchart LR
     F --> J
     H --> J
     I --> J
+    J --> K[R0 Operations and Recovery]
 ```
 
 ## 4. Work packages
@@ -88,9 +100,9 @@ Treat prices/limits in `stock_monitoring_v0.1_provider_research.md` as point-in-
 |---|---|---|---|
 | L1-001 | Define D1 export manifest contract | Schema includes source environment/revision, start/end time, table, row count, size, SHA-256 | L0-005 |
 | L1-002 | Implement fixture dump importer | Register a small SQL fixture as immutable raw data; reimport of the same hash is idempotent | L1-001 |
-| L1-003 | Execute real D1 export change window | Pause Cron, export, resume, and catch up under separate approval; do not add dump values to Git | `SMOKE-007` change window |
+| L1-003 | Execute real D1 export change window | Pause Cron, export, resume, and catch up under separate approval; do not add dump values to Git. If acceptance requires observing fresh post-resume market catch-up, that evidence is market-day gated | `SMOKE-007` change window |
 | L1-004 | Generate canonical bar dataset | Produce deterministic-order Parquet while preserving bar/receipt provenance | L1-002; L1-003 for real data |
-| L1-005 | Implement market-data quality checks | Validate schema, row count, identity, OHLCV, gaps, conflicts, and session grid | L1-004 |
+| L1-005 | Implement market-data quality checks | Validate schema, row count, identity, OHLCV, gaps, conflicts, and session grid; fresh-session acceptance is market-day gated while fixture/historical validation is not | L1-004 |
 | L1-006 | Implement import/dataset API | Read-only `/imports`, `/coverage/latest`, `/datasets`, `/quality/latest` | L0-004, L1-005 |
 
 Proceed through L1-002 using fixtures; do not make remote D1 export a local-foundation blocker.
@@ -171,6 +183,28 @@ Do not make X API an initial required path while pricing/archive/edit-delete con
 | X0-005 | End-to-end fixture test | Deterministically regenerate Fact, retention, and timeline from filing/IR/news/official inputs | X0-001..004 |
 | X0-006 | Create Canary operations runbook | Document credentials, rate limits, stop/resume, reprocessing, deletion, backup, incident decisions | X0-005 |
 
+### R0 — Operations / Recovery hardening
+
+These tasks formally incorporate the previously provisional PX0/UWBS operational follow-ups. Runtime status remains owned by the Progress Tracker; incorporation here does not authorize remote mutation or live activation.
+
+| ID | Source | Task | Completion condition | Dependency |
+|---|---|---|---|---|
+| R0-001 | PX0-001 / UWBS-001 | Register reviewed operational scheduler plan | Treat configuration as source of truth; dry-run/review proves the intended Cron and scheduler handler, rejects schedule/mode drift, and keeps HTTP mutation prohibited. Actual deploy/trigger mutation requires a separate change window | X0-004, X0-006, owning adapters |
+| R0-002 | PX0-002 / UWBS-002 | Durable scheduler run evidence and restart recovery | Persist bounded run/job identity, status, revision and sanitized failure state; stale-run/lock recovery is testable; I0-003 remains checkpoint truth | X0-004, I0-003 |
+| R0-003 | PX0-003 / UWBS-003 | Retention and bounded-reprocessing operator CLI | Inspect overdue/failed work, execute explicit bounded deletion and registered bounded replay without bodies/secrets or unbounded reprocessing | N1-005, L0-006, R0-002 |
+| R0-004 | PX0-004 / UWBS-004 | Reproducible local backup/restore and restore drill | Explicit backup set, hashes, clean restore, SQLite migration/catalog validation and dataset/manifest provenance validation are reproducible | L0-005, L1-004/005, X0-006 |
+| R0-005 | UWBS-016 | Worker/Schedule News metadata acquisition orchestration | Run reviewed AMD/NVDA metadata-only News jobs with bounded session-aware cadence, shared budget, checkpoint/idempotency reuse and sanitized retry state. Live freshness/lag/session acceptance is market-day gated; activation remains change-window gated | N0-002, I0-003/004, N1-006, R0-001 |
+| R0-006 | UWBS-023 | Define D1 hot-store / local-history retention contract | Classify current control state, hot data, acceptance/idempotency evidence, operational evidence and blockers; separate acquisition lookback from deletion eligibility | L1-001..006, I0-003/004, R0-002..004 |
+| R0-007 | UWBS-024 | Implement bounded incremental D1 export and custody manifest | Export explicit half-open table/source/time windows with generation/source identity, schema/revision, row count, size/hash and idempotent retry; remote execution remains change-window gated | R0-006, L1-001..004 |
+| R0-008 | UWBS-025 | Implement acknowledgement and bounded D1 purge lifecycle | Enforce `PLANNED -> EXPORTED -> HASH_VERIFIED -> IMPORTED -> QUALITY_ACCEPTED -> ACKNOWLEDGED -> GRACE -> PURGE_ELIGIBLE -> PURGED`; dry-run first; preserve current checkpoint/control truth | R0-006/007, L1-005, I0-003, R0-003 |
+| R0-009 | UWBS-026 | D1 drain lifecycle acceptance and failure fixtures | Cover local unavailable/backlog, export retry, hash mismatch, duplicate export, quality block, purge failure/retry, checkpoint preservation, local queryability and bounded D1 budget behavior | R0-006..008, R0-004 |
+
+Market-day notes for R0:
+
+- `R0-001..004` and `R0-006..009` can reach their local/fixture acceptance boundaries on non-trading days.
+- `R0-005` implementation, fixture tests, historical replay, config review and dry-run may proceed on non-trading days; only live evidence that depends on fresh market/session behavior is market-day gated.
+- A non-trading day is not permission to bypass remote-change approvals for R0-001/R0-005/R0-007/R0-008.
+
 ## 5. Milestones and initial order
 
 | Milestone | Tasks | Acceptance |
@@ -181,6 +215,7 @@ Do not make X API an initial required path while pricing/archive/edit-delete con
 | M3 SEC/Earnings Canary | S0-001..007, E0-001..007 | AMD/NVDA filing/earnings Facts and quality results are reproducible |
 | M4 News/Official Canary | N0/N1, O0 | News recall and raw-body deletion are verifiable against Tier-1 references |
 | M5 Local intelligence MVP | L1-003..006, X0-001..006 | Real data is integrated and available through localhost read-only access |
+| M6 Operations hardening | R0-001..009 | Scheduler review, run evidence, bounded replay/retention, recovery, News orchestration boundary, and D1 lifecycle are locally reviewable; live/remote evidence remains separately gated where specified |
 
 Initial implementation slice:
 1. `L0-001`: stack ADR
@@ -200,6 +235,7 @@ Do not include paid-news contracts, remote D1 export, Worker changes, LLM extrac
 - Provider outage, partial results, cursor resume, duplicates, updates, and contradictions are observable.
 - Localhost API never exposes credentials, raw news bodies, or provider response bodies.
 - Worker remains in Shadow; Local does not directly control Worker.
+- Market-day-gated evidence is explicitly distinguished from work that is runnable on non-trading days; missing fresh-session evidence must not block independent fixture/local completion.
 
 ## 7. References
 
@@ -211,3 +247,5 @@ Do not include paid-news contracts, remote D1 export, Worker changes, LLM extrac
 - `DETAILED_DESIGN_CFG_PROVIDER_v0.1.md`
 - `WORK_PLAN_INITIAL_VALIDATION_AND_LONG_TERM_OPERATIONS_2026-09-01.md`
 - `IMPLEMENTATION_PROGRESS_TRACKER_2026-09-01.md`
+- `work-management/local-corporate-intelligence/WBS_UNREFLECTED_TASK_BACKLOG_2026-09-10.md`
+- `work-management/local-corporate-intelligence/PX0-001_SCHEDULER_REGISTRATION_REVIEW_2026-09-12.md`
