@@ -359,7 +359,46 @@ Key implementation commits include `91bbf3b`, `75079a6`, `f3f6280`, `042a248`, `
 
 Acceptance evidence: focused Packet D TypeScript 16 passed; full TypeScript 157 passed; full Python 503 passed with the two existing dependency deprecation warnings; TypeScript typecheck passed; Python compileall passed; Wrangler dry-run passed with top-level Worker mode shadow and News disabled; `git diff --check` passed with no findings.
 
-Packet D does not authorize migration `0008` against remote D1, Worker deployment, Cron mutation, scheduler-evidence activation, News activation, or another live Canary. Those remain separately gated. The next safe local packet is Packet E retention / retry / bounded replay operator path.
+Packet D does not authorize migration `0008` against remote D1, Worker deployment, Cron mutation, scheduler-evidence activation, News activation, or another live Canary. Those remain separately gated.
+
+### Packet E retention / retry / bounded replay operator path — Accepted locally
+
+Packet E adds a CLI-only, bounded operator surface for retention inspection, explicit due-content deletion, and registered bounded replay. Operator snapshots are allow-listed metadata only; raw News bodies, credentials, and arbitrary extension fields are rejected. Replay requires an explicit source/time window, is limited to FAILED/RETRYABLE work, caps both the window and selected work count, and executes only through registered handlers.
+
+The first concrete replay source is `alpaca-news`, restricted to the accepted AMD/NVDA metadata-only canary adapter with `include_content=false`. Local temporary News content uses an opaque `temporary:v1:<id>` reference beneath `ORDERSCOPE_DATA_ROOT`; explicit due refs only may be deleted, and CLI output does not expose body text, local paths, or deletion proofs.
+
+Changed files include:
+
+- `analysis/app/orderscope_local/integration/operator.py`
+- `analysis/app/orderscope_local/integration/replay.py`
+- `analysis/app/orderscope_local/news/temporary_store.py`
+- `analysis/app/orderscope_local/cli.py`
+- `analysis/tests/integration/test_operator.py`
+- `analysis/tests/integration/test_operator_manifest.py`
+- `analysis/tests/integration/test_registered_replay.py`
+- `analysis/tests/cli/test_operator_cli.py`
+- `analysis/tests/news/test_local_temporary_store.py`
+
+Acceptance evidence: focused Packet E Python 24 passed; full Python 527 passed with the two existing dependency deprecation warnings; Python compileall passed; `git diff --check` passed with no findings.
+
+Packet E does not authorize arbitrary HTTP job starts, unbounded reprocessing, remote D1 export/purge, or Worker/Cron mutation. `UWBS-023..026` remains the design input for later D1 drain lifecycle work rather than implicit authorization.
+
+### Packet F local backup / restore / restore-drill boundary — Accepted locally
+
+Packet F adds explicit-file local backup/restore with SHA-256 manifests and clean-destination restore. It does not recursively sweep `ORDERSCOPE_DATA_ROOT` and does not automatically include temporary body content. Restore verifies every selected file before and after copy and rejects absolute/root-escaping paths, duplicates, missing sources, tampered backup entries, and non-empty restore targets.
+
+The restore drill validates the restored local SQLite catalog read-only with `PRAGMA integrity_check`, `foreign_key_check`, and migration version/name/checksum agreement. Canonical Parquet validation checks artifact SHA-256, row count, OrderScope schema metadata, `source_manifest_id`, and `source_artifact_sha256` against the referenced D1 export manifest.
+
+Changed files include:
+
+- `analysis/app/orderscope_local/storage/backup.py`
+- `analysis/app/orderscope_local/storage/restore_drill.py`
+- `analysis/tests/storage/test_backup_restore.py`
+- `analysis/tests/storage/test_restore_drill.py`
+
+Acceptance evidence: focused Packet F backup/restore tests 5 passed; focused backup/restore + restore-drill tests 10 passed; full Python 537 passed with the two existing dependency deprecation warnings; Python compileall passed; `git diff --check` passed with no findings.
+
+Packet F covers the local reproducible recovery boundary only. It does not create or authorize remote D1 backups, remote D1 restore, live Worker mutation, or Cron changes.
 
 ## 6. Post-X0 operational follow-ups
 
@@ -367,8 +406,8 @@ Packet D does not authorize migration `0008` against remote D1, Worker deploymen
 |---|---|---|
 | PX0-001 | Not started | Reviewed operational scheduler job registration |
 | PX0-002 | Accepted locally through Packet D | Durable scheduler run/job evidence and stale-lock/restart recovery implemented and locally accepted; formal WBS incorporation/remap remains pending |
-| PX0-003 | Ready — Packet E selected | Operator CLI for retention, failed/retryable inspection, and bounded reprocessing; connect to D1 drain lifecycle without unbounded replay |
-| PX0-004 | Not started | Reproducible backup/restore and restore drills |
+| PX0-003 | Accepted locally through Packet E | CLI-only retention inspection, explicit due-content deletion, and registered bounded replay accepted; remote D1 export/purge remains separate |
+| PX0-004 | Accepted locally through Packet F | Explicit local backup/restore and restore drill accepted; remote D1 backup/restore remains separate |
 
 These remain non-normative tracking IDs pending future WBS incorporation/remap.
 
@@ -377,8 +416,8 @@ These remain non-normative tracking IDs pending future WBS incorporation/remap.
 - `N1-006` real 30-day benchmark is Accepted.
 - `W1-001` reopen collected 12 successful eligible News opportunities and then safely rolled back after Cloudflare API authorization/control loss; W1-007 has restored the read-only control-path gate locally, pending Web review before another live window.
 - `L1-003` remains externally Blocked behind `SMOKE-007` approval.
-- `PX0-002` local Packet D boundary is Accepted; `PX0-003` / Packet E is the next safe local packet. PX0-001/004 remain separate operations/recovery follow-ups.
-- `UWBS-023..026` record the D1 hot-store drain lifecycle design and should inform Packet E without silently expanding it into remote D1 mutation.
+- `PX0-002..004` local hardening boundaries are Accepted. `PX0-001` reviewed operational scheduler registration remains Not started.
+- `UWBS-023..026` record the D1 hot-store drain lifecycle design; remote export/purge remains separately gated.
 - `A0-001` remains Provisional and `A0-002` remains separate validation work.
 - WBS-unreflected work is tracked in `WBS_UNREFLECTED_TASK_BACKLOG_2026-09-10.md`.
 - Worker remains Shadow.
@@ -388,9 +427,9 @@ These remain non-normative tracking IDs pending future WBS incorporation/remap.
 1. Treat N1-006 as Accepted through the real 645-candidate review, 4/4 recall measurement, and 19 / 503 / compileall / diff evidence.
 2. Treat the W1-006 cadence repair as live-evidence-confirmed for non-zero Cron seconds offsets through the 12-opportunity reopen window.
 3. Treat W1-007 as locally Accepted through two successful read-only passes; obtain Web review before any separately authorized short W1-001 confirmation/closeout window. Root cause of the earlier `7403` remains unknown.
-4. Treat Packets A, B, C, and D as locally Accepted through their recorded deterministic regression and full-suite evidence.
-5. Select Packet E — retention / retry / bounded replay operator path — as the next safe local packet. Use `PX0-003` as the operational scope and `UWBS-023..026` as the newly captured D1 drain-lifecycle design inputs; do not implement unbounded reprocessing or remote purge as part of local acceptance.
-6. Keep `L1-003/SMOKE-007`, migration `0008` remote application, scheduler-evidence activation, and other Worker mutations separately gated.
+4. Treat Packets A through F as locally Accepted through their recorded deterministic regression, operator, recovery, and full-suite evidence.
+5. The next safe local post-X0 follow-up is `PX0-001` reviewed operational scheduler job registration. Do not silently convert that into live scheduler/Cron activation; registration design/review remains separate from any deployment window.
+6. Keep `L1-003/SMOKE-007`, migration `0008` remote application, scheduler-evidence activation, remote D1 export/purge/backup/restore, and other Worker mutations separately gated.
 
 ## 9. Latest acceptance evidence
 
@@ -410,6 +449,8 @@ These remain non-normative tracking IDs pending future WBS incorporation/remap.
 | Packet B | locally Accepted; focused TypeScript 4; full TypeScript 134; full Python 503; typecheck, compileall, Wrangler dry-run, and diff check passed; shared budget, CAS conflict, retry canonicalization, and D1 ceiling regressions covered |
 | Packet C | locally Accepted; focused TypeScript 17; full TypeScript 141; full Python 503; typecheck, compileall, Wrangler dry-run, and diff check passed; provider/control-path failures classified and fail closed without guessing `7403` root cause |
 | Packet D | locally Accepted; focused TypeScript 16; full TypeScript 157; full Python 503; typecheck, compileall, Wrangler dry-run, and diff check passed; durable bounded run/job evidence, restart recovery, stale parent/job supersession, lease ambiguity, feature-gated Worker integration, shared D1 budget accounting, and Shadow no-mutation covered |
+| Packet E | locally Accepted; focused Python 24; full Python 527; compileall and diff check passed; bounded CLI-only retention/deletion/replay, registered Alpaca News metadata replay, opaque temporary refs, and no arbitrary HTTP/unbounded replay covered |
+| Packet F | locally Accepted; focused backup/restore 5 then focused backup/restore+drill 10; full Python 537; compileall and diff check passed; clean restore, hash verification, SQLite integrity/migration checks, and Parquet/manifest provenance validation covered |
 
 Earlier accepted task evidence remains preserved in task-specific handoffs.
 
@@ -430,10 +471,11 @@ Earlier accepted task evidence remains preserved in task-specific handoffs.
   control path locally; Web evidence review and separate authorization for a
   short monitored confirmation/closeout window are still required.
 - Packet D is locally Accepted. Remote migration `0008`, scheduler-evidence activation, Worker deployment/Cron mutation, and any live confirmation remain separately gated.
-- Packet E / PX0-003 is the next safe local packet. Scope must remain operator-only/CLI-only, bounded, metadata-only where applicable, and must not introduce arbitrary HTTP job starts or unbounded `reprocess everything` behavior.
-- `UWBS-023..026` D1 hot-store drain lifecycle is captured for future WBS/CP incorporation. Packet E may prototype the bounded local operator boundary but must not treat remote export/purge as authorized.
+- Packet E / PX0-003 is locally Accepted. Remote D1 export/purge and unrestricted provider execution remain outside that acceptance boundary.
+- Packet F / PX0-004 is locally Accepted. Remote D1 backup/restore and live recovery operations remain outside that acceptance boundary.
+- `UWBS-023..026` D1 hot-store drain lifecycle is captured for future WBS/CP incorporation; local Packet E/F hardening does not authorize remote drain/purge operations.
 - UWBS-016 future WBS incorporation and reviewed Worker News activation.
-- PX0-001/004 operations/recovery backlog.
+- PX0-001 reviewed scheduler registration remains Not started.
 - L1-003 / SMOKE-007 real-D1 approval window.
 - A0-001 provisional validation.
 - A0-002 AI/Semiconductor proxy.
