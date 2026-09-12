@@ -61,7 +61,10 @@ def create_backup(*, data_root: Path, destination: Path, relative_paths: Sequenc
         "schema_version": BACKUP_MANIFEST_SCHEMA_VERSION,
         "backup_id": backup_id,
         "created_at": when.isoformat(),
-        "entries": [entry.__dict__ for entry in entries],
+        "entries": [
+            {"relative_path": entry.relative_path, "size_bytes": entry.size_bytes, "sha256_hex": entry.sha256_hex}
+            for entry in entries
+        ],
     }
     (dest / "backup-manifest.json").write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return manifest
@@ -90,9 +93,9 @@ def restore_backup(*, backup_dir: Path, destination_root: Path) -> BackupManifes
         rel = _path(str(raw["relative_path"]))
         expected_size = raw["size_bytes"]
         expected_hash = raw["sha256_hex"]
-        if not isinstance(expected_size, int) or expected_size < 0:
+        if not isinstance(expected_size, int) or isinstance(expected_size, bool) or expected_size < 0:
             raise ContractViolation("backup entry size is invalid")
-        if not isinstance(expected_hash, str) or len(expected_hash) != 64:
+        if not isinstance(expected_hash, str) or len(expected_hash) != 64 or any(char not in "0123456789abcdef" for char in expected_hash):
             raise ContractViolation("backup entry hash is invalid")
         source = _resolve_under(source_root, rel)
         if not source.is_file() or source.stat().st_size != expected_size or _hash(source) != expected_hash:
@@ -100,7 +103,7 @@ def restore_backup(*, backup_dir: Path, destination_root: Path) -> BackupManifes
         target = destination / rel
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, target)
-        if _hash(target) != expected_hash:
+        if target.stat().st_size != expected_size or _hash(target) != expected_hash:
             raise ContractViolation("restored entry verification failed")
         entries.append(BackupEntry(rel, expected_size, expected_hash))
     created = _parse_utc(payload.get("created_at"))
@@ -120,6 +123,8 @@ def _paths(values: Sequence[str]) -> tuple[str, ...]:
 
 
 def _path(value: str) -> str:
+    if not isinstance(value, str):
+        raise ContractViolation("backup path must be text")
     path = Path(value)
     if not value or path.is_absolute() or ".." in path.parts or value != path.as_posix():
         raise ContractViolation("backup path must be canonical relative POSIX path")
