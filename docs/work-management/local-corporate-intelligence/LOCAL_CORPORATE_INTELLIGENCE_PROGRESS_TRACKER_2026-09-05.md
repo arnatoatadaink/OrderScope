@@ -266,9 +266,11 @@ Read-only `/health` verification returned `mode=shadow` and News disabled. No
 Worker/config, Cron, activation, or D1 data mutation was performed. See
 `W1-007_CLOUDFLARE_API_CONTROL_PATH_DIAGNOSTIC_LOCAL_REPORT_2026-09-11.md`.
 
-Next CP gate: Web review of the W1-007 evidence, then a separately authorized
-short monitored W1-001 confirmation/closeout window. The cadence predicate is
-already repaired and live-confirmed; it is no longer the active blocker.
+W1-007 Web review is Accepted as of 2026-09-13. The read-only diagnostic evidence,
+safe rollback baseline, and current Wrangler/D1 command semantics were reviewed
+without remote mutation. The next CP gate is a separately authorized short monitored
+W1-001 confirmation/closeout window. See `W1-007_WEB_REVIEW_2026-09-13.md` and
+`W1-001_CONFIRMATION_CLOSEOUT_CHANGE_WINDOW_2026-09-13.md`.
 
 ### Packet A scheduler / cadence regression hardening — Accepted locally
 
@@ -430,7 +432,7 @@ Detailed R0-006..009 acceptance: `R0_D1_DRAIN_LOCAL_ACCEPTANCE_2026-09-13.md`.
 ## 7. Parallel/deferred lanes
 
 - `N1-006` real 30-day benchmark is Accepted.
-- `W1-001` reopen collected 12 successful eligible News opportunities and then safely rolled back after Cloudflare API authorization/control loss; W1-007 has restored the read-only control-path gate locally, pending Web review before another live window.
+- `W1-001` reopen collected 12 successful eligible News opportunities and then safely rolled back after Cloudflare API authorization/control loss; W1-007 local diagnostic and Web review are Accepted. A short confirmation/closeout window is Ready but remains separately authorization-gated.
 - `L1-003` remains externally Blocked behind `SMOKE-007` approval.
 - `PX0-001..004` are Accepted locally and formally remapped to `R0-001..004`.
 - `R0-006..009` D1 hot-store drain local/fixture boundaries are Accepted; remote export/purge and the actual `PURGED` transition remain separately gated.
@@ -442,7 +444,7 @@ Detailed R0-006..009 acceptance: `R0_D1_DRAIN_LOCAL_ACCEPTANCE_2026-09-13.md`.
 
 1. Treat N1-006 as Accepted through the real 645-candidate review, 4/4 recall measurement, and 19 / 503 / compileall / diff evidence.
 2. Treat the W1-006 cadence repair as live-evidence-confirmed for non-zero Cron seconds offsets through the 12-opportunity reopen window.
-3. Treat W1-007 as locally Accepted through two successful read-only passes; obtain Web review before any separately authorized short W1-001 confirmation/closeout window. Root cause of the earlier `7403` remains unknown.
+3. Treat W1-007 local diagnostic and Web review as Accepted. The next gate is a separately authorized short W1-001 confirmation/closeout window. Root cause of the earlier `7403` remains unknown.
 4. Treat Packets A through F as locally Accepted through their recorded deterministic regression, operator, recovery, and full-suite evidence.
 5. Treat `R0-001..004` and `R0-006..009` as locally Accepted at their recorded non-live boundaries. Treat `R0-005` as evidence-complete for reviewed orchestration while activation remains separately gated after rollback.
 6. Keep `L1-003/SMOKE-007`, migration `0008` remote application, scheduler-evidence activation, actual D1 export/purge/`PURGED`, remote backup/restore, and other Worker/Cron mutations separately gated.
@@ -460,7 +462,7 @@ Detailed R0-006..009 acceptance: `R0_D1_DRAIN_LOCAL_ACCEPTANCE_2026-09-13.md`.
 | X0-006 | operator/external review accepted for policy-level fixture path; F1-F4 deferred to PX0-001..004 |
 | W1-005 | local multi-symbol scheduler accepted; 106 instruments preserved; normal/shortened Tier A max age 3m; close+30m outstanding 1Min=0; full TypeScript suite 124; focused 33; typecheck and Wrangler dry-run passed |
 | W1-001 live Canary | reopen collected 12 distinct eligible News opportunities at stable `:30` offset; 13/13 News jobs completed; max external 2/40 and D1 21/40; safely rolled back after Cloudflare API control loss |
-| W1-007 | locally Accepted; two read-only passes of whoami, D1 info, SELECT 1, and PRAGMA succeeded; no 7403/quota error; earlier 7403 root cause remains unknown; rollback version remains shadow with News disabled |
+| W1-007 | local diagnostic + Web review Accepted; two read-only passes of whoami, D1 info, SELECT 1, and PRAGMA succeeded; no 7403/quota error; safe Shadow/News-disabled baseline retained; short W1-001 closeout window Ready but separately authorization-gated |
 | Packet A | locally Accepted; focused TypeScript 23; full TypeScript 130; full Python 503; typecheck, compileall, Wrangler dry-run, and diff check passed; same minute opportunity is canonical across `00/15/30/59` seconds and repeat execution does not re-call News or advance its checkpoint |
 | Packet B | locally Accepted; focused TypeScript 4; full TypeScript 134; full Python 503; typecheck, compileall, Wrangler dry-run, and diff check passed; shared budget, CAS conflict, retry canonicalization, and D1 ceiling regressions covered |
 | Packet C | locally Accepted; focused TypeScript 17; full TypeScript 141; full Python 503; typecheck, compileall, Wrangler dry-run, and diff check passed; provider/control-path failures classified and fail closed without guessing `7403` root cause |
