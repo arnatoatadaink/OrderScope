@@ -6,7 +6,7 @@ import {
   REVIEWED_CRON,
   SCHEDULER_REGISTRATION_REVISION,
   reviewSchedulerRegistration,
-} from "./scheduler-registration";
+} from "./scheduler-registration.ts";
 
 function configProjection(text: string) {
   const cronMatch = text.match(/"triggers"\s*:\s*\{\s*"crons"\s*:\s*\[\s*"([^"]+)"\s*\]/s);
