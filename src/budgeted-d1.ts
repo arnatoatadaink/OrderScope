@@ -1,4 +1,4 @@
-import type { InvocationBudget } from "./invocation-budget";
+import type { InvocationBudget } from "./invocation-budget.ts";
 
 const EXECUTION_METHODS = new Set(["all", "first", "raw", "run"]);
 
