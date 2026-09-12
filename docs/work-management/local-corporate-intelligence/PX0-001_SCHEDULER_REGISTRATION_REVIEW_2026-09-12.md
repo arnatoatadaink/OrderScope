@@ -1,6 +1,6 @@
 # PX0-001 — Scheduler Registration Review
 
-Status: **Provisional — local acceptance pending**
+Status: **Accepted locally**
 Date: 2026-09-12
 Scope: reviewed operational scheduler registration only
 Formal WBS mapping: `R0-001`
@@ -66,11 +66,25 @@ The following require a future open-market or separately authorized remote windo
 
 Market-day gating and remote-change authorization are independent. A weekend does not authorize a remote mutation, and an open market does not waive a change window.
 
-## 5. Weekend target state
+## 5. Acceptance evidence
+
+Local acceptance on 2026-09-12:
+
+- focused scheduler-registration tests: `4/4` passed;
+- full TypeScript suite: `161/161` passed;
+- TypeScript typecheck: passed;
+- Wrangler `deploy --dry-run`: passed; top-level Worker remained `shadow`, News remained disabled;
+- full Python suite: `537/537` passed with the two existing dependency deprecation warnings;
+- Python compileall: passed;
+- `git diff --check`: no findings reported by the operator run.
+
+The Wrangler multi-environment warning is advisory because the dry-run omitted an explicit environment; it did not change configuration or deploy the Worker. Future environment-specific operational checks should specify `--env live-canary` when that environment is the intended review target.
+
+## 6. Weekend target state
 
 A productive closed-market target is to finish all local/static acceptance work so that the next open-market window is evidence-only rather than implementation-heavy. At that point the remaining live work should be a short reviewed confirmation window, not feature development.
 
-## 6. Local acceptance commands
+## 7. Local acceptance commands
 
 ```bash
 node --test --experimental-strip-types src/scheduler-registration.test.ts
@@ -84,7 +98,7 @@ git diff --check
 
 For local Cron-trigger simulation, Cloudflare Wrangler supports `wrangler dev --test-scheduled`; this should remain local-only and must not be treated as live-market evidence.
 
-## 7. Non-goals
+## 8. Non-goals
 
 PX0-001 / R0-001 does not authorize:
 
