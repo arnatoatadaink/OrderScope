@@ -64,3 +64,9 @@ test("current wrangler registration matches reviewed live-canary boundary", () =
   assert.equal(result.cron, REVIEWED_CRON);
   assert.equal(result.shadowOnly, true);
 });
+
+test("reviewed Worker entrypoint retains scheduled orchestration", () => {
+  const text = readFileSync(new URL("./worker.ts", import.meta.url), "utf8");
+  assert.match(text, /async scheduled\s*\(controller:\s*ScheduledController,/);
+  assert.match(text, /ctx\.waitUntil\(runScheduledTick\(controller, env, dependencies\)\)/);
+});
