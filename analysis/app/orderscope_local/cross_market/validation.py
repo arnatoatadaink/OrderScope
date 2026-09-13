@@ -1,14 +1,15 @@
 """A0-002 CBRS multi-layer flow validation contract.
 
 This module defines the source-neutral validation dataset boundary. It does not
-fetch market data or freeze a provider. Observations retain an as-of timestamp
-and source reference so retrospective validation cannot silently use future data.
+fetch market data or freeze a provider. Observations retain source-local analysis
+date plus observed/available timestamps so retrospective validation cannot
+silently use future data.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from enum import StrEnum
 from math import isfinite
 from typing import Mapping
@@ -102,6 +103,7 @@ class SeriesSpec:
 @dataclass(frozen=True, kw_only=True)
 class SeriesObservation:
     role: SeriesRole
+    analysis_date: date
     observed_at: datetime
     available_at: datetime
     value: float
@@ -110,6 +112,8 @@ class SeriesObservation:
     def __post_init__(self) -> None:
         if not isinstance(self.role, SeriesRole):
             raise ContractViolation("role must be SeriesRole")
+        if not isinstance(self.analysis_date, date) or isinstance(self.analysis_date, datetime):
+            raise ContractViolation("analysis_date must be a calendar date")
         _utc(self.observed_at, "observed_at")
         _utc(self.available_at, "available_at")
         if self.available_at < self.observed_at:
@@ -179,20 +183,21 @@ def aligned_timeline(
     case: A0ValidationCase,
     observations: tuple[SeriesObservation, ...],
     as_of: datetime,
-) -> Mapping[datetime, Mapping[SeriesRole, float]]:
-    """Return exact-timestamp aligned observations visible as of ``as_of``.
+) -> Mapping[date, Mapping[SeriesRole, float]]:
+    """Return analysis-date aligned observations visible as of ``as_of``.
 
-    The function intentionally does not forward-fill or interpolate. Missing
-    roles remain missing so A0-002 can rate affected hypotheses UNKNOWN/PARTIAL
-    rather than fabricate synchronized evidence.
+    Source-specific observed/available timestamps remain on every observation.
+    The function does not forward-fill or interpolate missing days. This lets
+    A0-002 align Japan, U.S., and 24/7 series without pretending their source
+    publication timestamps were simultaneous.
     """
     _utc(as_of, "as_of")
     if not isinstance(observations, tuple):
         raise ContractViolation("observations must be an immutable tuple")
     allowed_roles = {spec.role for spec in case.series}
     source_by_role = {spec.role: spec.source_ref for spec in case.series}
-    rows: dict[datetime, dict[SeriesRole, float]] = {}
-    seen: set[tuple[SeriesRole, datetime]] = set()
+    rows: dict[date, dict[SeriesRole, float]] = {}
+    seen: set[tuple[SeriesRole, date]] = set()
     for item in observations:
         if not isinstance(item, SeriesObservation):
             raise ContractViolation("observations must contain SeriesObservation values")
@@ -202,9 +207,9 @@ def aligned_timeline(
             raise ContractViolation("observation source_ref does not match registered SeriesSpec")
         if item.available_at > as_of:
             continue
-        key = (item.role, item.observed_at)
+        key = (item.role, item.analysis_date)
         if key in seen:
-            raise ContractViolation("duplicate role/timestamp observation is not allowed")
+            raise ContractViolation("duplicate role/analysis_date observation is not allowed")
         seen.add(key)
-        rows.setdefault(item.observed_at, {})[item.role] = float(item.value)
-    return {timestamp: dict(sorted(values.items(), key=lambda pair: pair[0].value)) for timestamp, values in sorted(rows.items())}
+        rows.setdefault(item.analysis_date, {})[item.role] = float(item.value)
+    return {day: dict(sorted(values.items(), key=lambda pair: pair[0].value)) for day, values in sorted(rows.items())}
