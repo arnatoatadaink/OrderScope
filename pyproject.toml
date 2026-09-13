@@ -23,7 +23,8 @@ dev = [
 [tool.pytest.ini_options]
 addopts = "--strict-config --strict-markers"
 filterwarnings = [
-  "error::starlette.exceptions.StarletteDeprecationWarning",
+  # Treat every warning as an error by default so new dependency/API regressions fail CI.
+  "error",
   # Starlette 1.6.0 still imports AnyIO's deprecated alias in testclient.py.
   # Remove this narrow exception once Starlette uses anyio.from_thread.BlockingPortal.
   "ignore:The anyio[.]abc[.]BlockingPortal alias is deprecated.*:DeprecationWarning:starlette[.]testclient",
