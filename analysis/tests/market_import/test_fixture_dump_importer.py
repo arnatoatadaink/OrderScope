@@ -1,3 +1,4 @@
+from contextlib import closing
 from datetime import datetime, timedelta, timezone
 from hashlib import sha256
 from pathlib import Path
@@ -54,7 +55,7 @@ def test_import_registers_hash_addressed_raw_fixture_and_catalog(tmp_path: Path)
     target = raw_root / result.raw_relative_path
     assert target.read_bytes() == artifact
     assert target.name == f"{manifest.sha256}.sql"
-    with sqlite3.connect(database) as connection:
+    with closing(sqlite3.connect(database)) as connection:
         row = connection.execute(
             "SELECT manifest_id, sha256, raw_relative_path FROM raw_imports"
         ).fetchone()
@@ -77,7 +78,7 @@ def test_reimport_same_manifest_and_hash_is_idempotent(tmp_path: Path) -> None:
     assert first.status == "new"
     assert second.status == "duplicate"
     assert second.registered_at == first.registered_at
-    with sqlite3.connect(kwargs["catalog_database"]) as connection:
+    with closing(sqlite3.connect(kwargs["catalog_database"])) as connection:
         assert connection.execute("SELECT count(*) FROM raw_imports").fetchone() == (1,)
 
 
@@ -152,7 +153,7 @@ def test_catalog_migration_registers_version_two(tmp_path: Path) -> None:
         raw_root=tmp_path / "raw",
         registered_at=REGISTERED,
     )
-    with sqlite3.connect(database) as connection:
+    with closing(sqlite3.connect(database)) as connection:
         assert connection.execute("PRAGMA user_version").fetchone() == (2,)
         assert connection.execute("SELECT count(*) FROM schema_migrations").fetchone() == (2,)
 
