@@ -35,6 +35,7 @@ from .cross_market import (
     HypothesisConfidence,
     ProposedFlowDirection,
 )
+from .macro_market import MacroMarketObservation, MacroMarketRegion, MacroMarketSeriesKind
 from .market_relationship import MarketRelationshipContext, MarketRelationshipKind
 from .market_reaction import (
     MarketReactionAssessment,
@@ -116,6 +117,9 @@ __all__ = [
     "IdempotencyClassification",
     "Interpretation",
     "InterpretationAssertionKind",
+    "MacroMarketObservation",
+    "MacroMarketRegion",
+    "MacroMarketSeriesKind",
     "MarketReactionAssessment",
     "MarketReactionConfidence",
     "MarketReactionInterpretationType",
