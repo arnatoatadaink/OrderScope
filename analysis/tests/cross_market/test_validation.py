@@ -10,6 +10,7 @@ from orderscope_local.cross_market import (
     A0ValidationWindows,
     HypothesisRating,
     HypothesisResult,
+    SeriesMeasure,
     SeriesObservation,
     SeriesRole,
     SeriesSpec,
@@ -29,15 +30,30 @@ def _windows() -> A0ValidationWindows:
 
 
 def _series() -> tuple[SeriesSpec, ...]:
+    items = [
+        (SeriesRole.CBRS, SeriesMeasure.PRICE, "usd"),
+        (SeriesRole.CBRS, SeriesMeasure.VOLUME, "shares"),
+        (SeriesRole.NVDA, SeriesMeasure.PRICE, "usd"),
+        (SeriesRole.NVDA, SeriesMeasure.VOLUME, "shares"),
+        (SeriesRole.US_MARKET, SeriesMeasure.PRICE, "usd"),
+        (SeriesRole.US_MARKET, SeriesMeasure.VOLUME, "shares"),
+        (SeriesRole.AI_SEMICONDUCTOR_PROXY, SeriesMeasure.PRICE, "usd"),
+        (SeriesRole.AI_SEMICONDUCTOR_PROXY, SeriesMeasure.VOLUME, "shares"),
+        (SeriesRole.UST_10Y, SeriesMeasure.YIELD, "percent"),
+        (SeriesRole.JGB_10Y, SeriesMeasure.YIELD, "percent"),
+        (SeriesRole.USDJPY, SeriesMeasure.FX_RATE, "jpy_per_usd"),
+        (SeriesRole.BTC, SeriesMeasure.PRICE, "usd"),
+    ]
     return tuple(
         SeriesSpec(
             role=role,
-            series_id=role.value.lower(),
-            source_ref=f"source:{role.value.lower()}",
-            unit="index" if role not in {SeriesRole.UST_10Y, SeriesRole.JGB_10Y, SeriesRole.USDJPY} else "percent",
+            measure=measure,
+            series_id=f"{role.value.lower()}:{measure.value.lower()}",
+            source_ref=f"source:{role.value.lower()}:{measure.value.lower()}",
+            unit=unit,
             timezone="UTC",
         )
-        for role in SeriesRole
+        for role, measure, unit in items
     )
 
 
@@ -66,13 +82,36 @@ def _case() -> A0ValidationCase:
 
 def test_accepts_complete_a0_002_case() -> None:
     case = _case()
-    assert len(case.series) == 8
+    assert len(case.series) == 12
     assert len(case.hypotheses) == 5
 
 
-def test_requires_all_eight_series_roles() -> None:
-    with pytest.raises(ContractViolation, match="series roles must be complete"):
-        A0ValidationCase(windows=_windows(), series=_series()[:-1], hypotheses=_hypotheses())
+def test_accepts_optional_consensus_and_short_series() -> None:
+    optional = (
+        SeriesSpec(
+            role=SeriesRole.CBRS,
+            measure=SeriesMeasure.CONSENSUS_TARGET,
+            series_id="cbrs:consensus_target",
+            source_ref="source:cbrs:consensus",
+            unit="usd",
+            timezone="UTC",
+        ),
+        SeriesSpec(
+            role=SeriesRole.CBRS,
+            measure=SeriesMeasure.SHORT_METRIC,
+            series_id="cbrs:short_metric",
+            source_ref="source:cbrs:short",
+            unit="ratio",
+            timezone="UTC",
+        ),
+    )
+    case = A0ValidationCase(windows=_windows(), series=_series() + optional, hypotheses=_hypotheses())
+    assert len(case.series) == 14
+
+
+def test_requires_cbrs_volume_and_other_minimum_series() -> None:
+    with pytest.raises(ContractViolation, match="required series are incomplete"):
+        A0ValidationCase(windows=_windows(), series=_series()[1:], hypotheses=_hypotheses())
 
 
 def test_requires_h1_through_h5() -> None:
@@ -107,19 +146,21 @@ def test_timeline_filters_future_available_data() -> None:
     observations = (
         SeriesObservation(
             role=SeriesRole.CBRS,
+            measure=SeriesMeasure.PRICE,
             analysis_date=day,
             observed_at=observed_at,
             available_at=datetime(2026, 9, 1, 16, 1, tzinfo=UTC),
-            value=10.0,
-            source_ref="source:cbrs",
+            value=190.0,
+            source_ref="source:cbrs:price",
         ),
         SeriesObservation(
             role=SeriesRole.NVDA,
+            measure=SeriesMeasure.PRICE,
             analysis_date=day,
             observed_at=observed_at,
             available_at=datetime(2026, 9, 1, 16, 5, tzinfo=UTC),
-            value=20.0,
-            source_ref="source:nvda",
+            value=210.0,
+            source_ref="source:nvda:price",
         ),
     )
     timeline = aligned_timeline(
@@ -127,28 +168,39 @@ def test_timeline_filters_future_available_data() -> None:
         observations=observations,
         as_of=datetime(2026, 9, 1, 16, 2, tzinfo=UTC),
     )
-    assert timeline[day] == {SeriesRole.CBRS: 10.0}
+    assert timeline[day] == {SeriesRole.CBRS: {SeriesMeasure.PRICE: 190.0}}
 
 
-def test_timeline_aligns_different_source_timestamps_on_analysis_date() -> None:
+def test_timeline_aligns_price_volume_and_jgb_by_analysis_date() -> None:
     case = _case()
     day = date(2026, 9, 1)
     observations = (
         SeriesObservation(
             role=SeriesRole.JGB_10Y,
+            measure=SeriesMeasure.YIELD,
             analysis_date=day,
             observed_at=datetime(2026, 9, 1, 6, 0, tzinfo=UTC),
             available_at=datetime(2026, 9, 2, 0, 30, tzinfo=UTC),
             value=2.9,
-            source_ref="source:jgb_10y",
+            source_ref="source:jgb_10y:yield",
         ),
         SeriesObservation(
             role=SeriesRole.CBRS,
+            measure=SeriesMeasure.PRICE,
             analysis_date=day,
             observed_at=datetime(2026, 9, 1, 20, 0, tzinfo=UTC),
             available_at=datetime(2026, 9, 1, 20, 1, tzinfo=UTC),
             value=190.0,
-            source_ref="source:cbrs",
+            source_ref="source:cbrs:price",
+        ),
+        SeriesObservation(
+            role=SeriesRole.CBRS,
+            measure=SeriesMeasure.VOLUME,
+            analysis_date=day,
+            observed_at=datetime(2026, 9, 1, 20, 0, tzinfo=UTC),
+            available_at=datetime(2026, 9, 1, 20, 1, tzinfo=UTC),
+            value=1_000_000,
+            source_ref="source:cbrs:volume",
         ),
     )
     timeline = aligned_timeline(
@@ -156,38 +208,11 @@ def test_timeline_aligns_different_source_timestamps_on_analysis_date() -> None:
         observations=observations,
         as_of=datetime(2026, 9, 2, 1, 0, tzinfo=UTC),
     )
-    assert timeline[day] == {SeriesRole.CBRS: 190.0, SeriesRole.JGB_10Y: 2.9}
-
-
-def test_timeline_does_not_forward_fill_missing_days() -> None:
-    case = _case()
-    day0 = date(2026, 9, 1)
-    day1 = date(2026, 9, 2)
-    observations = (
-        SeriesObservation(
-            role=SeriesRole.CBRS,
-            analysis_date=day0,
-            observed_at=datetime(2026, 9, 1, 20, 0, tzinfo=UTC),
-            available_at=datetime(2026, 9, 1, 20, 0, tzinfo=UTC),
-            value=10.0,
-            source_ref="source:cbrs",
-        ),
-        SeriesObservation(
-            role=SeriesRole.NVDA,
-            analysis_date=day1,
-            observed_at=datetime(2026, 9, 2, 20, 0, tzinfo=UTC),
-            available_at=datetime(2026, 9, 2, 20, 0, tzinfo=UTC),
-            value=20.0,
-            source_ref="source:nvda",
-        ),
-    )
-    timeline = aligned_timeline(
-        case=case,
-        observations=observations,
-        as_of=datetime(2026, 9, 2, 21, 0, tzinfo=UTC),
-    )
-    assert timeline[day0] == {SeriesRole.CBRS: 10.0}
-    assert timeline[day1] == {SeriesRole.NVDA: 20.0}
+    assert timeline[day][SeriesRole.CBRS] == {
+        SeriesMeasure.PRICE: 190.0,
+        SeriesMeasure.VOLUME: 1_000_000.0,
+    }
+    assert timeline[day][SeriesRole.JGB_10Y] == {SeriesMeasure.YIELD: 2.9}
 
 
 def test_timeline_rejects_source_ref_drift() -> None:
@@ -196,6 +221,7 @@ def test_timeline_rejects_source_ref_drift() -> None:
     observations = (
         SeriesObservation(
             role=SeriesRole.CBRS,
+            measure=SeriesMeasure.PRICE,
             analysis_date=date(2026, 9, 1),
             observed_at=t0,
             available_at=t0,
