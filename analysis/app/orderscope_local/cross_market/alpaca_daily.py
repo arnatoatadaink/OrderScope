@@ -85,7 +85,7 @@ class AlpacaDailyBarsTransport:
             "symbols": ",".join(symbols),
             "timeframe": "1Day",
             "start": start.isoformat(),
-            "end": (end_exclusive - timedelta(microseconds=1)).isoformat(),
+            "end": (end_exclusive - timedelta(days=1)).isoformat(),
             "limit": str(limit),
         }
         if not crypto:
@@ -198,7 +198,7 @@ def _normalize_bar(*, binding: DailySeriesBinding, row: object, crypto: bool) ->
     return (
         SeriesObservation(
             role=binding.role,
-            measure=SeriesMeasure.CLOSE,
+            measure=SeriesMeasure.PRICE,
             analysis_date=analysis_date,
             observed_at=observed_at,
             available_at=available_at,
