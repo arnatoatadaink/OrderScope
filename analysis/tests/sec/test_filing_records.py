@@ -11,7 +11,8 @@ RETRIEVED = datetime(2026, 9, 8, 1, tzinfo=timezone.utc)
 ACCESSION = "0000002488-26-000121"
 
 
-def repository() -> SqliteFilingRecordRepository:
+@pytest.fixture
+def repository():
     connection = sqlite3.connect(":memory:")
     connection.execute(
         """
@@ -29,7 +30,10 @@ def repository() -> SqliteFilingRecordRepository:
         )
         """
     )
-    return SqliteFilingRecordRepository(connection)
+    try:
+        yield SqliteFilingRecordRepository(connection)
+    finally:
+        connection.close()
 
 
 def item(*, content_hash: str = "a" * 64, **overrides: object) -> AdapterItem:
@@ -53,10 +57,8 @@ def item(*, content_hash: str = "a" * 64, **overrides: object) -> AdapterItem:
     )
 
 
-def test_persists_provider_neutral_filing_record_by_accession() -> None:
-    store = repository()
-
-    write = store.put(item(), retrieved_at=RETRIEVED)
+def test_persists_provider_neutral_filing_record_by_accession(repository) -> None:
+    write = repository.put(item(), retrieved_at=RETRIEVED)
 
     assert write.result is FilingWriteResult.NEW
     assert write.record.accession == ACCESSION
@@ -71,14 +73,12 @@ def test_persists_provider_neutral_filing_record_by_accession() -> None:
         "https://www.sec.gov/Archives/edgar/data/2488/000000248826000121"
     )
     assert write.record.retrieved_at == RETRIEVED
-    assert store.get(ACCESSION) == write.record
+    assert repository.get(ACCESSION) == write.record
 
 
-def test_same_accession_and_hash_is_idempotent_and_preserves_first_retrieval() -> None:
-    store = repository()
-    first = store.put(item(), retrieved_at=RETRIEVED)
-
-    duplicate = store.put(
+def test_same_accession_and_hash_is_idempotent_and_preserves_first_retrieval(repository) -> None:
+    first = repository.put(item(), retrieved_at=RETRIEVED)
+    duplicate = repository.put(
         item(), retrieved_at=datetime(2026, 9, 8, 2, tzinfo=timezone.utc)
     )
 
@@ -87,12 +87,10 @@ def test_same_accession_and_hash_is_idempotent_and_preserves_first_retrieval() -
     assert duplicate.record == first.record
 
 
-def test_same_accession_with_changed_hash_is_an_explicit_conflict() -> None:
-    store = repository()
-    store.put(item(), retrieved_at=RETRIEVED)
-
+def test_same_accession_with_changed_hash_is_an_explicit_conflict(repository) -> None:
+    repository.put(item(), retrieved_at=RETRIEVED)
     with pytest.raises(ContractViolation, match="conflicts"):
-        store.put(item(content_hash="b" * 64, form="8-K/A"), retrieved_at=RETRIEVED)
+        repository.put(item(content_hash="b" * 64, form="8-K/A"), retrieved_at=RETRIEVED)
 
 
 @pytest.mark.parametrize(
@@ -104,13 +102,13 @@ def test_same_accession_with_changed_hash_is_an_explicit_conflict() -> None:
         (item(primary_document="../secret.txt"), "safe SEC document"),
     ],
 )
-def test_rejects_invalid_or_cross_company_metadata(candidate: AdapterItem, message: str) -> None:
+def test_rejects_invalid_or_cross_company_metadata(repository, candidate: AdapterItem, message: str) -> None:
     with pytest.raises(ContractViolation, match=message):
-        repository().put(candidate, retrieved_at=RETRIEVED)
+        repository.put(candidate, retrieved_at=RETRIEVED)
 
 
-def test_nullable_period_and_primary_document_remain_unknown() -> None:
-    write = repository().put(
+def test_nullable_period_and_primary_document_remain_unknown(repository) -> None:
+    write = repository.put(
         item(period_end=None, primary_document=None), retrieved_at=RETRIEVED
     )
 
@@ -118,9 +116,9 @@ def test_nullable_period_and_primary_document_remain_unknown() -> None:
     assert write.record.primary_document_ref is None
 
 
-def test_reporting_owner_accession_keeps_issuer_scope_and_uses_filer_archive() -> None:
+def test_reporting_owner_accession_keeps_issuer_scope_and_uses_filer_archive(repository) -> None:
     accession = "0001452385-26-000008"
-    write = repository().put(
+    write = repository.put(
         item(accession=accession, form="4", primary_document="xslF345X06/ownership.xml"),
         retrieved_at=RETRIEVED,
     )
@@ -132,11 +130,14 @@ def test_reporting_owner_accession_keeps_issuer_scope_and_uses_filer_archive() -
     )
 
 
-def test_requires_utc_retrieval_and_preexisting_migration() -> None:
+def test_requires_utc_retrieval_and_preexisting_migration(repository) -> None:
     with pytest.raises(ContractViolation, match="UTC"):
-        repository().put(item(), retrieved_at=RETRIEVED.replace(tzinfo=None))
+        repository.put(item(), retrieved_at=RETRIEVED.replace(tzinfo=None))
 
     connection = sqlite3.connect(":memory:")
-    store = SqliteFilingRecordRepository(connection)
-    with pytest.raises(sqlite3.OperationalError, match="no such table"):
-        store.put(item(), retrieved_at=RETRIEVED)
+    try:
+        store = SqliteFilingRecordRepository(connection)
+        with pytest.raises(sqlite3.OperationalError, match="no such table"):
+            store.put(item(), retrieved_at=RETRIEVED)
+    finally:
+        connection.close()
