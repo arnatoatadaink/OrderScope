@@ -1,5 +1,6 @@
 """S0-007 fixture replay acceptance for the AMD/NVIDIA SEC canary."""
 
+from contextlib import closing
 from datetime import date, datetime, timedelta, timezone
 import sqlite3
 
@@ -82,7 +83,7 @@ class Store:
 
 
 @pytest.fixture
-def repository() -> SqliteFilingRecordRepository:
+def repository():
     connection = sqlite3.connect(":memory:")
     connection.execute(
         """
@@ -95,7 +96,10 @@ def repository() -> SqliteFilingRecordRepository:
         )
         """
     )
-    return SqliteFilingRecordRepository(connection)
+    try:
+        yield SqliteFilingRecordRepository(connection)
+    finally:
+        connection.close()
 
 
 def _submissions_payload(cik: int, recent: dict[str, list[str]]) -> dict[str, object]:
@@ -153,13 +157,14 @@ def test_partial_submissions_document_and_company_facts_are_retryable_and_saniti
             f"{SEC_DATA_ORIGIN}/submissions/CIK0000002488.json": _submissions_payload(2488, AMD_FILINGS),
         }), user_agent=USER_AGENT, limiter=Limiter(), clock=lambda: NOW,
     ).fetch(AdapterRequest("sec:submissions:amd", WINDOW_START, WINDOW_END)).items[0]
-    repository_connection = sqlite3.connect(":memory:")
-    repository_connection.execute(
-        "CREATE TABLE filing_records (accession TEXT PRIMARY KEY, content_hash TEXT NOT NULL, cik TEXT NOT NULL, ticker TEXT NOT NULL, form TEXT NOT NULL, filed_at TEXT NOT NULL, period_end TEXT, primary_document_ref TEXT, source_ref TEXT NOT NULL, retrieved_at TEXT NOT NULL)"
-    )
-    record = SqliteFilingRecordRepository(repository_connection).put(
-        record_item, retrieved_at=NOW
-    ).record
+    with closing(sqlite3.connect(":memory:")) as repository_connection:
+        repository_connection.execute(
+            "CREATE TABLE filing_records (accession TEXT PRIMARY KEY, content_hash TEXT NOT NULL, cik TEXT NOT NULL, ticker TEXT NOT NULL, form TEXT NOT NULL, filed_at TEXT NOT NULL, period_end TEXT, primary_document_ref TEXT, source_ref TEXT NOT NULL, retrieved_at TEXT NOT NULL)"
+        )
+        record = SqliteFilingRecordRepository(repository_connection).put(
+            record_item, retrieved_at=NOW
+        ).record
+
     store = Store()
     document = SecFilingDocumentAcquirer(
         transport=BytesTransport(RuntimeError("provider body secret-token")),
