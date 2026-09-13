@@ -175,7 +175,7 @@ def _collect_group(*, transport, bindings, start: date, end_exclusive: date, cry
     return out
 
 
-def _normalize_bar(*, binding: DailySeriesBinding, row: object, crypto: bool) -> tuple[SeriesObservation, SeriesObservation]:
+def _normalize_bar(*, binding: DailySeriesBinding, row: object, crypto: bool) -> tuple[SeriesObservation, ...]:
     if not isinstance(row, dict):
         raise ContractViolation("Alpaca bar must be an object")
     timestamp = row.get("t")
@@ -195,16 +195,19 @@ def _normalize_bar(*, binding: DailySeriesBinding, row: object, crypto: bool) ->
         raise ContractViolation("Alpaca volume must be numeric")
     analysis_date = observed_at.date()
     available_at = _daily_available_at(analysis_date=analysis_date, crypto=crypto)
+    price = SeriesObservation(
+        role=binding.role,
+        measure=SeriesMeasure.PRICE,
+        analysis_date=analysis_date,
+        observed_at=observed_at,
+        available_at=available_at,
+        value=float(close),
+        source_ref=binding.source_ref,
+    )
+    if crypto:
+        return (price,)
     return (
-        SeriesObservation(
-            role=binding.role,
-            measure=SeriesMeasure.PRICE,
-            analysis_date=analysis_date,
-            observed_at=observed_at,
-            available_at=available_at,
-            value=float(close),
-            source_ref=binding.source_ref,
-        ),
+        price,
         SeriesObservation(
             role=binding.role,
             measure=SeriesMeasure.VOLUME,
