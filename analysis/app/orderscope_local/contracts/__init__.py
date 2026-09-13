@@ -29,6 +29,12 @@ from .fact_store import (
     records_available_as_of,
     validate_fact_store,
 )
+from .cross_market import (
+    CrossMarketHypothesis,
+    FxDirectionConsistency,
+    HypothesisConfidence,
+    ProposedFlowDirection,
+)
 from .earnings import (
     AccountingBasis,
     EarningsEvent,
@@ -81,6 +87,7 @@ __all__ = [
     "CheckpointError",
     "CheckpointState",
     "ContractViolation",
+    "CrossMarketHypothesis",
     "EarningsEvent",
     "EarningsEventKind",
     "EarningsEvidenceRef",
@@ -93,10 +100,13 @@ __all__ = [
     "Fact",
     "FactAssertionKind",
     "FactStoreRecord",
+    "FxDirectionConsistency",
+    "HypothesisConfidence",
     "IdempotencyClassification",
     "Interpretation",
     "InterpretationAssertionKind",
     "OpaqueCursor",
+    "ProposedFlowDirection",
     "ScheduledReleaseWindow",
     "assert_page_contract",
     "assert_adapter_item_contract",
