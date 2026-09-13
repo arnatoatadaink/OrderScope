@@ -45,6 +45,14 @@ This file is the sole integrated authority for Local Corporate Intelligence runt
 
 `X0-001..006` is complete for the fixture-path integration boundary. This does not authorize remote D1, Worker mutation, or live scheduler registration.
 
+
+## A0 — Analyst Expectations / Cross-Market Context
+
+| Task | Status | Evidence / next action |
+|---|---|---|
+| A0-001 | Accepted locally | 8 focused contract tests; 88 combined contract tests; Cross-Market capital movement remains Interpretation and FX contradiction cannot create a Fact |
+| A0-002 | Provisional validation complete | 20 cross-market tests; 94 real observations; 12/12 required series; H1 SUPPORT, H2 SUPPORT, H3 SUPPORT, H4 UNKNOWN, H5 CONTRADICT. Consensus-gap source remains unresolved; see `A0-002_CBRS_MULTI_LAYER_FLOW_VALIDATION_2026-09-14.md` |
+
 ## 4. N1-006 — News recall evaluation state
 
 Dependencies:
