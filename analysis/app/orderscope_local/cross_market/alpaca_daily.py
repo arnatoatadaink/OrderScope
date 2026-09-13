@@ -49,11 +49,11 @@ class DailySeriesBinding:
 
 
 DEFAULT_A0_ALPACA_BINDINGS = (
-    DailySeriesBinding(role=SeriesRole.CBRS, symbol="CBRS", source_ref="alpaca:stock:CBRS"),
-    DailySeriesBinding(role=SeriesRole.NVDA, symbol="NVDA", source_ref="alpaca:stock:NVDA"),
-    DailySeriesBinding(role=SeriesRole.US_MARKET, symbol="QQQ", source_ref="alpaca:stock:QQQ"),
-    DailySeriesBinding(role=SeriesRole.AI_SEMICONDUCTOR_PROXY, symbol="SOXX", source_ref="alpaca:stock:SOXX"),
-    DailySeriesBinding(role=SeriesRole.BTC, symbol="BTC/USD", source_ref="alpaca:crypto:BTC-USD", is_crypto=True),
+    DailySeriesBinding(role=SeriesRole.CBRS, symbol="CBRS", source_ref="alpaca:stocks:CBRS:1Day"),
+    DailySeriesBinding(role=SeriesRole.NVDA, symbol="NVDA", source_ref="alpaca:stocks:NVDA:1Day"),
+    DailySeriesBinding(role=SeriesRole.US_MARKET, symbol="QQQ", source_ref="alpaca:stocks:QQQ:1Day"),
+    DailySeriesBinding(role=SeriesRole.AI_SEMICONDUCTOR_PROXY, symbol="SOXX", source_ref="alpaca:stocks:SOXX:1Day"),
+    DailySeriesBinding(role=SeriesRole.BTC, symbol="BTC/USD", source_ref="alpaca:crypto:us:BTC/USD:1Day", is_crypto=True),
 )
 
 
