@@ -1,9 +1,8 @@
 """A0-002 CBRS multi-layer flow validation contract.
 
-This module defines the source-neutral validation dataset boundary. It does not
-fetch market data or freeze a provider. Observations retain source-local analysis
-date plus observed/available timestamps so retrospective validation cannot
-silently use future data.
+The validation boundary is source-neutral.  A series is identified by role and
+measure so price, volume, yields, FX, consensus and short/borrow evidence can be
+aligned without collapsing unlike observations into one scalar.
 """
 
 from __future__ import annotations
@@ -28,6 +27,15 @@ class SeriesRole(StrEnum):
     BTC = "BTC"
 
 
+class SeriesMeasure(StrEnum):
+    PRICE = "PRICE"
+    VOLUME = "VOLUME"
+    YIELD = "YIELD"
+    FX_RATE = "FX_RATE"
+    CONSENSUS_TARGET = "CONSENSUS_TARGET"
+    SHORT_METRIC = "SHORT_METRIC"
+
+
 class HypothesisRating(StrEnum):
     SUPPORT = "SUPPORT"
     PARTIAL = "PARTIAL"
@@ -35,7 +43,28 @@ class HypothesisRating(StrEnum):
     UNKNOWN = "UNKNOWN"
 
 
-_REQUIRED_ROLES = frozenset(SeriesRole)
+_REQUIRED_SERIES_KEYS = frozenset(
+    {
+        (SeriesRole.CBRS, SeriesMeasure.PRICE),
+        (SeriesRole.CBRS, SeriesMeasure.VOLUME),
+        (SeriesRole.NVDA, SeriesMeasure.PRICE),
+        (SeriesRole.NVDA, SeriesMeasure.VOLUME),
+        (SeriesRole.US_MARKET, SeriesMeasure.PRICE),
+        (SeriesRole.US_MARKET, SeriesMeasure.VOLUME),
+        (SeriesRole.AI_SEMICONDUCTOR_PROXY, SeriesMeasure.PRICE),
+        (SeriesRole.AI_SEMICONDUCTOR_PROXY, SeriesMeasure.VOLUME),
+        (SeriesRole.UST_10Y, SeriesMeasure.YIELD),
+        (SeriesRole.JGB_10Y, SeriesMeasure.YIELD),
+        (SeriesRole.USDJPY, SeriesMeasure.FX_RATE),
+        (SeriesRole.BTC, SeriesMeasure.PRICE),
+    }
+)
+_ALLOWED_OPTIONAL_KEYS = frozenset(
+    {
+        (SeriesRole.CBRS, SeriesMeasure.CONSENSUS_TARGET),
+        (SeriesRole.CBRS, SeriesMeasure.SHORT_METRIC),
+    }
+)
 _REQUIRED_HYPOTHESES = frozenset(
     {
         "H1_GLOBAL_MACRO_RELIEF",
@@ -83,6 +112,7 @@ class A0ValidationWindows:
 @dataclass(frozen=True, kw_only=True)
 class SeriesSpec:
     role: SeriesRole
+    measure: SeriesMeasure
     series_id: str
     source_ref: str
     unit: str
@@ -91,6 +121,10 @@ class SeriesSpec:
     def __post_init__(self) -> None:
         if not isinstance(self.role, SeriesRole):
             raise ContractViolation("role must be SeriesRole")
+        if not isinstance(self.measure, SeriesMeasure):
+            raise ContractViolation("measure must be SeriesMeasure")
+        if (self.role, self.measure) not in _REQUIRED_SERIES_KEYS | _ALLOWED_OPTIONAL_KEYS:
+            raise ContractViolation("role/measure combination is not supported by A0-002")
         for value, field in (
             (self.series_id, "series_id"),
             (self.source_ref, "source_ref"),
@@ -103,6 +137,7 @@ class SeriesSpec:
 @dataclass(frozen=True, kw_only=True)
 class SeriesObservation:
     role: SeriesRole
+    measure: SeriesMeasure
     analysis_date: date
     observed_at: datetime
     available_at: datetime
@@ -112,6 +147,8 @@ class SeriesObservation:
     def __post_init__(self) -> None:
         if not isinstance(self.role, SeriesRole):
             raise ContractViolation("role must be SeriesRole")
+        if not isinstance(self.measure, SeriesMeasure):
+            raise ContractViolation("measure must be SeriesMeasure")
         if not isinstance(self.analysis_date, date) or isinstance(self.analysis_date, datetime):
             raise ContractViolation("analysis_date must be a calendar date")
         _utc(self.observed_at, "observed_at")
@@ -159,16 +196,16 @@ class A0ValidationCase:
             raise ContractViolation("windows must be A0ValidationWindows")
         if not isinstance(self.series, tuple):
             raise ContractViolation("series must be an immutable tuple")
-        roles = [item.role for item in self.series]
-        if len(roles) != len(set(roles)):
-            raise ContractViolation("series roles must be unique")
-        if set(roles) != _REQUIRED_ROLES:
-            missing = sorted(role.value for role in _REQUIRED_ROLES - set(roles))
-            extra = sorted(role.value for role in set(roles) - _REQUIRED_ROLES)
-            raise ContractViolation(f"A0-002 series roles must be complete; missing={missing}, extra={extra}")
-        source_refs = [item.source_ref for item in self.series]
-        if len(source_refs) != len(set(source_refs)):
-            raise ContractViolation("series source_ref values must be unique")
+        keys = [(item.role, item.measure) for item in self.series]
+        if len(keys) != len(set(keys)):
+            raise ContractViolation("series role/measure keys must be unique")
+        missing = _REQUIRED_SERIES_KEYS - set(keys)
+        if missing:
+            names = sorted(f"{role.value}:{measure.value}" for role, measure in missing)
+            raise ContractViolation(f"A0-002 required series are incomplete; missing={names}")
+        unsupported = set(keys) - (_REQUIRED_SERIES_KEYS | _ALLOWED_OPTIONAL_KEYS)
+        if unsupported:
+            raise ContractViolation("A0-002 contains unsupported series role/measure keys")
         if not isinstance(self.hypotheses, tuple):
             raise ContractViolation("hypotheses must be an immutable tuple")
         hypothesis_ids = [item.hypothesis_id for item in self.hypotheses]
@@ -183,33 +220,37 @@ def aligned_timeline(
     case: A0ValidationCase,
     observations: tuple[SeriesObservation, ...],
     as_of: datetime,
-) -> Mapping[date, Mapping[SeriesRole, float]]:
+) -> Mapping[date, Mapping[SeriesRole, Mapping[SeriesMeasure, float]]]:
     """Return analysis-date aligned observations visible as of ``as_of``.
 
     Source-specific observed/available timestamps remain on every observation.
-    The function does not forward-fill or interpolate missing days. This lets
-    A0-002 align Japan, U.S., and 24/7 series without pretending their source
-    publication timestamps were simultaneous.
+    Missing measures/days are not forward-filled or interpolated.
     """
     _utc(as_of, "as_of")
     if not isinstance(observations, tuple):
         raise ContractViolation("observations must be an immutable tuple")
-    allowed_roles = {spec.role for spec in case.series}
-    source_by_role = {spec.role: spec.source_ref for spec in case.series}
-    rows: dict[date, dict[SeriesRole, float]] = {}
-    seen: set[tuple[SeriesRole, date]] = set()
+    source_by_key = {(spec.role, spec.measure): spec.source_ref for spec in case.series}
+    rows: dict[date, dict[SeriesRole, dict[SeriesMeasure, float]]] = {}
+    seen: set[tuple[SeriesRole, SeriesMeasure, date]] = set()
     for item in observations:
         if not isinstance(item, SeriesObservation):
             raise ContractViolation("observations must contain SeriesObservation values")
-        if item.role not in allowed_roles:
-            raise ContractViolation("observation role is not registered in validation case")
-        if item.source_ref != source_by_role[item.role]:
+        key = (item.role, item.measure)
+        if key not in source_by_key:
+            raise ContractViolation("observation role/measure is not registered in validation case")
+        if item.source_ref != source_by_key[key]:
             raise ContractViolation("observation source_ref does not match registered SeriesSpec")
         if item.available_at > as_of:
             continue
-        key = (item.role, item.analysis_date)
-        if key in seen:
-            raise ContractViolation("duplicate role/analysis_date observation is not allowed")
-        seen.add(key)
-        rows.setdefault(item.analysis_date, {})[item.role] = float(item.value)
-    return {day: dict(sorted(values.items(), key=lambda pair: pair[0].value)) for day, values in sorted(rows.items())}
+        day_key = (item.role, item.measure, item.analysis_date)
+        if day_key in seen:
+            raise ContractViolation("duplicate role/measure/analysis_date observation is not allowed")
+        seen.add(day_key)
+        rows.setdefault(item.analysis_date, {}).setdefault(item.role, {})[item.measure] = float(item.value)
+    result: dict[date, dict[SeriesRole, dict[SeriesMeasure, float]]] = {}
+    for day, roles in sorted(rows.items()):
+        result[day] = {
+            role: dict(sorted(measures.items(), key=lambda pair: pair[0].value))
+            for role, measures in sorted(roles.items(), key=lambda pair: pair[0].value)
+        }
+    return result
