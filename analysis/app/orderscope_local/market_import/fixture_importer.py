@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from contextlib import closing
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from hashlib import sha256
@@ -66,7 +67,7 @@ def import_fixture_dump(
     target = raw_root_path / relative_path
 
     apply_migrations(catalog_database)
-    with sqlite3.connect(catalog_database) as connection:
+    with closing(sqlite3.connect(catalog_database)) as connection:
         connection.row_factory = sqlite3.Row
         existing_manifest = connection.execute(
             "SELECT * FROM raw_imports WHERE manifest_id = ?",
