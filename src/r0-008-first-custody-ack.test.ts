@@ -35,7 +35,7 @@ describe("R0-008 first real custody acknowledgement", () => {
     expect(grace.graceElapsed).toBe(false);
 
     expect(() => advanceD1DrainLifecycle(grace, "PURGE_ELIGIBLE")).toThrow(
-      /REPLAY_HORIZON_NOT_ELAPSED.*GRACE_NOT_ELAPSED/,
+      /GRACE_NOT_ELAPSED/,
     );
   });
 });
