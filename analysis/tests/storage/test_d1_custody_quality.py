@@ -61,8 +61,10 @@ def test_accepts_reviewed_normalized_bar_ndjson() -> None:
 def test_rejects_hash_mismatch() -> None:
     artifact = _artifact()
     manifest = _manifest(artifact)
+    tampered = bytearray(artifact)
+    tampered[-2] = ord(" ") if tampered[-2] != ord(" ") else ord("x")
     with pytest.raises(ContractViolation, match="sha256"):
-        validate_d1_custody_artifact(manifest=manifest, artifact=artifact + b" ")
+        validate_d1_custody_artifact(manifest=manifest, artifact=bytes(tampered))
 
 
 def test_rejects_bar_outside_half_open_window() -> None:
