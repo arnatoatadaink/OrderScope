@@ -48,7 +48,10 @@ def collect_official_macro(*, start: date, end_exclusive: date, timeout_seconds:
         timeout=float(timeout_seconds),
     )
     jgb = _get_text(MOF_JGB_URL, timeout=float(timeout_seconds), encoding="cp932")
-    boj = _get_text(BOJ_USDJPY_URL, timeout=float(timeout_seconds))
+    # BOJ's legacy time-series HTML may be served in a Shift_JIS/Windows-31J
+    # encoding. Decode with cp932 first while retaining the generic UTF-8
+    # fallback inside _get_text.
+    boj = _get_text(BOJ_USDJPY_URL, timeout=float(timeout_seconds), encoding="cp932")
 
     observations = [
         *parse_fred_dgs10_csv(dgs10, start=start, end_exclusive=end_exclusive),
@@ -117,8 +120,7 @@ def parse_mof_jgb_csv(text: str, *, start: date, end_exclusive: date) -> tuple[S
             continue
         value = _float(raw_value, "MOF JGB 10Y value")
         observed_at = datetime.combine(day, time(15, 0), tzinfo=_TOKYO).astimezone(_UTC)
-        release_day = _next_weekday(day)
-        available_at = datetime.combine(release_day, time(9, 30), tzinfo=_TOKYO).astimezone(_UTC)
+        available_at = _next_business_day_0930_jst(day)
         out.append(
             SeriesObservation(
                 role=SeriesRole.JGB_10Y,
@@ -179,22 +181,27 @@ def _get_text(url: str, *, timeout: float, query: dict[str, str] | None = None, 
         raise OfficialMacroRequestFailure("provider_request_error", False) from None
     except (URLError, TimeoutError, OSError):
         raise OfficialMacroRequestFailure("transport_error", True) from None
-    try:
-        return raw.decode(encoding)
-    except UnicodeDecodeError:
-        if encoding != "utf-8":
-            try:
-                return raw.decode("utf-8")
-            except UnicodeDecodeError:
-                pass
-        raise OfficialMacroRequestFailure("invalid_response", False) from None
+
+    candidates = [encoding]
+    if encoding != "utf-8":
+        candidates.append("utf-8")
+    if "cp932" not in candidates:
+        candidates.append("cp932")
+    if "shift_jis" not in candidates:
+        candidates.append("shift_jis")
+    for candidate in candidates:
+        try:
+            return raw.decode(candidate)
+        except UnicodeDecodeError:
+            continue
+    raise OfficialMacroRequestFailure("invalid_response", False) from None
 
 
-def _next_weekday(day: date) -> date:
+def _next_business_day_0930_jst(day: date) -> datetime:
     candidate = day + timedelta(days=1)
     while candidate.weekday() >= 5:
         candidate += timedelta(days=1)
-    return candidate
+    return datetime.combine(candidate, time(9, 30), tzinfo=_TOKYO).astimezone(_UTC)
 
 
 def _parse_mof_date(value: str) -> date:
