@@ -35,6 +35,7 @@ from .cross_market import (
     HypothesisConfidence,
     ProposedFlowDirection,
 )
+from .market_relationship import MarketRelationshipContext, MarketRelationshipKind
 from .earnings import (
     AccountingBasis,
     EarningsEvent,
@@ -105,6 +106,8 @@ __all__ = [
     "IdempotencyClassification",
     "Interpretation",
     "InterpretationAssertionKind",
+    "MarketRelationshipContext",
+    "MarketRelationshipKind",
     "OpaqueCursor",
     "ProposedFlowDirection",
     "ScheduledReleaseWindow",
