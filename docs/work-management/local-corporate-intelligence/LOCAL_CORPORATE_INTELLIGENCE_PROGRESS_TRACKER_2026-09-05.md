@@ -418,7 +418,7 @@ These legacy PX0 IDs are now formally incorporated as R0-001..004 in the main WB
 | Task | Status | Evidence / boundary |
 |---|---|---|
 | R0-001 | Accepted locally | Scheduler registration review accepted; no live Cron/Worker mutation authorized |
-| R0-002 | Accepted locally | Packet D durable run evidence/restart recovery accepted |
+| R0-002 | Accepted — remote schema gate closed | Packet D accepted; migration `0008_scheduler_run_evidence.sql` applied to live-canary D1 and post-apply verified; scheduler evidence activation remains separately gated |
 | R0-003 | Accepted locally | Packet E bounded retention/replay operator path accepted |
 | R0-004 | Accepted locally | Packet F backup/restore/restore-drill boundary accepted |
 | R0-005 | Accepted evidence boundary; activation gated | AMD/NVDA metadata-only Worker/Schedule orchestration exercised through accepted local regressions and reviewed live Canary evidence; Worker remains Shadow after rollback and reactivation requires a separate change window |
@@ -470,7 +470,7 @@ Detailed R0-006..009 acceptance: `R0_D1_DRAIN_LOCAL_ACCEPTANCE_2026-09-13.md`.
 | Packet E | locally Accepted; focused Python 24; full Python 527; compileall and diff check passed; bounded CLI-only retention/deletion/replay, registered Alpaca News metadata replay, opaque temporary refs, and no arbitrary HTTP/unbounded replay covered |
 | Packet F | locally Accepted; focused backup/restore 5 then focused backup/restore+drill 10; full Python 537; compileall and diff check passed; clean restore, hash verification, SQLite integrity/migration checks, and Parquet/manifest provenance validation covered |
 | R0-001 | locally Accepted; reviewed scheduler registration plan; no live trigger mutation |
-| R0-002 | locally Accepted through Packet D |
+| R0-002 | Accepted; `0008` remote schema applied and verified; scheduler-evidence activation still gated |
 | R0-003 | locally Accepted through Packet E |
 | R0-004 | locally Accepted through Packet F |
 | R0-005 | reviewed orchestration evidence complete; activation still change-window gated |
@@ -497,7 +497,7 @@ Earlier accepted task evidence remains preserved in task-specific handoffs.
   by 12 live eligible opportunities. W1-007 restored the read-only Cloudflare
   control path locally; Web evidence review and separate authorization for a
   short monitored confirmation/closeout window are still required.
-- Packet D is locally Accepted. Remote migration `0008`, scheduler-evidence activation, Worker deployment/Cron mutation, and any live confirmation remain separately gated.
+- Packet D is Accepted and remote migration `0008` is applied/verified on live-canary. Scheduler-evidence activation, Worker deployment/Cron mutation, and any live confirmation remain separately gated.
 - Packet E / PX0-003 is locally Accepted. Remote D1 export/purge and unrestricted provider execution remain outside that acceptance boundary.
 - Packet F / PX0-004 is locally Accepted. Remote D1 backup/restore and live recovery operations remain outside that acceptance boundary.
 - `UWBS-023..026` are formally incorporated as `R0-006..009` and locally accepted; remote D1 drain/purge remains unauthorized.
