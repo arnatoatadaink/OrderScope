@@ -50,20 +50,21 @@ class FakeTransport:
         }
 
 
-def test_collects_stock_and_crypto_price_volume_with_pagination() -> None:
+def test_collects_stock_price_volume_and_crypto_price_with_pagination() -> None:
     transport = FakeTransport()
     result = collect_a0_alpaca_daily(
         transport=transport,
         start=date(2026, 8, 26),
         end_exclusive=date(2026, 9, 5),
     )
-    assert len(result) == 12
+    assert len(result) == 10
     assert [call["crypto"] for call in transport.calls] == [False, False, True]
     assert transport.calls[1]["page_token"] == "page-2"
     keys = {(item.role, item.measure, item.analysis_date) for item in result}
     assert (SeriesRole.CBRS, SeriesMeasure.PRICE, date(2026, 9, 1)) in keys
     assert (SeriesRole.CBRS, SeriesMeasure.VOLUME, date(2026, 9, 1)) in keys
     assert (SeriesRole.BTC, SeriesMeasure.PRICE, date(2026, 9, 2)) in keys
+    assert all(not (item.role is SeriesRole.BTC and item.measure is SeriesMeasure.VOLUME) for item in result)
 
 
 def test_stock_daily_value_becomes_available_at_1600_new_york() -> None:
@@ -106,5 +107,5 @@ def test_rejects_invalid_bar_shape() -> None:
             transport=BadTransport(),
             start=date(2026, 9, 1),
             end_exclusive=date(2026, 9, 2),
-            bindings=(DailySeriesBinding(role=SeriesRole.CBRS, symbol="CBRS", source_ref="alpaca:stock:CBRS"),),
+            bindings=(DailySeriesBinding(role=SeriesRole.CBRS, symbol="CBRS", source_ref="alpaca:stocks:CBRS:1Day"),),
         )
