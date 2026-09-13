@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from contextlib import closing
 from datetime import datetime, timezone
 import json
 import sqlite3
@@ -75,40 +76,40 @@ def _export(connection: sqlite3.Connection):
 
 
 def test_duplicate_export_retry_is_byte_and_generation_id_idempotent() -> None:
-    connection = _connection()
-    first = _export(connection)
-    second = _export(connection)
-    assert first.artifact_bytes == second.artifact_bytes
-    assert first.export_manifest.manifest_id == second.export_manifest.manifest_id
-    assert first.custody_manifest.generation_id == second.custody_manifest.generation_id
+    with closing(_connection()) as connection:
+        first = _export(connection)
+        second = _export(connection)
+        assert first.artifact_bytes == second.artifact_bytes
+        assert first.export_manifest.manifest_id == second.export_manifest.manifest_id
+        assert first.custody_manifest.generation_id == second.custody_manifest.generation_id
 
 
 def test_hash_mismatch_blocks_custody_acknowledgement() -> None:
-    connection = _connection()
-    result = _export(connection)
-    tampered = result.artifact_bytes + b"tamper\n"
-    with pytest.raises(ContractViolation, match="byte size"):
-        build_d1_custody_manifest(
-            source_database_id="fixture-db",
-            export=result.export_manifest,
-            artifact_relpath="d1/fixture/normalized_bar/2026-09-10.ndjson",
-            artifact_bytes=tampered,
-        )
+    with closing(_connection()) as connection:
+        result = _export(connection)
+        tampered = result.artifact_bytes + b"tamper\n"
+        with pytest.raises(ContractViolation, match="byte size"):
+            build_d1_custody_manifest(
+                source_database_id="fixture-db",
+                export=result.export_manifest,
+                artifact_relpath="d1/fixture/normalized_bar/2026-09-10.ndjson",
+                artifact_bytes=tampered,
+            )
 
 
 def test_local_custody_remains_readable_after_source_rows_are_purged() -> None:
-    connection = _connection()
-    result = _export(connection)
-    connection.execute("DELETE FROM normalized_bar")
-    connection.commit()
-    assert connection.execute("SELECT count(*) FROM normalized_bar").fetchone()[0] == 0
+    with closing(_connection()) as connection:
+        result = _export(connection)
+        connection.execute("DELETE FROM normalized_bar")
+        connection.commit()
+        assert connection.execute("SELECT count(*) FROM normalized_bar").fetchone()[0] == 0
 
-    records = [json.loads(line) for line in result.artifact_bytes.decode("utf-8").splitlines()]
-    assert [record["identity_key"] for record in records] == ["bar-a", "bar-b"]
-    assert len(records) == result.export_manifest.row_count == 2
+        records = [json.loads(line) for line in result.artifact_bytes.decode("utf-8").splitlines()]
+        assert [record["identity_key"] for record in records] == ["bar-a", "bar-b"]
+        assert len(records) == result.export_manifest.row_count == 2
 
 
 def test_export_failure_does_not_fabricate_manifest() -> None:
-    connection = sqlite3.connect(":memory:")
-    with pytest.raises(ContractViolation, match="registered export table is missing"):
-        _export(connection)
+    with closing(sqlite3.connect(":memory:")) as connection:
+        with pytest.raises(ContractViolation, match="registered export table is missing"):
+            _export(connection)
