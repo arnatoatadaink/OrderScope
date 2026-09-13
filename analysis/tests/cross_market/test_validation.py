@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 import pytest
 
@@ -102,10 +102,12 @@ def test_rejects_overlapping_baseline_and_primary_windows() -> None:
 
 def test_timeline_filters_future_available_data() -> None:
     case = _case()
+    day = date(2026, 9, 1)
     observed_at = datetime(2026, 9, 1, 16, 0, tzinfo=UTC)
     observations = (
         SeriesObservation(
             role=SeriesRole.CBRS,
+            analysis_date=day,
             observed_at=observed_at,
             available_at=datetime(2026, 9, 1, 16, 1, tzinfo=UTC),
             value=10.0,
@@ -113,6 +115,7 @@ def test_timeline_filters_future_available_data() -> None:
         ),
         SeriesObservation(
             role=SeriesRole.NVDA,
+            analysis_date=day,
             observed_at=observed_at,
             available_at=datetime(2026, 9, 1, 16, 5, tzinfo=UTC),
             value=20.0,
@@ -124,27 +127,81 @@ def test_timeline_filters_future_available_data() -> None:
         observations=observations,
         as_of=datetime(2026, 9, 1, 16, 2, tzinfo=UTC),
     )
-    assert timeline[observed_at] == {SeriesRole.CBRS: 10.0}
+    assert timeline[day] == {SeriesRole.CBRS: 10.0}
 
 
-def test_timeline_does_not_forward_fill_missing_roles() -> None:
+def test_timeline_aligns_different_source_timestamps_on_analysis_date() -> None:
     case = _case()
-    t0 = datetime(2026, 9, 1, 16, 0, tzinfo=UTC)
-    t1 = datetime(2026, 9, 1, 16, 1, tzinfo=UTC)
+    day = date(2026, 9, 1)
     observations = (
-        SeriesObservation(role=SeriesRole.CBRS, observed_at=t0, available_at=t0, value=10.0, source_ref="source:cbrs"),
-        SeriesObservation(role=SeriesRole.NVDA, observed_at=t1, available_at=t1, value=20.0, source_ref="source:nvda"),
+        SeriesObservation(
+            role=SeriesRole.JGB_10Y,
+            analysis_date=day,
+            observed_at=datetime(2026, 9, 1, 6, 0, tzinfo=UTC),
+            available_at=datetime(2026, 9, 2, 0, 30, tzinfo=UTC),
+            value=2.9,
+            source_ref="source:jgb_10y",
+        ),
+        SeriesObservation(
+            role=SeriesRole.CBRS,
+            analysis_date=day,
+            observed_at=datetime(2026, 9, 1, 20, 0, tzinfo=UTC),
+            available_at=datetime(2026, 9, 1, 20, 1, tzinfo=UTC),
+            value=190.0,
+            source_ref="source:cbrs",
+        ),
     )
-    timeline = aligned_timeline(case=case, observations=observations, as_of=t1)
-    assert timeline[t0] == {SeriesRole.CBRS: 10.0}
-    assert timeline[t1] == {SeriesRole.NVDA: 20.0}
+    timeline = aligned_timeline(
+        case=case,
+        observations=observations,
+        as_of=datetime(2026, 9, 2, 1, 0, tzinfo=UTC),
+    )
+    assert timeline[day] == {SeriesRole.CBRS: 190.0, SeriesRole.JGB_10Y: 2.9}
+
+
+def test_timeline_does_not_forward_fill_missing_days() -> None:
+    case = _case()
+    day0 = date(2026, 9, 1)
+    day1 = date(2026, 9, 2)
+    observations = (
+        SeriesObservation(
+            role=SeriesRole.CBRS,
+            analysis_date=day0,
+            observed_at=datetime(2026, 9, 1, 20, 0, tzinfo=UTC),
+            available_at=datetime(2026, 9, 1, 20, 0, tzinfo=UTC),
+            value=10.0,
+            source_ref="source:cbrs",
+        ),
+        SeriesObservation(
+            role=SeriesRole.NVDA,
+            analysis_date=day1,
+            observed_at=datetime(2026, 9, 2, 20, 0, tzinfo=UTC),
+            available_at=datetime(2026, 9, 2, 20, 0, tzinfo=UTC),
+            value=20.0,
+            source_ref="source:nvda",
+        ),
+    )
+    timeline = aligned_timeline(
+        case=case,
+        observations=observations,
+        as_of=datetime(2026, 9, 2, 21, 0, tzinfo=UTC),
+    )
+    assert timeline[day0] == {SeriesRole.CBRS: 10.0}
+    assert timeline[day1] == {SeriesRole.NVDA: 20.0}
 
 
 def test_timeline_rejects_source_ref_drift() -> None:
     case = _case()
     t0 = datetime(2026, 9, 1, 16, 0, tzinfo=UTC)
     observations = (
-        SeriesObservation(role=SeriesRole.CBRS, observed_at=t0, available_at=t0, value=10.0, source_ref="source:wrong"),
+        SeriesObservation(
+            role=SeriesRole.CBRS,
+            analysis_date=date(2026, 9, 1),
+            observed_at=t0,
+            available_at=t0,
+            value=10.0,
+            source_ref="source:wrong",
+        ),
     )
     with pytest.raises(ContractViolation, match="source_ref does not match"):
         aligned_timeline(case=case, observations=observations, as_of=t0)
