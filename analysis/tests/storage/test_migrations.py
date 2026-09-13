@@ -1,3 +1,4 @@
+from contextlib import closing
 from hashlib import sha256
 from pathlib import Path
 import sqlite3
@@ -8,7 +9,7 @@ from orderscope_local.storage import MigrationError, apply_migrations, discover_
 
 
 def schema(database: Path) -> tuple[tuple[str, str, str], ...]:
-    with sqlite3.connect(database) as connection:
+    with closing(sqlite3.connect(database)) as connection:
         return tuple(
             connection.execute(
                 "SELECT type, name, sql FROM sqlite_schema "
@@ -29,7 +30,7 @@ def test_empty_databases_rebuild_to_identical_catalog_schema(tmp_path: Path) -> 
         (item.version, item.name, item.checksum) for item in second_applied
     ]
     assert first_applied
-    with sqlite3.connect(first) as connection:
+    with closing(sqlite3.connect(first)) as connection:
         assert connection.execute("PRAGMA user_version").fetchone() == (first_applied[-1].version,)
         assert connection.execute(
             "SELECT value FROM catalog_metadata WHERE key = 'schema_kind'"
@@ -42,7 +43,7 @@ def test_reapplying_current_migrations_is_idempotent(tmp_path: Path) -> None:
     second = apply_migrations(database)
 
     assert second == first
-    with sqlite3.connect(database) as connection:
+    with closing(sqlite3.connect(database)) as connection:
         assert connection.execute("SELECT count(*) FROM schema_migrations").fetchone() == (len(first),)
 
 
@@ -81,7 +82,7 @@ def test_failed_migration_rolls_back_schema_and_history(tmp_path: Path) -> None:
     with pytest.raises(MigrationError, match="failed to apply"):
         apply_migrations(database, migration_directory=migrations)
 
-    with sqlite3.connect(database) as connection:
+    with closing(sqlite3.connect(database)) as connection:
         names = {row[0] for row in connection.execute("SELECT name FROM sqlite_schema")}
         assert "should_rollback" not in names
         assert connection.execute("SELECT count(*) FROM schema_migrations").fetchone() == (0,)
