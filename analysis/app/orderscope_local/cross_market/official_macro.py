@@ -71,8 +71,6 @@ def parse_fred_dgs10_csv(text: str, *, start: date, end_exclusive: date) -> tupl
             continue
         value = _float(row[1], "FRED DGS10 value")
         observed_at = datetime.combine(day, time(23, 59), tzinfo=_UTC)
-        # Conservative anti-lookahead boundary: treat each daily value as unavailable
-        # until the following UTC day. A0-002 does not need intraday UST timing.
         available_at = datetime.combine(day + timedelta(days=1), time(23, 59), tzinfo=_UTC)
         out.append(
             SeriesObservation(
@@ -119,10 +117,8 @@ def parse_mof_jgb_csv(text: str, *, start: date, end_exclusive: date) -> tuple[S
             continue
         value = _float(raw_value, "MOF JGB 10Y value")
         observed_at = datetime.combine(day, time(15, 0), tzinfo=_TOKYO).astimezone(_UTC)
-        # MOF states constant-maturity rates are released at 09:30 JST on the
-        # next business day. For this bounded validation path, next-calendar-day
-        # 09:30 is used as the minimum boundary; missing holiday rows remain absent.
-        available_at = datetime.combine(day + timedelta(days=1), time(9, 30), tzinfo=_TOKYO).astimezone(_UTC)
+        release_day = _next_weekday(day)
+        available_at = datetime.combine(release_day, time(9, 30), tzinfo=_TOKYO).astimezone(_UTC)
         out.append(
             SeriesObservation(
                 role=SeriesRole.JGB_10Y,
@@ -138,7 +134,6 @@ def parse_mof_jgb_csv(text: str, *, start: date, end_exclusive: date) -> tuple[S
 
 
 def parse_boj_usdjpy_html(text: str, *, start: date, end_exclusive: date) -> tuple[SeriesObservation, ...]:
-    # BOJ main time-series table is rendered as date | 17:00 spot | central rate.
     plain = unescape(re.sub(r"<[^>]+>", " ", text))
     pattern = re.compile(r"(20\d{2}/\d{2}/\d{2})\s*[|\s]+(NA|[-+]?\d+(?:\.\d+)?)\s*[|\s]+(?:NA|ND|[-+]?\d+(?:\.\d+)?)")
     seen: set[date] = set()
@@ -152,8 +147,6 @@ def parse_boj_usdjpy_html(text: str, *, start: date, end_exclusive: date) -> tup
             continue
         value = _float(match.group(2), "BOJ USDJPY value")
         observed_at = datetime.combine(day, time(17, 0), tzinfo=_TOKYO).astimezone(_UTC)
-        # BOJ daily FX release is published around 17:50 JST; keep that as the
-        # visibility boundary rather than the retrieval timestamp.
         available_at = datetime.combine(day, time(17, 50), tzinfo=_TOKYO).astimezone(_UTC)
         out.append(
             SeriesObservation(
@@ -197,6 +190,13 @@ def _get_text(url: str, *, timeout: float, query: dict[str, str] | None = None, 
         raise OfficialMacroRequestFailure("invalid_response", False) from None
 
 
+def _next_weekday(day: date) -> date:
+    candidate = day + timedelta(days=1)
+    while candidate.weekday() >= 5:
+        candidate += timedelta(days=1)
+    return candidate
+
+
 def _parse_mof_date(value: str) -> date:
     for fmt in ("%Y/%m/%d", "%Y-%m-%d", "%Y.%m.%d"):
         try:
@@ -215,7 +215,6 @@ def _date(value: str, fmt: str, field: str) -> date:
 
 def _float(value: str, field: str) -> float:
     try:
-        result = float(value)
+        return float(value)
     except ValueError as exc:
         raise ContractViolation(f"{field} must be numeric") from exc
-    return result
