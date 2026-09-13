@@ -444,7 +444,7 @@ Detailed R0-006..009 acceptance: `R0_D1_DRAIN_LOCAL_ACCEPTANCE_2026-09-13.md`.
 - `L1-003` remains externally Blocked behind `SMOKE-007` approval.
 - `PX0-001..004` are Accepted locally and formally remapped to `R0-001..004`.
 - `R0-006..009` D1 hot-store drain local/fixture boundaries are Accepted; remote export/purge and the actual `PURGED` transition remain separately gated.
-- `A0-001` remains Provisional and `A0-002` remains separate validation work.
+- `A0-001` and `A0-002` are Accepted locally; A0 is complete at the current v0.1 validation boundary.
 - WBS-unreflected work is tracked in `WBS_UNREFLECTED_TASK_BACKLOG_2026-09-10.md`.
 - Worker remains Shadow.
 
@@ -521,3 +521,11 @@ Earlier accepted task evidence remains preserved in task-specific handoffs.
 ## 11. Progress-update rule
 
 When a task changes state, update this integrated tracker in the same bounded work cycle and preserve detailed acceptance evidence in the corresponding handoff/runbook.
+
+## Maintenance — Python warning/resource lifecycle
+
+- SQLite connection lifecycle remediation: **Accepted locally**.
+- Strict warning policy remains enabled; SQLite warnings are not suppressed.
+- Acceptance evidence: `595 passed in 20.93s`; with `PYTHONTRACEMALLOC=10`, `595 passed in 43.12s`.
+- See `PYTEST_SQLITE_RESOURCE_WARNING_INVESTIGATION_2026-09-14.md`.
+
