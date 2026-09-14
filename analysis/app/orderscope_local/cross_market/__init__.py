@@ -7,6 +7,7 @@ from .alpaca_daily import (
     DEFAULT_A0_ALPACA_BINDINGS,
     collect_a0_alpaca_daily,
 )
+from .cftc_positioning import CftcTffPositioningPoint, parse_cftc_tff_csv
 from .fred_alfred import (
     FredSeriesDescriptor,
     FredVintageDate,
@@ -63,6 +64,7 @@ __all__ = [
     "A0ValidationWindows",
     "AlpacaDailyBarsTransport",
     "AlpacaDailyRequestFailure",
+    "CftcTffPositioningPoint",
     "CurveChange",
     "CurveShape",
     "DailySeriesBinding",
@@ -96,6 +98,7 @@ __all__ = [
     "evaluate_relative_repricing",
     "load_source_manifest",
     "parse_boj_usdjpy_json",
+    "parse_cftc_tff_csv",
     "parse_fred_observations_json",
     "parse_fred_vintage_dates_json",
     "parse_mof_jgb_csv",
