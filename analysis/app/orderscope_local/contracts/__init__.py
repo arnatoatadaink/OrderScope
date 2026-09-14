@@ -7,6 +7,11 @@ from .capital_instrument_state import (
     CapitalInstrumentState,
     is_allowed_capital_instrument_transition,
 )
+from .capital_structure import (
+    CapitalStructureAssessment,
+    CapitalStructureInterpretationType,
+    ResidualDilutionState,
+)
 from .debt_resolution import DebtResolutionAttentionLevel, DebtResolutionWindowAssessment
 from .identity import (
     ContentIdentity,
@@ -107,6 +112,9 @@ __all__ = [
     "CapitalInstrumentKind",
     "CapitalInstrumentLifecycleFact",
     "CapitalInstrumentState",
+    "CapitalStructureAssessment",
+    "CapitalStructureInterpretationType",
+    "ResidualDilutionState",
     "ContentIdentity",
     "CheckpointScope",
     "CheckpointError",
