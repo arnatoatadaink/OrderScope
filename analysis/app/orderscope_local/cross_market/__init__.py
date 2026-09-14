@@ -1,4 +1,4 @@
-"""A0-002 cross-market validation contracts."""
+"""A0 cross-market validation and macro-source helpers."""
 
 from .alpaca_daily import (
     AlpacaDailyBarsTransport,
@@ -17,6 +17,11 @@ from .macro_metrics import (
     curve_slope,
     series_delta,
     series_velocity_per_day,
+)
+from .official_macro_sources import (
+    OfficialMacroRawPoint,
+    TREASURY_PAR_YIELD_SOURCE,
+    parse_treasury_par_yield_csv,
 )
 from .relative_repricing import (
     METHOD_VERSION as RELATIVE_REPRICING_METHOD_VERSION,
@@ -49,12 +54,14 @@ __all__ = [
     "HypothesisRating",
     "HypothesisResult",
     "MacroMetricInput",
+    "OfficialMacroRawPoint",
     "RELATIVE_REPRICING_METHOD_VERSION",
     "RelativeRepricingMetrics",
     "SeriesMeasure",
     "SeriesObservation",
     "SeriesRole",
     "SeriesSpec",
+    "TREASURY_PAR_YIELD_SOURCE",
     "aligned_timeline",
     "classify_curve_change",
     "classify_curve_shape",
@@ -63,6 +70,7 @@ __all__ = [
     "curve_slope",
     "evaluate_relative_repricing",
     "load_source_manifest",
+    "parse_treasury_par_yield_csv",
     "series_delta",
     "series_velocity_per_day",
 ]
