@@ -7,6 +7,13 @@ from .alpaca_daily import (
     DEFAULT_A0_ALPACA_BINDINGS,
     collect_a0_alpaca_daily,
 )
+from .fred_alfred import (
+    FredSeriesDescriptor,
+    FredVintageDate,
+    FredVintageObservation,
+    parse_fred_observations_json,
+    parse_fred_vintage_dates_json,
+)
 from .japan_macro_sources import JapanMacroRawPoint, parse_boj_usdjpy_json, parse_mof_jgb_csv
 from .macro_metrics import (
     CurveChange,
@@ -53,6 +60,9 @@ __all__ = [
     "CurveShape",
     "DailySeriesBinding",
     "DEFAULT_A0_ALPACA_BINDINGS",
+    "FredSeriesDescriptor",
+    "FredVintageDate",
+    "FredVintageObservation",
     "HypothesisRating",
     "HypothesisResult",
     "JapanMacroRawPoint",
@@ -75,6 +85,8 @@ __all__ = [
     "evaluate_relative_repricing",
     "load_source_manifest",
     "parse_boj_usdjpy_json",
+    "parse_fred_observations_json",
+    "parse_fred_vintage_dates_json",
     "parse_mof_jgb_csv",
     "parse_ny_fed_reference_rates_json",
     "parse_treasury_par_yield_csv",
