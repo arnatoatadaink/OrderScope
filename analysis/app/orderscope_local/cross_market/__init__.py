@@ -18,6 +18,7 @@ from .macro_metrics import (
     series_delta,
     series_velocity_per_day,
 )
+from .ny_fed_rates import NyFedReferenceRatePoint, parse_ny_fed_reference_rates_json
 from .official_macro_sources import (
     OfficialMacroRawPoint,
     TREASURY_PAR_YIELD_SOURCE,
@@ -54,6 +55,7 @@ __all__ = [
     "HypothesisRating",
     "HypothesisResult",
     "MacroMetricInput",
+    "NyFedReferenceRatePoint",
     "OfficialMacroRawPoint",
     "RELATIVE_REPRICING_METHOD_VERSION",
     "RelativeRepricingMetrics",
@@ -70,6 +72,7 @@ __all__ = [
     "curve_slope",
     "evaluate_relative_repricing",
     "load_source_manifest",
+    "parse_ny_fed_reference_rates_json",
     "parse_treasury_par_yield_csv",
     "series_delta",
     "series_velocity_per_day",
