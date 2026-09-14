@@ -14,6 +14,13 @@ from .fred_alfred import (
     parse_fred_observations_json,
     parse_fred_vintage_dates_json,
 )
+from .fred_fallback_policy import (
+    FallbackSelectionDecision,
+    FallbackSeriesExpectation,
+    MacroSourceSelection,
+    OfficialSourceState,
+    select_macro_source,
+)
 from .japan_macro_sources import JapanMacroRawPoint, parse_boj_usdjpy_json, parse_mof_jgb_csv
 from .macro_metrics import (
     CurveChange,
@@ -60,6 +67,8 @@ __all__ = [
     "CurveShape",
     "DailySeriesBinding",
     "DEFAULT_A0_ALPACA_BINDINGS",
+    "FallbackSelectionDecision",
+    "FallbackSeriesExpectation",
     "FredSeriesDescriptor",
     "FredVintageDate",
     "FredVintageObservation",
@@ -67,8 +76,10 @@ __all__ = [
     "HypothesisResult",
     "JapanMacroRawPoint",
     "MacroMetricInput",
+    "MacroSourceSelection",
     "NyFedReferenceRatePoint",
     "OfficialMacroRawPoint",
+    "OfficialSourceState",
     "RELATIVE_REPRICING_METHOD_VERSION",
     "RelativeRepricingMetrics",
     "SeriesMeasure",
@@ -90,6 +101,7 @@ __all__ = [
     "parse_mof_jgb_csv",
     "parse_ny_fed_reference_rates_json",
     "parse_treasury_par_yield_csv",
+    "select_macro_source",
     "series_delta",
     "series_velocity_per_day",
 ]
