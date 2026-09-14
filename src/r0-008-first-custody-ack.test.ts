@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 
 import {
   advanceD1DrainLifecycle,
@@ -23,18 +24,19 @@ describe("R0-008 first real custody acknowledgement", () => {
     record = advanceD1DrainLifecycle(record, "QUALITY_ACCEPTED");
     record = advanceD1DrainLifecycle(record, "ACKNOWLEDGED");
 
-    expect(record.state).toBe("ACKNOWLEDGED");
-    expect(record.qualityAccepted).toBe(true);
-    expect(record.custodyAcknowledged).toBe(true);
-    expect(record.replayHorizonElapsed).toBe(false);
-    expect(record.graceElapsed).toBe(false);
-    expect(record.generationId).toBe(GENERATION_ID);
+    assert.equal(record.state, "ACKNOWLEDGED");
+    assert.equal(record.qualityAccepted, true);
+    assert.equal(record.custodyAcknowledged, true);
+    assert.equal(record.replayHorizonElapsed, false);
+    assert.equal(record.graceElapsed, false);
+    assert.equal(record.generationId, GENERATION_ID);
 
     const grace = advanceD1DrainLifecycle(record, "GRACE");
-    expect(grace.state).toBe("GRACE");
-    expect(grace.graceElapsed).toBe(false);
+    assert.equal(grace.state, "GRACE");
+    assert.equal(grace.graceElapsed, false);
 
-    expect(() => advanceD1DrainLifecycle(grace, "PURGE_ELIGIBLE")).toThrow(
+    assert.throws(
+      () => advanceD1DrainLifecycle(grace, "PURGE_ELIGIBLE"),
       /GRACE_NOT_ELAPSED/,
     );
   });
