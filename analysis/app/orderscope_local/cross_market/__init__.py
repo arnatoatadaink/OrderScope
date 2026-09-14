@@ -7,6 +7,7 @@ from .alpaca_daily import (
     DEFAULT_A0_ALPACA_BINDINGS,
     collect_a0_alpaca_daily,
 )
+from .japan_macro_sources import JapanMacroRawPoint, parse_boj_usdjpy_json, parse_mof_jgb_csv
 from .macro_metrics import (
     CurveChange,
     CurveShape,
@@ -54,6 +55,7 @@ __all__ = [
     "DEFAULT_A0_ALPACA_BINDINGS",
     "HypothesisRating",
     "HypothesisResult",
+    "JapanMacroRawPoint",
     "MacroMetricInput",
     "NyFedReferenceRatePoint",
     "OfficialMacroRawPoint",
@@ -72,6 +74,8 @@ __all__ = [
     "curve_slope",
     "evaluate_relative_repricing",
     "load_source_manifest",
+    "parse_boj_usdjpy_json",
+    "parse_mof_jgb_csv",
     "parse_ny_fed_reference_rates_json",
     "parse_treasury_par_yield_csv",
     "series_delta",
