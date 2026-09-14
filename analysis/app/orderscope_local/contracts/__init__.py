@@ -1,7 +1,12 @@
 """Provider-neutral contracts shared by external-information adapters."""
 
 from .errors import ContractViolation
-
+from .capital_instrument import CapitalInstrumentLifecycleFact
+from .capital_instrument_state import (
+    CapitalInstrumentKind,
+    CapitalInstrumentState,
+    is_allowed_capital_instrument_transition,
+)
 from .identity import (
     ContentIdentity,
     IdempotencyClassification,
@@ -61,7 +66,6 @@ from .earnings import (
     EarningsResultMetric,
     ScheduledReleaseWindow,
 )
-
 from .checkpoint import (
     AcquisitionCheckpoint,
     BoundedWindow,
@@ -99,6 +103,9 @@ __all__ = [
     "AdapterItem",
     "AdapterRequest",
     "BoundedWindow",
+    "CapitalInstrumentKind",
+    "CapitalInstrumentLifecycleFact",
+    "CapitalInstrumentState",
     "ContentIdentity",
     "CheckpointScope",
     "CheckpointError",
@@ -164,6 +171,7 @@ __all__ = [
     "validate_temporary_content",
     "classify_idempotency",
     "DerivedMetric",
+    "is_allowed_capital_instrument_transition",
     "is_allowed_repricing_transition",
     "records_available_as_of",
     "validate_fact_store",
