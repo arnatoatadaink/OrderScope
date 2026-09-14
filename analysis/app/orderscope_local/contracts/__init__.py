@@ -36,6 +36,11 @@ from .cross_market import (
     ProposedFlowDirection,
 )
 from .macro_market import MacroMarketObservation, MacroMarketRegion, MacroMarketSeriesKind
+from .macro_stress import (
+    MacroStressAssessment,
+    MacroStressInterpretationType,
+    MacroStressRating,
+)
 from .market_relationship import MarketRelationshipContext, MarketRelationshipKind
 from .market_reaction import (
     MarketReactionAssessment,
@@ -120,6 +125,9 @@ __all__ = [
     "MacroMarketObservation",
     "MacroMarketRegion",
     "MacroMarketSeriesKind",
+    "MacroStressAssessment",
+    "MacroStressInterpretationType",
+    "MacroStressRating",
     "MarketReactionAssessment",
     "MarketReactionConfidence",
     "MarketReactionInterpretationType",
