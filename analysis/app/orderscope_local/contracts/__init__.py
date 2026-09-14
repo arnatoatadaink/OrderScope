@@ -7,6 +7,7 @@ from .capital_instrument_state import (
     CapitalInstrumentState,
     is_allowed_capital_instrument_transition,
 )
+from .debt_resolution import DebtResolutionAttentionLevel, DebtResolutionWindowAssessment
 from .identity import (
     ContentIdentity,
     IdempotencyClassification,
@@ -112,6 +113,8 @@ __all__ = [
     "CheckpointState",
     "ContractViolation",
     "CrossMarketHypothesis",
+    "DebtResolutionAttentionLevel",
+    "DebtResolutionWindowAssessment",
     "EarningsEvent",
     "EarningsEventKind",
     "EarningsEvidenceRef",
