@@ -119,6 +119,7 @@ Use this section for newly proposed work before deciding whether it deserves a f
 | DISC-004 | 2026-09-11 | Track convertible-debt lifecycle, maturity/conversion windows, financing-to-debt-resolution evidence and dilution-overhang removal using TNON as the reference case | `docs/work-management/local-corporate-intelligence/REPORT_TNON_CONVERTIBLE_DEBT_REPAYMENT_CASE_2026-09-11.md` | Capital Structure / SEC / I0 | Promoted to UWBS-017..019 |
 | DISC-005 | 2026-09-11 | Distinguish price spike, active price discovery, delayed repricing and persistent price rediscovery using CHPT and TNON reference cases | `docs/work-management/local-corporate-intelligence/REPORT_TNON_CHPT_PRICE_REDISCOVERY_2026-09-11.md` | Market Reaction / Derived Metrics / Regime | Promoted to UWBS-020..022 |
 | DISC-006 | 2026-09-12 | Keep D1 as a lightweight hot operational store by incrementally exporting verified bounded history to the local analysis server, then purging only acknowledged/grace-complete historical rows while preserving checkpoint/control truth | `docs/work-management/local-corporate-intelligence/REPORT_D1_HOT_STORE_DRAIN_LIFECYCLE_DESIGN_2026-09-12.md` | L1 / Storage / Operations / Recovery | Promoted to UWBS-023..026 |
+| DISC-007 | 2026-09-15 | Track staged PIPE financing, strategic-investor/governance participation, milestone-triggered follow-on funding, dilution context, and subsequent repricing using PDSB as the composite reference case | `docs/work-management/local-corporate-intelligence/REPORT_PDSB_PIPE_STRATEGIC_INVESTOR_REPRICING_CASE_2026-09-15.md` | Capital Structure / Governance / Market Reaction / I0 | Promoted to UWBS-027..029 |
 
 When a proposal is accepted for tracking:
 
@@ -191,6 +192,9 @@ The revision must preserve a mapping table:
 | UWBS-024 | Pending | — | — |
 | UWBS-025 | Pending | — | — |
 | UWBS-026 | Pending | — | — |
+| UWBS-027 | Pending | — | — |
+| UWBS-028 | Pending | — | — |
+| UWBS-029 | Pending | — | — |
 
 ## 11. Current planning interpretation
 
@@ -199,6 +203,8 @@ This backlog does not authorize remote changes. X0 fixture-path and the complete
 `UWBS-016` is now ready for WBS design but should not be activated before N1-006 supplies real recall/lag evidence that can confirm or adjust the proposed News polling cadence. Worker remains Shadow, and any Worker/Schedule job registration still requires its separately reviewed task/change window.
 
 The TNON / CHPT additions below are design work only. They do not establish trading signals or normative thresholds. Historical fixtures and validation must precede any promotion of catalyst strength, price-discovery persistence, or attention-score thresholds into accepted specification.
+
+The PDSB additions below are also design work only. They do not establish PIPE financing, named-investor participation, or a board appointment as a bullish signal. Announced capacity, completed cash proceeds, contingent milestone funding, security dilution terms, governance participation, and subsequent market reaction must remain separately represented. Price/volume values must be supplied by accepted market-data fixtures before a PDSB repricing classification is promoted into project evidence.
 
 The D1 drain additions are lifecycle/design work only. They do not authorize `L1-003`, remote export, remote purge, Worker mutation, or automatic deletion. `I0-003` remains checkpoint/cursor truth; local archive custody and D1 acquisition state must not be conflated.
 
@@ -264,3 +270,37 @@ Planning notes:
 - Export/archive is not automatically a complete backup. `UWBS-004` remains independently required for disaster-recovery generation and restore drills.
 - Initial mutation path should remain operator/CLI controlled. Scheduled automatic drain/purge should be a later promotion after bounded dry-run/execute and recovery tests are accepted.
 - No remote D1 export or purge is authorized by these backlog rows.
+
+## 14. PDSB staged PIPE / strategic-investor / milestone-financing expansion
+
+Source report:
+
+- `docs/work-management/local-corporate-intelligence/REPORT_PDSB_PIPE_STRATEGIC_INVESTOR_REPRICING_CASE_2026-09-15.md`
+
+PDSB adds a composite financing case that is not covered by the existing convertible-debt-resolution reference alone. The event contains new dilution exposure and new liquidity at the same time, while also adding named strategic-investor participation, governance involvement, and a contingent milestone tranche. The price-reaction layer should reuse `UWBS-020/021`; this section adds only the missing upstream event structure and a PDSB-specific acceptance fixture.
+
+| UWBS ID | Proposed task | Proposed package | Completion condition summary | Likely inputs / dependencies | Status | Disposition |
+|---|---|---|---|---|---|---|
+| UWBS-027 | Define staged private-financing / milestone-closing lifecycle contract | Capital Structure / I0 / SEC-IR | Represent financing announcement, expected initial close, completed initial close, contingent milestone close, milestone trigger satisfaction, milestone close completion/failure/expiry, security terms and actually closed proceeds as distinct historical states; preserve event/available/accepted times and source provenance; never count a contingent tranche as received cash | I0-002/004/005; N1 discovery; SEC/IR sources; UWBS-017/019 capital-structure semantics | Ready for WBS design | Pending |
+| UWBS-028 | Model strategic-investor / governance financing context | Capital Structure + Governance / Interpretation | Capture lead-investor identity, explicit board-designation rights, effective director appointment and explicit collaboration/program-design rights as Facts; define any strategic-financing or governance-validation score only as Interpretation, with no automatic bullish or clinical-success implication | UWBS-027; I0 Fact/Derived Metric/Interpretation boundary; corporate-governance/IR/SEC evidence | Needs decomposition | Pending |
+| UWBS-029 | PDSB composite financing-to-repricing Canary fixture | Capital Structure + Market Reaction QA | Add deterministic September 8 announcement → September 14 initial-closing fixture; compare closed cash, financing terms, dilution instruments and staged milestone state, then route accepted market bars through UWBS-020/021; include false positives for announced-but-unclosed financing, unmet milestone, strategic investor without governance role, dilution-dominated retrace and spike/rejection | UWBS-027/028; UWBS-020/021; accepted historical minute/daily bars; retained source snapshots permitted by policy | Needs decomposition | Pending |
+
+Proposed CP relationship:
+
+```text
+UWBS-027
+  +--> UWBS-028
+  +--> UWBS-029
+
+UWBS-020 + UWBS-021
+  +--> UWBS-029
+```
+
+Planning notes:
+
+- `UWBS-027` is the upstream contract candidate. `UWBS-029` is not acceptance-ready until both the staged-financing contract and the existing market-reaction / price-discovery interfaces are available.
+- This dependency chain is a **CP candidate only** and is not part of the normative project critical path until a formal WBS/CP revision incorporates it.
+- The September 8 announced maximum financing amount and the September 14 completed gross proceeds are different states and must not be collapsed.
+- The financing unit price is an observed transaction term, not a guaranteed market floor, fair value, or price target.
+- Price / volume reaction remains an empirical market-data question. This backlog addition does not hard-code the web-observed PDSB move as a Fact.
+- No live provider activation, remote mutation, or trading action is authorized by these rows.
