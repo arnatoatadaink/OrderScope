@@ -1,7 +1,7 @@
 # OrderScope — Local Corporate Intelligence Integrated Critical Path
 
 Status: non-normative dependency plan
-Date: 2026-09-05
+Date: 2026-09-15
 Parent WBS: `WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
 Extension WBS: `WORK_BREAKDOWN_ANALYST_CROSS_MARKET_2026-09-05.md`
 Normative spec: `stock_monitoring_v0.1_spec.md`
@@ -14,6 +14,8 @@ This document defines static dependency order, gates, and safe parallelization f
 Current task state, latest accepted task, blockers, restart point, model actually used, test evidence, and next safe action are maintained only in the Progress Tracker. Do not add `current`, `latest`, `completed`, `ready`, or restart-state annotations here unless they describe a permanent dependency rule rather than runtime progress.
 
 This document does not change WBS completion conditions.
+
+The 2026-09-15 revision integrates the formally incorporated `A0-003..017` Macro/Carry, CBRS competitor-divergence, and macro source-adapter lanes. These remain parallel analytical/acquisition lanes and do not authorize live provider activation or remote runtime mutation.
 
 ## 2. Integrated dependency graph
 
@@ -29,7 +31,21 @@ I0-002
         │
         └─→ A0-001 implementation acceptance
                   ↓
-               A0-002 Validation
+               A0-002 validation baseline
+
+A0 reusable macro/carry lane
+A0-001 ─→ A0-003 ─→ A0-004 ─→ A0-005 ─→ A0-006
+               └──────────────→ A0-007 source survey
+                                      ├─→ A0-013 Treasury
+                                      ├─→ A0-014 NY Fed
+                                      ├─→ A0-015 BOJ/MOF
+                                      ├─→ A0-016 FRED/ALFRED fallback
+                                      └─→ A0-017 CFTC positioning
+
+A0 CBRS competitor-divergence lane
+A0-002 ─→ A0-008 ─→ A0-009 ─→ A0-010 ─→ A0-011 ─→ A0-012
+                           ↑          ↑
+                        A0-003..005 macro context
 
 I0-007
   ↓
@@ -52,6 +68,8 @@ S0-003
 ```
 
 `A0-001` implementation acceptance requires Accepted `I0-002` and `I0-005`. `A0-002` depends on A0-001 plus available as-of market/macro/consensus datasets.
+
+`A0-003..017` do not retroactively change the accepted A0-002 historical hypothesis results. They make macro context and CBRS-relative analysis reusable and source-bounded.
 
 `R0` is the formal Operations / Recovery hardening lane introduced after X0. It incorporates the previously provisional PX0 operational follow-ups plus Worker News orchestration and D1 hot-store drain lifecycle tasks. Runtime status for R0 still belongs only to the Progress Tracker.
 
@@ -98,6 +116,12 @@ Dependency shape:
 - A0-001 schema/fixture integration waits for Accepted `I0-002` and `I0-005`.
 - `A0-002` dataset/source definition may proceed before final Hypothesis-record schema write.
 - A0-002 is a validation lane, not a serial blocker for Core implementation unless release criteria are explicitly changed later.
+- `A0-003 → A0-004 → A0-005 → A0-006` is the reusable macro Fact/Metric/Interpretation/QA chain.
+- `A0-007` owns source selection/terms and may proceed in parallel with contract work once A0-003 requirements are known.
+- `A0-013..017` are adapter lanes beneath A0-003/A0-007 and may be implemented/reviewed independently where source-specific files do not overlap.
+- `A0-008 → A0-009 → A0-010 → A0-011 → A0-012` is the CBRS competitor-divergence / relative repricing chain.
+- `A0-010` may consume A0-003..005 macro context, but must remain an Interpretation and must not infer institutional buyer identity or capital flow from price/volume alone.
+- A0-011 threshold calibration is not a prerequisite for the state-contract boundary; fixed numeric thresholds require separate historical validation before becoming normative.
 
 ### Lane D — SEC / Earnings
 
@@ -128,6 +152,9 @@ This lane opens from the accepted X0 integration boundary:
 - `L1-003` remote D1 work is independently gated and must not block local fixture implementation.
 - A0-001 implementation acceptance is part of the v0.1 Cross-Market acceptance lane.
 - A0-002 remains a validation case unless the release Definition of Done is explicitly amended.
+- `A0-003..017` preserve Fact / Derived Metric / Interpretation separation and do not create trading signals.
+- Official-direct sources are preferred for v0.1 raw macro observations; FRED/ALFRED is an explicit revision-aware fallback, not a silent semantic replacement.
+- CFTC positioning is Evidence/Derived Metric and must not be labeled as fund flow or observed capital movement.
 - SEC implementation starts only after `I0-007` formal acceptance.
 - `R0-001` configuration review/dry-run does not authorize Cron deployment or trigger mutation.
 - `R0-005` Worker News orchestration implementation does not authorize Worker live activation.
@@ -138,7 +165,7 @@ This lane opens from the accepted X0 integration boundary:
 
 Market trading days introduce an **evidence gate**, not a blanket implementation gate.
 
-The following work may proceed on non-trading days: fixture and historical replay, deterministic unit/integration tests, local scheduler simulation, config review/dry-run, migration/schema work, operator CLI work, backup/restore drills, retention/replay fixtures, D1 drain contract/fixture work, documentation and WBS/CP maintenance.
+The following work may proceed on non-trading days: fixture and historical replay, deterministic unit/integration tests, local scheduler simulation, config review/dry-run, migration/schema work, operator CLI work, backup/restore drills, retention/replay fixtures, D1 drain contract/fixture work, A0-003..017 source-adapter/contract/fixture work, documentation and WBS/CP maintenance.
 
 Fresh operational evidence is market-day gated when the completion condition requires actual session behavior, including:
 
@@ -163,9 +190,15 @@ The post-2026-09-04 addition integrated by this plan is the `A0` Analyst Consens
 - `ANALYST_CROSS_MARKET_PROGRESS_TRACKER_2026-09-05.md`
 - related additions in `stock_monitoring_v0.1_spec.md`
 
+The 2026-09-15 A0 revision incorporates:
+
+- UWBS-011..015 as `A0-003..007`;
+- UWBS-027..031 as `A0-008..012`;
+- UWBS-032..036 as `A0-013..017`.
+
 The post-2026-09-12 operational additions are integrated under `R0` in the parent WBS. They remap the former PX0/UWBS operational follow-ups without changing runtime status authority.
 
-A0-001 carries the Cross-Market/FX contradiction contract; A0-002 is the concrete validation case.
+A0-001 carries the Cross-Market/FX contradiction contract; A0-002 is the concrete validation case. A0-003..017 make the macro and CBRS-relative context reusable without revising the already accepted A0-002 historical result.
 
 ## 7. Unresolved planning questions
 
@@ -176,6 +209,8 @@ The following remain unresolved planning inputs, not runtime status:
 - short/borrow provider for H4 validation
 - whether A0-002 becomes mandatory for v0.1 release acceptance
 - exact steady-state retention/grace durations for D1 hot-store drain; do not freeze design-discussion estimates without measured storage/cost/replay evidence
+- whether future historical calibration supports any numeric overshoot/mean-reversion thresholds; do not freeze thresholds from CBRS alone
+- commercial high-frequency ETF/fund-flow source selection and cost; keep deferred until terms/cost are reviewed
 
 Do not infer these values. Resolve them only from confirmed source/contract information or validation evidence.
 
