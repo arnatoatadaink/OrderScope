@@ -67,6 +67,12 @@
 - MU
 - ARM
 
+### Semiconductor Materials
+- ENTG
+- Q
+- MKSI
+- MTRN
+
 ### Datacenter / Power / Infrastructure
 - ETN
 - PWR
@@ -159,6 +165,7 @@
 ## 5. 主Theme
 - AI Compute
 - Semiconductor Manufacturing
+- Semiconductor Materials
 - Memory / Storage
 - Datacenter / Network
 - Hyperscaler
