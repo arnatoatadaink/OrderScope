@@ -331,3 +331,50 @@ The recommended order is:
 Expected planning duration to Phase B readiness: **30–60 minutes normally, up to approximately 90 minutes conservatively**.
 
 Expected planning window for full 106-instrument recovery: **approximately 1–2 hours**, subject to measured runtime state and unchanged safety budgets.
+
+## 13. Verified current-state gap and required recovery contract
+
+The 2026-09-16 JST market-session preflight verified that the prerequisite is
+not presently executable through the deployed normal scheduler without one
+additional reviewed recovery decision:
+
+```text
+deployed Worker mode: shadow
+deployed Market acquisition retention lookback: 1,440 minutes (24 hours)
+latest accepted Regular bar / checkpoint activity: 2026-09-02
+Phase B candidate checkpoint age at preflight: approximately 13 days
+```
+
+The deployed scheduler clips every planned request to its `retentionFloor`
+(`now - ACQUISITION_RETENTION_MINUTES`). With the current 24-hour setting, it
+cannot request the September 2-era interval required to establish contiguous
+recovery from the recorded checkpoints. Merely enabling normal acquisition
+would therefore not demonstrate recovery of the old gap; it must not be
+described as a valid transition from `STALE / OLD GAP` to a clean current
+checkpoint.
+
+This also creates a hard acceptance guard: stop if a checkpoint or
+`complete_through` would advance over an interval for which this window has no
+corresponding accepted-record evidence. Such an advance is not Phase B-ready
+state and must not be used to manufacture a pause-created-gap claim.
+
+Before §6.2 may begin, approve exactly one bounded recovery contract:
+
+```text
+A. temporary reviewed retention lookback that reaches the selected checkpoint
+   boundary, while retaining the existing max-jobs, max-pages, max-bars,
+   provider, D1, Cron, Universe, and News limits;
+
+or
+
+B. a separately reviewed normal-compatible historical recovery path that
+   requests the old interval in bounded chunks and proves contiguous checkpoint
+   movement from accepted records.
+```
+
+Neither option is authorized by this planning document. The selected contract
+must record its exact start/end boundary, expected number of bounded jobs,
+per-tick external/D1 ceilings, and a fail-closed contiguity assertion before
+any Worker/Cron/runtime mutation. Phase B remains separately gated after that
+recovery has produced a current clean candidate and ordinary-session stability
+evidence.
