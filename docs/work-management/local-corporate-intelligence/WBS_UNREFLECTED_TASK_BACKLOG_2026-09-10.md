@@ -120,6 +120,7 @@ Use this section for newly proposed work before deciding whether it deserves a f
 | DISC-005 | 2026-09-11 | Distinguish price spike, active price discovery, delayed repricing and persistent price rediscovery using CHPT and TNON reference cases | `docs/work-management/local-corporate-intelligence/REPORT_TNON_CHPT_PRICE_REDISCOVERY_2026-09-11.md` | Market Reaction / Derived Metrics / Regime | Promoted to UWBS-020..022 |
 | DISC-006 | 2026-09-12 | Keep D1 as a lightweight hot operational store by incrementally exporting verified bounded history to the local analysis server, then purging only acknowledged/grace-complete historical rows while preserving checkpoint/control truth | `docs/work-management/local-corporate-intelligence/REPORT_D1_HOT_STORE_DRAIN_LIFECYCLE_DESIGN_2026-09-12.md` | L1 / Storage / Operations / Recovery | Promoted to UWBS-023..026 |
 | DISC-007 | 2026-09-15 | Track staged PIPE financing, strategic-investor/governance participation, milestone-triggered follow-on funding, dilution context, and subsequent repricing using PDSB as the composite reference case | `docs/work-management/local-corporate-intelligence/REPORT_PDSB_PIPE_STRATEGIC_INVESTOR_REPRICING_CASE_2026-09-15.md` | Capital Structure / Governance / Market Reaction / I0 | Promoted to UWBS-027..029 |
+| DISC-008 | 2026-09-15 | Decompose AI exposure into foundation/application/security/governance themes and model news-triggered event×theme reaction coefficients, cross-sectional confirmation, theme activation/rotation and historical calibration | `docs/work-management/local-corporate-intelligence/REPORT_AI_THEME_DECOMPOSITION_REACTION_COEFFICIENTS_2026-09-15.md` | Theme Ontology / News Interpretation / Market Reaction / Regime | Promoted to UWBS-030..034 |
 
 When a proposal is accepted for tracking:
 
@@ -195,6 +196,11 @@ The revision must preserve a mapping table:
 | UWBS-027 | Pending | — | — |
 | UWBS-028 | Pending | — | — |
 | UWBS-029 | Pending | — | — |
+| UWBS-030 | Pending | — | — |
+| UWBS-031 | Pending | — | — |
+| UWBS-032 | Pending | — | — |
+| UWBS-033 | Pending | — | — |
+| UWBS-034 | Pending | — | — |
 
 ## 11. Current planning interpretation
 
@@ -207,6 +213,8 @@ The TNON / CHPT additions below are design work only. They do not establish trad
 The PDSB additions below are also design work only. They do not establish PIPE financing, named-investor participation, or a board appointment as a bullish signal. Announced capacity, completed cash proceeds, contingent milestone funding, security dilution terms, governance participation, and subsequent market reaction must remain separately represented. Price/volume values must be supplied by accepted market-data fixtures before a PDSB repricing classification is promoted into project evidence.
 
 The D1 drain additions are lifecycle/design work only. They do not authorize `L1-003`, remote export, remote purge, Worker mutation, or automatic deletion. `I0-003` remains checkpoint/cursor truth; local archive custody and D1 acquisition state must not be conflated.
+
+The AI-theme additions are design work only. They define a taxonomy and empirical reaction-measurement path, not a trading signal. A news item may activate multiple themes simultaneously, and `AI_SECURITY` / `AI_GOVERNANCE` must not be encoded as permanent opposites of AI growth. Numerical reaction coefficients remain unvalidated until historical calibration is completed.
 
 ## 12. Capital structure / catalyst and price-discovery expansion
 
@@ -304,3 +312,68 @@ Planning notes:
 - The financing unit price is an observed transaction term, not a guaranteed market floor, fair value, or price target.
 - Price / volume reaction remains an empirical market-data question. This backlog addition does not hard-code the web-observed PDSB move as a Fact.
 - No live provider activation, remote mutation, or trading action is authorized by these rows.
+
+## 15. AI theme decomposition / event-theme reaction expansion
+
+Source report:
+
+- `docs/work-management/local-corporate-intelligence/REPORT_AI_THEME_DECOMPOSITION_REACTION_COEFFICIENTS_2026-09-15.md`
+
+The current project can classify company/news context and observe price reaction, but it does not yet have a reusable theme ontology that separates structurally different AI exposures or an empirical layer that measures how event classes activate or rotate capital between those themes. This expansion treats the news/event as source-grounded evidence, company-theme exposure as maintained classification, and reaction coefficients/theme activation as Derived Metric / Interpretation outputs.
+
+Initial AI theme decomposition:
+
+```text
+AI
+  +-- AI_FOUNDATION
+  |    +-- compute / accelerator
+  |    +-- memory / interconnect
+  |    +-- datacenter / power / cooling
+  +-- AI_APPLICATION
+  |    +-- enterprise/software AI
+  |    +-- PHYSICAL_AI / robotics / autonomous systems
+  +-- AI_SECURITY
+  |    +-- cyber defense
+  |    +-- identity / endpoint / cloud / agent security
+  +-- AI_GOVERNANCE
+       +-- safety / audit / control
+       +-- compliance / liability / model governance
+```
+
+`DEFENSE_INDUSTRIAL` remains a distinct non-AI theme that may overlap with `AI_APPLICATION/PHYSICAL_AI`; for example an autonomous military platform can carry both theme exposures. `AI_SECURITY` and `AI_GOVERNANCE` are not permanently anti-AI themes: structurally they can benefit from AI adoption, while particular news regimes can create short-run rotation away from AI foundation/growth exposure and toward security/governance.
+
+| UWBS ID | Proposed task | Proposed package | Completion condition summary | Likely inputs / dependencies | Status | Disposition |
+|---|---|---|---|---|---|---|
+| UWBS-030 | Define AI / adjacent theme ontology and multi-theme exposure contract | Theme Ontology / I0 / Company classification | Define versioned theme IDs and parent/child relationships for `AI_FOUNDATION`, `AI_APPLICATION`, `PHYSICAL_AI`, `AI_SECURITY`, `AI_GOVERNANCE` and adjacent `DEFENSE_INDUSTRIAL`; allow one company/security to hold multiple evidence-backed exposures with role/strength/provenance; distinguish structural exposure from temporary market narrative | Company classification/Regime work; News taxonomy; I0 history/provenance | Ready for WBS design | Pending |
+| UWBS-031 | Define event × theme reaction-coefficient contract | News Interpretation / Derived Metrics | Map accepted event classes such as AI acceleration, AI safety/growth concern, major cyberattack, AI-enabled attack, regulation/liability/control failure, war escalation/de-escalation and defense procurement to candidate theme directions; represent initial strength as categorical/uncalibrated rather than invented numeric coefficients; preserve event identity, evidence and uncertainty | UWBS-030; N1 event taxonomy; Fact/Derived Metric/Interpretation boundary | Ready for WBS design | Pending |
+| UWBS-032 | Implement cross-sectional theme reaction observation and confirmation | Market Reaction / Theme analytics | For each candidate event-theme activation, observe a defined theme basket across session-aware return, abnormal volume, breadth, median/trimmed reaction, persistence and relevant control baskets; distinguish one-stock idiosyncratic repricing from multi-name theme response and avoid treating correlation as causal proof | UWBS-020 catalyst-reaction observations; UWBS-030/031; minute/daily bars; universe/theme membership | Needs decomposition | Pending |
+| UWBS-033 | Define theme activation / rotation / repricing interpretation state machine | Regime / Theme Interpretation | Produce evidence-backed states such as `THEME_ACTIVATION_CANDIDATE`, `THEME_ACTIVATION_CONFIRMED`, `THEME_ROTATION_CANDIDATE`, `THEME_ROTATION_CONFIRMED`, `THEME_REPRICING_CANDIDATE` and rejection/unknown states; support temporary opposition such as foundation down/security up without encoding permanent antagonism; link but do not collapse into company-level `PRICE_REDISCOVERY` or `COMPANY_REGIME_CHANGE` | UWBS-031/032; UWBS-021 price discovery; Regime model | Needs decomposition | Pending |
+| UWBS-034 | Historical calibration and Canary fixtures for event-theme reaction coefficients | Theme QA / Historical analysis | Build reproducible positive/negative/control cases for cyberattack→security, AI-safety concern→security/governance, AI-acceleration→foundation/application, war escalation→defense-industrial and mixed/contradictory events; estimate empirical coefficient distributions by window/market regime, validate persistence/breadth thresholds and retain UNKNOWN where evidence is insufficient; SentinelOne/peer security episode may be evaluated as a candidate fixture but not frozen without accepted data | UWBS-030..033; UWBS-020/021; accepted historical price/news data; retention/provider constraints | Needs decomposition | Pending |
+
+Proposed CP relationship:
+
+```text
+UWBS-030
+  -> UWBS-031
+  -> UWBS-032
+  -> UWBS-033
+  -> UWBS-034
+
+UWBS-020
+  +-> UWBS-032
+  +-> UWBS-034
+
+UWBS-021
+  +-> UWBS-033
+  +-> UWBS-034
+```
+
+Planning notes:
+
+- News/event facts and observed market bars remain Facts; event-theme coefficients, theme activation and rotation remain Derived Metric / Interpretation outputs.
+- Do not assign fixed numeric values such as `+0.8` until historical calibration establishes distributions and uncertainty. Initial directional buckets may be used only as provisional interpretation labels.
+- A theme can react positively to more than one apparently opposite event class. Example: AI security may benefit from both rapid AI adoption and AI safety/cyber-risk concerns through different causal hypotheses; these hypotheses must remain explicit.
+- `DEFENSE_INDUSTRIAL + WAR_ESCALATION` is a candidate positive relationship, not a universal rule. Procurement exposure, geography, contract structure, sanctions and market-wide risk-off effects can contradict it.
+- Theme activation requires cross-sectional confirmation where possible. A single stock move should remain company-specific until peer breadth/persistence supports the higher-level interpretation.
+- Theme rotation and theme repricing are not interchangeable. Rotation may be a short-lived relative flow event; repricing implies more persistent acceptance of a changed theme valuation regime.
+- No trading action, live provider activation, or normative portfolio allocation rule is authorized by these rows.
