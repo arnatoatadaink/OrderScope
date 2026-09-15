@@ -1,6 +1,6 @@
 # OrderScope — CS0 / MR0 Local Acceptance Handoff
 
-Status: **READY FOR LOCAL ACCEPTANCE REVIEW**
+Status: **ACCEPTED LOCALLY**
 Date: 2026-09-15
 Branch: `docs/mermaid-conventions-v0.1`
 Formal WBS: `docs/WORK_BREAKDOWN_CAPITAL_STRUCTURE_MARKET_REACTION_2026-09-15.md`
@@ -203,3 +203,30 @@ files changed, if any:
 ```
 
 If MR0-003 fixture coverage is missing, implement only the smallest deterministic historical fixture slice needed to cover TNON, CHPT and the listed false-positive cases; do not introduce normative thresholds during that repair.
+
+## 9. Local acceptance result — 2026-09-15
+
+The local review found and repaired two bounded formal-WBS gaps:
+
+- the unified repricing state vocabulary now includes `NO_REACTION`, `PARTIAL_REACTION`, `DIRECTIONAL_REACTION`, `CATALYST_PRICE_DIVERGENCE`, and `DELAYED_REPRICING`, with divergence unable to jump directly to confirmed rediscovery;
+- the TNON/CHPT Canary coverage now withholds confirmation for unresolved offsetting dilution, stronger conflicting news, and market-wide movement, in addition to the existing low-float/single-session persistence failures.
+
+No fixed numeric price, volume, attention, duration, or session-count calibration was introduced. The existing 3d/5d confirmation gate remains a candidate-window contract from the prior implementation, not a newly calibrated threshold.
+
+```text
+focused tests: 38 passed
+full Python suite: 696 passed
+compileall: success
+git diff --check: clean
+git status --short: six intended modified files
+CS0-001 disposition: ACCEPTED
+CS0-002 disposition: ACCEPTED
+CS0-003 disposition: ACCEPTED
+MR0-001 disposition: ACCEPTED
+MR0-002 disposition: ACCEPTED
+MR0-003 disposition: ACCEPTED
+missing formal-WBS coverage: none at the deterministic local contract/fixture boundary
+files changed: repricing state contract, rediscovery confirmation contract, two contract test files, this handoff, integrated progress tracker
+```
+
+This acceptance remains local and deterministic. It does not authorize provider activation, Worker/Cron mutation, remote D1 mutation, purge, or trading actions.

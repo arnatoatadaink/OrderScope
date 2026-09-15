@@ -53,6 +53,19 @@ This file is the sole integrated authority for Local Corporate Intelligence runt
 | A0-001 | Accepted locally | 8 focused contract tests; 88 combined contract tests; Cross-Market capital movement remains Interpretation and FX contradiction cannot create a Fact |
 | A0-002 | Accepted locally | 22 focused Cross-Market tests; 94 real observations; 12/12 required series; H1 SUPPORT, H2 SUPPORT, H3 SUPPORT, H4 UNKNOWN, H5 CONTRADICT. Consensus gap explicitly evaluated as UNKNOWN because no reviewed historical as-of source is available; no current-value backfill. See `A0-002_CBRS_MULTI_LAYER_FLOW_ACCEPTANCE_2026-09-14.md` |
 
+## 3A. CS0 / MR0 capital structure and market reaction
+
+| Task | Status | Evidence / boundary |
+|---|---|---|
+| CS0-001 | Accepted locally | Stateful instrument lifecycle, provenance/history, and allowed/forbidden transitions reviewed; included in 38 focused tests |
+| CS0-002 | Accepted locally | Bounded debt-resolution attention remains Interpretation and cannot assert repayment from financing intent; included in 38 focused tests |
+| CS0-003 | Accepted locally | Instrument-specific convertible-note overhang removal retains residual dilution lineage; included in 38 focused tests |
+| MR0-001 | Accepted locally | Deterministic catalyst-linked reaction windows remain session-aware measurements and non-causal; included in 38 focused tests |
+| MR0-002 | Accepted locally | Complete formal state vocabulary and guarded transitions; no new fixed numeric thresholds; included in 38 focused tests |
+| MR0-003 | Accepted locally | TNON delayed repricing, CHPT persistent rediscovery, low-float/single-session failure, offsetting dilution, conflicting news, and market-wide confounders covered |
+
+Acceptance evidence: 38 focused tests passed; full Python suite 696 passed; compileall passed; `git diff --check` passed. See `CS0_MR0_LOCAL_ACCEPTANCE_HANDOFF_2026-09-15.md`. This is a local deterministic acceptance only; live provider, Worker/Cron, remote D1, purge, and trading actions remain outside scope.
+
 ## 4. N1-006 — News recall evaluation state
 
 Dependencies:
@@ -461,6 +474,7 @@ Detailed R0-006..009 acceptance: `R0_D1_DRAIN_LOCAL_ACCEPTANCE_2026-09-13.md`.
 - `PX0-001..004` are Accepted locally and formally remapped to `R0-001..004`.
 - `R0-006..009` D1 hot-store drain local/fixture boundaries are Accepted; remote export/purge and the actual `PURGED` transition remain separately gated.
 - `A0-001` and `A0-002` are Accepted locally; A0 is complete at the current v0.1 validation boundary.
+- `CS0-001..003` and `MR0-001..003` are Accepted locally at the deterministic contract/fixture boundary.
 - WBS-unreflected work is tracked in `WBS_UNREFLECTED_TASK_BACKLOG_2026-09-10.md`.
 - Worker remains Shadow.
 
@@ -503,6 +517,7 @@ Detailed R0-006..009 acceptance: `R0_D1_DRAIN_LOCAL_ACCEPTANCE_2026-09-13.md`.
 | R0-007 | locally Accepted fixture export/custody; focused 22; Python 551; compileall passed |
 | R0-008 | locally Accepted through `PURGE_ELIGIBLE`; focused 13/13; TypeScript 174/174; Python 551/551; typecheck/compileall passed |
 | R0-009 | locally Accepted; targeted provider-digest fixture 5/5 after false-positive repair; lease contention 6/6 after deterministic barrier repair; full TypeScript 178/178; typecheck passed; full Python 555/555; compileall passed |
+| CS0-001..003 / MR0-001..003 | locally Accepted; focused 38; full Python 696; compileall passed; diff check passed; TNON/CHPT and required confounder fixtures covered |
 
 Earlier accepted task evidence remains preserved in task-specific handoffs.
 

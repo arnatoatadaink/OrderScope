@@ -16,6 +16,11 @@ from .fact_store import Interpretation, InterpretationAssertionKind
 
 
 class RepricingState(StrEnum):
+    NO_REACTION = "no_reaction"
+    PARTIAL_REACTION = "partial_reaction"
+    DIRECTIONAL_REACTION = "directional_reaction"
+    CATALYST_PRICE_DIVERGENCE = "catalyst_price_divergence"
+    DELAYED_REPRICING = "delayed_repricing"
     PRICE_SPIKE = "price_spike"
     PRICE_DISCOVERY_ACTIVE = "price_discovery_active"
     NEW_EQUILIBRIUM_CANDIDATE = "new_equilibrium_candidate"
@@ -28,6 +33,36 @@ class RepricingState(StrEnum):
 
 
 _ALLOWED_TRANSITIONS: dict[RepricingState, frozenset[RepricingState]] = {
+    RepricingState.NO_REACTION: frozenset({
+        RepricingState.PARTIAL_REACTION,
+        RepricingState.DIRECTIONAL_REACTION,
+        RepricingState.CATALYST_PRICE_DIVERGENCE,
+        RepricingState.DELAYED_REPRICING,
+        RepricingState.PRICE_DISCOVERY_ACTIVE,
+        RepricingState.PRICE_REDISCOVERY_FAILED,
+    }),
+    RepricingState.PARTIAL_REACTION: frozenset({
+        RepricingState.DIRECTIONAL_REACTION,
+        RepricingState.CATALYST_PRICE_DIVERGENCE,
+        RepricingState.DELAYED_REPRICING,
+        RepricingState.PRICE_DISCOVERY_ACTIVE,
+        RepricingState.PRICE_REDISCOVERY_FAILED,
+    }),
+    RepricingState.DIRECTIONAL_REACTION: frozenset({
+        RepricingState.PRICE_SPIKE,
+        RepricingState.PRICE_DISCOVERY_ACTIVE,
+        RepricingState.NEW_EQUILIBRIUM_CANDIDATE,
+        RepricingState.PRICE_REDISCOVERY_FAILED,
+    }),
+    RepricingState.CATALYST_PRICE_DIVERGENCE: frozenset({
+        RepricingState.DELAYED_REPRICING,
+        RepricingState.PRICE_REDISCOVERY_FAILED,
+    }),
+    RepricingState.DELAYED_REPRICING: frozenset({
+        RepricingState.DIRECTIONAL_REACTION,
+        RepricingState.PRICE_DISCOVERY_ACTIVE,
+        RepricingState.PRICE_REDISCOVERY_FAILED,
+    }),
     RepricingState.PRICE_SPIKE: frozenset({
         RepricingState.PRICE_DISCOVERY_ACTIVE,
         RepricingState.PRICE_REDISCOVERY_FAILED,

@@ -35,6 +35,29 @@ def test_relative_mean_reversion_can_progress_to_overshoot_or_local_equilibrium(
         RepricingState.RELATIVE_MEAN_REVERSION,
         RepricingState.REPRICING_OVERSHOOT,
     )
+
+
+def test_formal_mr0_reaction_states_are_distinct_and_support_delayed_progression() -> None:
+    assert {state.value for state in RepricingState} >= {
+        "no_reaction",
+        "partial_reaction",
+        "directional_reaction",
+        "catalyst_price_divergence",
+        "delayed_repricing",
+        "price_spike",
+        "price_discovery_active",
+        "new_equilibrium_candidate",
+        "price_rediscovery_confirmed",
+        "price_rediscovery_failed",
+    }
+    assert is_allowed_repricing_transition(
+        RepricingState.CATALYST_PRICE_DIVERGENCE,
+        RepricingState.DELAYED_REPRICING,
+    )
+    assert not is_allowed_repricing_transition(
+        RepricingState.CATALYST_PRICE_DIVERGENCE,
+        RepricingState.PRICE_REDISCOVERY_CONFIRMED,
+    )
     assert is_allowed_repricing_transition(
         RepricingState.RELATIVE_MEAN_REVERSION,
         RepricingState.LOCAL_EQUILIBRIUM_CANDIDATE,

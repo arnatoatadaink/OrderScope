@@ -94,3 +94,30 @@ def test_tnon_like_divergence_without_later_alignment_cannot_be_delayed_repricin
             later_reaction_metric_record_ids=("metric:tnon-next-close",),
             generated_at=datetime(2026, 9, 10, 23, tzinfo=UTC),
         )
+
+
+@pytest.mark.parametrize(
+    "confounder_ref",
+    (
+        "evidence:offsetting-dilution",
+        "evidence:stronger-conflicting-news",
+        "metric:market-wide-movement",
+    ),
+)
+def test_rediscovery_confirmation_withholds_on_unresolved_confounder(
+    confounder_ref: str,
+) -> None:
+    with pytest.raises(ContractViolation, match="unresolved confounders"):
+        PriceRediscoveryConfirmationAssessment(
+            subject_ref="instrument:FALSE-POSITIVE",
+            observed_window_start=START,
+            observed_window_end=END,
+            catalyst_evidence_record_ids=("evidence:apparent-catalyst",),
+            old_range_invalidation_metric_record_ids=("metric:old-range",),
+            retest_metric_record_ids=("metric:retest",),
+            persistence_metric_record_ids=("metric:3d",),
+            persistence_windows=(CatalystReactionWindow.REACTION_3D,),
+            previous_state_record_id="interpretation:false-positive-new-equilibrium",
+            generated_at=GENERATED,
+            disqualifying_confounder_record_ids=(confounder_ref,),
+        )

@@ -43,6 +43,7 @@ class PriceRediscoveryConfirmationAssessment:
     persistence_windows: tuple[CatalystReactionWindow, ...]
     previous_state_record_id: str
     generated_at: datetime
+    disqualifying_confounder_record_ids: tuple[str, ...] = ()
     method_version: str = "price-rediscovery-confirmation-v0.1"
 
     def __post_init__(self) -> None:
@@ -66,6 +67,11 @@ class PriceRediscoveryConfirmationAssessment:
             (self.persistence_metric_record_ids, "persistence_metric_record_ids"),
         ):
             _refs(values, field)
+        if not isinstance(self.disqualifying_confounder_record_ids, tuple):
+            raise ContractViolation("disqualifying_confounder_record_ids must be an immutable tuple")
+        if self.disqualifying_confounder_record_ids:
+            _refs(self.disqualifying_confounder_record_ids, "disqualifying_confounder_record_ids")
+            raise ContractViolation("price rediscovery cannot be confirmed with unresolved confounders")
         groups = [
             set(self.catalyst_evidence_record_ids),
             set(self.old_range_invalidation_metric_record_ids),
