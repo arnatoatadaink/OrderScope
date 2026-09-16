@@ -2,8 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { build } from "esbuild";
 import type { StoredCoverageCheckpoint } from "./checkpoint.ts";
+import { planNextHistoricalRecoveryChunk } from "./historical-recovery.ts";
 
 const endpoint = "https://example.test/control/historical-recovery/nvda/first-chunk";
+const continuationEndpoint = "https://example.test/control/historical-recovery/nvda/next-chunk";
 const recoveryId = "L1-003-NVDA-20260916-01";
 const jobId = "historical-market-recovery:ef94f87d37bf2746";
 
@@ -65,30 +67,44 @@ function invocation(token = "control-secret", expectedRecoveryId = recoveryId, e
   } });
 }
 
-function checkpoint(): StoredCoverageCheckpoint {
+function continuationInvocation(expectedJobId: string, expectedVersion?: number, completeThrough?: string): Request {
+  const headers: Record<string, string> = {
+    authorization: "Bearer control-secret",
+    "x-orderscope-recovery-id": recoveryId,
+    "x-orderscope-job-id": expectedJobId,
+  };
+  if (expectedVersion !== undefined) headers["x-orderscope-checkpoint-version"] = String(expectedVersion);
+  if (completeThrough !== undefined) headers["x-orderscope-complete-through"] = completeThrough;
+  return new Request(continuationEndpoint, { method: "POST", headers });
+}
+
+function checkpoint(overrides: Partial<StoredCoverageCheckpoint> = {}): StoredCoverageCheckpoint {
   return {
     coverageKey: "NVDA|1Min|REGULAR|stock:iex:raw", symbol: "NVDA", interval: "1Min",
     sessionScope: "REGULAR", logicalDataVariant: "stock:iex:raw", state: "COMPLETE",
     completeThrough: "2026-09-02T20:00:00.000Z", missingRanges: [], version: 6,
     universeRevision: "stock-monitoring-canary-v0.1",
+    ...overrides,
   };
 }
 
-function dependencies() {
-  let current = checkpoint();
-  let providerCalls = 0;
-  const sessions = ["02", "03", "04", "08", "09", "10", "11", "14", "15"].map((day) => ({
+const recoveryCalendar = {
+  market: "US_EQUITIES", dateRange: { startInclusive: "2026-09-02", endExclusive: "2026-09-17" },
+  generatedAt: "2026-09-16T00:00:00.000Z", revision: "alpaca-calendar-v2:da7d32f3",
+  sessions: ["02", "03", "04", "08", "09", "10", "11", "14", "15"].map((day) => ({
     marketDate: `2026-09-${day}`, sessionKind: "REGULAR" as const,
     opensAt: `2026-09-${day}T13:30:00.000Z`, closesAt: `2026-09-${day}T20:00:00.000Z`,
     isShortened: false, calendarRevision: "alpaca-calendar-v2:da7d32f3",
-  }));
+  })),
+};
+
+function dependencies(initial = checkpoint()) {
+  let current = initial;
+  let providerCalls = 0;
   return {
     state: { get providerCalls() { return providerCalls; }, get checkpoint() { return current; } },
     value: {
-      calendarProvider: () => ({ getCalendar: async () => ({
-        market: "US_EQUITIES", dateRange: { startInclusive: "2026-09-02", endExclusive: "2026-09-17" },
-        generatedAt: "2026-09-16T00:00:00.000Z", revision: "alpaca-calendar-v2:da7d32f3", sessions,
-      }) }),
+      calendarProvider: () => ({ getCalendar: async () => recoveryCalendar }),
       universe: () => ({ revision: "unused", instruments: [] }),
       checkpointPort: () => ({
         get: async () => current, getMany: async () => [current], listDue: async () => [],
@@ -144,6 +160,53 @@ test("one-shot recovery executes only the frozen first chunk and closes on repla
   assert.equal(fixture.state.checkpoint.version, 7);
 
   const replay = await worker.fetch(invocation(), runtimeEnv() as never, {} as never);
+  assert.equal(replay.status, 409);
+  assert.equal(fixture.state.providerCalls, 1);
+});
+
+test("continuation route requires explicit version, boundary, and deterministic next job", async () => {
+  const through = "2026-09-03T15:10:00.000Z";
+  const fixture = dependencies(checkpoint({ completeThrough: through, version: 7 }));
+  const worker = await createTestWorker(fixture.value);
+  assert.equal((await worker.fetch(continuationInvocation("candidate"), runtimeEnv() as never, {} as never)).status, 409);
+  const noncanonicalVersion = continuationInvocation("candidate", 7, through);
+  noncanonicalVersion.headers.set("x-orderscope-checkpoint-version", "7.0");
+  assert.equal((await worker.fetch(noncanonicalVersion, runtimeEnv() as never, {} as never)).status, 409);
+  assert.equal((await worker.fetch(continuationInvocation("wrong", 7, through), runtimeEnv() as never, {} as never)).status, 409);
+  assert.equal(fixture.state.providerCalls, 0);
+});
+
+test("continuation route runs one reviewed next chunk and closes its replay", async () => {
+  const through = "2026-09-03T15:10:00.000Z";
+  const before = checkpoint({ completeThrough: through, version: 7 });
+  const next = planNextHistoricalRecoveryChunk({
+    recoveryId, providerRevision: "alpaca-stock-bars-v1", universeRevision: "stock-monitoring-canary-v0.1",
+    calendarRevision: "alpaca-calendar-v2:da7d32f3",
+    instrument: { symbol: "NVDA", cadence: "1Min", providerRoute: "alpaca_stock_bars" },
+    coverageKey: before.coverageKey, sessionScope: "REGULAR", logicalDataVariant: "stock:iex:raw",
+    mode: "CATCH_UP", recoveryRange: {
+      startInclusive: "2026-09-02T20:00:00.000Z", endExclusive: "2026-09-15T20:00:00.000Z",
+    },
+    checkpointBefore: before, maxBarsPerJob: 100, createdAt: "2026-09-16T00:00:00.000Z",
+  }, recoveryCalendar);
+  assert.ok(next);
+  assert.deepEqual(next.requestedRange, {
+    startInclusive: "2026-09-03T15:10:00.000Z", endExclusive: "2026-09-03T16:50:00.000Z",
+  });
+
+  const fixture = dependencies(before);
+  const worker = await createTestWorker(fixture.value);
+  const first = await worker.fetch(continuationInvocation(next.jobId, 7, through), runtimeEnv() as never, {} as never);
+  assert.equal(first.status, 200);
+  const evidence = await first.json() as { accepted: boolean; expectedBarCount: number; stoppedAfterOneChunk: boolean };
+  assert.equal(evidence.accepted, true);
+  assert.equal(evidence.expectedBarCount, 100);
+  assert.equal(evidence.stoppedAfterOneChunk, true);
+  assert.equal(fixture.state.providerCalls, 1);
+  assert.equal(fixture.state.checkpoint.completeThrough, "2026-09-03T16:50:00.000Z");
+  assert.equal(fixture.state.checkpoint.version, 8);
+
+  const replay = await worker.fetch(continuationInvocation(next.jobId, 7, through), runtimeEnv() as never, {} as never);
   assert.equal(replay.status, 409);
   assert.equal(fixture.state.providerCalls, 1);
 });

@@ -22,7 +22,7 @@ import { budgetedD1 } from "./budgeted-d1";
 import { D1SchedulerRunEvidenceStore, type SchedulerRunEvidenceStore } from "./run-evidence";
 import { SchedulerRunEvidenceSession } from "./run-evidence-session";
 import { runHistoricalRecoveryChunk } from "./historical-recovery-runner";
-import type { HistoricalRecoveryRequest } from "./historical-recovery";
+import { planNextHistoricalRecoveryChunk, type HistoricalRecoveryRequest } from "./historical-recovery";
 
 type PredictionMode = "off" | "shadow";
 
@@ -113,7 +113,6 @@ const NVDA_RECOVERY = {
   recoveryEnd: "2026-09-15T20:00:00.000Z",
   checkpointBefore: "2026-09-02T20:00:00.000Z",
   checkpointVersion: 6,
-  chunkEnd: "2026-09-03T15:10:00.000Z",
   maxBars: 100,
 } as const;
 
@@ -139,6 +138,12 @@ async function authorizeHistoricalRecovery(request: Request, env: RuntimeEnv): P
   const authorization = request.headers.get("authorization");
   if (!expected || !authorization?.startsWith("Bearer ")) return false;
   return constantTimeEqual(authorization.slice("Bearer ".length), expected);
+}
+
+function parseCheckpointVersion(value: string | null): number | undefined {
+  if (value === null || !/^(0|[1-9]\d*)$/.test(value)) return undefined;
+  const parsed = Number(value);
+  return Number.isSafeInteger(parsed) ? parsed : undefined;
 }
 
 function currentDigest(
@@ -510,12 +515,27 @@ export function createWorker(dependencies: ScheduledOrchestrationDependencies = 
     async fetch(request: Request, env: RuntimeEnv): Promise<Response> {
       const url = new URL(request.url);
 
-      if (url.pathname === "/control/historical-recovery/nvda/first-chunk") {
+      const firstRecoveryPath = url.pathname === "/control/historical-recovery/nvda/first-chunk";
+      const continuationRecoveryPath = url.pathname === "/control/historical-recovery/nvda/next-chunk";
+      if (firstRecoveryPath || continuationRecoveryPath) {
         if (!historicalRecoveryEnabled(env)) return json({ error: "not_found" }, 404);
         if (request.method !== "POST") return json({ error: "method_not_allowed" }, 405);
         if (!await authorizeHistoricalRecovery(request, env)) return json({ error: "unauthorized" }, 401);
+        const expectedJobId = request.headers.get("x-orderscope-job-id");
+        const suppliedVersion = request.headers.get("x-orderscope-checkpoint-version");
+        const suppliedCompleteThrough = request.headers.get("x-orderscope-complete-through");
+        const continuationVersion = parseCheckpointVersion(suppliedVersion);
+        const expectedVersion = firstRecoveryPath ? NVDA_RECOVERY.checkpointVersion : continuationVersion;
+        const expectedCompleteThrough = firstRecoveryPath ? NVDA_RECOVERY.checkpointBefore : suppliedCompleteThrough;
+        const continuationHeadersValid = expectedVersion !== undefined
+          && expectedVersion >= NVDA_RECOVERY.checkpointVersion + 1
+          && expectedCompleteThrough !== null
+          && Number.isFinite(Date.parse(expectedCompleteThrough))
+          && new Date(Date.parse(expectedCompleteThrough)).toISOString() === expectedCompleteThrough;
         if (request.headers.get("x-orderscope-recovery-id") !== NVDA_RECOVERY.recoveryId
-          || request.headers.get("x-orderscope-job-id") !== NVDA_RECOVERY.expectedJobId) {
+          || !expectedJobId
+          || (firstRecoveryPath && expectedJobId !== NVDA_RECOVERY.expectedJobId)
+          || (continuationRecoveryPath && !continuationHeadersValid)) {
           return json({ error: "frozen_identity_mismatch" }, 409);
         }
         if (!env.ALPACA_API_KEY || !env.ALPACA_API_SECRET || !("STATE_DB" in env) || !env.STATE_DB) {
@@ -536,14 +556,14 @@ export function createWorker(dependencies: ScheduledOrchestrationDependencies = 
         const stateDb = budgetedD1(env.STATE_DB, budget);
         const checkpoints = dependencies.checkpointPort?.(stateDb) ?? new D1CoverageCheckpointPort(stateDb);
         const checkpointBefore = await checkpoints.get(NVDA_RECOVERY.coverageKey);
-        if (!checkpointBefore
+        if (expectedVersion === undefined || !checkpointBefore
           || checkpointBefore.symbol !== "NVDA"
           || checkpointBefore.interval !== "1Min"
           || checkpointBefore.sessionScope !== "REGULAR"
           || checkpointBefore.logicalDataVariant !== "stock:iex:raw"
           || checkpointBefore.state !== "COMPLETE"
-          || checkpointBefore.completeThrough !== NVDA_RECOVERY.checkpointBefore
-          || checkpointBefore.version !== NVDA_RECOVERY.checkpointVersion
+          || checkpointBefore.completeThrough !== expectedCompleteThrough
+          || checkpointBefore.version !== expectedVersion
           || checkpointBefore.universeRevision !== NVDA_RECOVERY.universeRevision
           || checkpointBefore.missingRanges.length !== 0) {
           return json({ error: "checkpoint_preflight_mismatch" }, 409);
@@ -571,8 +591,13 @@ export function createWorker(dependencies: ScheduledOrchestrationDependencies = 
           maxBarsPerJob: NVDA_RECOVERY.maxBars,
           createdAt: new Date().toISOString(),
         };
+        const plannedJob = planNextHistoricalRecoveryChunk(recoveryRequest, calendar);
+        if (!plannedJob) return json({ error: "recovery_complete" }, 409);
+        if (plannedJob.jobId !== expectedJobId) return json({ error: "planned_job_mismatch" }, 409);
+        const expectedBarCount = (Date.parse(plannedJob.requestedRange.endExclusive)
+          - Date.parse(plannedJob.requestedRange.startInclusive)) / 60_000;
         const leases = dependencies.leaseStore?.(stateDb) ?? new D1AcquisitionLeaseStore(stateDb);
-        const ownerId = `${NVDA_RECOVERY.expectedJobId}:${crypto.randomUUID()}`;
+        const ownerId = `${expectedJobId}:${crypto.randomUUID()}`;
         const acquired = await leases.acquire(
           NVDA_RECOVERY.coverageKey,
           ownerId,
@@ -596,18 +621,21 @@ export function createWorker(dependencies: ScheduledOrchestrationDependencies = 
           });
           const checkpointAfter = await checkpoints.get(NVDA_RECOVERY.coverageKey);
           const accepted = result.outcome === "SUCCEEDED"
-            && result.summary.jobId === NVDA_RECOVERY.expectedJobId
-            && result.summary.inserted + result.summary.matched === NVDA_RECOVERY.maxBars
+            && result.summary.jobId === expectedJobId
+            && result.summary.inserted + result.summary.matched === expectedBarCount
             && result.summary.conflicts === 0
             && result.summary.rejected === 0
             && result.summary.missing === 0
-            && checkpointAfter?.completeThrough === NVDA_RECOVERY.chunkEnd
+            && checkpointAfter?.completeThrough === plannedJob.requestedRange.endExclusive
             && checkpointAfter.state === "COMPLETE"
             && checkpointAfter.missingRanges.length === 0
-            && checkpointAfter.version === NVDA_RECOVERY.checkpointVersion + 1;
+            && checkpointAfter.version === expectedVersion + 1;
           const evidence = {
             recoveryId: NVDA_RECOVERY.recoveryId,
-            expectedJobId: NVDA_RECOVERY.expectedJobId,
+            expectedJobId,
+            checkpointBefore: { completeThrough: expectedCompleteThrough, version: expectedVersion },
+            requestedRange: plannedJob.requestedRange,
+            expectedBarCount,
             result,
             checkpointAfter: checkpointAfter ? {
               completeThrough: checkpointAfter.completeThrough,
@@ -618,11 +646,17 @@ export function createWorker(dependencies: ScheduledOrchestrationDependencies = 
             budget: budget.snapshot(),
             stoppedAfterOneChunk: true,
           };
-          console.log(JSON.stringify({ event: "historical_recovery_first_chunk", accepted, ...evidence }));
+          console.log(JSON.stringify({
+            event: firstRecoveryPath ? "historical_recovery_first_chunk" : "historical_recovery_next_chunk",
+            accepted,
+            ...evidence,
+          }));
           return json({ accepted, ...evidence }, accepted ? 200 : 409);
         } catch (error) {
           console.error(JSON.stringify({
-            event: "historical_recovery_first_chunk_failed",
+            event: firstRecoveryPath
+              ? "historical_recovery_first_chunk_failed"
+              : "historical_recovery_next_chunk_failed",
             recoveryId: NVDA_RECOVERY.recoveryId,
             errorCategory: error instanceof Error ? "execution_error" : "unknown_error",
           }));
