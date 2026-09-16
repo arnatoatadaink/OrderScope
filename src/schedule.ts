@@ -37,7 +37,19 @@ export type AcquisitionJob = {
   logicalDataVariant?: string;
   checkpointExpectations: readonly CheckpointExpectation[];
   attempt: 0;
-  dueReason: "MISSING_RANGE" | "NO_CHECKPOINT" | "FORWARD_COVERAGE";
+  dueReason: "MISSING_RANGE" | "NO_CHECKPOINT" | "FORWARD_COVERAGE" | "HISTORICAL_RECOVERY";
+  /**
+   * Present only on the separately-authorized historical recovery path.  The
+   * normal SchedulePolicy deliberately neither creates nor interprets this
+   * metadata.
+   */
+  historicalRecovery?: {
+    recoveryId: string;
+    providerRevision: string;
+    recoveryStartInclusive: string;
+    recoveryEndExclusive: string;
+    checkpointBefore: string;
+  };
 };
 
 export type SchedulePolicyConfig = {

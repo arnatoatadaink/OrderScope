@@ -142,6 +142,14 @@ unresolved partial/missing/conflict/rejected state
 shared external/D1 ceilings
 ```
 
+Run `scripts/l1_003_phase_b_readonly_preflight.sh` during the applicable U.S.
+regular session to collect the repository release, Cloudflare/D1 identity,
+deployed health, control-path result, candidate checkpoint rows, unresolved
+checkpoint evidence, recent digest, and recent Market-acquisition outcomes in
+one read-only transcript. Review the returned health/digest configuration and
+the session/calendar state separately before choosing a candidate. The script
+does not pause, resume, deploy, invoke scheduled work, or write to D1.
+
 Then choose the candidate under §3.1 and record why it is free of a pre-existing catch-up ambiguity.
 
 If no candidate passes, do not activate Phase B. Record `market-day evidence unavailable` and retry at a later reviewed session.
@@ -201,3 +209,11 @@ INCONCLUSIVE — Phase A accepted; market-open Phase B pending
 ```
 
 The next state change requires fresh market-session evidence from a separately authorized Phase B window.
+
+## 9. 2026-09-16 JST market-session preflight result
+
+The authorized read-only preflight found no current unambiguous Market
+checkpoint: the `COMPLETE` candidates were stale and `AMD`/`QQQ` had
+pre-existing `PARTIAL` gaps. Phase B was not activated. See
+`L1-003_SMOKE-007_PHASE_B_MARKET_SESSION_PREFLIGHT_2026-09-16.md` for the
+bounded evidence and disposition.

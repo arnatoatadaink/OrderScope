@@ -27,7 +27,7 @@ This file is the sole integrated authority for Local Corporate Intelligence runt
 | L0-006 | Accepted | focused 6; full 447; compileall success; diff clean |
 | L1-001 | Accepted | focused 8; full 360; diff clean |
 | L1-002 | Accepted | storage 7; focused 8; full 368; compileall success; diff clean |
-| L1-003 | INCONCLUSIVE — Phase A accepted | Authorized `SMOKE-007` export/custody passed on one bounded real-D1 row; Phase B fresh market-session catch-up remains pending |
+| L1-003 | INCONCLUSIVE — Phase A accepted; historical-recovery path accepted locally | Authorized `SMOKE-007` export/custody passed on one bounded real-D1 row. The planner/runner and authenticated, feature-gated one-shot NVDA entry point are locally accepted; deploy, remote canary recovery, and Phase B fresh market-session catch-up remain separately gated. |
 | L1-004 | Accepted — fixture path | focused 11; full 372; diff clean |
 | L1-005 | Accepted — fixture path | focused 12; full 391; diff clean |
 | L1-006 | Accepted — fixture path | focused command 21; full 468; compileall success; diff clean |
@@ -485,7 +485,7 @@ Detailed R0-006..009 acceptance: `R0_D1_DRAIN_LOCAL_ACCEPTANCE_2026-09-13.md`.
 3. Treat W1-007 and the short W1-001 confirmation/closeout window as Accepted. The earlier `7403` did not recur; its historical root cause remains unknown. Any further Worker activation remains separately gated.
 4. Treat Packets A through F as locally Accepted through their recorded deterministic regression, operator, recovery, and full-suite evidence.
 5. Treat `R0-001..004` and `R0-006..009` as locally Accepted at their recorded non-live boundaries. Treat `R0-005` as evidence-complete for reviewed orchestration while activation remains separately gated after rollback.
-6. Resume `L1-003/SMOKE-007` only in a reviewed market-session Phase B window for a fresh pause-created catch-up; keep purge/`PURGED`, scheduler-evidence activation, remote backup/restore, and other Worker/Cron mutations separately gated.
+6. Treat the bounded historical-recovery planner/runner, authenticated feature-gated one-shot NVDA entry point, and Stage 1 read-only preflight as locally accepted. The next `L1-003/SMOKE-007` action is commit/review followed by a separately authorized deploy/activation/one-chunk NVDA recovery window; only after normal-scheduler handoff and current clean checkpoint evidence may a reviewed market-session Phase B window create a fresh pause-created gap. Keep purge/`PURGED`, scheduler-evidence activation, remote backup/restore, and other Worker/Cron mutations separately gated.
 
 ## 9. Latest acceptance evidence
 
@@ -502,6 +502,9 @@ Detailed R0-006..009 acceptance: `R0_D1_DRAIN_LOCAL_ACCEPTANCE_2026-09-13.md`.
 | W1-001 live Canary | confirmation/closeout Accepted; three additional distinct eligible opportunities completed 3/3 News jobs at `:58` offset; max external 2/40 and D1 21/40; control before/during/after passed; final version safely restored to Shadow with News disabled |
 | W1-007 | local diagnostic + Web review Accepted; control path remained available through the W1-001 closeout with no recurring 7403; historical root cause remains unknown |
 | L1-003 / SMOKE-007 Phase A | authorized real-D1 one-row export; two reads identical; 581 bytes; SHA-256 `de380ae35c1ab50f5e0364585e7f3224512085dc3bcd4abff8e37631938bed56`; custody quality accepted; checkpoints unchanged; final Shadow/News disabled; Phase B pending |
+| L1-003 bounded historical recovery planner/runner | locally Accepted; explicit one-instrument, one-next-chunk planner and preflight-drift-checked runner; COMPLETE/no-gap identity-checked checkpoint required; canonical UTC/calendar revision, session-bounded range, feed and max-bars constraints enforced; 8 focused tests, TypeScript typecheck and diff check passed; no Worker/Cron/remote mutation |
+| L1-003 NVDA recovery Stage 1 | read-only preflight complete at `2026-09-16T08:00:24.138Z`; Shadow/News disabled/control PASS; NVDA `COMPLETE`, no gaps, complete-through `2026-09-02T20:00:00.000Z`, version 6; calendar `alpaca-calendar-v2:da7d32f3`; first 100-bar chunk frozen; remote mutation not authorized |
+| L1-003 NVDA one-shot invocation | locally Accepted; fixed POST route hidden behind default-false feature gate, constant-time Bearer-secret verification, exact recovery/job headers, frozen runtime/checkpoint/calendar validation, D1 lease, one-chunk stop and replay closure; focused 20 passed, full suite/typecheck/typegen check/live-canary dry-run/diff check passed; no deploy or remote write |
 | Packet A | locally Accepted; focused TypeScript 23; full TypeScript 130; full Python 503; typecheck, compileall, Wrangler dry-run, and diff check passed; same minute opportunity is canonical across `00/15/30/59` seconds and repeat execution does not re-call News or advance its checkpoint |
 | Packet B | locally Accepted; focused TypeScript 4; full TypeScript 134; full Python 503; typecheck, compileall, Wrangler dry-run, and diff check passed; shared budget, CAS conflict, retry canonicalization, and D1 ceiling regressions covered |
 | Packet C | locally Accepted; focused TypeScript 17; full TypeScript 141; full Python 503; typecheck, compileall, Wrangler dry-run, and diff check passed; provider/control-path failures classified and fail closed without guessing `7403` root cause |
@@ -542,7 +545,7 @@ Earlier accepted task evidence remains preserved in task-specific handoffs.
 - `UWBS-023..026` are formally incorporated as `R0-006..009` and locally accepted; remote D1 drain/purge remains unauthorized.
 - `UWBS-016` is incorporated as `R0-005`; reviewed Worker News activation remains separately gated after rollback.
 - `PX0-001` is incorporated as `R0-001` and accepted locally; live scheduler/Cron mutation remains separately gated.
-- L1-003 / SMOKE-007 market-session Phase B window for fresh pause-created catch-up evidence; Phase A export/custody is complete.
+- L1-003 / SMOKE-007 commit/review and separately authorized deploy/activation/NVDA one-chunk historical recovery, normal-scheduler handoff, and current-session stability evidence; only then a separately authorized market-session Phase B window for fresh pause-created catch-up. Phase A export/custody, the local historical-recovery planner/runner, one-shot entry point, and Stage 1 read-only preflight are complete.
 - A0-001 provisional validation.
 - A0-002 AI/Semiconductor proxy.
 - short/borrow provider for H4 validation.

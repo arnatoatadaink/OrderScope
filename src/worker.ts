@@ -21,6 +21,8 @@ import { loadMarketCheckpoints } from "./market-checkpoint-load";
 import { budgetedD1 } from "./budgeted-d1";
 import { D1SchedulerRunEvidenceStore, type SchedulerRunEvidenceStore } from "./run-evidence";
 import { SchedulerRunEvidenceSession } from "./run-evidence-session";
+import { runHistoricalRecoveryChunk } from "./historical-recovery-runner";
+import type { HistoricalRecoveryRequest } from "./historical-recovery";
 
 type PredictionMode = "off" | "shadow";
 
@@ -53,9 +55,13 @@ type ProvisionedBindings = {
   STATE_DB?: D1Database;
   BAR_ARCHIVE?: R2Bucket;
   SCHEDULER_RUN_EVIDENCE_ENABLED?: string;
+  HISTORICAL_RECOVERY_CONTROL_TOKEN?: string;
+  HISTORICAL_RECOVERY_ENABLED?: string;
 };
 
-type RuntimeEnv = Omit<Env, "WORKER_MODE" | "PREDICTION_MODE" | "PREDICTION_TARGET_PROFILE" | keyof NewsAcquisitionConfigEnv> & ProvisionedBindings & {
+type RuntimeEnv = Omit<Env,
+  "WORKER_MODE" | "PREDICTION_MODE" | "PREDICTION_TARGET_PROFILE" | "HISTORICAL_RECOVERY_ENABLED"
+  | keyof NewsAcquisitionConfigEnv> & ProvisionedBindings & {
   WORKER_MODE: "shadow" | "live";
   PREDICTION_MODE?: PredictionMode;
   PREDICTION_TARGET_PROFILE?: string;
@@ -92,6 +98,47 @@ function schedulerRunEvidenceEnabled(env: RuntimeEnv): boolean {
     throw new Error("SCHEDULER_RUN_EVIDENCE_ENABLED must be true or false");
   }
   return value === "true";
+}
+
+const NVDA_RECOVERY = {
+  recoveryId: "L1-003-NVDA-20260916-01",
+  expectedJobId: "historical-market-recovery:ef94f87d37bf2746",
+  providerRevision: "alpaca-stock-bars-v1",
+  universeRevision: "stock-monitoring-canary-v0.1",
+  calendarRevision: "alpaca-calendar-v2:da7d32f3",
+  calendarStart: "2026-09-02",
+  calendarEnd: "2026-09-17",
+  coverageKey: "NVDA|1Min|REGULAR|stock:iex:raw",
+  recoveryStart: "2026-09-02T20:00:00.000Z",
+  recoveryEnd: "2026-09-15T20:00:00.000Z",
+  checkpointBefore: "2026-09-02T20:00:00.000Z",
+  checkpointVersion: 6,
+  chunkEnd: "2026-09-03T15:10:00.000Z",
+  maxBars: 100,
+} as const;
+
+async function constantTimeEqual(provided: string, expected: string): Promise<boolean> {
+  const encoder = new TextEncoder();
+  const [providedHash, expectedHash] = await Promise.all([
+    crypto.subtle.digest("SHA-256", encoder.encode(provided)),
+    crypto.subtle.digest("SHA-256", encoder.encode(expected)),
+  ]);
+  return crypto.subtle.timingSafeEqual(providedHash, expectedHash);
+}
+
+function historicalRecoveryEnabled(env: RuntimeEnv): boolean {
+  const value = env.HISTORICAL_RECOVERY_ENABLED ?? "false";
+  if (value !== "true" && value !== "false") {
+    throw new Error("HISTORICAL_RECOVERY_ENABLED must be true or false");
+  }
+  return value === "true";
+}
+
+async function authorizeHistoricalRecovery(request: Request, env: RuntimeEnv): Promise<boolean> {
+  const expected = env.HISTORICAL_RECOVERY_CONTROL_TOKEN;
+  const authorization = request.headers.get("authorization");
+  if (!expected || !authorization?.startsWith("Bearer ")) return false;
+  return constantTimeEqual(authorization.slice("Bearer ".length), expected);
 }
 
 function currentDigest(
@@ -462,6 +509,128 @@ export function createWorker(dependencies: ScheduledOrchestrationDependencies = 
 
     async fetch(request: Request, env: RuntimeEnv): Promise<Response> {
       const url = new URL(request.url);
+
+      if (url.pathname === "/control/historical-recovery/nvda/first-chunk") {
+        if (!historicalRecoveryEnabled(env)) return json({ error: "not_found" }, 404);
+        if (request.method !== "POST") return json({ error: "method_not_allowed" }, 405);
+        if (!await authorizeHistoricalRecovery(request, env)) return json({ error: "unauthorized" }, 401);
+        if (request.headers.get("x-orderscope-recovery-id") !== NVDA_RECOVERY.recoveryId
+          || request.headers.get("x-orderscope-job-id") !== NVDA_RECOVERY.expectedJobId) {
+          return json({ error: "frozen_identity_mismatch" }, 409);
+        }
+        if (!env.ALPACA_API_KEY || !env.ALPACA_API_SECRET || !("STATE_DB" in env) || !env.STATE_DB) {
+          return json({ error: "runtime_binding_unavailable" }, 503);
+        }
+        if (env.ALPACA_FEED !== "iex" || env.UNIVERSE_PROFILE !== "canary-v0.1"
+          || env.WORKER_MODE !== "shadow" || loadNewsAcquisitionRuntimeConfig(env).enabled) {
+          return json({ error: "runtime_precondition_mismatch" }, 409);
+        }
+
+        const credentials = { keyId: env.ALPACA_API_KEY, secretKey: env.ALPACA_API_SECRET };
+        const acquisitionConfig = loadAcquisitionRuntimeConfig(env);
+        if (acquisitionConfig.maxBarsPerJob !== NVDA_RECOVERY.maxBars
+          || acquisitionConfig.maxPagesPerJob !== 10) {
+          return json({ error: "execution_bound_mismatch" }, 409);
+        }
+        const budget = new InvocationBudget();
+        const stateDb = budgetedD1(env.STATE_DB, budget);
+        const checkpoints = dependencies.checkpointPort?.(stateDb) ?? new D1CoverageCheckpointPort(stateDb);
+        const checkpointBefore = await checkpoints.get(NVDA_RECOVERY.coverageKey);
+        if (!checkpointBefore
+          || checkpointBefore.symbol !== "NVDA"
+          || checkpointBefore.interval !== "1Min"
+          || checkpointBefore.sessionScope !== "REGULAR"
+          || checkpointBefore.logicalDataVariant !== "stock:iex:raw"
+          || checkpointBefore.state !== "COMPLETE"
+          || checkpointBefore.completeThrough !== NVDA_RECOVERY.checkpointBefore
+          || checkpointBefore.version !== NVDA_RECOVERY.checkpointVersion
+          || checkpointBefore.universeRevision !== NVDA_RECOVERY.universeRevision
+          || checkpointBefore.missingRanges.length !== 0) {
+          return json({ error: "checkpoint_preflight_mismatch" }, 409);
+        }
+        const calendar = await dependencies.calendarProvider(credentials, {
+          includePremarket: false,
+          includeAfterHours: false,
+        }).getCalendar(NVDA_RECOVERY.calendarStart, NVDA_RECOVERY.calendarEnd);
+        if (calendar.revision !== NVDA_RECOVERY.calendarRevision) {
+          return json({ error: "calendar_preflight_mismatch" }, 409);
+        }
+
+        const recoveryRequest: HistoricalRecoveryRequest = {
+          recoveryId: NVDA_RECOVERY.recoveryId,
+          providerRevision: NVDA_RECOVERY.providerRevision,
+          universeRevision: NVDA_RECOVERY.universeRevision,
+          calendarRevision: NVDA_RECOVERY.calendarRevision,
+          instrument: { symbol: "NVDA", cadence: "1Min", providerRoute: "alpaca_stock_bars" },
+          coverageKey: NVDA_RECOVERY.coverageKey,
+          sessionScope: "REGULAR",
+          logicalDataVariant: "stock:iex:raw",
+          mode: "CATCH_UP",
+          recoveryRange: { startInclusive: NVDA_RECOVERY.recoveryStart, endExclusive: NVDA_RECOVERY.recoveryEnd },
+          checkpointBefore,
+          maxBarsPerJob: NVDA_RECOVERY.maxBars,
+          createdAt: new Date().toISOString(),
+        };
+        const leases = dependencies.leaseStore?.(stateDb) ?? new D1AcquisitionLeaseStore(stateDb);
+        const ownerId = `${NVDA_RECOVERY.expectedJobId}:${crypto.randomUUID()}`;
+        const acquired = await leases.acquire(
+          NVDA_RECOVERY.coverageKey,
+          ownerId,
+          new Date().toISOString(),
+          5 * 60_000,
+        );
+        if (!acquired) return json({ error: "recovery_locked" }, 409);
+        try {
+          const result = await runHistoricalRecoveryChunk(recoveryRequest, calendar, {
+            credentials,
+            checkpoints,
+            bars: dependencies.barStore?.(stateDb) ?? new D1NormalizedBarStore(stateDb),
+            feed: "iex",
+            maxPages: acquisitionConfig.maxPagesPerJob,
+            maxBars: NVDA_RECOVERY.maxBars,
+            gapRetryDelayMs: acquisitionConfig.gapRetryMinutes * 60_000,
+            providerFetchOptions: { retry: acquisitionConfig.providerRetry },
+            now: () => new Date(),
+            fetchPage: dependencies.fetchPage,
+            budget,
+          });
+          const checkpointAfter = await checkpoints.get(NVDA_RECOVERY.coverageKey);
+          const accepted = result.outcome === "SUCCEEDED"
+            && result.summary.jobId === NVDA_RECOVERY.expectedJobId
+            && result.summary.inserted + result.summary.matched === NVDA_RECOVERY.maxBars
+            && result.summary.conflicts === 0
+            && result.summary.rejected === 0
+            && result.summary.missing === 0
+            && checkpointAfter?.completeThrough === NVDA_RECOVERY.chunkEnd
+            && checkpointAfter.state === "COMPLETE"
+            && checkpointAfter.missingRanges.length === 0
+            && checkpointAfter.version === NVDA_RECOVERY.checkpointVersion + 1;
+          const evidence = {
+            recoveryId: NVDA_RECOVERY.recoveryId,
+            expectedJobId: NVDA_RECOVERY.expectedJobId,
+            result,
+            checkpointAfter: checkpointAfter ? {
+              completeThrough: checkpointAfter.completeThrough,
+              state: checkpointAfter.state,
+              missingRanges: checkpointAfter.missingRanges,
+              version: checkpointAfter.version,
+            } : null,
+            budget: budget.snapshot(),
+            stoppedAfterOneChunk: true,
+          };
+          console.log(JSON.stringify({ event: "historical_recovery_first_chunk", accepted, ...evidence }));
+          return json({ accepted, ...evidence }, accepted ? 200 : 409);
+        } catch (error) {
+          console.error(JSON.stringify({
+            event: "historical_recovery_first_chunk_failed",
+            recoveryId: NVDA_RECOVERY.recoveryId,
+            errorCategory: error instanceof Error ? "execution_error" : "unknown_error",
+          }));
+          return json({ error: "historical_recovery_failed", recoveryId: NVDA_RECOVERY.recoveryId }, 409);
+        } finally {
+          await leases.release(NVDA_RECOVERY.coverageKey, ownerId);
+        }
+      }
 
       if (url.pathname === "/health") {
         return json({ ok: true, ...currentDigest(env, new Date()) });

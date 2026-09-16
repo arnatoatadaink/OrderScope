@@ -211,6 +211,31 @@ review exact runtime contract
 
 No remote mutation is authorized by this document.
 
+#### 2026-09-16 local implementation result
+
+The bounded planner is implemented in `src/historical-recovery.ts` as
+`planNextHistoricalRecoveryChunk`. It accepts one frozen recovery request and
+the authoritative calendar, emits at most one session-bounded Market job, and
+requires the caller to re-read a `COMPLETE`, no-gap checkpoint before planning
+the next chunk. It preserves the normal `SchedulePolicy` retention rule and
+does not add a Worker route, Cron trigger, remote invocation, or configuration
+override.
+
+`src/historical-recovery-runner.ts` supplies the local execution boundary
+`runHistoricalRecoveryChunk`. Before it obtains a provider page, it re-reads
+the coverage checkpoint and requires it to match the preflight-frozen
+checkpoint exactly. It then executes exactly one planner-produced chunk through
+the existing executor, bar acceptance, budget, acquisition-attempt, and CAS
+contracts. Checkpoint drift, feed/variant drift, or bar-limit drift stops
+before provider/D1 mutation. The runner has no HTTP or scheduled Worker entry
+point; remote use remains an explicit change-window action.
+
+Focused planner/runner tests cover deterministic chunks, an
+overnight/no-calendar-gap boundary, checkpoint completion, preflight drift,
+and fail-closed identity/partial/canonical UTC/feed/bounds cases. The local
+boundary is accepted subject to the recorded focused tests, TypeScript
+typecheck, and diff check. Stage 1 remains separately required.
+
 ### Stage 1 — Read-only recovery preflight
 
 Capture:

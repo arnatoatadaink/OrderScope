@@ -17,6 +17,9 @@ export type HistoricalBarRequest = {
   limit?: number;
 };
 
+/** Frozen adapter semantics for historical stock-bar recovery evidence. */
+export const ALPACA_STOCK_BARS_PROVIDER_REVISION = "alpaca-stock-bars-v1";
+
 export type ProviderNeutralBar = {
   symbol: string;
   timestamp: string;
