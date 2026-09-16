@@ -1,6 +1,6 @@
 # OrderScope — L1-003 NVDA Historical Recovery Continuation Handoff
 
-Status: **LOCAL IMPLEMENTATION ACCEPTED — continuation deploy and remote execution not authorized**
+Status: **ACCEPTED — version-7 continuation chunk completed remotely and gate removed**
 Date: 2026-09-16 JST
 Parent: `L1-003_NVDA_HISTORICAL_RECOVERY_CHANGE_WINDOW_2026-09-16.md`
 
@@ -120,3 +120,62 @@ read-only preflight
 
 Stop on any mismatch or non-success outcome. Do not retry in the same window
 and do not widen the request, retention range, page limit or bar limit.
+
+## 6. Remote execution evidence
+
+The reviewed commit `43cd1855e7cef9da53e40caf8ddc5bc5e7c185d7` was
+already pushed and the worktree was clean before the 2026-09-17 JST change
+window. The read-only preflight re-established the Cloudflare account, D1
+target, Shadow mode, disabled News acquisition, and the exact version-7 NVDA
+checkpoint with no missing ranges.
+
+```text
+19:14Z  continuation code deployed with HISTORICAL_RECOVERY_ENABLED=false
+19:14Z  health returned 200 and disabled endpoint returned 404
+19:15Z  temporary control secret created
+19:16Z  temporary gate deployed; unauthenticated request returned 401
+19:16Z  exactly one authenticated version-7 request returned HTTP 200
+19:17Z  false-gate configuration restored
+19:17Z  independent read-only D1 verification passed
+19:17Z  temporary control secret deleted
+19:18Z  final health 200; endpoint 404; secret absence verified
+```
+
+Invocation result:
+
+```text
+accepted                       true
+outcome                        SUCCEEDED
+job_id                         historical-market-recovery:aac843c098bae3a3
+requested range                [2026-09-03T15:10:00.000Z, 16:50:00.000Z)
+pages                          1
+inserted / matched             100 / 0
+conflicts / rejected / missing 0 / 0 / 0
+external subrequests           1 of 40
+D1 queries                     15 of 40
+stopped_after_one_chunk        true
+```
+
+Independent D1 verification found exactly one SUCCEEDED attempt, 100 INSERTED
+receipts, and 100 canonical NVDA bars from `2026-09-03T15:10:00.000Z`
+through `2026-09-03T16:49:00.000Z`. The checkpoint is `COMPLETE`, has no
+missing ranges or blocker, is complete through `2026-09-03T16:50:00.000Z`,
+and is version 8. All verification statements reported zero writes.
+
+Final safety state:
+
+```text
+deployment                     2c659f36-eb67-4d61-af0b-d87030993d21
+Worker mode                    shadow
+News                           disabled
+HISTORICAL_RECOVERY_ENABLED    false
+control endpoint               404
+control secret                 deleted
+```
+
+## 7. Next gate
+
+This window authorizes no automatic next chunk. Any version-8 continuation
+must repeat the read-only preflight, deterministic next-job review, and
+separately bounded one-chunk window. Normal-scheduler activation, Phase B,
+direct D1 edits, and widened recovery bounds remain outside this acceptance.
