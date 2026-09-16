@@ -1,6 +1,6 @@
 # OrderScope — L1-003 NVDA Historical Recovery Change Window
 
-Status: **LOCAL IMPLEMENTATION ACCEPTED — deploy, activation, and remote mutation not authorized**
+Status: **ACCEPTED — first remote NVDA recovery chunk completed and gate removed**
 Date: 2026-09-16 JST
 Environment: `live-canary`
 Parent: `L1-003_PHASE_B_PREREQUISITE_MARKET_RECOVERY_SCHEDULE_2026-09-16.md`
@@ -145,11 +145,60 @@ git diff check                      passed
 remote writes                       none
 ```
 
-## 7. Remaining gate
+## 7. Remote execution evidence
 
-Commit/review of the dirty bounded worktree remains before deployment. A
-separate change authorization must cover secret provisioning, deployment,
-temporary feature-gate activation, the single authenticated POST, immediate
-evidence capture, and restoration to `HISTORICAL_RECOVERY_ENABLED=false`.
-None of those remote actions are authorized by this document. Direct D1
-checkpoint edits and ad-hoc bar inserts remain prohibited.
+The reviewed commit `ed9363d3ae548c470d256770a49f809420660a80` was
+pushed before the change window. The 2026-09-16 window then completed this
+sequence:
+
+```text
+09:28Z  read-only preflight PASS; checkpoint version 6 unchanged
+09:29Z  endpoint deployed with HISTORICAL_RECOVERY_ENABLED=false
+09:29Z  disabled endpoint returned 404
+09:30Z  temporary gate deployed; unauthenticated request returned 401
+09:30Z  exactly one authenticated frozen request returned HTTP 200
+09:30Z  false-gate configuration restored; endpoint returned 404
+09:31Z  temporary control secret deleted
+```
+
+Invocation result:
+
+```text
+accepted                       true
+outcome                        SUCCEEDED
+job_id                         historical-market-recovery:ef94f87d37bf2746
+pages                          1
+inserted / matched             100 / 0
+conflicts / rejected / missing 0 / 0 / 0
+external subrequests           1 of 40
+D1 queries                     15 of 40
+stopped_after_one_chunk        true
+```
+
+Independent read-only D1 verification found one SUCCEEDED acquisition attempt,
+100 INSERTED acceptance receipts, and 100 canonical NVDA bars from
+`2026-09-03T13:30:00.000Z` through `2026-09-03T15:09:00.000Z`. The checkpoint
+is now `COMPLETE`, has no missing ranges, is complete through
+`2026-09-03T15:10:00.000Z`, and is version 7. The verification statements made
+zero writes and the control path remained healthy.
+
+Final safety state at `2026-09-16T09:37:15Z`:
+
+```text
+deployment                     86c12b2d-408e-4ebb-95b0-659edae27e04
+Worker mode                    shadow
+News                           disabled
+HISTORICAL_RECOVERY_ENABLED    false
+control endpoint               404
+control secret                 deleted
+```
+
+## 8. Next gate
+
+This acceptance authorizes no automatic second chunk. The frozen endpoint now
+fails checkpoint preflight because version 6 has advanced to version 7. The
+next action is a separately reviewed continuation design/change window that
+freezes the version-7 checkpoint and next deterministic chunk, or replaces the
+single-use endpoint with an equally bounded reviewed continuation mechanism.
+Direct D1 checkpoint edits, ad-hoc bar inserts, and Phase B activation remain
+prohibited.
