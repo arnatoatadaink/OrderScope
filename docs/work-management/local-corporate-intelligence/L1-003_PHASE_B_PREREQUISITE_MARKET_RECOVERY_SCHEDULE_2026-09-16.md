@@ -1,6 +1,6 @@
 # OrderScope — L1-003 Phase B Prerequisite Market Recovery Schedule
 
-Status: **SELECTED RECOVERY PLAN — bounded historical recovery path; implementation/recovery window still separately gated**
+Status: **IN EXECUTION — four bounded chunks accepted; remaining campaign, normal handoff and Phase B separately gated**
 Date: 2026-09-16 JST
 Branch: `docs/mermaid-conventions-v0.1`
 Parent work: `L1-003 / SMOKE-007`
@@ -421,3 +421,17 @@ as the mechanism for recovering the September 2 backlog
 Reason: backlog recovery and normal scheduler responsibility must remain separate; widening the normal retention horizon would mix recovery semantics into ordinary acquisition and make the acceptance boundary less clear.
 
 The next actionable work item is therefore **implementation/review of the bounded historical recovery path**, not Worker Live activation and not Phase B execution.
+
+## 13. 2026-09-18 reconciliation and superseding next action
+
+The first, version-7, version-8 and version-9 one-shot windows are now remotely
+accepted. NVDA is `COMPLETE`, gap-free, version 10 and complete through the
+September 3 Regular close. The Worker is Shadow, News is disabled, the
+historical endpoint is hidden, and the temporary control secret is absent.
+
+Section 12's next-action sentence is therefore satisfied and superseded. The
+current execution breakdown and critical path are maintained in
+`L1-003_PHASE_B_START_READINESS_WBS_CP_2026-09-18.md`. The immediate next step
+is its PB-01 moving-horizon read-only preflight followed by PB-02 campaign-shape
+review. This reconciliation does not authorize another recovery invocation or
+Phase B.
