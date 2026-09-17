@@ -5,7 +5,7 @@ Date: 2026-09-18 JST
 Parent WBS: `docs/WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md` (`L1-003`)
 Parent CP: `docs/WORK_PLAN_LOCAL_CORPORATE_INTELLIGENCE_CRITICAL_PATH_2026-09-05.md`
 Recovery plan: `L1-003_PHASE_B_PREREQUISITE_MARKET_RECOVERY_SCHEDULE_2026-09-16.md`
-Latest evidence: `L1-003_NVDA_VERSION_8_9_RECOVERY_CLOSEOUT_2026-09-18.md`
+Latest evidence: `L1-003_PB04_NVDA_SEP04_CAMPAIGN_ACCEPTANCE_2026-09-18.md`
 
 ## 1. Objective and authority boundary
 
@@ -20,10 +20,10 @@ call, D1 write, Cron/Worker activation, pause/resume action, or Phase B.
 ## 2. Reconciled baseline
 
 ```text
-as of                         2026-09-17T18:36:43Z
+as of                         2026-09-17T19:57:16Z
 coverage key                  NVDA|1Min|REGULAR|stock:iex:raw
-checkpoint                    version 10
-complete through              2026-09-03T20:00:00.000Z
+checkpoint                    version 14
+complete through              2026-09-04T20:00:00.000Z
 state / gaps                  COMPLETE / none
 Worker / News                 shadow / disabled
 recovery endpoint             404
@@ -34,17 +34,17 @@ Phase B                       NOT READY
 
 ### Snapshot remaining-work estimate
 
-The already reviewed recovery end is the September 15 Regular close. From the
-current September 3 close baseline that is seven full Regular sessions:
+The existing Worker recovery boundary reaches the September 15 Regular close.
+From the current September 4 close baseline that is six full Regular sessions:
 
 ```text
-sessions                      Sep 4, 8, 9, 10, 11, 14, 15
-bars                          7 x 390 = 2,730
-current session-bounded plan  28 chunks (100 + 100 + 100 + 90 per session)
+sessions                      Sep 8, 9, 10, 11, 14, 15
+bars                          6 x 390 = 2,340
+current session-bounded plan  24 chunks (100 + 100 + 100 + 90 per session)
 ```
 
 At the reconciliation timestamp, reaching the September 16 close would require
-one additional full session, for a snapshot total of 3,120 bars / 32 chunks.
+one additional full session, for a snapshot total of 2,730 bars / 28 chunks.
 This is not a permanent target. The 24-hour retention floor moves with time;
 therefore the handoff target and remaining count must be re-frozen from an
 authoritative exchange calendar immediately before each authorized recovery
@@ -55,10 +55,10 @@ campaign. A stale fixed count cannot establish readiness.
 | ID | Work item | Completion evidence | Gate / dependency | State |
 |---|---|---|---|---|
 | PB-00 | Close version-8 and version-9 windows | Exact jobs, ranges, counts, checkpoints, gate removal, secret deletion and current read-only reconciliation recorded | Existing accepted remote evidence | Done |
-| PB-01 | Re-freeze recovery target | Authoritative calendar, current UTC, 24-hour retention floor, last completed session and earliest valid normal-scheduler range captured | PB-00; read-only only | Done for planning snapshot; repeat at PB-04 entry |
+| PB-01 | Re-freeze recovery target | Authoritative calendar, current UTC, 24-hour retention floor, last completed session and earliest valid normal-scheduler range captured | PB-00; read-only only | Repeated at PB-04 entry — target remains September 16 close |
 | PB-02 | Select bounded continuation campaign shape | Reviewed choice between repeated one-chunk windows and a separately implemented session-bounded driver; explicit maximum jobs/pages/bars/external/D1 ops and stop-after-each-chunk verification | PB-01; no remote mutation | Done — one-session operator campaign selected |
 | PB-03 | Accept continuation mechanism locally | Deterministic planning, checkpoint re-read/CAS, failure stop, replay closure, budget and full regression evidence | PB-02 | Done — local campaign driver accepted |
-| PB-04 | Execute bounded historical campaign | Every chunk has separate frozen identity and accepted-record evidence; no unexplained checkpoint movement; safe gate removal after each authorized window | PB-03; separate change-window authority | Ready for fresh preflight and authorization; not authorized |
+| PB-04 | Execute bounded historical campaign | Every chunk has separate frozen identity and accepted-record evidence; no unexplained checkpoint movement; safe gate removal after each authorized window | PB-03; separate change-window authority | In progress — September 4 campaign accepted; checkpoint v14; next session September 8 separately gated |
 | PB-05 | Establish handoff boundary | Checkpoint is contiguous through the frozen boundary and the next expected range is wholly inside normal retention; no missing/conflict/rejected/blocker state | PB-04 | Gated |
 | PB-06 | Normal-scheduler handoff | Unchanged scheduler plans and accepts the exact next range; checkpoint advances only from accepted bars; control PASS and within budget | PB-05; separate scheduler activation authority | Gated |
 | PB-07 | Stability observation | At least two consecutive eligible scheduler opportunities advance the same coverage cleanly; no unresolved state or budget/control regression | PB-06; active U.S. session | Gated |
@@ -142,9 +142,9 @@ Failure of any item keeps Phase B `NOT READY` and prohibits pause/resume.
 
 ## 8. Immediate next action
 
-PB-03 is locally accepted in
-`L1-003_PB03_SESSION_CAMPAIGN_LOCAL_ACCEPTANCE_2026-09-18.md`. At PB-04 entry,
-repeat PB-01 because the retention horizon moves, freeze the exact next
-session/campaign identities, and request a separate change-window
-authorization. No deployment, gate/secret mutation, provider call, D1 write,
-or historical invocation is authorized by PB-03 acceptance.
+The first PB-04 campaign is accepted in
+`L1-003_PB04_NVDA_SEP04_CAMPAIGN_ACCEPTANCE_2026-09-18.md`. Repeat the
+read-only entry check, freeze the exact September 8 session identities from
+checkpoint version 14, and obtain a separate change-window authorization for
+that one-session campaign. Do not cross sessions automatically. PB-05 remains
+gated until the checkpoint reaches the re-frozen September 16 handoff target.
