@@ -55,10 +55,10 @@ campaign. A stale fixed count cannot establish readiness.
 | ID | Work item | Completion evidence | Gate / dependency | State |
 |---|---|---|---|---|
 | PB-00 | Close version-8 and version-9 windows | Exact jobs, ranges, counts, checkpoints, gate removal, secret deletion and current read-only reconciliation recorded | Existing accepted remote evidence | Done |
-| PB-01 | Re-freeze recovery target | Authoritative calendar, current UTC, 24-hour retention floor, last completed session and earliest valid normal-scheduler range captured | PB-00; read-only only | Ready |
-| PB-02 | Select bounded continuation campaign shape | Reviewed choice between repeated one-chunk windows and a separately implemented session-bounded driver; explicit maximum jobs/pages/bars/external/D1 ops and stop-after-each-chunk verification | PB-01; no remote mutation | Ready |
-| PB-03 | Accept continuation mechanism locally | Deterministic planning, checkpoint re-read/CAS, failure stop, replay closure, budget and full regression evidence | PB-02 | Blocked by PB-02 decision |
-| PB-04 | Execute bounded historical campaign | Every chunk has separate frozen identity and accepted-record evidence; no unexplained checkpoint movement; safe gate removal after each authorized window | PB-03; separate change-window authority | Gated |
+| PB-01 | Re-freeze recovery target | Authoritative calendar, current UTC, 24-hour retention floor, last completed session and earliest valid normal-scheduler range captured | PB-00; read-only only | Done for planning snapshot; repeat at PB-04 entry |
+| PB-02 | Select bounded continuation campaign shape | Reviewed choice between repeated one-chunk windows and a separately implemented session-bounded driver; explicit maximum jobs/pages/bars/external/D1 ops and stop-after-each-chunk verification | PB-01; no remote mutation | Done — one-session operator campaign selected |
+| PB-03 | Accept continuation mechanism locally | Deterministic planning, checkpoint re-read/CAS, failure stop, replay closure, budget and full regression evidence | PB-02 | Done — local campaign driver accepted |
+| PB-04 | Execute bounded historical campaign | Every chunk has separate frozen identity and accepted-record evidence; no unexplained checkpoint movement; safe gate removal after each authorized window | PB-03; separate change-window authority | Ready for fresh preflight and authorization; not authorized |
 | PB-05 | Establish handoff boundary | Checkpoint is contiguous through the frozen boundary and the next expected range is wholly inside normal retention; no missing/conflict/rejected/blocker state | PB-04 | Gated |
 | PB-06 | Normal-scheduler handoff | Unchanged scheduler plans and accepts the exact next range; checkpoint advances only from accepted bars; control PASS and within budget | PB-05; separate scheduler activation authority | Gated |
 | PB-07 | Stability observation | At least two consecutive eligible scheduler opportunities advance the same coverage cleanly; no unresolved state or budget/control regression | PB-06; active U.S. session | Gated |
@@ -69,15 +69,10 @@ campaign. A stale fixed count cannot establish readiness.
 ## 4. Selected planning rule for PB-02
 
 Do not run 28 or more manual one-shot deployments as an unreviewed loop. PB-02
-must explicitly select one of these bounded forms:
+selected this bounded form:
 
 ```text
-A. existing one-chunk endpoint
-   -> one separately reviewed invocation
-   -> independent verification
-   -> stop and re-authorize
-
-B. new session-bounded campaign driver
+B. new operator-side session-bounded campaign driver
    -> locally implemented and reviewed first
    -> fixed maximum of one Regular session / four chunks
    -> checkpoint re-read and acceptance verification after every chunk
@@ -85,9 +80,11 @@ B. new session-bounded campaign driver
    -> no cross-session automatic continuation
 ```
 
-Option B is the recommended preparation path because it reduces configuration
-churn while retaining the existing per-chunk fail-closed contract. It is not
-authorized merely by this recommendation.
+The selected driver uses four independent Worker invocations rather than an
+in-Worker loop. Four observed 15-D1-operation chunks would total about 60 and
+exceed the per-invocation D1 ceiling of 40. The decision and exact bounds are
+recorded in `L1-003_PB01_PB02_RECOVERY_CAMPAIGN_DECISION_2026-09-18.md`.
+Selection does not authorize implementation deployment or remote execution.
 
 ## 5. Critical path
 
@@ -145,6 +142,9 @@ Failure of any item keeps Phase B `NOT READY` and prohibits pause/resume.
 
 ## 8. Immediate next action
 
-Execute PB-01 as a read-only preflight at the start of the next work window,
-then complete the PB-02 design review. No additional historical invocation is
-the next automatic action.
+PB-03 is locally accepted in
+`L1-003_PB03_SESSION_CAMPAIGN_LOCAL_ACCEPTANCE_2026-09-18.md`. At PB-04 entry,
+repeat PB-01 because the retention horizon moves, freeze the exact next
+session/campaign identities, and request a separate change-window
+authorization. No deployment, gate/secret mutation, provider call, D1 write,
+or historical invocation is authorized by PB-03 acceptance.
