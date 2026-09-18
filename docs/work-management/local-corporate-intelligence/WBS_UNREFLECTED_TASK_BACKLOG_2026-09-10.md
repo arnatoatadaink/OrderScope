@@ -377,3 +377,34 @@ Planning notes:
 - Theme activation requires cross-sectional confirmation where possible. A single stock move should remain company-specific until peer breadth/persistence supports the higher-level interpretation.
 - Theme rotation and theme repricing are not interchangeable. Rotation may be a short-lived relative flow event; repricing implies more persistent acceptance of a changed theme valuation regime.
 - No trading action, live provider activation, or normative portfolio allocation rule is authorized by these rows.
+
+
+## 16. LVWR listing-compliance / price-rediscovery extension
+
+Source report:
+
+- `docs/work-management/local-corporate-intelligence/REPORT_TNON_CHPT_PRICE_REDISCOVERY_2026-09-11.md` (LVWR extension added 2026-09-19)
+
+LVWR adds a case where an exchange continued-listing deficiency and an earnings catalyst coexist, and the market repricing subsequently removes the listing-price deficiency. The compliance state and the market-reaction state must remain separate. In particular, a later calendar date must not be labeled as a new delisting-avoidance catalyst when the exchange has already confirmed restored compliance.
+
+| UWBS ID | Proposed task | Proposed package | Completion condition summary | Likely inputs / dependencies | Status | Disposition |
+|---|---|---|---|---|---|---|
+| UWBS-035 | LVWR exchange-listing-compliance / earnings-repricing Canary extension | Corporate Action / Instrument lifecycle + Market Reaction QA | Add a reproducible fixture covering NYSE minimum-price deficiency notice -> independent Q2 earnings catalyst -> large positive repricing -> rolling-average price recovery -> explicit compliance restoration -> later momentum continuation; verify that the system does not manufacture a new delisting event from a 30-day calendar coincidence and does not infer compliance restoration from spot price alone | UWBS-020/021; exchange/SEC/IR source ingestion; security/instrument lifecycle semantics; accepted daily/minute bars | Needs decomposition | Pending |
+
+Proposed CP relationship:
+
+```text
+exchange-listing / instrument-lifecycle Fact support
+  + UWBS-020 catalyst-to-market-reaction observation
+  + UWBS-021 price-discovery interpretation
+       -> UWBS-035 LVWR fixture
+```
+
+Planning notes:
+
+- This is a **CP candidate only** until incorporated into the normative WBS/CP.
+- The exchange deficiency, cure window and compliance-restoration notice are source-grounded Facts; `LISTING_OVERHANG_REMOVED` is an Interpretation.
+- The July earnings reaction and later exchange-compliance restoration are causally related through price persistence but are not the same event.
+- A spot close above $1 is insufficient to assert restored compliance where the exchange rule depends on a rolling average and/or explicit exchange confirmation.
+- The September continuation should be treated as an empirical price-discovery / momentum question unless a new source-grounded catalyst is found.
+- No trading action or live-provider activation is authorized by this backlog row.
