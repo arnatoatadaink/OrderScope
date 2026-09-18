@@ -1,0 +1,435 @@
+# OrderScope — WBS-Unreflected Task Backlog
+
+Status: **Active append-only planning backlog — not yet incorporated into the main WBS**
+Date: 2026-09-10
+Primary WBS checked: `docs/WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md`
+Related extension checked: `docs/WORK_BREAKDOWN_ANALYST_CROSS_MARKET_2026-09-05.md`
+
+## 1. Purpose
+
+This document is the holding area for tasks that have been identified after the current WBS was written but are not yet formally incorporated into a normative/primary work package.
+
+It exists so new task ideas can be appended without silently changing the meaning of accepted WBS items.
+
+Rules:
+
+1. Do not rewrite an existing WBS task merely to absorb a newly discovered scope item.
+2. Record every new item here first with source/provenance, proposed owner/package, dependency, and completion condition.
+3. Use provisional `UWBS-*` IDs in this file only. They are tracking IDs, not final WBS IDs.
+4. When a future WBS revision adopts an item, add the final WBS ID in the `Disposition` column instead of deleting the backlog history.
+5. If an item is later shown to be already covered by an existing WBS task, mark it `Covered by existing WBS` and record the evidence.
+6. Keep Fact / Derived Metric / Interpretation / Prediction boundaries unchanged while planning extensions.
+7. Do not use this backlog to authorize remote D1, Worker mutation, live-provider activation, or another gated operation.
+
+## 2. Status vocabulary
+
+| Status | Meaning |
+|---|---|
+| `Captured` | Scope is known well enough not to lose it, but task decomposition may still change |
+| `Ready for WBS design` | Completion condition and dependencies are sufficiently clear for formal WBS incorporation |
+| `Needs source re-link` | Scope is known from prior work/discussion, but the exact remote source report has not yet been located on the active branch |
+| `Needs decomposition` | One captured item should probably become multiple formal WBS tasks |
+| `Covered by existing WBS` | No new WBS task is required; retain the record for traceability |
+| `Deferred` | Intentionally not part of the current completion target |
+| `Incorporated` | Added/remapped into a later WBS revision; final ID must be recorded |
+
+## 3. Confirmed WBS-unreflected operational follow-ups
+
+These four items come from `POST_X0_OPERATIONAL_FOLLOWUPS_2026-09-10.md`, itself derived from the accepted X0-006 runbook review. They are not completion gaps for accepted X0 fixture-path work; they are production-operations follow-ups.
+
+| UWBS ID | Source tracking ID | Proposed task | Proposed package | Completion condition summary | Dependencies / related work | Status | Disposition |
+|---|---|---|---|---|---|---|---|
+| UWBS-001 | PX0-001 | Register reviewed operational scheduler jobs | Operations / Integration | At least one reviewed adapter-owned scheduler plan is registered; dry-run displays intended jobs; zero-job success cannot be mistaken for workload completion; HTTP mutation remains prohibited | X0-004, owning adapters, provider/terms gates | Incorporated | R0-001 |
+| UWBS-002 | PX0-002 | Durable scheduler run evidence and stale-lock recovery | Operations / Recovery | Persist run/job identity, status, completion boundary, revision and sanitized failure state; make last completed boundary inspectable; stale-lock ownership/clearance is testable and robust against PID reuse | X0-004; I0-003 remains provider/source checkpoint owner | Incorporated | R0-002 |
+| UWBS-003 | PX0-003 | Retention and bounded-reprocessing operator CLI | News / Operations integration | Operator can inspect backlog/overdue state, perform bounded delete/retry through concrete storage, and plan/run bounded replay without exposing bodies/secrets | N1-005, L0-006, integration/storage layer | Incorporated | R0-003 |
+| UWBS-004 | PX0-004 | Reproducible backup/restore and restore drill | Storage / Recovery | Freeze data-root layout and backup set; implement consistent SQLite snapshot and dataset/catalog validation; define manifest/hashes, destination protections, generations/RPO, restore validation and drill evidence | L0-005, L1 storage/datasets, X0-006 policy | Incorporated | R0-004 |
+
+## 4. Corporate-action / M&A / TOB expansion
+
+The current WBS already includes `M&A` as one event-taxonomy category under `N1-001`, so a generic "recognize M&A news" task is **not** missing. The unreflected scope is the deeper corporate-action lifecycle around tender offers, acquisitions, delisting/cash-out, ownership thresholds, and post-transaction company-value/regime changes.
+
+The exact recently added M&A/TOB report referenced in project discussion was not located in the active branch tree during this backlog pass. Therefore the following entries are captured with `Needs source re-link`; they must not be treated as a verbatim reconstruction of a missing report.
+
+| UWBS ID | Proposed task | Proposed package | Completion condition summary | Likely inputs / dependencies | Status | Disposition |
+|---|---|---|---|---|---|---|
+| UWBS-005 | Define Corporate Action / Transaction lifecycle contract | New Corporate Action package or I0 extension | Represent announcement, proposal, definitive agreement, tender-open, tender-close, ownership-threshold crossing, shareholder/board/regulatory approval, closing, termination, delisting and cash-out as distinct historical states/events; preserve event/available/accepted times and source provenance | I0-002/004/005; N1-001 taxonomy; SEC/IR/news sources | Needs source re-link | Pending |
+| UWBS-006 | Implement M&A / TOB / tender-offer acquisition and reconciliation | Corporate Action acquisition | Detect transaction events from Tier-1 SEC/IR where available and secondary news as discovery; deduplicate/reconcile multiple sources without overwriting conflicting states; retain offeror/target/consideration/terms only when explicit | S0 filing path, N0/N1 news path, company IR, I0 idempotency | Needs source re-link | Pending |
+| UWBS-007 | Implement ownership-threshold / control-change monitoring | Corporate Action / SEC | Track relevant 13D/13G and other explicit ownership/control disclosures; distinguish stake-building, control intent, passive ownership, amendment and withdrawal without inferring intent absent source evidence | S0-004 target forms, S0 filing records, Fact Store | Needs decomposition | Pending |
+| UWBS-008 | Model delisting, compulsory cash-out and security termination outcomes | Corporate Action / Instrument lifecycle | Track announced vs effective delisting, merger consideration, cash-out/stock conversion, security termination and successor instrument/entity relationships; avoid treating an announced transaction as completed before effective evidence | I0 registry/history, SEC/IR, exchange/official notices | Needs source re-link | Pending |
+| UWBS-009 | Post-transaction enterprise-value / Regime-change linkage | Corporate Action + Regime | Keep observed transaction facts separate from derived valuation/repricing and `COMPANY_REGIME_CHANGE`; represent acquired/divested businesses, segment changes, financing/consideration and resulting company-scope changes as evidence for later Regime/valuation analysis rather than immediate prediction | I0 Fact/Derived Metric/Interpretation separation; E0 segment identity/revenue; Regime spec | Needs source re-link | Pending |
+| UWBS-010 | Corporate-action Canary acceptance cases | Corporate Action QA | Fixture cases cover pending → amended → completed, failed/withdrawn offer, competing bid, partial ownership threshold, delisting/cash-out, stock-vs-cash consideration and conflicting secondary-news vs SEC/IR assertions | UWBS-005..009 after decomposition | Needs decomposition | Pending |
+
+## 5. Macro rates / carry-unwind / non-price Fact expansion
+
+Source report: `docs/REPORT_MACRO_RATES_CARRY_UNWIND_NON_PRICE_FACTS_2026-09-10.md`.
+
+The existing Cross-Market extension already uses sovereign yields, FX, and policy expectations as context under `A0-001/A0-002`. Therefore these rows do **not** add a duplicate generic "use yields/FX" task. They capture the missing reusable Fact contract, derived-rate structure, interpretation rules, validation cases, and source/provider work needed to make that context systematic.
+
+| UWBS ID | Proposed task | Proposed package | Completion condition summary | Likely inputs / dependencies | Status | Disposition |
+|---|---|---|---|---|---|---|
+| UWBS-011 | Define Macro-Market non-price Fact contract | A0 / I0 Cross-Market integration | Define normalized raw Facts for policy rates, short-market rates, sovereign 2Y/5Y/10Y/30Y yields, USD/JPY and eligible volatility/flow context; preserve event/available/accepted/as-of times, units, market/tenor identity and source provenance; inferred capital movement must not be stored as Fact | A0-001; I0-002/004/005; provider/source gates | Ready for WBS design | Local implementation accepted 2026-09-14; 4 focused / 626 full Python pass; pending WBS incorporation |
+| UWBS-012 | Implement rate-curve and cross-country Derived Metrics | A0 Derived Metrics | Compute tested 2s10s/10s30s slopes, U.S.-Japan 2Y/10Y spreads, fixed-window FX/yield deltas and change velocity; distinguish steepening, flattening and inversion without converting them into causal claims; preserve as-of semantics | UWBS-011; A0-001; I0 Fact/Derived Metric boundary | Ready for WBS design | Local implementation accepted 2026-09-14; 4 focused / 630 full Python pass; pending WBS incorporation |
+| UWBS-013 | Define carry-unwind / deleveraging Interpretation contract | A0 Interpretation / Regime | Define `CARRY_UNWIND_CANDIDATE`, `DELEVERAGING_REGIME`, `RATE_SHOCK`, `FX_SHOCK_JPY` and related evidence rules using multiple independent signals; support SUPPORT/PARTIAL/CONTRADICT/UNKNOWN and prohibit USD/JPY or one news item from establishing capital movement as Fact | UWBS-011/012; A0-001 hypothesis rules; News evidence | Ready for WBS design | Local implementation accepted 2026-09-14; 5 focused / 635 full Python pass; pending WBS incorporation |
+| UWBS-014 | Macro stress / carry-unwind validation fixtures and Canary cases | A0 QA / Cross-Market validation | Fixture set covers policy-rate up + long-yield down, steepening/flattening/inversion, rapid JPY appreciation, broad selloff with/without company-specific negative evidence, explicit carry-reduction report, event-risk de-risking and false-positive cases; validates Fact/Derived Metric/Interpretation separation | UWBS-011..013; A0-002 validation pattern | Ready for WBS design | Local Canary accepted 2026-09-14; 6 focused / 641 full Python pass; pending WBS incorporation |
+| UWBS-015 | Survey and select structured macro-rate / FX / flow data sources | Provider contracts / A0 | Identify permissible official/structured sources for policy rates, sovereign curves, FX, FX-volatility and eligible fund-flow series; record terms, cadence, historical depth, timestamps, revision behavior, cost, rate limits and fallback boundary; do not activate live providers as part of survey | Existing provider/terms/security gates; UWBS-011 data requirements | Ready for WBS design | Research completed 2026-09-14; see `UWBS-015_MACRO_PROVIDER_SURVEY_2026-09-14.md`; official-direct primary path selected, commercial high-frequency fund-flow survey deferred |
+
+Planning notes:
+
+- Bank-specific deposit and lending rates are intentionally not forced into the minimum Macro-Market contract. They may become a later sector/company extension after UWBS-011/012 establish the reusable rate structure.
+- The previously discussed rough 1–3 week stabilization window is a scenario estimate, not a system constant or Fact. Historical validation would be required before introducing any duration model.
+- Fund-flow values, MMF flows, ETF flows, gross deleveraging, and market-cap changes must not be blindly summed into one observed `capital_outflow` figure because scopes overlap and double counting is likely.
+
+## 6. Worker/Schedule News acquisition
+
+Source design: `docs/work-management/local-corporate-intelligence/NEWS_WORKER_ACQUISITION_DESIGN_2026-09-10.md`.
+
+The current WBS `N0-002` already owns the News metadata adapter. The missing scope is steady-state invocation of that accepted adapter from the Cloudflare Worker/Schedule layer. This is therefore an orchestration/operations task, not a rewrite of N0-002.
+
+| UWBS ID | Proposed task | Proposed package | Completion condition summary | Likely inputs / dependencies | Status | Disposition |
+|---|---|---|---|---|---|---|
+| UWBS-016 | Implement Worker/Schedule News metadata acquisition job | Worker acquisition / Operations integration | Run reviewed AMD/NVDA metadata-only News jobs on bounded session-aware cadence; reuse I0-003 checkpoint and I0-004 idempotency; preserve cross-symbol article identity; bound pagination/call budget; expose retryable failure state; keep secrets out of persistence/logs; require separate Worker activation review/change window | N0-002; I0-003/004; X0-002; N1-006 measured recall for cadence validation; UWBS-001/PX0-001; SMOKE-006; SMOKE-007 only for approved historical catch-up | Incorporated | R0-005 |
+
+Planning default:
+
+- Initial Canary: AMD/NVDA only.
+- Metadata-only baseline; no News body in steady-state Worker acquisition.
+- Initial cadence proposal: every 5 minutes during the configured U.S. observation day, reusing existing market-session configuration rather than a separate hard-coded clock.
+- The 5-minute cadence is a planning default, not a frozen constant; N1-006 measured recall/lag should confirm or adjust it before activation.
+- Live Worker registration remains separately gated. This backlog entry does not change Worker Shadow mode.
+
+## 7. Existing extension work that is NOT counted as WBS-unreflected
+
+Do not duplicate these in this backlog unless new scope exceeds their completion conditions:
+
+- `A0-001` / `A0-002` already exist in `WORK_BREAKDOWN_ANALYST_CROSS_MARKET_2026-09-05.md`.
+- `N1-001` already includes M&A in the news event taxonomy.
+- `N0-002` already owns News metadata normalization; `UWBS-016` owns Worker/Schedule orchestration around that accepted adapter.
+- `L1-006`, `L1-003`, `N1-006`, and the existing A0 tasks are already represented in WBS/tracker state even when unfinished.
+- `SMOKE-*` / `CANARY-*` Worker items are already explicit deferred Worker backlog items in the main WBS.
+
+## 8. Discovery inbox — append new task ideas here first
+
+Use this section for newly proposed work before deciding whether it deserves a full row in §3/§4/§5/§6 or another package-specific section.
+
+| Discovery ID | Date | Proposal / question | Source | Suspected package | Triage state |
+|---|---|---|---|---|---|
+| DISC-001 | 2026-09-10 | Reserved for next newly discovered WBS-unreflected item | — | — | Empty placeholder; replace/append, do not infer scope |
+| DISC-002 | 2026-09-10 | Capture structured rate/FX Facts and carry-unwind/deleveraging interpretation instead of relying on news-only rate context | `docs/REPORT_MACRO_RATES_CARRY_UNWIND_NON_PRICE_FACTS_2026-09-10.md` | A0 / I0 / Provider contracts | Promoted to UWBS-011..015 |
+| DISC-003 | 2026-09-10 | Move steady-state News metadata acquisition to Cloudflare Worker/Schedule while keeping Local as analysis layer | `docs/work-management/local-corporate-intelligence/NEWS_WORKER_ACQUISITION_DESIGN_2026-09-10.md` | Worker acquisition / Operations | Promoted to UWBS-016 |
+| DISC-004 | 2026-09-11 | Track convertible-debt lifecycle, maturity/conversion windows, financing-to-debt-resolution evidence and dilution-overhang removal using TNON as the reference case | `docs/work-management/local-corporate-intelligence/REPORT_TNON_CONVERTIBLE_DEBT_REPAYMENT_CASE_2026-09-11.md` | Capital Structure / SEC / I0 | Promoted to UWBS-017..019 |
+| DISC-005 | 2026-09-11 | Distinguish price spike, active price discovery, delayed repricing and persistent price rediscovery using CHPT and TNON reference cases | `docs/work-management/local-corporate-intelligence/REPORT_TNON_CHPT_PRICE_REDISCOVERY_2026-09-11.md` | Market Reaction / Derived Metrics / Regime | Promoted to UWBS-020..022 |
+| DISC-006 | 2026-09-12 | Keep D1 as a lightweight hot operational store by incrementally exporting verified bounded history to the local analysis server, then purging only acknowledged/grace-complete historical rows while preserving checkpoint/control truth | `docs/work-management/local-corporate-intelligence/REPORT_D1_HOT_STORE_DRAIN_LIFECYCLE_DESIGN_2026-09-12.md` | L1 / Storage / Operations / Recovery | Promoted to UWBS-023..026 |
+| DISC-007 | 2026-09-15 | Track staged PIPE financing, strategic-investor/governance participation, milestone-triggered follow-on funding, dilution context, and subsequent repricing using PDSB as the composite reference case | `docs/work-management/local-corporate-intelligence/REPORT_PDSB_PIPE_STRATEGIC_INVESTOR_REPRICING_CASE_2026-09-15.md` | Capital Structure / Governance / Market Reaction / I0 | Promoted to UWBS-027..029 |
+| DISC-008 | 2026-09-15 | Decompose AI exposure into foundation/application/security/governance themes and model news-triggered event×theme reaction coefficients, cross-sectional confirmation, theme activation/rotation and historical calibration | `docs/work-management/local-corporate-intelligence/REPORT_AI_THEME_DECOMPOSITION_REACTION_COEFFICIENTS_2026-09-15.md` | Theme Ontology / News Interpretation / Market Reaction / Regime | Promoted to UWBS-030..034 |
+
+When a proposal is accepted for tracking:
+
+1. append a new `UWBS-*` row in the appropriate section;
+2. copy the source report/file/chat decision exactly enough to recover provenance;
+3. define completion condition and dependencies;
+4. mark the Discovery row `Promoted to UWBS-xxx`;
+5. do not delete the original discovery record.
+
+## 9. Add-a-task template
+
+Copy this block when a new idea is raised:
+
+```markdown
+### UWBS-XXX — <short task name>
+
+- Date captured: YYYY-MM-DD
+- Source: `<report/path>` or explicit project decision
+- Status: Captured | Ready for WBS design | Needs source re-link | Needs decomposition | Deferred
+- Proposed package: <existing/new package>
+- Problem / gap:
+- Scope:
+- Explicit non-goals:
+- Dependencies:
+- Completion condition:
+- Required fixtures / acceptance evidence:
+- Security / retention / provider constraints:
+- Candidate final WBS ID: Pending
+- Disposition: Pending
+```
+
+## 10. WBS incorporation procedure
+
+A future WBS revision should review this file row by row and choose exactly one disposition:
+
+- `Incorporate as new task`
+- `Merge with another UWBS item`
+- `Covered by existing WBS`
+- `Move to another project/WBS`
+- `Defer beyond current release`
+- `Reject with reason`
+
+The revision must preserve a mapping table:
+
+| UWBS ID | Final WBS ID / disposition | Revision | Reason |
+|---|---|---|---|
+| UWBS-001 | Pending | — | — |
+| UWBS-002 | Pending | — | — |
+| UWBS-003 | Pending | — | — |
+| UWBS-004 | Pending | — | — |
+| UWBS-005 | Pending | — | — |
+| UWBS-006 | Pending | — | — |
+| UWBS-007 | Pending | — | — |
+| UWBS-008 | Pending | — | — |
+| UWBS-009 | Pending | — | — |
+| UWBS-010 | Pending | — | — |
+| UWBS-011 | Pending | — | — |
+| UWBS-012 | Pending | — | — |
+| UWBS-013 | Pending | — | — |
+| UWBS-014 | Pending | — | — |
+| UWBS-015 | Pending | — | — |
+| UWBS-016 | Pending | — | — |
+| UWBS-017 | Pending | — | — |
+| UWBS-018 | Pending | — | — |
+| UWBS-019 | Pending | — | — |
+| UWBS-020 | Pending | — | — |
+| UWBS-021 | Pending | — | — |
+| UWBS-022 | Pending | — | — |
+| UWBS-023 | Pending | — | — |
+| UWBS-024 | Pending | — | — |
+| UWBS-025 | Pending | — | — |
+| UWBS-026 | Pending | — | — |
+| UWBS-027 | Pending | — | — |
+| UWBS-028 | Pending | — | — |
+| UWBS-029 | Pending | — | — |
+| UWBS-030 | Pending | — | — |
+| UWBS-031 | Pending | — | — |
+| UWBS-032 | Pending | — | — |
+| UWBS-033 | Pending | — | — |
+| UWBS-034 | Pending | — | — |
+
+## 11. Current planning interpretation
+
+This backlog does not authorize remote changes. X0 fixture-path and the complete non-live N1-006 toolchain are accepted; N1-006 itself still requires the real 30-day Alpaca metadata benchmark and measured recall report.
+
+`UWBS-016` is now ready for WBS design but should not be activated before N1-006 supplies real recall/lag evidence that can confirm or adjust the proposed News polling cadence. Worker remains Shadow, and any Worker/Schedule job registration still requires its separately reviewed task/change window.
+
+The TNON / CHPT additions below are design work only. They do not establish trading signals or normative thresholds. Historical fixtures and validation must precede any promotion of catalyst strength, price-discovery persistence, or attention-score thresholds into accepted specification.
+
+The PDSB additions below are also design work only. They do not establish PIPE financing, named-investor participation, or a board appointment as a bullish signal. Announced capacity, completed cash proceeds, contingent milestone funding, security dilution terms, governance participation, and subsequent market reaction must remain separately represented. Price/volume values must be supplied by accepted market-data fixtures before a PDSB repricing classification is promoted into project evidence.
+
+The D1 drain additions are lifecycle/design work only. They do not authorize `L1-003`, remote export, remote purge, Worker mutation, or automatic deletion. `I0-003` remains checkpoint/cursor truth; local archive custody and D1 acquisition state must not be conflated.
+
+The AI-theme additions are design work only. They define a taxonomy and empirical reaction-measurement path, not a trading signal. A news item may activate multiple themes simultaneously, and `AI_SECURITY` / `AI_GOVERNANCE` must not be encoded as permanent opposites of AI growth. Numerical reaction coefficients remain unvalidated until historical calibration is completed.
+
+## 12. Capital structure / catalyst and price-discovery expansion
+
+Source reports:
+
+- `docs/work-management/local-corporate-intelligence/REPORT_TNON_CONVERTIBLE_DEBT_REPAYMENT_CASE_2026-09-11.md`
+- `docs/work-management/local-corporate-intelligence/REPORT_TNON_CHPT_PRICE_REDISCOVERY_2026-09-11.md`
+
+The existing News / SEC work can discover filings and articles, but the newly identified gap is a stateful capital-instrument lifecycle plus a reusable layer that compares a material catalyst with subsequent price/volume behavior. The two layers must remain separate: a capital-structure event is a source-grounded Fact; price rediscovery and catalyst-price divergence are Derived Metric / Interpretation outputs.
+
+| UWBS ID | Proposed task | Proposed package | Completion condition summary | Likely inputs / dependencies | Status | Disposition |
+|---|---|---|---|---|---|---|
+| UWBS-017 | Define stateful Capital Instrument / Convertible Debt lifecycle contract | Capital Structure / I0 | Represent issue, outstanding state, maturity, optional extension, conversion-window opening, conversion formula, required/optional prepayment, partial/full repayment, refinancing and termination as historical state transitions; preserve instrument identity, terms, event/available/accepted times and source provenance | S0 SEC filing records; I0-002/004/005; N1 discovery path; provider/terms gates | Ready for WBS design | Pending |
+| UWBS-018 | Implement maturity/conversion-window Attention and financing-to-debt-resolution linkage | Capital Structure / Attention | Schedule bounded attention from disclosed contractual dates; connect recent financing and explicit use-of-proceeds debt-repayment language to outstanding instruments without asserting repayment before confirmation; expose `DEBT_RESOLUTION_WINDOW` as Interpretation and keep heuristic thresholds configurable / non-normative until validated | UWBS-017; scheduler/calendar primitives; SEC/IR/news acquisition; Fact/Interpretation boundary | Needs decomposition | Pending |
+| UWBS-019 | Model dilution-overhang and capital-structure regime transitions | Capital Structure / Regime | Distinguish instrument-specific overhang creation/reduction/removal from company-wide dilution risk; retain replacement warrants/pre-funded warrants separately; support evidence-backed `CONVERTIBLE_NOTE_DILUTION_OVERHANG_REMOVED` and higher-level capital-structure regime transition without converting it directly into a price prediction | UWBS-017/018; I0 Fact/Derived Metric/Interpretation separation; Regime model | Ready for WBS design | Pending |
+| UWBS-020 | Define catalyst-to-market-reaction observation contract | Market Reaction / Price-Volume | For material source-grounded catalysts, persist fixed-window returns, volume/volatility ratios and session-aware observations across premarket, regular, after-hours and subsequent sessions; preserve catalyst identity and avoid treating OHLCV response as proof of causation | M0/minute bars; session model; I0 history; accepted event taxonomy; volume work | Needs decomposition | Pending |
+| UWBS-021 | Define Price Discovery / Catalyst-Price Divergence interpretation state machine | Derived Metrics / Regime | Distinguish `PRICE_SPIKE`, `PRICE_DISCOVERY_ACTIVE`, `NEW_EQUILIBRIUM_CANDIDATE`, `PRICE_REDISCOVERY_CONFIRMED/FAILED`, `CATALYST_PRICE_DIVERGENCE` and `DELAYED_REPRICING`; base confirmation on persistence/retest/participation rather than peak percentage alone; keep `VALUATION_REGIME_CHANGE` distinct from `COMPANY_REGIME_CHANGE` | UWBS-020; Fact/Derived Metric/Interpretation boundary; Regime specification | Needs decomposition | Pending |
+| UWBS-022 | TNON / CHPT capital-event and price-rediscovery Canary fixtures | Capital Structure + Market Reaction QA | Add reproducible fixtures where TNON validates maturity-window → full repayment → instrument-specific overhang removal → same-session divergence → delayed repricing, while CHPT validates earnings catalyst → extreme participation → multi-session higher-range persistence; include false-positive cases for low-float spike/retrace, offsetting dilution, stronger conflicting news and market-wide movement | UWBS-017..021; historical minute/daily bars; source snapshots permitted by retention rules | Needs decomposition | Pending |
+
+Planning notes:
+
+- TNON is a reference case for capital-structure resolution and delayed repricing, not proof that convertible-debt repayment predicts a positive return.
+- CHPT is a reference case for persistent post-catalyst repricing, not proof that a multi-session market range equals intrinsic fair value.
+- No fixed `+X%`, number-of-hours, or number-of-sessions threshold should become normative from these two examples alone.
+- `DILUTION_RISK_REMOVED` is too broad when replacement warrants or other potential issuance remain outstanding. Instrument-specific state is required.
+- The newswire-vs-SEC latency problem belongs to discovery/confirmation routing; source cost/licensing should be reviewed separately rather than embedded in the Fact model.
+
+## 13. D1 hot-store / local-history drain lifecycle expansion
+
+Source report:
+
+- `docs/work-management/local-corporate-intelligence/REPORT_D1_HOT_STORE_DRAIN_LIFECYCLE_DESIGN_2026-09-12.md`
+
+The current WBS already has export/import primitives under `L1-001..006`, and the operational backlog already has retention/reprocessing (`UWBS-003`) plus backup/restore (`UWBS-004`). The missing scope is the explicit custody-transfer lifecycle that connects them while keeping D1 as a lightweight hot operational store rather than a long-term analytical warehouse.
+
+Target architectural boundary:
+
+```text
+Worker/D1 hot state
+  -> bounded incremental export
+  -> local immutable custody + manifest/hash verification
+  -> local import + quality acceptance
+  -> explicit acknowledgement
+  -> grace period
+  -> bounded purge of eligible D1 history
+```
+
+`I0-003` remains provider/source checkpoint truth. Export acknowledgement must not become a second acquisition cursor, and historical purge must not delete current checkpoint/cursor/lease/schema state.
+
+| UWBS ID | Proposed task | Proposed package | Completion condition summary | Likely inputs / dependencies | Status | Disposition |
+|---|---|---|---|---|---|---|
+| UWBS-023 | Define D1 hot-store / local-history retention contract | L1 / Storage / Operations | Classify D1 rows into current control state, hot acquired data, acceptance/idempotency evidence, operational evidence and exception/blocker state; define authoritative store, configurable retention/grace policy and purge eligibility; explicitly separate acquisition lookback from deletion eligibility | L1-001..006; I0-003/004; UWBS-002/003/004; current D1 schema | Incorporated | R0-006 |
+| UWBS-024 | Implement bounded incremental D1 export and custody manifest | L1 export / Local ingestion | Export explicit half-open table/source/time windows with generation ID, source environment/database identity, schema/source revision, row count, size/hash and local destination; retries are idempotent; steady-state path does not repeatedly full-scan/download all history | UWBS-023; L1-001/002/003/004; local catalog/import path; remote export remains change-window gated | Incorporated | R0-007 |
+| UWBS-025 | Implement export acknowledgement and bounded D1 purge lifecycle | Operations / Retention | Implement `PLANNED -> EXPORTED -> HASH_VERIFIED -> IMPORTED -> QUALITY_ACCEPTED -> ACKNOWLEDGED -> GRACE -> PURGE_ELIGIBLE -> PURGED`; dry-run shows bounded purge candidates; purge requires verified local custody and preserves checkpoint/control truth; purge retry is idempotent and bounded | UWBS-023/024; L1-005; UWBS-003; I0-003; Packet D/UWBS-002 evidence boundary | Incorporated | R0-008 |
+| UWBS-026 | D1 drain lifecycle acceptance and failure fixtures | Storage / Recovery QA | Fixtures cover Local unavailable/backlog growth, export failure/retry, hash mismatch, duplicate export, import/quality block, update after earlier export, purge failure/retry, checkpoint preservation, unresolved retention blocker, local queryability after D1 purge and bounded D1 budget behavior | UWBS-023..025; UWBS-004 backup/restore remains separate | Incorporated | R0-009 |
+
+Planning notes:
+
+- `ACQUISITION_RETENTION_MINUTES` or another lookback value is not deletion proof. Purge requires explicit verified custody/ACK state.
+- Do not freeze 24h/7d/30d durations from the design discussion alone; use measured D1 size/read/write cost, incident-response needs and replay requirements.
+- Export/archive is not automatically a complete backup. `UWBS-004` remains independently required for disaster-recovery generation and restore drills.
+- Initial mutation path should remain operator/CLI controlled. Scheduled automatic drain/purge should be a later promotion after bounded dry-run/execute and recovery tests are accepted.
+- No remote D1 export or purge is authorized by these backlog rows.
+
+## 14. PDSB staged PIPE / strategic-investor / milestone-financing expansion
+
+Source report:
+
+- `docs/work-management/local-corporate-intelligence/REPORT_PDSB_PIPE_STRATEGIC_INVESTOR_REPRICING_CASE_2026-09-15.md`
+
+PDSB adds a composite financing case that is not covered by the existing convertible-debt-resolution reference alone. The event contains new dilution exposure and new liquidity at the same time, while also adding named strategic-investor participation, governance involvement, and a contingent milestone tranche. The price-reaction layer should reuse `UWBS-020/021`; this section adds only the missing upstream event structure and a PDSB-specific acceptance fixture.
+
+| UWBS ID | Proposed task | Proposed package | Completion condition summary | Likely inputs / dependencies | Status | Disposition |
+|---|---|---|---|---|---|---|
+| UWBS-027 | Define staged private-financing / milestone-closing lifecycle contract | Capital Structure / I0 / SEC-IR | Represent financing announcement, expected initial close, completed initial close, contingent milestone close, milestone trigger satisfaction, milestone close completion/failure/expiry, security terms and actually closed proceeds as distinct historical states; preserve event/available/accepted times and source provenance; never count a contingent tranche as received cash | I0-002/004/005; N1 discovery; SEC/IR sources; UWBS-017/019 capital-structure semantics | Ready for WBS design | Pending |
+| UWBS-028 | Model strategic-investor / governance financing context | Capital Structure + Governance / Interpretation | Capture lead-investor identity, explicit board-designation rights, effective director appointment and explicit collaboration/program-design rights as Facts; define any strategic-financing or governance-validation score only as Interpretation, with no automatic bullish or clinical-success implication | UWBS-027; I0 Fact/Derived Metric/Interpretation boundary; corporate-governance/IR/SEC evidence | Needs decomposition | Pending |
+| UWBS-029 | PDSB composite financing-to-repricing Canary fixture | Capital Structure + Market Reaction QA | Add deterministic September 8 announcement → September 14 initial-closing fixture; compare closed cash, financing terms, dilution instruments and staged milestone state, then route accepted market bars through UWBS-020/021; include false positives for announced-but-unclosed financing, unmet milestone, strategic investor without governance role, dilution-dominated retrace and spike/rejection | UWBS-027/028; UWBS-020/021; accepted historical minute/daily bars; retained source snapshots permitted by policy | Needs decomposition | Pending |
+
+Proposed CP relationship:
+
+```text
+UWBS-027
+  +--> UWBS-028
+  +--> UWBS-029
+
+UWBS-020 + UWBS-021
+  +--> UWBS-029
+```
+
+Planning notes:
+
+- `UWBS-027` is the upstream contract candidate. `UWBS-029` is not acceptance-ready until both the staged-financing contract and the existing market-reaction / price-discovery interfaces are available.
+- This dependency chain is a **CP candidate only** and is not part of the normative project critical path until a formal WBS/CP revision incorporates it.
+- The September 8 announced maximum financing amount and the September 14 completed gross proceeds are different states and must not be collapsed.
+- The financing unit price is an observed transaction term, not a guaranteed market floor, fair value, or price target.
+- Price / volume reaction remains an empirical market-data question. This backlog addition does not hard-code the web-observed PDSB move as a Fact.
+- No live provider activation, remote mutation, or trading action is authorized by these rows.
+
+## 15. AI theme decomposition / event-theme reaction expansion
+
+Source report:
+
+- `docs/work-management/local-corporate-intelligence/REPORT_AI_THEME_DECOMPOSITION_REACTION_COEFFICIENTS_2026-09-15.md`
+
+The current project can classify company/news context and observe price reaction, but it does not yet have a reusable theme ontology that separates structurally different AI exposures or an empirical layer that measures how event classes activate or rotate capital between those themes. This expansion treats the news/event as source-grounded evidence, company-theme exposure as maintained classification, and reaction coefficients/theme activation as Derived Metric / Interpretation outputs.
+
+Initial AI theme decomposition:
+
+```text
+AI
+  +-- AI_FOUNDATION
+  |    +-- compute / accelerator
+  |    +-- memory / interconnect
+  |    +-- datacenter / power / cooling
+  +-- AI_APPLICATION
+  |    +-- enterprise/software AI
+  |    +-- PHYSICAL_AI / robotics / autonomous systems
+  +-- AI_SECURITY
+  |    +-- cyber defense
+  |    +-- identity / endpoint / cloud / agent security
+  +-- AI_GOVERNANCE
+       +-- safety / audit / control
+       +-- compliance / liability / model governance
+```
+
+`DEFENSE_INDUSTRIAL` remains a distinct non-AI theme that may overlap with `AI_APPLICATION/PHYSICAL_AI`; for example an autonomous military platform can carry both theme exposures. `AI_SECURITY` and `AI_GOVERNANCE` are not permanently anti-AI themes: structurally they can benefit from AI adoption, while particular news regimes can create short-run rotation away from AI foundation/growth exposure and toward security/governance.
+
+| UWBS ID | Proposed task | Proposed package | Completion condition summary | Likely inputs / dependencies | Status | Disposition |
+|---|---|---|---|---|---|---|
+| UWBS-030 | Define AI / adjacent theme ontology and multi-theme exposure contract | Theme Ontology / I0 / Company classification | Define versioned theme IDs and parent/child relationships for `AI_FOUNDATION`, `AI_APPLICATION`, `PHYSICAL_AI`, `AI_SECURITY`, `AI_GOVERNANCE` and adjacent `DEFENSE_INDUSTRIAL`; allow one company/security to hold multiple evidence-backed exposures with role/strength/provenance; distinguish structural exposure from temporary market narrative | Company classification/Regime work; News taxonomy; I0 history/provenance | Ready for WBS design | Pending |
+| UWBS-031 | Define event × theme reaction-coefficient contract | News Interpretation / Derived Metrics | Map accepted event classes such as AI acceleration, AI safety/growth concern, major cyberattack, AI-enabled attack, regulation/liability/control failure, war escalation/de-escalation and defense procurement to candidate theme directions; represent initial strength as categorical/uncalibrated rather than invented numeric coefficients; preserve event identity, evidence and uncertainty | UWBS-030; N1 event taxonomy; Fact/Derived Metric/Interpretation boundary | Ready for WBS design | Pending |
+| UWBS-032 | Implement cross-sectional theme reaction observation and confirmation | Market Reaction / Theme analytics | For each candidate event-theme activation, observe a defined theme basket across session-aware return, abnormal volume, breadth, median/trimmed reaction, persistence and relevant control baskets; distinguish one-stock idiosyncratic repricing from multi-name theme response and avoid treating correlation as causal proof | UWBS-020 catalyst-reaction observations; UWBS-030/031; minute/daily bars; universe/theme membership | Needs decomposition | Pending |
+| UWBS-033 | Define theme activation / rotation / repricing interpretation state machine | Regime / Theme Interpretation | Produce evidence-backed states such as `THEME_ACTIVATION_CANDIDATE`, `THEME_ACTIVATION_CONFIRMED`, `THEME_ROTATION_CANDIDATE`, `THEME_ROTATION_CONFIRMED`, `THEME_REPRICING_CANDIDATE` and rejection/unknown states; support temporary opposition such as foundation down/security up without encoding permanent antagonism; link but do not collapse into company-level `PRICE_REDISCOVERY` or `COMPANY_REGIME_CHANGE` | UWBS-031/032; UWBS-021 price discovery; Regime model | Needs decomposition | Pending |
+| UWBS-034 | Historical calibration and Canary fixtures for event-theme reaction coefficients | Theme QA / Historical analysis | Build reproducible positive/negative/control cases for cyberattack→security, AI-safety concern→security/governance, AI-acceleration→foundation/application, war escalation→defense-industrial and mixed/contradictory events; estimate empirical coefficient distributions by window/market regime, validate persistence/breadth thresholds and retain UNKNOWN where evidence is insufficient; SentinelOne/peer security episode may be evaluated as a candidate fixture but not frozen without accepted data | UWBS-030..033; UWBS-020/021; accepted historical price/news data; retention/provider constraints | Needs decomposition | Pending |
+
+Proposed CP relationship:
+
+```text
+UWBS-030
+  -> UWBS-031
+  -> UWBS-032
+  -> UWBS-033
+  -> UWBS-034
+
+UWBS-020
+  +-> UWBS-032
+  +-> UWBS-034
+
+UWBS-021
+  +-> UWBS-033
+  +-> UWBS-034
+```
+
+Planning notes:
+
+- News/event facts and observed market bars remain Facts; event-theme coefficients, theme activation and rotation remain Derived Metric / Interpretation outputs.
+- Do not assign fixed numeric values such as `+0.8` until historical calibration establishes distributions and uncertainty. Initial directional buckets may be used only as provisional interpretation labels.
+- A theme can react positively to more than one apparently opposite event class. Example: AI security may benefit from both rapid AI adoption and AI safety/cyber-risk concerns through different causal hypotheses; these hypotheses must remain explicit.
+- `DEFENSE_INDUSTRIAL + WAR_ESCALATION` is a candidate positive relationship, not a universal rule. Procurement exposure, geography, contract structure, sanctions and market-wide risk-off effects can contradict it.
+- Theme activation requires cross-sectional confirmation where possible. A single stock move should remain company-specific until peer breadth/persistence supports the higher-level interpretation.
+- Theme rotation and theme repricing are not interchangeable. Rotation may be a short-lived relative flow event; repricing implies more persistent acceptance of a changed theme valuation regime.
+- No trading action, live provider activation, or normative portfolio allocation rule is authorized by these rows.
+
+
+## 16. LVWR listing-compliance / price-rediscovery extension
+
+Source report:
+
+- `docs/work-management/local-corporate-intelligence/REPORT_TNON_CHPT_PRICE_REDISCOVERY_2026-09-11.md` (LVWR extension added 2026-09-19)
+
+LVWR adds a case where an exchange continued-listing deficiency and an earnings catalyst coexist, and the market repricing subsequently removes the listing-price deficiency. The compliance state and the market-reaction state must remain separate. In particular, a later calendar date must not be labeled as a new delisting-avoidance catalyst when the exchange has already confirmed restored compliance.
+
+| UWBS ID | Proposed task | Proposed package | Completion condition summary | Likely inputs / dependencies | Status | Disposition |
+|---|---|---|---|---|---|---|
+| UWBS-035 | LVWR exchange-listing-compliance / earnings-repricing Canary extension | Corporate Action / Instrument lifecycle + Market Reaction QA | Add a reproducible fixture covering NYSE minimum-price deficiency notice -> independent Q2 earnings catalyst -> large positive repricing -> rolling-average price recovery -> explicit compliance restoration -> later momentum continuation; verify that the system does not manufacture a new delisting event from a 30-day calendar coincidence and does not infer compliance restoration from spot price alone | UWBS-020/021; exchange/SEC/IR source ingestion; security/instrument lifecycle semantics; accepted daily/minute bars | Needs decomposition | Pending |
+
+Proposed CP relationship:
+
+```text
+exchange-listing / instrument-lifecycle Fact support
+  + UWBS-020 catalyst-to-market-reaction observation
+  + UWBS-021 price-discovery interpretation
+       -> UWBS-035 LVWR fixture
+```
+
+Planning notes:
+
+- This is a **CP candidate only** until incorporated into the normative WBS/CP.
+- The exchange deficiency, cure window and compliance-restoration notice are source-grounded Facts; `LISTING_OVERHANG_REMOVED` is an Interpretation.
+- The July earnings reaction and later exchange-compliance restoration are causally related through price persistence but are not the same event.
+- A spot close above $1 is insufficient to assert restored compliance where the exchange rule depends on a rolling average and/or explicit exchange confirmation.
+- The September continuation should be treated as an empirical price-discovery / momentum question unless a new source-grounded catalyst is found.
+- No trading action or live-provider activation is authorized by this backlog row.
+
+
+## 17. Crypto macro-leader / derivatives context expansion
+
+Source report:
+
+- `docs/work-management/local-corporate-intelligence/REPORT_CRYPTO_MACRO_LEADER_DERIVATIVES_CONTEXT_2026-09-19.md`
+
+The current A0 lane already captures rates, FX, carry/deleveraging context and BTC as a cross-market series. The missing scope exposed by the 2026-09-18..19 NEAR/BTC case is crypto-specific: derivatives positioning, BTC institutional-flow context, BTC-to-altcoin leader/follower decomposition, 24/7 weekend liquidity windows, and explicit macro/news -> BTC -> altcoin transmission validation.
+
+| UWBS ID | Proposed task | Proposed package | Completion condition summary | Likely inputs / dependencies | Status | Disposition |
+|---|---|---|---|---|---|---|
+| UWBS-036 | Define crypto derivatives Fact / Derived Metric contract | A0 / Crypto Market Structure / I0 | Define source-neutral OI, funding, basis, derivatives-volume and long/short-liquidation observations with event/as-of/provenance semantics; derive bounded change/imbalance metrics; never infer trader identity or literal net capital flow from aggregate derivatives values | A0-003..017; I0 Fact/Derived Metric boundary; provider/terms gates | Ready for WBS design | Pending |
+| UWBS-037 | Define BTC macro-leader / altcoin relative-context model | A0 / Cross-Market / Crypto analytics | Treat BTC as configurable crypto leader proxy; compute target-vs-BTC relative return, lagged response, breadth/beta context and divergence evidence; distinguish BTC-led market beta from target-specific repricing without converting correlation into causal Fact | UWBS-036; A0 macro context; UWBS-020/021 market reaction | Ready for WBS design | Pending |
+| UWBS-038 | Survey BTC institutional-flow / market-structure sources | Provider contracts / A0 | Survey acceptable spot BTC ETF-flow, CME futures/OI/basis and selected spot-market context sources; record terms, latency, history, revision behavior, cost and fallback boundary; no live activation | UWBS-037 data needs; existing provider/security/terms gates | Ready for WBS design | Pending |
+| UWBS-039 | Define 24/7 crypto time-window / weekend-liquidity contract | Scheduler / Market Context / A0 | Represent continuous UTC observations plus Asia/Europe/U.S. analysis windows, weekend flags and traditional-market boundary context; preserve that geographic windows are timing context and do not identify participant nationality | Market/session contracts; UWBS-036/037; calendar semantics | Ready for WBS design | Pending |
+| UWBS-040 | NEAR/BTC multi-layer Canary and false-positive suite | Cross-Market QA / Market Reaction | Replay 2026-09-18..19 using macro/news, BTC, NEAR spot, OI, funding and liquidation layers; distinguish local positioning from higher-level transmission; include false positives for isolated OI/funding moves, BTC-only moves, target-specific catalyst dominance, weekend thin-liquidity jumps and liquidation-vs-new-position confusion | UWBS-036..039; A0-003..017; UWBS-020/021; retained/accepted historical data | Needs decomposition | Pending |
+
+Planning notes:
+
+- This extension does not add crypto assets to the normative U.S.-equity Universe.
+- BTC-led propagation, leverage buildup/washout, short squeeze and long-liquidation cascade remain Interpretation candidates unless directly established by stronger source evidence.
+- OI growth is not synonymous with new long capital; liquidation volume is not synonymous with newly opened opposite-side positions.
+- Asia/Europe/U.S. windows are time buckets only and must not be used to infer trader nationality.
+- For ordinary equity v0.1 completion this lane is non-blocking; for crypto-linked equities or direct crypto analysis it becomes materially higher priority.
