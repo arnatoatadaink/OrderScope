@@ -408,3 +408,28 @@ Planning notes:
 - A spot close above $1 is insufficient to assert restored compliance where the exchange rule depends on a rolling average and/or explicit exchange confirmation.
 - The September continuation should be treated as an empirical price-discovery / momentum question unless a new source-grounded catalyst is found.
 - No trading action or live-provider activation is authorized by this backlog row.
+
+
+## 17. Crypto macro-leader / derivatives context expansion
+
+Source report:
+
+- `docs/work-management/local-corporate-intelligence/REPORT_CRYPTO_MACRO_LEADER_DERIVATIVES_CONTEXT_2026-09-19.md`
+
+The current A0 lane already captures rates, FX, carry/deleveraging context and BTC as a cross-market series. The missing scope exposed by the 2026-09-18..19 NEAR/BTC case is crypto-specific: derivatives positioning, BTC institutional-flow context, BTC-to-altcoin leader/follower decomposition, 24/7 weekend liquidity windows, and explicit macro/news -> BTC -> altcoin transmission validation.
+
+| UWBS ID | Proposed task | Proposed package | Completion condition summary | Likely inputs / dependencies | Status | Disposition |
+|---|---|---|---|---|---|---|
+| UWBS-036 | Define crypto derivatives Fact / Derived Metric contract | A0 / Crypto Market Structure / I0 | Define source-neutral OI, funding, basis, derivatives-volume and long/short-liquidation observations with event/as-of/provenance semantics; derive bounded change/imbalance metrics; never infer trader identity or literal net capital flow from aggregate derivatives values | A0-003..017; I0 Fact/Derived Metric boundary; provider/terms gates | Ready for WBS design | Pending |
+| UWBS-037 | Define BTC macro-leader / altcoin relative-context model | A0 / Cross-Market / Crypto analytics | Treat BTC as configurable crypto leader proxy; compute target-vs-BTC relative return, lagged response, breadth/beta context and divergence evidence; distinguish BTC-led market beta from target-specific repricing without converting correlation into causal Fact | UWBS-036; A0 macro context; UWBS-020/021 market reaction | Ready for WBS design | Pending |
+| UWBS-038 | Survey BTC institutional-flow / market-structure sources | Provider contracts / A0 | Survey acceptable spot BTC ETF-flow, CME futures/OI/basis and selected spot-market context sources; record terms, latency, history, revision behavior, cost and fallback boundary; no live activation | UWBS-037 data needs; existing provider/security/terms gates | Ready for WBS design | Pending |
+| UWBS-039 | Define 24/7 crypto time-window / weekend-liquidity contract | Scheduler / Market Context / A0 | Represent continuous UTC observations plus Asia/Europe/U.S. analysis windows, weekend flags and traditional-market boundary context; preserve that geographic windows are timing context and do not identify participant nationality | Market/session contracts; UWBS-036/037; calendar semantics | Ready for WBS design | Pending |
+| UWBS-040 | NEAR/BTC multi-layer Canary and false-positive suite | Cross-Market QA / Market Reaction | Replay 2026-09-18..19 using macro/news, BTC, NEAR spot, OI, funding and liquidation layers; distinguish local positioning from higher-level transmission; include false positives for isolated OI/funding moves, BTC-only moves, target-specific catalyst dominance, weekend thin-liquidity jumps and liquidation-vs-new-position confusion | UWBS-036..039; A0-003..017; UWBS-020/021; retained/accepted historical data | Needs decomposition | Pending |
+
+Planning notes:
+
+- This extension does not add crypto assets to the normative U.S.-equity Universe.
+- BTC-led propagation, leverage buildup/washout, short squeeze and long-liquidation cascade remain Interpretation candidates unless directly established by stronger source evidence.
+- OI growth is not synonymous with new long capital; liquidation volume is not synonymous with newly opened opposite-side positions.
+- Asia/Europe/U.S. windows are time buckets only and must not be used to infer trader nationality.
+- For ordinary equity v0.1 completion this lane is non-blocking; for crypto-linked equities or direct crypto analysis it becomes materially higher priority.
