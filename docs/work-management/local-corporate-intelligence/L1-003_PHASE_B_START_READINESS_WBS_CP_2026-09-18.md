@@ -5,7 +5,7 @@ Date: 2026-09-18 JST
 Parent WBS: `docs/WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md` (`L1-003`)
 Parent CP: `docs/WORK_PLAN_LOCAL_CORPORATE_INTELLIGENCE_CRITICAL_PATH_2026-09-05.md`
 Recovery plan: `L1-003_PHASE_B_PREREQUISITE_MARKET_RECOVERY_SCHEDULE_2026-09-16.md`
-Latest evidence: `L1-003_PB05_HANDOFF_BOUNDARY_GATE_ASSESSMENT_2026-09-18.md`
+Latest evidence: `L1-003_PB04_NVDA_SEP08_CAMPAIGN_ACCEPTANCE_2026-09-18.md`
 
 ## 1. Objective and authority boundary
 
@@ -58,8 +58,8 @@ campaign. A stale fixed count cannot establish readiness.
 | PB-01 | Re-freeze recovery target | Authoritative calendar, current UTC, 24-hour retention floor, last completed session and earliest valid normal-scheduler range captured | PB-00; read-only only | Repeated at PB-04 entry — target remains September 16 close |
 | PB-02 | Select bounded continuation campaign shape | Reviewed choice between repeated one-chunk windows and a separately implemented session-bounded driver; explicit maximum jobs/pages/bars/external/D1 ops and stop-after-each-chunk verification | PB-01; no remote mutation | Done — one-session operator campaign selected |
 | PB-03 | Accept continuation mechanism locally | Deterministic planning, checkpoint re-read/CAS, failure stop, replay closure, budget and full regression evidence | PB-02 | Done — local campaign driver accepted |
-| PB-04 | Execute bounded historical campaign | Every chunk has separate frozen identity and accepted-record evidence; no unexplained checkpoint movement; safe gate removal after each authorized window | PB-03; separate change-window authority | In progress — September 4 campaign accepted; checkpoint v14; next session September 8 separately gated |
-| PB-05 | Establish handoff boundary | Checkpoint is contiguous through the frozen boundary and the next expected range is wholly inside normal retention; no missing/conflict/rejected/blocker state | PB-04 | Blocked — read-only assessment found v14 at September 4 close, 2,730 bars before the September 16 boundary |
+| PB-04 | Execute bounded historical campaign | Every chunk has separate frozen identity and accepted-record evidence; no unexplained checkpoint movement; safe gate removal after each authorized window | PB-03; separate change-window authority | In progress — September 4 and 8 campaigns accepted; checkpoint v18; next session September 9 separately gated |
+| PB-05 | Establish handoff boundary | Checkpoint is contiguous through the frozen boundary and the next expected range is wholly inside normal retention; no missing/conflict/rejected/blocker state | PB-04 | Blocked — checkpoint v18 at September 8 close, 2,340 bars before the current September 16 boundary |
 | PB-06 | Normal-scheduler handoff | Unchanged scheduler plans and accepts the exact next range; checkpoint advances only from accepted bars; control PASS and within budget | PB-05; separate scheduler activation authority | Gated |
 | PB-07 | Stability observation | At least two consecutive eligible scheduler opportunities advance the same coverage cleanly; no unresolved state or budget/control regression | PB-06; active U.S. session | Gated |
 | PB-08 | Freeze Phase B entry packet | `checkpoint_before_pause`, deployment/config/calendar/universe identity, pause duration, exact-gap expectation, rollback and stop criteria recorded | PB-07 | Gated |
@@ -150,8 +150,15 @@ NVDA Regular bars in `[2026-09-04T20:00:00Z, 2026-09-16T20:00:00Z)`, leaving
 seven sessions / 2,730 bars before the frozen boundary. See
 `L1-003_PB05_HANDOFF_BOUNDARY_GATE_ASSESSMENT_2026-09-18.md`.
 
-PB-05 is therefore blocked on PB-04, not complete. Repeat the read-only entry
-check, freeze the exact September 8 session identities from checkpoint version
-14, and obtain a separate change-window authorization for that one-session
-campaign. Do not cross sessions automatically. Re-freeze the boundary if the
-moving retention horizon changes before completion.
+The separately authorized September 8 PB-04 campaign subsequently completed
+4/4 chunks, 390 INSERTED bars and zero conflict/rejected/missing evidence. The
+checkpoint is now version 18 at `2026-09-08T20:00:00.000Z`; the final Worker is
+Shadow, News is disabled, the recovery endpoint is 404 and the temporary
+control secret is absent. See
+`L1-003_PB04_NVDA_SEP08_CAMPAIGN_ACCEPTANCE_2026-09-18.md`.
+
+PB-05 remains blocked on PB-04. Repeat the read-only entry check, freeze the
+exact September 9 session identities from checkpoint version 18, and obtain a
+separate change-window authorization for that one-session campaign. Do not
+cross sessions automatically. Re-freeze the boundary if the moving retention
+horizon changes before completion.
