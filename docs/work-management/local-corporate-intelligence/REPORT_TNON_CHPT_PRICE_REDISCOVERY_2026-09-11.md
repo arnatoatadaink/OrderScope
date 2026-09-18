@@ -2,7 +2,7 @@
 
 Status: **Research / design input — not normative specification**
 Date: 2026-09-11
-Symbols: `TNON`, `CHPT`
+Symbols: `TNON`, `CHPT`, `LVWR`
 Related TNON report: `docs/work-management/local-corporate-intelligence/REPORT_TNON_CONVERTIBLE_DEBT_REPAYMENT_CASE_2026-09-11.md`
 Related backlog: `docs/work-management/local-corporate-intelligence/WBS_UNREFLECTED_TASK_BACKLOG_2026-09-10.md`
 
@@ -12,6 +12,7 @@ This report compares two recent sharp repricing cases to define a reusable Order
 
 - `CHPT`: operating / fundamental revaluation after fiscal Q2 2027 results.
 - `TNON`: capital-structure revaluation after removal of discounted convertible-note overhang.
+- `LVWR`: earnings-led repricing that also removed an exchange minimum-price compliance overhang.
 
 The cases are deliberately not treated as identical. They share a market-reaction pattern class, while the underlying catalyst class differs.
 
@@ -317,7 +318,124 @@ The implementation must include cases where:
 - market-wide movement explains most of the apparent repricing;
 - price remains high for one session but fails the multi-session persistence criterion.
 
-## 14. WBS-unreflected work linkage
+## 14. LVWR — earnings repricing plus listing-compliance overhang removal
+
+### 14.1 Catalyst and listing-compliance facts
+
+LiveWire Group provides a useful third case because the market catalyst and the exchange-compliance state were related but not identical events.
+
+On July 23, 2026, LiveWire disclosed that NYSE had notified the company that it was below the continued-listing minimum share-price criterion after its average closing price over a consecutive 30-trading-day period fell below $1.00. This was a compliance deficiency with a cure period, not an immediate delisting event.
+
+The company also reported Q2 2026 results on July 23. Company-reported highlights included revenue of approximately $9.1M, up 55% year-over-year, while operating and net losses remained substantial. The following session produced an exceptionally large positive repricing.
+
+On August 3, 2026, NYSE notified LiveWire that it had regained compliance based on the 30-trading-day average closing price through July 31; LiveWire publicly announced the regained-compliance status on August 10.
+
+Sources:
+
+- SEC / July 23 listing-compliance disclosure: https://www.sec.gov/Archives/edgar/data/1898795/000189879526000078/lvwr-20260723.htm
+- LiveWire Q2 2026 results: https://investor.livewire.com/news-events-1/news/news-details/2026/LiveWire-Group-Inc--Reports-2026-Second-Quarter-Financial-Results/default.aspx
+- LiveWire regained-compliance announcement: https://investor.livewire.com/news-events-1/news/news-details/2026/LiveWire-Group-Regains-Compliance-with-NYSE-Continued-Listing-Standards/default.aspx
+
+### 14.2 Event-chain interpretation
+
+The important modeling distinction is:
+
+```text
+LISTING_COMPLIANCE_DEFICIENCY
+  + EARNINGS_CATALYST
+        ↓
+LARGE POSITIVE REPRICING
+        ↓
+30-DAY AVERAGE PRICE RECOVERS
+        ↓
+LISTING_COMPLIANCE_RESTORED
+        ↓
+POST-EVENT PRICE_DISCOVERY
+```
+
+The July 23 earnings release is the primary observed market catalyst. Regaining NYSE compliance was a later consequence of the sustained price recovery and should not be modeled as though the September move were caused by a new "30th-day delisting event."
+
+For OrderScope, the source-grounded states should therefore remain separate:
+
+```text
+EXCHANGE_LISTING_DEFICIENCY
+EXCHANGE_LISTING_CURE_WINDOW
+EXCHANGE_LISTING_COMPLIANCE_RESTORED
+```
+
+from the market interpretation states:
+
+```text
+PRICE_DISCOVERY_ACTIVE
+NEW_EQUILIBRIUM_CANDIDATE
+PRICE_REDISCOVERY_CONFIRMED / FAILED
+```
+
+### 14.3 September follow-through
+
+By mid-September, LVWR again showed a multi-session rise with expanding participation, including a sharp September 17 move. No new exchange-compliance event was identified that explains this move as a fresh delisting-avoidance catalyst.
+
+The current interpretation is therefore:
+
+```text
+July:
+  earnings catalyst
+  + listing-risk overhang
+  -> large repricing
+  -> compliance restoration
+
+August:
+  post-event range formation / equilibrium search
+
+September:
+  renewed momentum inside the post-July repricing regime
+  -> possible continuation of price discovery
+  -> not a distinct delisting event on current evidence
+```
+
+This distinction matters because a mechanical date count after the original notice can create a false causal label. The relevant NYSE rule uses the rolling 30-trading-day average and the company had already disclosed restored compliance in August.
+
+### 14.4 Reusable design lesson
+
+LVWR extends the existing CHPT/TNON model with an event-chain where a market repricing changes a regulatory/listing state.
+
+Candidate representation:
+
+```text
+source facts:
+  earnings_event
+  exchange_listing_deficiency
+  exchange_listing_compliance_restored
+
+derived observations:
+  abnormal_return
+  abnormal_volume
+  rolling_average_price_recovery
+  persistence_above_old_range
+
+interpretation:
+  PRICE_DISCOVERY_ACTIVE
+  LISTING_OVERHANG_REMOVED
+  NEW_EQUILIBRIUM_CANDIDATE
+```
+
+`LISTING_OVERHANG_REMOVED` must remain an Interpretation derived from an explicit exchange-compliance restoration Fact. It must not be inferred only because the share price temporarily trades above $1.
+
+### 14.5 Canary / false-positive requirements
+
+A future LVWR fixture should verify that the system can:
+
+- ingest the exchange deficiency notice as a distinct Fact;
+- ingest the earnings catalyst independently;
+- observe the large post-earnings repricing;
+- ingest the later explicit NYSE compliance-restoration notice;
+- avoid creating a second "delisting avoided" event from a calendar-count coincidence;
+- distinguish a September momentum continuation from a new listing-compliance catalyst;
+- reject false positives where price briefly exceeds $1 but the required rolling-average criterion or explicit restoration evidence is absent.
+
+Dependencies should reuse `UWBS-020` and `UWBS-021` rather than creating a second market-reaction framework.
+
+## 15. WBS-unreflected work linkage
 
 This report is the source document for backlog items covering:
 
@@ -325,11 +443,12 @@ This report is the source document for backlog items covering:
 - `CATALYST_PRICE_DIVERGENCE` / `DELAYED_REPRICING` interpretation;
 - price-spike vs price-rediscovery state model;
 - valuation-regime linkage while preserving separation from `COMPANY_REGIME_CHANGE`;
-- CHPT / TNON Canary fixtures and historical threshold validation.
+- CHPT / TNON Canary fixtures and historical threshold validation;
+- LVWR listing-compliance / earnings-repricing chain and false-causality rejection fixture.
 
 See the `Capital structure / catalyst and price-discovery expansion` section added to `WBS_UNREFLECTED_TASK_BACKLOG_2026-09-10.md`.
 
-## 15. Unresolved items
+## 16. Unresolved items
 
 - No normative duration / number-of-sessions threshold for `PRICE_REDISCOVERY_CONFIRMED` is established yet.
 - Intraday high-volume price-node calculations require the project's minute-bar dataset; daily OHLCV alone is insufficient.
