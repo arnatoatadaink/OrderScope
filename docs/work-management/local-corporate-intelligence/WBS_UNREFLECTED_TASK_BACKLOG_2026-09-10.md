@@ -433,3 +433,30 @@ Planning notes:
 - OI growth is not synonymous with new long capital; liquidation volume is not synonymous with newly opened opposite-side positions.
 - Asia/Europe/U.S. windows are time buckets only and must not be used to infer trader nationality.
 - For ordinary equity v0.1 completion this lane is non-blocking; for crypto-linked equities or direct crypto analysis it becomes materially higher priority.
+
+
+## 18. Crypto futures / perpetual position tracking implementation
+
+Source report:
+
+- `docs/work-management/local-corporate-intelligence/REPORT_FUTURES_POSITION_READING_AND_CRYPTO_DERIVATIVES_COLLECTION_2026-09-20.md`
+
+This section decomposes the implementation work that remains after `UWBS-036` defines the source-neutral crypto-derivatives Fact / Derived Metric contract. The missing work is operational tracking: multi-venue acquisition, durable time-series retention, position-zone reconstruction, and acceptance replay.
+
+| UWBS ID | Proposed task | Proposed package | Completion condition summary | Likely inputs / dependencies | Status | Disposition |
+|---|---|---|---|---|---|---|
+| UWBS-041 | Implement multi-venue futures/perpetual acquisition adapters | Crypto Market Structure / Provider adapters | Implement source-neutral adapters for at least Binance, Bybit and Hyperliquid OI, funding, mark/index price, basis/premium and derivatives volume; preserve venue/product/margin/quote identity, source timestamps, retrieval timestamps, provider revision and explicit missing fields; one venue failure must not silently contaminate aggregate state | UWBS-036; provider/terms/security gates; I0-003/004 checkpoint/idempotency patterns | Ready for WBS design | Pending |
+| UWBS-042 | Implement durable derivatives snapshot archive and catch-up lifecycle | Crypto Market Structure / Storage / Operations | Persist periodic OI/funding/basis snapshots and liquidation buckets with bounded catch-up, provider-specific retention awareness, duplicate-safe ingestion and local archival from first observation; define D1 hot-state vs local-history custody without treating provider history as authoritative long-term storage | UWBS-036/041; L1/R0 custody patterns; provider retention limits | Ready for WBS design | Pending |
+| UWBS-043 | Implement liquidation normalization and cascade metrics | Crypto Market Structure / Derived Metrics | Normalize long/short liquidation data from exchange-native events or provider buckets without fabricating missing event detail; derive bounded 1m/5m/15m liquidation totals, imbalance and cascade candidates; preserve that liquidation is forced exit, not opposite-side position opening | UWBS-036/041/042; provider-specific liquidation availability; Fact/Derived Metric boundary | Ready for WBS design | Pending |
+| UWBS-044 | Implement price-zone OI retention / Position Map analysis | Crypto Market Structure / Local analysis | Build versioned price buckets that associate OI additions/removals with funding-at-build and subsequent long/short liquidations; estimate OI retention after price leaves a build zone; emit support/resistance/squeeze candidates only as Derived Metric / Interpretation with confidence and contradiction evidence | UWBS-036/042/043; spot/mark price history; local heavy-analysis path | Needs decomposition | Pending |
+| UWBS-045 | Add cross-venue divergence and data-quality guards | Crypto Market Structure / QA | Detect venue concentration, cross-venue OI/funding dispersion, stale feeds, discontinuities, contract-definition changes and provider anomalies; require aggregate interpretations to expose whether movement is broad-market or single-venue; include fail-closed behavior for malformed timestamps/units | UWBS-041/042; provider metadata; I0 provenance/validation patterns | Ready for WBS design | Pending |
+| UWBS-046 | Futures-position tracking Canary for NEAR 2026-09-18..20 | Crypto Market Structure QA / Cross-Market QA | Replay the NEAR episode and demonstrate OI build zones, funding state, long-vs-short liquidation sequence, OI retention, leverage washout and later price-zone behavior without manual chart reading; include false positives for OI rollover, one-venue spikes, liquidation mislabeling and inferred exact entry-price claims | UWBS-041..045; UWBS-037/040; retained historical observations | Needs decomposition | Pending |
+
+Planning notes:
+
+- `UWBS-036` remains the contract owner; `UWBS-041..046` are implementation/operations/QA decomposition and must not redefine the contract silently.
+- Initial acquisition set should be Binance + Bybit + Hyperliquid; OKX can be added after the source-neutral contract proves stable.
+- Initial planning cadence is 5-minute OI/funding/basis snapshots with 1-minute or event/bucket liquidation capture where available. Cadence remains configurable and requires measured cost/quality validation before becoming normative.
+- OI is unresolved contract inventory, not long-only capital. Positive funding is directional demand pressure, not a guaranteed upward prediction. Liquidation is forced exit, not newly opened opposite-side exposure.
+- Position Map outputs are estimates. They must never be represented as an exact per-trader entry-price or leverage distribution.
+- Live provider activation, Worker schedule mutation and paid aggregator procurement remain separately gated.
