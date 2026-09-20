@@ -1,8 +1,8 @@
-# TNON / CHPT Price Rediscovery Comparative Report
+# TNON / CHPT / LVWR / AMBR Price Rediscovery Comparative Report
 
 Status: **Research / design input — not normative specification**
 Date: 2026-09-11
-Symbols: `TNON`, `CHPT`, `LVWR`
+Symbols: `TNON`, `CHPT`, `LVWR`, `AMBR`
 Related TNON report: `docs/work-management/local-corporate-intelligence/REPORT_TNON_CONVERTIBLE_DEBT_REPAYMENT_CASE_2026-09-11.md`
 Related backlog: `docs/work-management/local-corporate-intelligence/WBS_UNREFLECTED_TASK_BACKLOG_2026-09-10.md`
 
@@ -454,3 +454,49 @@ See the `Capital structure / catalyst and price-discovery expansion` section add
 - Intraday high-volume price-node calculations require the project's minute-bar dataset; daily OHLCV alone is insufficient.
 - Expected catalyst strength requires calibration against historical events before it can be used as a systematic signal.
 - TNON's longer-duration equilibrium remains unconfirmed as of this report date.
+
+## 17. AMBR — delayed stair-step repricing and cross-theme acceleration hypothesis
+
+### 17.1 Observed structure
+
+The user-provided September 9–18 15-minute chart and September 18 one-minute chart show a stair-step repricing pattern rather than a single isolated vertical spike. The stock repeatedly formed balance at progressively higher price levels instead of immediately returning to the prior range. This makes AMBR useful as a candidate example of delayed / stair-step price rediscovery.
+
+### 17.2 September 18 acceleration — HYPOTHESIS
+
+A working hypothesis is that the September 18 acceleration was amplified by the convergence of: (1) reduced incremental rate / inflation anxiety and broader risk-on recovery, (2) a sharp BTCUSD move and associated inflow into crypto-linked equities, (3) renewed AI / growth demand, and (4) AMBR's own company-specific AI-agent / earnings repricing already in progress.
+
+Classification: **HYPOTHESIS — causal attribution unconfirmed; verification value high.**
+
+This should not be stored as an observed Fact. It is stronger than UNKNOWN because the mechanism is specific, coherent, and falsifiable, and there is contemporaneous cross-market evidence consistent with it. It remains below confirmed interpretation because the available evidence does not establish how much of AMBR's September 18 buying came from crypto flow, AI / growth flow, macro risk-on flow, or company-specific repricing.
+
+Candidate causal chain:
+
+    company-specific repricing already active
+      + BTCUSD / crypto-equity risk-on flow
+      + AI / growth risk-on flow
+      + macro anxiety easing at the margin
+      -> theme convergence around AMBR
+      -> participation / liquidity expansion
+      -> September 18 price-discovery acceleration
+
+### 17.3 Why HYPOTHESIS rather than UNKNOWN
+
+Use HYPOTHESIS when a causal explanation has enough supporting observations to justify an explicit test and can be disproved by contrary data. Use UNKNOWN when the causal mechanism itself is not sufficiently specified or evidence is too sparse to define a meaningful falsification test. AMBR currently satisfies the first condition.
+
+### 17.4 Required validation
+
+- Align AMBR, BTCUSD, major crypto-equity proxies such as COIN / MSTR, and a broad AI / growth proxy on one- to five-minute bars for September 18.
+- Test lead / lag around major return and volume bursts rather than relying on same-session correlation.
+- Decompose AMBR returns against broad-market, growth, and crypto factors and inspect the residual repricing.
+- Check whether AMBR repeatedly follows the proposed external drivers, or whether AMBR moves first.
+- Promote, narrow, or reject the hypothesis only after at least one explicit disconfirmation test.
+
+Possible status outcomes:
+
+- SUPPORTED: repeated external-driver lead plus subsequent AMBR response, while a material company-specific residual remains.
+- PARTIALLY_SUPPORTED: common risk-on timing exists but AMBR's company-specific repricing explains most of the move.
+- REJECTED: AMBR systematically leads the proposed drivers or no repeatable lead / lag relationship is found.
+
+### 17.5 Reusable OrderScope lesson
+
+AMBR adds a theme-convergence case to the price-rediscovery framework. The source-grounded corporate, macro, sector-theme, and cross-asset observations should remain separate from the analyst-generated causal hypothesis. A future OrderScope interpretation object can link those Facts into a THEME_CONVERGENCE_HYPOTHESIS without promoting the causal edge itself to Fact.
