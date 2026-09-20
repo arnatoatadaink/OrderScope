@@ -12,14 +12,16 @@ from orderscope_local.cross_market import (
     collect_a0_alpaca_daily,
     load_source_manifest,
 )
+from orderscope_local.config import load_local_config
 from orderscope_local.cross_market.validation import SeriesMeasure
 
 
 MANIFEST = Path("analysis/config/cross_market/a0-002-sources-v0.1.json")
-OUTPUT = Path("var/cross-market/a0-002/alpaca-daily-observations.json")
 
 
 def main() -> None:
+    config = load_local_config(os.environ)
+    output = config.data_root / "cross-market" / "a0-002" / "alpaca-daily-observations.json"
     manifest = load_source_manifest(MANIFEST)
     expected = {
         (spec.role, spec.measure): spec.source_ref
@@ -56,8 +58,8 @@ def main() -> None:
         }
         for item in observations
     ]
-    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    OUTPUT.write_text(
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(
         json.dumps(
             {
                 "schema_version": "a0-002-alpaca-observations-v0.1",
@@ -73,7 +75,7 @@ def main() -> None:
         + "\n",
         encoding="utf-8",
     )
-    print(f"output            = {OUTPUT}")
+    print(f"output            = {output}")
     print(f"observation_count = {len(rows)}")
     print("A0-002 Alpaca daily collection = PASS")
 

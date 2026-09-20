@@ -18,7 +18,7 @@
 /mnt/c/users/y/projects/codex_work/orderscope
 ```
 
-Codex Desktopから編集・保存する正本である。`src/`、`analysis/`、`scripts/`、`migrations/`、設定ファイル、lockfile、`var/`、`.wrangler/state/`を含む。
+Codex Desktopから編集・保存するsource正本である。`src/`、`analysis/`、`scripts/`、`migrations/`、設定ファイル、lockfileを含む。可変データの正本はcheckout外のWSL native filesystemに分離した。
 
 ### 2.2 WSL実行環境
 
@@ -124,7 +124,7 @@ WSL側の完全コピーである。sourceの正式workspaceではなく、移�
 - README.mdの「Local environment operation boundary」に、Windows側sourceでの編集・保存、WSLでの依存関係構築・テスト・Local API・Wrangler実行、およびWindows nativeのPython/Node実行禁止を記載した。
 - WSL側退避コピー `/home/y/code/OrderScope` は編集・実行せず、Windows側sourceを唯一の実行対象とする方針を明記した。
 
-### 5. ローカルデータ・DBをWSL正本に一本化し、同時利用を防止
+### 5. ローカルデータ・DBをWSL正本に一本化し、同時利用を防止（完了）
 
 対象:
 
@@ -132,24 +132,23 @@ WSL側の完全コピーである。sourceの正式workspaceではなく、移�
 - local Wrangler/D1 emulatorのpersistence
 - 移行前に存在するWindows側`var/`および`.wrangler/state/`
 
-現状はWindows側source workspaceを実行対象としているため、Windows側`var/`と`.wrangler/state/`が実質的な可変データの参照先である。`/home/y/code/OrderScope`は退避・比較用コピーであり、単に置いてあるだけの非稼働コピーではあるが、WSL側を正本とする方針にはまだ切り替わっていない。確認対象ファイルは両コピーで同一SHA-256だが、同一内容と正本性は別である。
-
-目標は、source正本と可変データ正本を分離することである。
+移行前はWindows側source workspaceの`var/`と`.wrangler/state/`が可変データの参照先だったため、source正本と可変データ正本を分離した。
 
 - source正本: `/mnt/c/Users/Y/Projects/codex_work/OrderScope`
-- 可変データ正本: `/home/y/data/orderscope/`など、checkout外のWSL native filesystem
+- 可変データ正本: `/home/y/data/orderscope/`、checkout外のWSL native filesystem
 - Python local analysis: `ORDERSCOPE_DATA_ROOT=/home/y/data/orderscope/local`
 - local Wrangler persistence: `wrangler dev --local --persist-to /home/y/data/orderscope/wrangler-state`
 
-実施内容:
+実施結果（2026-09-21）:
 
-- 全書き込みprocessを停止してから、Windows側の稼働データをWSL data rootへmanifest/hash付きで移す。
-- SQLite本体、`-wal`、`-shm`は一組として扱う。
-- `ORDERSCOPE_DATA_ROOT`とWranglerの`--persist-to`を明示し、Windows側sourceから起動しても書き込み先がWSL native filesystemになることを確認する。
-- `Path("var/...")`のようなrepository-relative出力を持つ補助スクリプトを洗い出し、WSL data rootへ向くことを確認する。
-- 移行後はWindows側およびWSL側checkoutのデータを稼働中の正本として併用しない。旧コピーの削除は別途判断する。
+- 全書き込みprocessが停止していることを確認したうえで、Windows側の`var/`と`.wrangler/state/`をWSL data rootへコピーした。
+- SQLite本体、`-wal`、`-shm`は一組として扱い、`/home/y/data/orderscope/migration-manifest-20260920T225347Z.txt`へmanifest/hashを保存した。
+- source/targetの比較は`var/` 14ファイル、Wrangler state 9ファイルで一致し、全SQLiteの`PRAGMA integrity_check`が`ok`となった。
+- `scripts/run-local-wsl.sh`で`ORDERSCOPE_DATA_ROOT=/home/y/data/orderscope/local`とWranglerの`--persist-to /home/y/data/orderscope/wrangler-state`を固定した。Local API healthはHTTP 200、Wrangler local Worker healthもHTTP 200となった。
+- `Path("var/...")`を持っていた収集・検証スクリプト3本をdata root参照へ修正し、直接参照が残っていないことを確認した。
+- Windows側とWSL側checkoutのデータは稼働中の正本として併用しない。旧コピーの削除は別途判断する。
 
-完了条件:
+完了条件・判定:
 
 - source正本と可変データ正本が別々に文書化されている。
 - `ORDERSCOPE_DATA_ROOT`がWSL native filesystemの絶対pathを指す。
@@ -157,6 +156,8 @@ WSL側の完全コピーである。sourceの正式workspaceではなく、移�
 - Windows側source内の`var/`および`.wrangler/state/`が稼働中のDB正本ではない。
 - SQLite integrity、migration、manifest/hash、Local API health、必要なlocal Wrangler確認が成功する。
 - SQLite本体、WAL、SHMを複数process・複数copyから同時に開かない。
+
+タスク5は完了。resticによるDB世代管理・バックアップは、別レポート記載のとおり未実装の後続タスクとする。
 
 整理の詳細は `docs/REPORT_LOCAL_DB_WSL_CANONICALIZATION_2026-09-20.md` に記録した。DB世代管理のrestic方針は `docs/REPORT_RESTIC_LOCAL_DB_GENERATION_FOLLOWUP_2026-09-20.md` に分離し、今回は未実装とする。
 

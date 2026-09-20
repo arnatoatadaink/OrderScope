@@ -103,9 +103,13 @@ cd /mnt/c/users/y/projects/codex_work/orderscope
 nvm use 24
 uv sync --locked
 npm ci
+bash scripts/run-local-wsl.sh env
+bash scripts/run-local-wsl.sh api
 ```
 
-`.venv` and `node_modules` are Linux/WSL runtime dependencies even though they are generated under the Windows-side workspace. Do not invoke them with Windows-native Python or Node. The WSL-side copy at `/home/y/code/OrderScope` is a migration backup/comparison copy; while it is retained, do not edit or execute the project from that copy. Keep `var/` and `.wrangler/state/` attached to one execution copy at a time, and do not open their SQLite files concurrently from multiple processes or copies. See `docs/REPORT_LOCAL_ENVIRONMENT_MIGRATION_EXECUTION_2026-09-20.md` for migration evidence and `docs/REPORT_LOCAL_ENVIRONMENT_MIGRATION_REMAINING_TASKS_2026-09-20.md` for remaining operational work.
+`.venv` and `node_modules` are Linux/WSL runtime dependencies even though they are generated under the Windows-side workspace. Do not invoke them with Windows-native Python or Node. The WSL-side copy at `/home/y/code/OrderScope` is a migration backup/comparison copy; while it is retained, do not edit or execute the project from that copy. Operational mutable data is canonical under `${HOME}/data/orderscope` in the WSL-native filesystem: Python uses `${HOME}/data/orderscope/local` through `ORDERSCOPE_DATA_ROOT`, and local Wrangler uses `${HOME}/data/orderscope/wrangler-state` through `--persist-to`. Use `bash scripts/run-local-wsl.sh ...` or `npm run dev` so these boundaries are applied. Do not open SQLite files concurrently from multiple processes or copies. See `docs/REPORT_LOCAL_DB_WSL_CANONICALIZATION_2026-09-20.md` for migration evidence and `docs/REPORT_LOCAL_ENVIRONMENT_MIGRATION_REMAINING_TASKS_2026-09-20.md` for remaining operational work.
+
+The initial data migration is reproducible with `bash scripts/migrate-local-data-to-wsl.sh`. It copies the Windows-side `var/` and `.wrangler/state/` into the WSL-native data root and writes a timestamped manifest there. The source-side directories remain as non-operational migration backups until the final acceptance and retention decision is complete.
 
 ## Core principle
 

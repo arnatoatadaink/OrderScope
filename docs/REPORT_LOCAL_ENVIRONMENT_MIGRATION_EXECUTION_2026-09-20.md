@@ -20,8 +20,8 @@ Codex Desktopで編集するsourceの正本は `/mnt/c/users/y/projects/codex_wo
 | WSL側検証コピー | `/home/y/code/OrderScope` | 完全コピー。退避・比較用として保持 |
 | WSL生成Python環境 | `/mnt/c/users/y/projects/codex_work/orderscope/.venv` | WSLのuvで生成したLinux環境 |
 | WSL生成Node環境 | `/mnt/c/users/y/projects/codex_work/orderscope/node_modules` | WSLのNode 24/npmで生成したLinux依存 |
-| 可変データ正本 | `/mnt/c/users/y/projects/codex_work/orderscope/var` | WSLから使用。Windows/WSLで同時に開かない |
-| local D1状態正本 | `/mnt/c/users/y/projects/codex_work/orderscope/.wrangler/state` | SQLite、WAL、SHMを一組としてWSLから使用 |
+| 可変データ正本 | `/home/y/data/orderscope/local` | `ORDERSCOPE_DATA_ROOT`でWSL native filesystemへ固定 |
+| local D1状態正本 | `/home/y/data/orderscope/wrangler-state` | `--persist-to`でWSL native filesystemへ固定。SQLite、WAL、SHMを一組として扱う |
 
 WSL側の完全コピーは、Windows側sourceでの継続運用確認とGit変更確定が終わるまで削除しない。
 
@@ -104,6 +104,15 @@ uv sync --locked
 
 この構成ではLinux ELFバイナリを含む依存directoryがNTFS上に置かれる。実行はWSLに限定し、Windows native Node/Pythonからこれらを使用しない。
 
+### 3.6 可変データ・local Wrangler stateのWSL正本化
+
+全書き込みprocessが停止していることを確認し、Windows側sourceの`var/`と`.wrangler/state/`を次へコピーした。
+
+- `/home/y/data/orderscope/local`
+- `/home/y/data/orderscope/wrangler-state`
+
+移行manifestは `/home/y/data/orderscope/migration-manifest-20260920T225347Z.txt` に保存した。`var/` 14ファイルとWrangler state 9ファイルのsource/target SHA-256が一致し、移行後の全SQLiteで`PRAGMA integrity_check`が`ok`となった。`scripts/run-local-wsl.sh`を追加し、Windows側sourceをcwdにしてもPythonは`ORDERSCOPE_DATA_ROOT`、local Wranglerは`--persist-to`を外部WSL rootへ使用する。収集・検証スクリプトのrepository-relative `var/`参照もdata root参照へ修正した。
+
 ## 4. 受入検証結果
 
 | 検証 | 結果 |
@@ -117,14 +126,14 @@ uv sync --locked
 | `GET /health` | HTTP 200、`status=ok` |
 | `wrangler whoami` | Account API Tokenで成功 |
 
-ローカルAPIは次のモジュール起動で検証した。
+ローカルAPIは次のラッパー経由で検証した。
 
 ```bash
-PYTHONPATH=analysis/app uv run python -m orderscope_local.cli serve
+bash scripts/run-local-wsl.sh api --port 8000
 curl --fail --silent --show-error http://127.0.0.1:8000/health
 ```
 
-health確認後、Uvicornは正常停止した。
+結果はHTTP 200、`status=ok`、`bind_host=127.0.0.1`。Wranglerも `bash scripts/run-local-wsl.sh wrangler --port 8787` で起動し、`/health` がHTTP 200となり、追加stateは`/home/y/data/orderscope/wrangler-state`配下に生成された。両processとも確認後に正常停止した。
 
 ## 5. Secretと認証
 

@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
+from orderscope_local.config import load_local_config
 from orderscope_local.market_import.d1_manifest import decode_d1_export_manifest
 from orderscope_local.storage.d1_custody import decode_d1_custody_manifest
 from orderscope_local.storage.d1_custody_quality import validate_d1_custody_artifact
 
-ROOT = Path("var/d1-custody/r0-007-first-remote")
+ROOT = load_local_config(os.environ).data_root / "d1-custody" / "r0-007-first-remote"
 ARTIFACT = ROOT / "normalized_bar_20260901T160300Z_20260901T160400Z.ndjson"
 EXPORT_MANIFEST = ROOT / "export-manifest.json"
 CUSTODY_MANIFEST = ROOT / "custody-manifest.json"

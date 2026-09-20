@@ -2,20 +2,24 @@ from __future__ import annotations
 
 from datetime import date, datetime
 import json
+import os
 from pathlib import Path
 
+from orderscope_local.config import load_local_config
 from orderscope_local.cross_market import load_source_manifest
 from orderscope_local.cross_market.official_macro import collect_official_macro
 from orderscope_local.cross_market.validation import SeriesMeasure, SeriesObservation, SeriesRole
 
 
 MANIFEST = Path("analysis/config/cross_market/a0-002-sources-v0.1.json")
-ALPACA_INPUT = Path("var/cross-market/a0-002/alpaca-daily-observations.json")
-MACRO_OUTPUT = Path("var/cross-market/a0-002/official-macro-observations.json")
-COMBINED_OUTPUT = Path("var/cross-market/a0-002/a0-002-observations.json")
 
 
 def main() -> None:
+    config = load_local_config(os.environ)
+    output_root = config.data_root / "cross-market" / "a0-002"
+    alpaca_input = output_root / "alpaca-daily-observations.json"
+    macro_output = output_root / "official-macro-observations.json"
+    combined_output = output_root / "a0-002-observations.json"
     manifest = load_source_manifest(MANIFEST)
     start = manifest.windows.baseline_start.date()
     end_exclusive = manifest.windows.primary_end.date()
@@ -23,7 +27,7 @@ def main() -> None:
     macro = collect_official_macro(start=start, end_exclusive=end_exclusive)
     _validate_manifest_refs(manifest.series, macro)
     _write_observation_file(
-        MACRO_OUTPUT,
+        macro_output,
         schema_version="a0-002-official-macro-observations-v0.1",
         validation_case=manifest.validation_case,
         start=start,
@@ -31,7 +35,7 @@ def main() -> None:
         observations=macro,
     )
 
-    alpaca = _read_observation_file(ALPACA_INPUT)
+    alpaca = _read_observation_file(alpaca_input)
     combined = tuple(sorted((*alpaca, *macro), key=lambda item: (item.analysis_date, item.role.value, item.measure.value)))
     _validate_manifest_refs(manifest.series, combined)
 
@@ -43,7 +47,7 @@ def main() -> None:
         raise RuntimeError(f"A0-002 required series are missing observations: {names}")
 
     _write_observation_file(
-        COMBINED_OUTPUT,
+        combined_output,
         schema_version="a0-002-combined-observations-v0.1",
         validation_case=manifest.validation_case,
         start=start,
@@ -51,9 +55,9 @@ def main() -> None:
         observations=combined,
     )
 
-    print(f"macro_output       = {MACRO_OUTPUT}")
+    print(f"macro_output       = {macro_output}")
     print(f"macro_count        = {len(macro)}")
-    print(f"combined_output    = {COMBINED_OUTPUT}")
+    print(f"combined_output    = {combined_output}")
     print(f"combined_count     = {len(combined)}")
     print(f"required_series    = {len(expected)}/{len(expected)}")
     print("A0-002 official macro collection + merge = PASS")

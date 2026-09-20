@@ -78,10 +78,14 @@ WSL2 is the authoritative Python execution and mutable-data environment.
 The supported startup sequence is therefore:
 
 ```bash
-# In WSL, from the repository root
+# In WSL, from the Windows-mounted source repository root
 uv sync --locked
-uv run orderscope serve
+bash scripts/run-local-wsl.sh api
 ```
+
+The wrapper sets `ORDERSCOPE_DATA_ROOT` to a WSL-native path and applies the same
+boundary to local Wrangler persistence. Direct Python or Wrangler startup is not
+an operational path because it can fall back to checkout-relative state.
 
 Normal interactive shutdown is `Ctrl+C`. Forced termination must not be used as the normal stop path; imports and dataset publication must leave either the previous committed artifact or a complete new artifact.
 
