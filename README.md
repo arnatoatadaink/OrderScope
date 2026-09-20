@@ -84,6 +84,29 @@ These derived documents do not add to or replace the four-document Code of Truth
 - Market classification timezone: America/New_York
 - Display timezone: Asia/Tokyo
 
+## Local environment operation boundary
+
+The local development environment uses a Windows-side source workspace and a WSL runtime:
+
+| Operation | Execution location |
+| --- | --- |
+| Edit and save source with Codex Desktop | Windows-side source: `/mnt/c/users/y/projects/codex_work/orderscope` |
+| `uv sync`, `uv run`, Python tests, and the Local API | WSL, from the Windows-side source workspace |
+| `npm ci`, Node tests, and typecheck | WSL, from the Windows-side source workspace, with Node.js 24 selected |
+| Wrangler commands and deploy dry-runs | WSL, from the Windows-side source workspace |
+| Windows-native Python or Node execution | Not permitted for this project |
+
+Run project commands from the canonical source workspace, for example:
+
+```bash
+cd /mnt/c/users/y/projects/codex_work/orderscope
+nvm use 24
+uv sync --locked
+npm ci
+```
+
+`.venv` and `node_modules` are Linux/WSL runtime dependencies even though they are generated under the Windows-side workspace. Do not invoke them with Windows-native Python or Node. The WSL-side copy at `/home/y/code/OrderScope` is a migration backup/comparison copy; while it is retained, do not edit or execute the project from that copy. Keep `var/` and `.wrangler/state/` attached to one execution copy at a time, and do not open their SQLite files concurrently from multiple processes or copies. See `docs/REPORT_LOCAL_ENVIRONMENT_MIGRATION_EXECUTION_2026-09-20.md` for migration evidence and `docs/REPORT_LOCAL_ENVIRONMENT_MIGRATION_REMAINING_TASKS_2026-09-20.md` for remaining operational work.
+
 ## Core principle
 
 The system records what changed as Fact and separates Fact / Derived Metric / Interpretation / Prediction.
