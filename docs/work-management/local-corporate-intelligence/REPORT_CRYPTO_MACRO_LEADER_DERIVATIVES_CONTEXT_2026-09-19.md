@@ -357,3 +357,79 @@ The main missing components are:
 Therefore the manual NEAR analysis benefited from favorable market behavior: the local positioning read was useful, but without the BTC/macro layer it could have failed abruptly if a larger cross-market impulse had reversed.
 
 This gap merits a dedicated report and WBS-unreflected extension rather than being silently folded into existing A0 tasks.
+
+
+## 11. Pacific weekend handoff / early-Monday timing hypothesis
+
+### 11.1 Geographic boundary
+
+The International Date Line runs approximately along the 180° meridian through the central Pacific and bends around national borders and island groups. Hawaii is east of the Date Line; crossing westward across the Date Line advances the calendar date.
+
+The earliest civil time zone is UTC+14. The principal inhabited reference area is Kiribati's Line Islands, including Kiritimati (Christmas Island). These locations enter Monday before New Zealand, Australia, East Asia, Europe and the Americas.
+
+This geographic fact must be kept separate from any market-causality claim.
+
+### 11.2 "Pacific empty-zone weekend effect" as a hypothesis, not a Fact
+
+The 2026-09-20..21 NEAR episode suggests a candidate timing effect:
+
+```text
+weekend liquidity thinning
+    ↓
+leveraged positions accumulate / are partially cleared
+    ↓
+a long Pacific interval exists before major Asian financial centers enter Monday
+    ↓
+liquidity providers / discretionary traders gradually return
+    ↓
+small imbalances can be amplified before broader weekday liquidity normalizes
+```
+
+Provisional label:
+
+- `PACIFIC_WEEKEND_HANDOFF_CANDIDATE`
+
+This label is an Interpretation/Hypothesis. It must not be stored as a Fact merely because price changes near the calendar transition.
+
+Required evidence should include:
+
+- exact UTC/JST timing;
+- OI/funding/liquidation state before and after the move;
+- BTC and major-crypto confirmation;
+- venue breadth;
+- spot/derivatives volume change;
+- comparison with control weekends where no similar move occurred.
+
+### 11.3 Re-risking selection after weekend de-risking
+
+A second hypothesis raised by the NEAR case is:
+
+> When participants reduce risk over the weekend and re-enter as weekday liquidity returns, instruments with a more favorable perceived risk/return balance may receive cleaner or more persistent re-risking flows.
+
+This is **not an existing Fact** in OrderScope.
+
+The observable Facts are things such as:
+
+- weekend OI reduction;
+- funding change;
+- liquidation amount;
+- spot/derivatives volume;
+- Monday re-entry volume;
+- target-relative return versus BTC or a crypto basket;
+- persistence after the first re-entry window.
+
+The statement that "better risk/return-balanced names move more cleanly" belongs to Interpretation/Hypothesis until validated historically.
+
+Candidate label:
+
+- `WEEKEND_RERISKING_SELECTION_CANDIDATE`
+
+Potential validation design:
+
+1. identify weekends with material de-risking;
+2. rank candidate assets using only pre-Monday observable risk/return features;
+3. measure Monday/Tuesday re-entry volume, relative return, drawdown, and persistence;
+4. compare against BTC and matched-control altcoins;
+5. reject the hypothesis if apparent "clean" moves disappear after market-beta and liquidity controls.
+
+No fixed threshold or scoring rule should be frozen from the NEAR case alone.
