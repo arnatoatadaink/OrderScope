@@ -94,3 +94,90 @@ wrangler dev --local --persist-to /home/y/data/orderscope/wrangler-state
 判定: **完了**。resticによる世代管理・バックアップは、当初の境界どおり別タスクとして未実装である。
 
 DBの世代管理とバックアップ方式については、別レポート [`REPORT_RESTIC_LOCAL_DB_GENERATION_FOLLOWUP_2026-09-20.md`](REPORT_RESTIC_LOCAL_DB_GENERATION_FOLLOWUP_2026-09-20.md) に分離した。resticの導入・初回snapshot・運用設定は今回実施しない。
+
+
+## 7. 追加調査結果とタスク5の残作業整理（2026-09-21）
+
+タスク5を閉じる前に、Git上の実装を対象に、`ORDERSCOPE_DATA_ROOT` と repository-relative な `var/` 参照の関係を追加確認した。
+
+### 7.1 確認済みの設定経路
+
+Pythonローカル実行系の共通設定は `analysis/app/orderscope_local/config.py` にまとまっており、次の境界が存在する。
+
+- 環境変数: `ORDERSCOPE_DATA_ROOT`
+- 未指定時の既定値: `Path("var")`
+- CLI側の主要な書き込み経路は `load_local_config(os.environ)` から取得した `config.data_root` を使用する
+
+`analysis/app/orderscope_local/cli.py` では、ニュースrecall候補、label template、finalize出力、scheduler lock、replay、temporary news deletionなどが `config.data_root` を利用している。この系統は `ORDERSCOPE_DATA_ROOT=/home/y/data/orderscope/local` を設定すれば、Windows側sourceをカレントディレクトリにしてもWSL native filesystemへ向けられる。
+
+したがって、アプリ本体側の主要経路は「設定対応済み」と分類する。
+
+### 7.2 repository-relative `var/` が残る確認済み箇所
+
+次の補助スクリプトは、共通設定を経由せず repository-relative な `var/` を直接参照していることを確認した。
+
+| ファイル | 現在の参照 | 分類 |
+|---|---|---|
+| `scripts/a0_002_collect_alpaca_daily.py` | `Path("var/cross-market/a0-002/alpaca-daily-observations.json")` | コード修正またはdata root経由化が必要 |
+| `scripts/a0_002_collect_official_macro.py` | `Path("var/cross-market/a0-002/...")` をinput/outputに使用 | コード修正またはdata root経由化が必要 |
+| `scripts/r0_008_validate_first_remote_custody.py` | `Path("var/d1-custody/r0-007-first-remote")` | 検証用読み取りだが、正本一本化後はdata root基準へ合わせる必要あり |
+
+この3ファイルは、`ORDERSCOPE_DATA_ROOT` を設定するだけでは参照先が変わらない。Windows側source配下の `var/` を残したまま運用すると、ローカルアプリはWSL data rootを使用する一方で、補助スクリプトだけがWindows側 `var/` を読み書きし、二重化が再発する可能性がある。
+
+### 7.3 追加作業の優先順位
+
+タスク5の残作業は次の順序で進める。
+
+1. **直接 `var/` 参照の全件確認**
+   - `scripts/`
+   - `analysis/app/`
+   - 必要に応じて `analysis/tests/`
+   - `src/` はWorker側でありPython local data rootとは別系統だが、local artifact pathを持つ箇所がないか確認する。
+2. **実行時書き込みと検証専用読み取りを分離**
+   - 実運用で書き込むものは `ORDERSCOPE_DATA_ROOT` へ寄せる。
+   - fixtureや固定検証artifactのみを参照するものは、Git管理対象かdata root対象かを明示する。
+3. **A0-002系collectorのdata root対応**
+   - `analysis/config/...` のmanifestはGit/source側に残す。
+   - 生成観測JSONは `config.data_root / "cross-market" / "a0-002" / ...` へ移す。
+   - Alpaca collectorとofficial macro collectorのinput/outputが同じdata rootを使うことを確認する。
+4. **R0-008 custody検証のdata root対応**
+   - `var/d1-custody/...` の固定rootを、共通data rootまたは明示的CLI引数へ置き換える。
+   - 過去artifactのgeneration ID確認ロジックは変更しない。
+5. **Wrangler persistenceの固定**
+   - local Wranglerは毎回 `--persist-to /home/y/data/orderscope/wrangler-state` を付けるか、同等のproject run scriptで固定する。
+   - `.wrangler/state/` を再び稼働正本として使用しない。
+6. **旧Windows側可変データの非稼働化確認**
+   - `/mnt/c/.../OrderScope/var/`
+   - `/mnt/c/.../OrderScope/.wrangler/state/`
+   を残す場合も、移行退避としてのみ扱い、新規更新が発生しないことを確認する。
+7. **最終検収**
+   - `ORDERSCOPE_DATA_ROOT` を設定した状態でLocal API、collector、scheduler/quality系CLIを実行する。
+   - WSL data root側だけに新規ファイル・更新時刻が発生することを確認する。
+   - Windows側 `var/` および `.wrangler/state/` に意図しない更新がないことを確認する。
+   - SQLite/DuckDB/Parquet/manifest/hashとlocal Wrangler stateの整合を再確認する。
+
+### 7.4 実装方針
+
+現時点では、すべてのpathを独立した新環境変数へ分割する必要はない。
+
+基本方針は次のとおりとする。
+
+- Git管理対象・静的設定: repository-relative pathを維持
+- 可変ローカルデータ: `ORDERSCOPE_DATA_ROOT` 配下
+- Wrangler local persistence: `--persist-to` で専用WSL path
+- 一時的な検証artifact: 性質に応じてdata rootまたは明示的CLI引数
+
+これにより、source正本と可変データ正本の二重管理を避けつつ、既存の `LocalConfig` 境界を再利用できる。
+
+### 7.5 更新後のタスク5完了判定
+
+タスク5は、従来の完了条件に加えて次を満たした時点で完了とする。
+
+- 実運用で repository-relative `var/` へ直接書き込むコードが残っていない。
+- A0-002 collector群が同一のWSL data rootを使用する。
+- R0-008等の検証スクリプトが旧Windows側 `var/` を稼働正本として要求しない。
+- `ORDERSCOPE_DATA_ROOT=/home/y/data/orderscope/local` を設定した状態で主要ローカルCLIが動作する。
+- local Wranglerが `/home/y/data/orderscope/wrangler-state` を唯一のlocal persistenceとして使用する。
+- Windows側 `var/` と `.wrangler/state/` に新規runtime書き込みが発生しないことを検収で確認する。
+
+現時点の判定は **タスク5継続中** とする。data root抽象化そのものは既に存在するため、大規模な設計変更は不要であり、残作業の中心は補助スクリプトのpath統一と移行後検収である。
