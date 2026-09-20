@@ -460,3 +460,23 @@ Planning notes:
 - OI is unresolved contract inventory, not long-only capital. Positive funding is directional demand pressure, not a guaranteed upward prediction. Liquidation is forced exit, not newly opened opposite-side exposure.
 - Position Map outputs are estimates. They must never be represented as an exact per-trader entry-price or leverage distribution.
 - Live provider activation, Worker schedule mutation and paid aggregator procurement remain separately gated.
+
+
+## 19. Pacific weekend handoff / weekday re-risking validation
+
+Source context:
+
+- `docs/work-management/local-corporate-intelligence/REPORT_CRYPTO_MACRO_LEADER_DERIVATIVES_CONTEXT_2026-09-19.md` §11
+
+The NEAR weekend case exposed a timing hypothesis not fully covered by the generic 24/7 session contract: the transition from thin weekend liquidity through the central-Pacific calendar gap into major Asian weekday participation, plus possible cross-sectional re-risking selection after weekend de-risking.
+
+| UWBS ID | Proposed task | Proposed package | Completion condition summary | Likely inputs / dependencies | Status | Disposition |
+|---|---|---|---|---|---|---|
+| UWBS-047 | Validate Pacific weekend handoff and weekday re-risking selection hypotheses | A0 / Crypto Market Context / Historical QA | Define `PACIFIC_WEEKEND_HANDOFF_CANDIDATE` and `WEEKEND_RERISKING_SELECTION_CANDIDATE` as Interpretation-only states; align UTC+14/major-Asia timing windows with BTC/target price, OI, funding, liquidation, spot/derivatives volume and venue breadth; compare against control weekends; test whether assets with stronger pre-Monday measured risk/return characteristics show more persistent weekday re-entry after controlling for BTC beta and liquidity; retain UNKNOWN/reject states where evidence is insufficient | UWBS-039; UWBS-041..046; UWBS-037/040; historical weekend samples; accepted calendar/time-zone semantics | Needs decomposition | Pending |
+
+Planning notes:
+
+- The International Date Line / UTC+14 calendar boundary is a geographic/calendar Fact; a price reaction near that boundary is not.
+- Kiribati Line Islands provide the earliest inhabited Monday reference, but participant geography must never be inferred from the clock alone.
+- "Better risk/return assets receive cleaner Monday flows" is a hypothesis requiring historical validation, not an existing Fact.
+- No threshold, preferred asset class, or directional trading rule is authorized by the NEAR case.
