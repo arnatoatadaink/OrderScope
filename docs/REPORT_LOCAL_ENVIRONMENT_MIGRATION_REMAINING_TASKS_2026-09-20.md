@@ -1,0 +1,280 @@
+# OrderScope PC移行 残作業レポート
+
+作成日: 2026-09-20（Asia/Tokyo）
+対象: Windows側source + WSL実行環境構成への移行完了作業
+関連文書: `REPORT_LOCAL_ENVIRONMENT_MIGRATION_EXECUTION_2026-09-20.md`
+
+## 1. 現在の判定
+
+依存関係の再構築と受入試験は完了している。現在の運用構成は、Codex DesktopがWindows側sourceを編集し、WSLからPython、Node.js、npm、uv、Wranglerを実行する方式である。
+
+残作業は、実行環境の構築ではなく、バージョン固定、変更の確定、警告の評価、運用ルールの明文化、および退避コピーの整理である。
+
+## 2. 配置方針
+
+### 2.1 正式なsource workspace
+
+```text
+/mnt/c/users/y/projects/codex_work/orderscope
+```
+
+Codex Desktopから編集・保存する正本である。`src/`、`analysis/`、`scripts/`、`migrations/`、設定ファイル、lockfile、`var/`、`.wrangler/state/`を含む。
+
+### 2.2 WSL実行環境
+
+WSLからWindows側sourceをカレントディレクトリとして、依存関係のインストール、テスト、API起動、Wrangler操作を行う。
+
+```text
+/mnt/c/users/y/projects/codex_work/orderscope/.venv
+/mnt/c/users/y/projects/codex_work/orderscope/node_modules
+```
+
+これらはLinux x86_64向けに生成された依存directoryであり、Windows native Python/Nodeから使用しない。
+
+### 2.3 退避・比較用コピー
+
+```text
+/home/y/code/OrderScope
+```
+
+WSL側の完全コピーである。sourceの正式workspaceではなく、移行検証結果を保持する退避・比較用コピーとして、最終判断まで削除しない。
+
+## 3. 残作業一覧
+
+### 1. Node.js 24をプロジェクト単位で固定
+
+現状、nvmにはNode.js 22.20.0と24.21.0が存在するが、共有defaultは別プロジェクトの影響で22系へ変わる可能性がある。OrderScopeには現在`.nvmrc`と`package.json`の`engines`指定がない。
+
+実施内容:
+
+- `.nvmrc`でNode.js 24系を指定する、または`package.json`へ`engines.node`を追加する。
+- WSL shellでNode.js 24を選択する。
+- `npm ci`、`npm test`、`npm run typecheck`、`npm run deploy:check`を再実行する。
+
+完了条件:
+
+- 新しいshellでもOrderScopeがNode.js 24系を選択できる。
+- Node 24でNodeテスト199件が成功する。
+
+### 2. `uv.lock`をレビューして確定
+
+`pyproject.toml`に存在した`httpx2`依存を反映し、`uv.lock`に49行を追加済みである。
+
+追加内容:
+
+- `httpcore2 2.13.0`
+- `httpx2 2.13.0`
+- `httpx2-jsfetch 1.0`
+- `truststore 0.10.4`
+
+実施内容:
+
+- lockfile差分をレビューする。
+- 既存packageの意図しない更新・削除がないことを確認する。
+- `uv lock --check`と`uv sync --locked`を実行する。
+
+完了条件:
+
+- lockfile差分がレビュー済みである。
+- `uv lock --check`が成功する。
+- sync後にlockfileが変更されない。
+
+### 3. 移行資料とlockfileをGitに確定
+
+現在の候補ファイル:
+
+- `uv.lock`
+- `MIGRATION_WSL2_LOCAL_STATE_2026-09-19.md`
+- `MIGRATION_WSL2_LOCAL_STATE_2026-09-19.sha256`
+- `docs/REPORT_LOCAL_ENVIRONMENT_MIGRATION_WSL_TO_CODEX_DESKTOP_WINDOWS_2026-09-19.md`
+- `docs/REPORT_LOCAL_ENVIRONMENT_MIGRATION_EXECUTION_2026-09-20.md`
+- 本レポート
+
+実施内容:
+
+- lockfileと文書を同一commitにするか、lockfileと文書を分けるか決定する。
+- secret、`.venv`、`node_modules`、cacheがcommit対象外であることを確認する。
+- commit前に`git diff --check`とGit statusを確認する。
+
+完了条件:
+
+- 移行に必要なlockfileと資料がGitで確定している。
+- secret値、依存directory、cacheが追跡されていない。
+
+### 4. 実行場所を固定
+
+運用上の役割分担を固定する。
+
+| 操作 | 実行場所 |
+|---|---|
+| Codexでの編集・保存 | Windows側source |
+| `uv sync`、`uv run` | WSL |
+| `npm ci`、Nodeテスト | WSL |
+| Local API | WSL |
+| Wrangler、deploy dry-run | WSL |
+| Windows native Python/Node実行 | 行わない |
+
+完了条件:
+
+- READMEまたは運用手順にこの役割分担を記載する。
+- Windows nativeから`.venv`・`node_modules`を直接実行しない。
+
+### 5. データの同時利用を防止
+
+対象:
+
+- `var/`
+- `.wrangler/state/`
+
+Windows側sourceと`/home/y/code/OrderScope`の両方にコピーが存在するため、両方を同時に実行対象にしない。特にSQLiteの本体、`-wal`、`-shm`を複数process・複数copyから開かない。
+
+完了条件:
+
+- WSL実行時のカレントディレクトリをWindows側sourceへ統一する。
+- WSL側退避コピーを実行対象として使用しない。
+
+### 6. npm警告を調査
+
+`npm ci`は成功しているが、次が報告されている。
+
+- high severity vulnerability: 4件
+- `esbuild`、`workerd`等のinstall-script承認警告
+
+実施内容:
+
+- `npm audit`で依存経路と影響範囲を確認する。
+- production bundleに含まれるかを確認する。
+- install-scriptの承認が必要かを確認する。
+- `npm audit fix`は差分と回帰試験を確認してから実施する。
+- `npm audit fix --force`は、互換性レビューなしには実施しない。
+
+完了条件:
+
+- 4件の原因package、影響、対応方針が記録されている。
+- 依存更新を行う場合はpackage-lock差分と全試験結果が記録されている。
+
+### 7. Wrangler environmentを明示
+
+deploy dry-runは成功しているが、複数environmentが定義されているため、対象未指定の警告が出ている。
+
+実施内容:
+
+- `wrangler deploy --dry-run --env <対象>`を使用する。
+- remote操作では`--env`または`CLOUDFLARE_ENV`を必須とする。
+- `live-canary`等の対象名とCloudflare resource IDをread-onlyで再確認する。
+
+完了条件:
+
+- environment未指定の警告なしでdry-runできる。
+- remote D1やWorkerを誤environmentへ向けない手順がある。
+
+### 8. secret設定を用途別に確認
+
+確認対象:
+
+- `.env`
+- `.env.cloudflare`
+- `ORDERSCOPE_SECRET_ALPACA_API_KEY`
+- `ORDERSCOPE_SECRET_ALPACA_API_SECRET`
+- `CLOUDFLARE_ACCOUNT_ID`
+- `CLOUDFLARE_API_TOKEN`
+
+実施内容:
+
+- 値を表示せず、必要な変数名だけ確認する。
+- `.env`と`.env.cloudflare`がGit非追跡であることを確認する。
+- WSL側ファイルのmode`600`を維持する。
+- Worker用secretとPython local adapter用secretを混同しない。
+
+完了条件:
+
+- Local API、必要なPython adapter、Wrangler read-only確認が用途別に実行できる。
+- secretがレポート、manifest、Git diffに含まれていない。
+
+### 9. 移行後の最終受入を再記録
+
+Windows側source + WSL実行の最終構成で、次を記録する。
+
+```bash
+sha256sum --check MIGRATION_WSL2_LOCAL_STATE_2026-09-19.sha256
+uv lock --check
+uv sync --locked
+npm ci
+npm test
+npm run typecheck
+npm run deploy:check -- --env <対象>
+uv run pytest -q
+curl --fail --silent --show-error http://127.0.0.1:8000/health
+```
+
+完了条件:
+
+- 移行データhashが全項目`OK`。
+- Node 199件、Python 696件、typecheck、dry-run、healthが成功する。
+- Local APIが`127.0.0.1`以外へbindしない。
+
+### 10. WSL側完全コピーを保留
+
+対象:
+
+```text
+/home/y/code/OrderScope
+```
+
+Windows側sourceでの継続運用、Git変更確定、最終受入が完了するまで保持する。保留中は検証用コピーとして参照するだけで、実行や編集には使用しない。
+
+### 11. 保留期間後にWSL側コピーを整理
+
+実施条件:
+
+- Windows側sourceのcommitが確定している。
+- 最終受入試験が成功している。
+- 移行manifestと重要データのバックアップがある。
+- `/home/y/code/OrderScope`を退避として保持する必要がないと判断できる。
+
+削除する場合は、対象pathを明示してから行い、削除後にWindows側sourceが単独で正本になることを確認する。判断前に`/home/y`や広い範囲を対象にした削除は行わない。
+
+### 12. 移行手順を運用文書化
+
+最低限、以下を文書化する。
+
+- Codex DesktopはWindows側sourceを開く。
+- 依存関係のインストールと実行はWSLから行う。
+- Node.js 24を選択してからnpmコマンドを実行する。
+- Pythonコマンドはuv管理Python 3.13を使用する。
+- `var/`と`.wrangler/state/`は単一copyだけを実行対象にする。
+- remote Wrangler操作ではenvironmentを明示する。
+- secretはGitと通常の移行manifestに含めない。
+
+完了条件:
+
+- 新しい担当者がこの手順だけで同じ構成を再現できる。
+- Windows側sourceとWSL実行環境の境界が明確である。
+
+## 4. 推奨実施順
+
+次の順序で実施する。
+
+1. Node.js 24を固定する。
+2. lockfileをレビューし、`uv lock --check`を確認する。
+3. Windows側source + WSL実行で依存再生成と全試験を実行する。
+4. Wrangler environmentを明示したdry-runを実行する。
+5. secret設定とGit非追跡を確認する。
+6. npm警告を調査する。
+7. 移行資料とlockfileをcommitする。
+8. 運用手順を文書化する。
+9. WSL側退避コピーを保留する。
+10. 保留期間後に退避コピーの削除可否を判断する。
+
+## 5. 移行完了判定
+
+次をすべて満たした時点で移行を完了とする。
+
+- Codexの編集対象がWindows側sourceに統一されている。
+- WSLからWindows側sourceの依存関係とアプリケーションを再現可能に実行できる。
+- Node.js 24とPython 3.13が固定されている。
+- 移行manifest、lockfile、レポートがGitで確定している。
+- Node/Python試験、型検査、Wrangler dry-run、Local API healthが成功している。
+- secretと可変データの境界が維持されている。
+- npm警告とWrangler environment警告の扱いが記録されている。
+- WSL側退避コピーの保留・削除方針が決定されている。
