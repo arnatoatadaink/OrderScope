@@ -77,7 +77,7 @@ case "$ROOT" in
   *) record source_on_mntc FAIL "expected Windows source under /mnt/c, got $ROOT" ;;
 esac
 
-for f in package.json package-lock.json uv.toml .git/HEAD; do
+for f in package.json package-lock.json pyproject.toml .git/HEAD; do
   if [[ -r "$f" ]]; then
     record "readable:$f" PASS "readable"
   else
@@ -90,7 +90,7 @@ READ_OUT="${LOG_DIR}/repeated-read.out"
 : > "$READ_OUT"
 read_failed=0
 for i in $(seq 1 250); do
-  for f in package.json package-lock.json uv.toml .git/HEAD; do
+  for f in package.json package-lock.json pyproject.toml .git/HEAD; do
     if ! sha256sum "$f" >>"$READ_OUT" 2>&1; then
       echo "iteration=$i file=$f" >>"$READ_OUT"
       read_failed=1
@@ -167,7 +167,7 @@ if [[ "$HEAVY" -eq 1 ]]; then
   : > "$POST_OUT"
   post_failed=0
   for i in $(seq 1 100); do
-    for f in package.json uv.toml .git/HEAD; do
+    for f in package.json pyproject.toml .git/HEAD; do
       if ! sha256sum "$f" >>"$POST_OUT" 2>&1; then
         echo "iteration=$i file=$f" >>"$POST_OUT"
         post_failed=1
