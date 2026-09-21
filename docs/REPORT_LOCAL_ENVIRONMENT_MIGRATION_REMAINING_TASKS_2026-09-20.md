@@ -221,6 +221,16 @@ deploy dry-runは成功しているが、複数environmentが定義されてい�
 - Local API、必要なPython adapter、Wrangler read-only確認が用途別に実行できる。
 - secretがレポート、manifest、Git diffに含まれていない。
 
+実施結果（2026-09-21）:
+
+- `.env`にはWorker用の`ALPACA_API_KEY` / `ALPACA_API_SECRET`、`.env.cloudflare`にはWrangler管理用の`CLOUDFLARE_ACCOUNT_ID` / `CLOUDFLARE_API_TOKEN`が定義されていることを、値を表示せず確認した。両ファイルはGit非追跡で、`.gitignore`の対象である。
+- Python local adapterは`ORDERSCOPE_SECRET_ALPACA_API_KEY` / `ORDERSCOPE_SECRET_ALPACA_API_SECRET`だけを読む。Worker用の名前からPython用の名前への変換は自動化せず、検証時だけWSL process内で明示的に受け渡してNews/Daily adapterの初期化に成功した。
+- `/home/y/code/OrderScope/.env`と`.env.cloudflare`はmode `600`。Windows側sourceの`/mnt/c`ではdrvfsのため`chmod 600`後もmode表示が`777`のままとなり、WSL native secret storeとは扱わないことを記録した。
+- Local API health、Python config/news関連138件、既存Wrangler OAuth profileによるread-only `whoami`を確認した。`.env.cloudflare`経由の`whoami`はネットワーク到達性エラーで完了しなかったため、その経路を成功根拠にはしていない。
+- secret値は本レポート、移行manifest、Git diffへ記録していない。詳細は`docs/REPORT_LOCAL_SECRET_BOUNDARY_TASK_8_2026-09-21.md`に記録した。
+
+タスク8は完了。次はタスク12「移行手順を運用文書化」で、今回確定したsecret境界とmode `600`、Wrangler認証、environment明示を再現手順へ統合する。
+
 ### 9. 移行後の最終受入を再記録
 
 Windows側source + WSL実行の最終構成で、次を記録する。
@@ -323,7 +333,7 @@ Windows側sourceでの継続運用、Git変更確定、最終受入が完了す�
 | 5. ローカルデータ・DB WSL正本化 | 完了 | 追加作業なし。resticは別タスク |
 | 6. npm警告調査 | 完了 | advisory、依存経路、bundle非包含、allowScripts、後続方針を記録済み |
 | 7. Wrangler environment明示 | **完了** | `live-canary`のresourceをread-only照合し、deploy入口のenv必須化を実装済み |
-| 8. secret用途別確認 | **次の実施対象** | タスク7の後続として用途別secret境界を確認する |
+| 8. secret用途別確認 | **完了** | 用途別変数名、Git非追跡、WSL native側mode `600`、値非表示のLocal API/Python/Wrangler確認を記録済み |
 | 9. 移行後の最終受入 | 未実施 | タスク7・8・12完了後の最終ゲート |
 | 10. WSL側完全コピー保留 | 継続中 | 削除せず保持することが現在の正しい状態 |
 | 11. 保留期間後のコピー整理 | 後工程 | 今回の移行完了条件から除外し、後日判断する |
@@ -345,9 +355,9 @@ Windows側sourceでの継続運用、Git変更確定、最終受入が完了す�
 ```text
 7. Wrangler environment明示（完了）
         ↓
-8. secret用途別確認（次の実施対象）
+8. secret用途別確認（完了）
         ↓
-12. 運用文書を最終構成へ更新
+12. 運用文書を最終構成へ更新（次の実施対象）
         ↓
 9. 最終受入
         ↓
@@ -362,3 +372,9 @@ Windows側sourceでの継続運用、Git変更確定、最終受入が完了す�
 タスク7では、`scripts/run-wrangler-with-env.sh`を追加し、`npm run deploy`と`npm run deploy:check`で`--env <name>`または`CLOUDFLARE_ENV`を必須化した。未指定と指定値の不一致は実行前に終了する。`live-canary`については、Worker `orderscope-market-worker-live-canary`、D1 `STATE_DB` / `orderscope-state-live-canary`、resource ID `03c85865-1aa3-4b0c-b219-18987cd260a6`をread-onlyで確認した。
 
 `npm run deploy:check -- --env live-canary`はenvironment警告なしで成功した。詳細は `docs/REPORT_LOCAL_WRANGLER_ENVIRONMENT_TASK_7_2026-09-21.md` に記録した。次の実施対象は **タスク8** とする。
+
+### 6.4 タスク8完了記録
+
+タスク8では、Worker用`ALPACA_API_KEY` / `ALPACA_API_SECRET`、Python local adapter用`ORDERSCOPE_SECRET_ALPACA_API_KEY` / `ORDERSCOPE_SECRET_ALPACA_API_SECRET`、Wrangler管理用`CLOUDFLARE_ACCOUNT_ID` / `CLOUDFLARE_API_TOKEN`の境界を確認した。dotenvの定義名、Git非追跡、WSL native側mode `600`を値非表示で検証し、Local API health、Python adapter境界、Python関連138件、Wrangler OAuth profileのread-only確認を完了した。
+
+`.env.cloudflare`を使った`whoami`はネットワーク到達性エラーだったため、認証成功とは記録していない。remote操作の認証根拠は既存Wrangler profileに限定し、remote environmentの明示はタスク7で追加したラッパーを継続利用する。詳細は `docs/REPORT_LOCAL_SECRET_BOUNDARY_TASK_8_2026-09-21.md` に記録した。次は **タスク12「移行手順を運用文書化」**、その後にタスク9の最終受入を行う。

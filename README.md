@@ -133,6 +133,39 @@ npx wrangler deployments list --env live-canary
 
 Do not use an unqualified `npm run deploy`, `wrangler deploy`, or remote D1 command.
 
+### Secret boundary
+
+Keep the credential namespaces separate:
+
+| Use | Environment variable names | Boundary |
+| --- | --- | --- |
+| Worker provider secret | `ALPACA_API_KEY`, `ALPACA_API_SECRET` | Cloudflare Worker Secret bindings; local Worker development may read the ignored `.env` |
+| Python local adapter | `ORDERSCOPE_SECRET_ALPACA_API_KEY`, `ORDERSCOPE_SECRET_ALPACA_API_SECRET` | WSL process environment only; read by the registered adapter boundary |
+| Wrangler administration | `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` | Wrangler read-only/admin commands only; never a Worker binding |
+
+Do not rely on automatic conversion between the Worker and Python names. If the
+same provider credential is intentionally used for a local adapter check, pass
+it explicitly to the `ORDERSCOPE_SECRET_*` names in one WSL process and do not
+save the converted values, put them in command arguments, or record them in
+logs, manifests, or reports. Keep `.env` and `.env.cloudflare` ignored by Git.
+On the WSL-native filesystem, keep any retained dotenv copy at mode `600`.
+The `/mnt/c` source workspace is a drvfs mount, so its WSL mode display is not
+a reliable native-filesystem permission check; do not treat that copy as the
+WSL secret store.
+
+For Wrangler read-only identity checks, use the existing WSL Wrangler profile
+or a separately approved short-lived management credential. Do not include
+`.env.cloudflare` in `wrangler types` input or Worker bindings. Use an explicit
+environment for every remote check, for example:
+
+```bash
+npx wrangler whoami
+npx wrangler d1 info STATE_DB --env live-canary
+```
+
+See `docs/REPORT_LOCAL_SECRET_BOUNDARY_TASK_8_2026-09-21.md` for the value-free
+verification record and the `/mnt/c` versus WSL-native permission caveat.
+
 ## Core principle
 
 The system records what changed as Fact and separates Fact / Derived Metric / Interpretation / Prediction.
