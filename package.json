@@ -10,11 +10,11 @@
   "type": "module",
   "scripts": {
     "dev": "bash scripts/run-local-wsl.sh wrangler",
-    "deploy": "wrangler deploy",
+    "deploy": "bash scripts/run-wrangler-with-env.sh deploy",
     "test": "node --test --experimental-strip-types src/*.test.ts",
     "typecheck": "tsc --noEmit",
     "cf-typegen": "wrangler types",
-    "deploy:check": "wrangler deploy --dry-run"
+    "deploy:check": "bash scripts/run-wrangler-with-env.sh deploy --dry-run"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260828.1",

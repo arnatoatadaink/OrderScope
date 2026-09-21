@@ -111,6 +111,28 @@ bash scripts/run-local-wsl.sh api
 
 The initial data migration is reproducible with `bash scripts/migrate-local-data-to-wsl.sh`. It copies the Windows-side `var/` and `.wrangler/state/` into the WSL-native data root and writes a timestamped manifest there. The source-side directories remain as non-operational migration backups until the final acceptance and retention decision is complete.
 
+Cloudflare environment safety is mandatory for deployment commands. Use an explicit
+named environment for every deploy or dry-run:
+
+```bash
+npm run deploy:check -- --env live-canary
+# or, for a shell-scoped default:
+CLOUDFLARE_ENV=live-canary npm run deploy:check
+```
+
+The repository wrapper rejects an omitted environment and rejects a conflict between
+`--env` and `CLOUDFLARE_ENV`. Remote D1 commands must likewise include the same
+`--env <name>` value. Before any remote mutation, confirm the named Worker and D1
+resource with the read-only checks below; `d1 info` is intentionally run against the
+binding so the environment-specific resource is resolved from `wrangler.jsonc`:
+
+```bash
+npx wrangler d1 info STATE_DB --env live-canary
+npx wrangler deployments list --env live-canary
+```
+
+Do not use an unqualified `npm run deploy`, `wrangler deploy`, or remote D1 command.
+
 ## Core principle
 
 The system records what changed as Fact and separates Fact / Derived Metric / Interpretation / Prediction.

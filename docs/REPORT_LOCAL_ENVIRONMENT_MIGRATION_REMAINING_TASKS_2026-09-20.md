@@ -322,8 +322,8 @@ Windows側sourceでの継続運用、Git変更確定、最終受入が完了す�
 | 4. 実行場所固定 | 完了 | README記載済み |
 | 5. ローカルデータ・DB WSL正本化 | 完了 | 追加作業なし。resticは別タスク |
 | 6. npm警告調査 | 完了 | advisory、依存経路、bundle非包含、allowScripts、後続方針を記録済み |
-| 7. Wrangler environment明示 | **次の実施対象** | remote操作のenv明示とresource誤操作防止を確定する |
-| 8. secret用途別確認 | 未実施 | タスク7後に実施する |
+| 7. Wrangler environment明示 | **完了** | `live-canary`のresourceをread-only照合し、deploy入口のenv必須化を実装済み |
+| 8. secret用途別確認 | **次の実施対象** | タスク7の後続として用途別secret境界を確認する |
 | 9. 移行後の最終受入 | 未実施 | タスク7・8・12完了後の最終ゲート |
 | 10. WSL側完全コピー保留 | 継続中 | 削除せず保持することが現在の正しい状態 |
 | 11. 保留期間後のコピー整理 | 後工程 | 今回の移行完了条件から除外し、後日判断する |
@@ -343,9 +343,9 @@ Windows側sourceでの継続運用、Git変更確定、最終受入が完了す�
 ### 6.2 移行完了までの推奨順序
 
 ```text
-7. Wrangler environment明示
+7. Wrangler environment明示（完了）
         ↓
-8. secret用途別確認
+8. secret用途別確認（次の実施対象）
         ↓
 12. 運用文書を最終構成へ更新
         ↓
@@ -357,4 +357,8 @@ Windows側sourceでの継続運用、Git変更確定、最終受入が完了す�
 11. 削除判断は移行完了後の別工程
 ```
 
-したがって、次の実施対象は **タスク7** とする。
+### 6.3 タスク7完了記録
+
+タスク7では、`scripts/run-wrangler-with-env.sh`を追加し、`npm run deploy`と`npm run deploy:check`で`--env <name>`または`CLOUDFLARE_ENV`を必須化した。未指定と指定値の不一致は実行前に終了する。`live-canary`については、Worker `orderscope-market-worker-live-canary`、D1 `STATE_DB` / `orderscope-state-live-canary`、resource ID `03c85865-1aa3-4b0c-b219-18987cd260a6`をread-onlyで確認した。
+
+`npm run deploy:check -- --env live-canary`はenvironment警告なしで成功した。詳細は `docs/REPORT_LOCAL_WRANGLER_ENVIRONMENT_TASK_7_2026-09-21.md` に記録した。次の実施対象は **タスク8** とする。

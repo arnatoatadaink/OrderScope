@@ -185,7 +185,9 @@ OrderScopeには`.nvmrc`および`package.json`の`engines`指定がない。プ
 
 ### 6.4 Wrangler環境指定
 
-deploy dry-runは成功したが、複数environmentが定義されているにもかかわらず対象environmentが未指定という警告が出た。remote操作では `--env` または `CLOUDFLARE_ENV` を明示し、誤環境への操作を防止する。
+複数environmentが定義されているため、deploy入口に `scripts/run-wrangler-with-env.sh` を追加した。`npm run deploy`と`npm run deploy:check`は `--env` または `CLOUDFLARE_ENV` がない場合に停止し、両方の値が異なる場合も停止する。`npm run deploy:check -- --env live-canary`はenvironment警告なしで成功した。
+
+`live-canary`のWorker、D1 name、D1 resource IDをread-onlyで再確認した。詳細は `docs/REPORT_LOCAL_WRANGLER_ENVIRONMENT_TASK_7_2026-09-21.md` に記録した。
 
 ### 6.5 未コミット差分
 
