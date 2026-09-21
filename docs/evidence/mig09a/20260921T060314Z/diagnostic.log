@@ -1,0 +1,45 @@
+=== MIG-09A diagnostic ===
+timestamp_utc=20260921T060314Z
+root=/mnt/c/Users/Y/Projects/codex_work/OrderScope
+kernel=6.18.33.2-microsoft-standard-WSL2
+wsl_distro=Ubuntu-24.04
+node=v24.21.0
+npm=11.19.0
+uv=uv 0.12.17 (x86_64-unknown-linux-gnu)
+## docs/mermaid-conventions-v0.1...origin/docs/mermaid-conventions-v0.1
+C:\ on /mnt/c type 9p (rw,noatime,aname=drvfs;path=C:\;uid=1000;gid=1000;symlinkroot=/mnt/,cache=0x5,access=client,msize=65536,trans=fd,rfd=6,wfd=6)
+Filesystem     Type  1K-blocks      Used  Available Use% Mounted on
+C:\            9p   1998958588 993715088 1005243500  50% /mnt/c
+/dev/sdd       ext4 1055762868   5022988  997036408   1% /
+[PASS] source_on_mntc: /mnt/c/Users/Y/Projects/codex_work/OrderScope
+[PASS] readable:package.json: readable
+[PASS] readable:package-lock.json: readable
+[FAIL] readable:uv.toml: not readable
+[PASS] readable:.git/HEAD: readable
+=== repeated source reads ===
+[FAIL] repeated_source_read: see /home/y/data/orderscope/mig09a/20260921T060314Z/repeated-read.out
+=== small create/read/delete comparison ===
+[PASS] small_io_mntc: 2000 files
+[PASS] small_io_wsl: 2000 files
+=== isolated npm ci comparison ===
+[PASS] npm_ci_mntc: exit=0; log=/home/y/data/orderscope/mig09a/20260921T060314Z/npm_ci_mntc.out
+[PASS] npm_ci_wsl: exit=0; log=/home/y/data/orderscope/mig09a/20260921T060314Z/npm_ci_wsl.out
+=== post-heavy source reads ===
+[FAIL] post_heavy_source_read: see /home/y/data/orderscope/mig09a/20260921T060314Z/post-heavy-read.out
+
+=== summary ===
+check                       result  detail
+source_on_mntc              PASS    /mnt/c/Users/Y/Projects/codex_work/OrderScope
+readable:package.json       PASS    readable
+readable:package-lock.json  PASS    readable
+readable:uv.toml            FAIL    not readable
+readable:.git/HEAD          PASS    readable
+repeated_source_read        FAIL    see /home/y/data/orderscope/mig09a/20260921T060314Z/repeated-read.out
+small_io_mntc               PASS    2000 files
+small_io_wsl                PASS    2000 files
+npm_ci_mntc                 PASS    exit=0; log=/home/y/data/orderscope/mig09a/20260921T060314Z/npm_ci_mntc.out
+npm_ci_wsl                  PASS    exit=0; log=/home/y/data/orderscope/mig09a/20260921T060314Z/npm_ci_wsl.out
+post_heavy_source_read      FAIL    see /home/y/data/orderscope/mig09a/20260921T060314Z/post-heavy-read.out
+
+Artifacts: /home/y/data/orderscope/mig09a/20260921T060314Z
+Return the summary.tsv and diagnostic.log contents for review.
