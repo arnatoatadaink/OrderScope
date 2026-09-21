@@ -291,6 +291,15 @@ Windows側sourceでの継続運用、Git変更確定、最終受入が完了す�
 - 新しい担当者がこの手順だけで同じ構成を再現できる。
 - Windows側sourceとWSL実行環境の境界が明確である。
 
+実施結果（2026-09-21）:
+
+- `docs/RUNBOOK_LOCAL_ENVIRONMENT_WSL_WINDOWS_2026-09-21.md`を追加し、初回セットアップ、Node.js 24 / uv管理Python 3.13の選択、依存関係構築、WSL native data rootへの初回移行、Local API / local Worker起動、テスト、Wrangler dry-run / remote操作、secret境界、停止基準を一連の再現手順として記録した。
+- READMEの「Local environment operation boundary」からrunbookへリンクし、常時適用する境界の要約とNode/Python version確認コマンドを更新した。
+- Windows側sourceを編集・実行対象とし、`/home/y/code/OrderScope`は退避copyとして編集・実行しないこと、`var/`と`.wrangler/state/`はWSL native data rootの単一copyだけを稼働対象とすることを明記した。
+- Worker用secret、Python local adapter用secret、Wrangler管理用credentialの変数名と利用境界、remote Wranglerのenvironment明示、secretをGit・manifest・ログへ含めない方針を再現手順へ統合した。
+
+タスク12は完了。次の実施対象はタスク9「移行後の最終受入」である。
+
 ## 4. 推奨実施順
 
 次の順序で実施する。
@@ -337,7 +346,7 @@ Windows側sourceでの継続運用、Git変更確定、最終受入が完了す�
 | 9. 移行後の最終受入 | 未実施 | タスク7・8・12完了後の最終ゲート |
 | 10. WSL側完全コピー保留 | 継続中 | 削除せず保持することが現在の正しい状態 |
 | 11. 保留期間後のコピー整理 | 後工程 | 今回の移行完了条件から除外し、後日判断する |
-| 12. 移行手順の運用文書化 | 一部完了 | タスク7・8の結果を反映して最終化する |
+| 12. 移行手順の運用文書化 | **完了** | `docs/RUNBOOK_LOCAL_ENVIRONMENT_WSL_WINDOWS_2026-09-21.md`に再現手順を追加し、READMEと本レポートから参照可能にした |
 
 ### 6.1 タスク6からの持越し
 
@@ -357,7 +366,7 @@ Windows側sourceでの継続運用、Git変更確定、最終受入が完了す�
         ↓
 8. secret用途別確認（完了）
         ↓
-12. 運用文書を最終構成へ更新（次の実施対象）
+12. 運用文書を最終構成へ更新（完了）
         ↓
 9. 最終受入
         ↓
@@ -377,4 +386,4 @@ Windows側sourceでの継続運用、Git変更確定、最終受入が完了す�
 
 タスク8では、Worker用`ALPACA_API_KEY` / `ALPACA_API_SECRET`、Python local adapter用`ORDERSCOPE_SECRET_ALPACA_API_KEY` / `ORDERSCOPE_SECRET_ALPACA_API_SECRET`、Wrangler管理用`CLOUDFLARE_ACCOUNT_ID` / `CLOUDFLARE_API_TOKEN`の境界を確認した。dotenvの定義名、Git非追跡、WSL native側mode `600`を値非表示で検証し、Local API health、Python adapter境界、Python関連138件、Wrangler OAuth profileのread-only確認を完了した。
 
-`.env.cloudflare`を使った`whoami`はネットワーク到達性エラーだったため、認証成功とは記録していない。remote操作の認証根拠は既存Wrangler profileに限定し、remote environmentの明示はタスク7で追加したラッパーを継続利用する。詳細は `docs/REPORT_LOCAL_SECRET_BOUNDARY_TASK_8_2026-09-21.md` に記録した。次は **タスク12「移行手順を運用文書化」**、その後にタスク9の最終受入を行う。
+`.env.cloudflare`を使った`whoami`はネットワーク到達性エラーだったため、認証成功とは記録していない。remote操作の認証根拠は既存Wrangler profileに限定し、remote environmentの明示はタスク7で追加したラッパーを継続利用する。詳細は `docs/REPORT_LOCAL_SECRET_BOUNDARY_TASK_8_2026-09-21.md` に記録した。タスク12は `docs/RUNBOOK_LOCAL_ENVIRONMENT_WSL_WINDOWS_2026-09-21.md` とREADMEへのリンク追加により完了した。次は **タスク9「移行後の最終受入」** を行う。

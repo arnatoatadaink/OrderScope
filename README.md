@@ -86,12 +86,16 @@ These derived documents do not add to or replace the four-document Code of Truth
 
 ## Local environment operation boundary
 
+The complete setup, daily operation, verification, data, and secret-handling
+sequence is in [`docs/RUNBOOK_LOCAL_ENVIRONMENT_WSL_WINDOWS_2026-09-21.md`](docs/RUNBOOK_LOCAL_ENVIRONMENT_WSL_WINDOWS_2026-09-21.md).
+The rules below are the short, always-applicable boundary summary.
+
 The local development environment uses a Windows-side source workspace and a WSL runtime:
 
 | Operation | Execution location |
 | --- | --- |
-| Edit and save source with Codex Desktop | Windows-side source: `/mnt/c/users/y/projects/codex_work/orderscope` |
-| `uv sync`, `uv run`, Python tests, and the Local API | WSL, from the Windows-side source workspace |
+| Edit and save source with Codex Desktop | Windows-side source: `/mnt/c/Users/Y/Projects/codex_work/OrderScope` |
+| `uv sync`, `uv run` with uv-managed Python 3.13, Python tests, and the Local API | WSL, from the Windows-side source workspace |
 | `npm ci`, Node tests, and typecheck | WSL, from the Windows-side source workspace, with Node.js 24 selected |
 | Wrangler commands and deploy dry-runs | WSL, from the Windows-side source workspace |
 | Windows-native Python or Node execution | Not permitted for this project |
@@ -99,9 +103,12 @@ The local development environment uses a Windows-side source workspace and a WSL
 Run project commands from the canonical source workspace, for example:
 
 ```bash
-cd /mnt/c/users/y/projects/codex_work/orderscope
-nvm use 24
+cd /mnt/c/Users/Y/Projects/codex_work/OrderScope
+source "$HOME/.nvm/nvm.sh"
+nvm use
+node --version                 # v24.21.0 from .nvmrc
 uv sync --locked
+uv run python --version        # Python 3.13.x
 npm ci
 bash scripts/run-local-wsl.sh env
 bash scripts/run-local-wsl.sh api
