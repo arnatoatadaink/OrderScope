@@ -121,6 +121,7 @@ Use this section for newly proposed work before deciding whether it deserves a f
 | DISC-006 | 2026-09-12 | Keep D1 as a lightweight hot operational store by incrementally exporting verified bounded history to the local analysis server, then purging only acknowledged/grace-complete historical rows while preserving checkpoint/control truth | `docs/work-management/local-corporate-intelligence/REPORT_D1_HOT_STORE_DRAIN_LIFECYCLE_DESIGN_2026-09-12.md` | L1 / Storage / Operations / Recovery | Promoted to UWBS-023..026 |
 | DISC-007 | 2026-09-15 | Track staged PIPE financing, strategic-investor/governance participation, milestone-triggered follow-on funding, dilution context, and subsequent repricing using PDSB as the composite reference case | `docs/work-management/local-corporate-intelligence/REPORT_PDSB_PIPE_STRATEGIC_INVESTOR_REPRICING_CASE_2026-09-15.md` | Capital Structure / Governance / Market Reaction / I0 | Promoted to UWBS-027..029 |
 | DISC-008 | 2026-09-15 | Decompose AI exposure into foundation/application/security/governance themes and model news-triggered event×theme reaction coefficients, cross-sectional confirmation, theme activation/rotation and historical calibration | `docs/work-management/local-corporate-intelligence/REPORT_AI_THEME_DECOMPOSITION_REACTION_COEFFICIENTS_2026-09-15.md` | Theme Ontology / News Interpretation / Market Reaction / Regime | Promoted to UWBS-030..034 |
+| DISC-009 | 2026-09-22 | Extend macro monitoring with direct WTI/Brent, structured oil supply/fundamental facts, commodity supply/shipping/geopolitical events, BTC spot ETF flow, and cross-asset Risk-On / Crypto Risk-On interpretation; include Worker/D1 capacity acceptance | `docs/work-management/local-corporate-intelligence/REPORT_BTC_RISK_ON_OIL_COMMODITY_MARKET_STRUCTURE_2026-09-22.md` | A0 / Macro-Commodity Intelligence / Crypto Market Structure / Worker-D1 Capacity | Promoted to UWBS-048..054 |
 
 When a proposal is accepted for tracking:
 
@@ -201,6 +202,26 @@ The revision must preserve a mapping table:
 | UWBS-032 | Pending | — | — |
 | UWBS-033 | Pending | — | — |
 | UWBS-034 | Pending | — | — |
+| UWBS-035 | Pending | — | — |
+| UWBS-036 | Pending | — | — |
+| UWBS-037 | Pending | — | — |
+| UWBS-038 | Pending | — | — |
+| UWBS-039 | Pending | — | — |
+| UWBS-040 | Pending | — | — |
+| UWBS-041 | Pending | — | — |
+| UWBS-042 | Pending | — | — |
+| UWBS-043 | Pending | — | — |
+| UWBS-044 | Pending | — | — |
+| UWBS-045 | Pending | — | — |
+| UWBS-046 | Pending | — | — |
+| UWBS-047 | Pending | — | — |
+| UWBS-048 | Pending | — | — |
+| UWBS-049 | Pending | — | — |
+| UWBS-050 | Pending | — | — |
+| UWBS-051 | Pending | — | — |
+| UWBS-052 | Pending | — | — |
+| UWBS-053 | Pending | — | — |
+| UWBS-054 | Pending | — | — |
 
 ## 11. Current planning interpretation
 
@@ -480,3 +501,50 @@ Planning notes:
 - Kiribati Line Islands provide the earliest inhabited Monday reference, but participant geography must never be inferred from the clock alone.
 - "Better risk/return assets receive cleaner Monday flows" is a hypothesis requiring historical validation, not an existing Fact.
 - No threshold, preferred asset class, or directional trading rule is authorized by the NEAR case.
+
+
+## 20. BTC Risk-On / oil / commodity market-structure extension
+
+Source report:
+
+- `docs/work-management/local-corporate-intelligence/REPORT_BTC_RISK_ON_OIL_COMMODITY_MARKET_STRUCTURE_2026-09-22.md`
+
+This extension adds the missing direct commodity/macro inputs around the existing rates/FX and crypto-market-structure lanes. It does **not** encode the 2026-09 BTC/oil narrative as a causal Fact. WTI/Brent price, official oil-supply data, source-grounded commodity events and BTC spot ETF flow are upstream observations; oil-down reason, Risk-On and Crypto Risk-On remain Derived Metric / Interpretation outputs until validated.
+
+The existing `UWBS-036..047` lane remains authoritative for crypto derivatives, BTC leader/follower context, 24/7 time windows and futures-position tracking. The rows below add only the missing oil / commodity / spot-ETF-flow / cross-asset integration and capacity-acceptance work.
+
+| UWBS ID | Proposed task | Proposed package | Completion condition summary | Likely inputs / dependencies | Status | Disposition |
+|---|---|---|---|---|---|---|
+| UWBS-048 | Define direct WTI / Brent Macro Instrument contract and provider survey | A0 / Macro-Commodity / Provider contracts | Define source-neutral WTI/Brent identities, timestamps, cadence, revision behavior and accepted price fields; survey terms, latency, history and cost; preserve USO as proxy rather than canonical oil | Existing MarketDataProvider boundary; UWBS-015 provider-survey pattern; provider/terms gates | Ready for WBS design | Pending |
+| UWBS-049 | Implement / select structured commodity supply and fundamental acquisition | Macro-Commodity / Official data | Acquire or freeze accepted adapters for EIA inventory/production/import-export/refinery utilization and OPEC/OPEC+/IEA policy/report inputs where terms permit; preserve revisions and source provenance | UWBS-048; official-source policy; I0 timestamp/provenance semantics | Needs decomposition | Pending |
+| UWBS-050 | Define commodity supply / shipping / geopolitical event taxonomy | News / Official Signal / Macro-Commodity | Normalize explicit disruption/restoration, production, export, pipeline, refinery, shipping, sanctions and OPEC-policy events; do not store inferred physical supply impact as Fact without source evidence | N0/N1 News path; OfficialSignalProvider; UWBS-049; Fact/Interpretation boundary | Ready for WBS design | Pending |
+| UWBS-051 | Define oil-down-reason and inflation / growth-risk interpretation | A0 / Cross-Market Interpretation | Distinguish supply/geopolitical-premium easing from demand/growth deterioration using oil metrics, structured supply facts and existing rates/credit/equity context; preserve SUPPORT/PARTIAL/CONTRADICT/UNKNOWN and avoid `oil down = risk-on` as a rule | UWBS-048..050; UWBS-011..015; existing cross-market context | Needs decomposition | Pending |
+| UWBS-052 | Implement BTC spot ETF flow acquisition / normalization | Crypto Market Structure / Provider adapters | Using the source decision from UWBS-038, persist issuer/aggregate BTC spot ETF flow observations, revisions and bounded 1d/5d flow metrics without double counting or equating flow with all buyer identity | UWBS-038; I0-003/004; provider/terms gates | Ready for WBS design | Pending |
+| UWBS-053 | Define cross-asset Risk-On / Crypto Risk-On market-regime contract | A0 / Crypto Market Structure / Regime | Combine commodity interpretation, rates/credit/equity context, BTC price/ETF flow and existing derivatives evidence into candidate regime states; keep each input inspectable and preserve contradiction/unknown evidence; no trading action | UWBS-051/052; UWBS-036..045; A0 regime/interpretation patterns | Needs decomposition | Pending |
+| UWBS-054 | Oil/BTC cross-asset Canary and Worker/D1 capacity acceptance | Cross-Market QA / Operations | Replay the 2026-09 motivating case plus false positives; measure actual Worker CPU, subrequests, Cron needs, D1 queries/reads/writes and storage growth under Shadow/dry-run; produce evidence-based Free-vs-Paid activation finding without live mutation | UWBS-048..053; existing Worker/D1 instrumentation; W1/R0 bounded-operation patterns | Needs decomposition | Pending |
+
+Proposed CP relationship:
+
+```text
+UWBS-048 -> UWBS-051
+UWBS-049 -> UWBS-051
+UWBS-050 -> UWBS-051
+
+UWBS-038 -> UWBS-052
+UWBS-036 / UWBS-041..045 -> UWBS-053
+UWBS-051 -> UWBS-053
+UWBS-052 -> UWBS-053
+
+UWBS-053 -> UWBS-054
+existing Worker/D1 instrumentation -> UWBS-054
+```
+
+Planning notes:
+
+- This is a **CP candidate only** until a formal WBS/CP revision adopts it.
+- The uploaded 2026-09-22 BTC macro report is hypothesis/provenance input; its regulatory, geopolitical and causal claims require independent validation before promotion to Fact.
+- Do not freeze USD 100 as a generic oil ceiling. Use local-high / breakout / failed-breakout / drawdown semantics.
+- WTI/Brent direct observations are required because USO is a tradable ETF proxy and cannot be treated as canonical crude price.
+- Heavy historical analysis remains local. D1 should remain bounded hot operational state under the accepted export/custody/purge lifecycle.
+- Workers Free capacity is not rejected by task count alone. `UWBS-054` owns measured capacity acceptance before any paid-tier activation decision or Cron/Worker change.
+- No live provider activation, Worker/Cron mutation, D1 purge, paid procurement or trading action is authorized by these rows.
