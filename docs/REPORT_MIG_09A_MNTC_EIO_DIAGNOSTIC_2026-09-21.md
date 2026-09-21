@@ -15,7 +15,7 @@ MIG-09Aでは、Windows / NTFS / drvfs / security softwareの単一原因まで�
 2026-09-21のタスク9初回受入では以下を確認した。
 
 - `/mnt/c/Users/Y/Projects/codex_work/OrderScope` 上の `npm ci` 中に多数の `EIO` が発生した。
-- `node_modules` 配下だけでなく、その後repository直下の `package.json` / `uv.toml` のreadでもEIOを確認した。
+- `node_modules` 配下だけでなく、その後repository直下の `package.json` / `pyproject.toml` のreadでもEIOを確認した。
 - 同構成はそれ以前の受入でNode/Python tests、typecheck、Wrangler dry-run、Local API healthに成功した実績がある。
 - よって現時点では「npm固有の不具合」とは確定しない。
 
@@ -95,3 +95,21 @@ WSL native isolated npm ci: PASS
 - `$HOME/data/orderscope/mig09a/<timestamp>/diagnostic.log`
 
 EIOが出た場合は該当する `*.out` も追加する。
+
+
+## 10. 2026-09-21 first local evidence review
+
+Commit `985dbcb` の初回実測をレビューしたところ、診断scriptが存在しない `uv.toml` をread対象に含めていたため、以下3項目はEIO再現ではなく診断scriptの誤指定による偽FAILと判定した。
+
+- `readable:uv.toml`
+- `repeated_source_read`
+- `post_heavy_source_read`
+
+同runで有効な比較結果は以下。
+
+- `small_io_mntc`: PASS（2,000 files）
+- `small_io_wsl`: PASS（2,000 files）
+- `npm_ci_mntc`: PASS
+- `npm_ci_wsl`: PASS
+
+したがって、このrunでは `/mnt/c` EIOは再現していない。診断scriptは `pyproject.toml` を使用するよう修正し、再実行結果をMIG-09Aの正式証跡とする。
