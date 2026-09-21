@@ -46,6 +46,19 @@ Windows側source + WSL runtimeへの移行作業を一区切りとし、次回�
 - Windows側のディスク/NTFS、WSL drvfs、セキュリティソフト、同時アクセスのどこに相関があるか。
 - 同じ依存展開をWSL native filesystemで行った場合にEIOが消えるか。
 
+### 3.2 MIG-09A 診断準備状況
+
+Web側の診断設計は完了。ローカル実測のみ未実施。
+
+追加済み:
+
+- `scripts/diagnose-mig09a-eio.sh`
+- `docs/REPORT_MIG_09A_MNTC_EIO_DIAGNOSTIC_2026-09-21.md`
+
+診断scriptはrepository直下の `node_modules` / `.venv` を変更せず、repository外の一時directoryで `/mnt/c` とWSL native filesystemを比較する。通常実行でsource readと小規模I/O、`--heavy`でisolated `npm ci` とheavy I/O後のsource readまで確認する。
+
+MIG-09Aの現在状態は **Web側準備完了・ローカル実測待ち** とする。実測結果は `$HOME/data/orderscope/mig09a/<timestamp>/` の `summary.tsv` / `diagnostic.log` を証跡とし、結果をレビュー後にMIG-09Bへ進むか判定する。
+
 ## 4. 移行完了後に再開する通常開発
 
 `WEB_CORPORATE_INTELLIGENCE_PROGRESS_TRACKER_2026-09-03.md` と既存WBS上の現在地から、通常開発の再開地点は `I0-002` とする。
