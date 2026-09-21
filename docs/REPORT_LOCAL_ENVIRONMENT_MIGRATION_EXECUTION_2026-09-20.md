@@ -229,3 +229,55 @@ M  uv.lock
 ## 9. 最終評価
 
 アプリケーションコード変更なしで、Windows側sourceをCodex Desktopから編集し、WSL上で依存関係・テスト・実行を行う構成が成立することを確認した。データ完全性と主要な回帰基準は満たしている。残作業はNode.js versionの固定、Git差分の確定、および依存警告の運用判断である。
+
+## 10. 2026-09-21 区切り時点の進捗更新
+
+### 10.1 完了した移行タスク
+
+2026-09-21までに、残作業12項目のうち次を完了または最終受入へ集約した。
+
+- タスク1: Node.js 24固定。`.nvmrc=24.21.0`を配置し、最終確認はタスク9へ集約。
+- タスク2: `uv.lock`整合。最終の`uv lock --check` / `uv sync --locked`をタスク9へ集約。
+- タスク3: 移行資料・lockfileのGit確定を継続。最終文書更新を含むcommit状態確認はタスク9完了時に行う。
+- タスク4: Windows側source / WSL runtimeの役割分担をREADMEへ明文化。
+- タスク5: 可変データとlocal Wrangler stateをWSL native filesystemへ正本化。SQLite integrity、manifest/hash、Local API / local Worker healthを確認。
+- タスク6: npm warningを調査し、advisory、依存経路、production bundle非包含、`allowScripts`、更新方針を記録。
+- タスク7: Wrangler remote environmentを必須化し、`live-canary` resourceをread-only照合。deploy/dry-run入口をfail-closed化。
+- タスク8: Worker / Python local adapter / Wrangler管理credentialのsecret境界を確認。dotenvのGit非追跡とWSL native側mode 600を記録。
+- タスク12: `docs/RUNBOOK_LOCAL_ENVIRONMENT_WSL_WINDOWS_2026-09-21.md`を追加し、Windows source + WSL runtimeの再現手順を文書化。
+- タスク10: `/home/y/code/OrderScope` は退避・比較用copyとして保持継続。
+- タスク11: 退避copyの整理・削除判断は移行完了後の後工程とし、移行完了ゲートから除外。
+
+### 10.2 タスク9最終受入で検出したブロッカー
+
+タスク9の最終受入を現行構成で開始した結果、データhashとPython lock/syncは先行部分で成功した一方、`npm ci`中にWindows側source `/mnt/c/Users/Y/Projects/codex_work/OrderScope` への大量の `EIO: i/o error` が発生した。
+
+確認された代表例:
+
+- `node_modules` 配下で多数の `TAR_ENTRY_ERROR EIO`
+- `node_modules/esbuild/bin/esbuild` の `lstat` がEIO
+- 後続ではrepository直下の `package.json` そのもののopenがEIO
+- `uv.toml` のopenも `Input/output error (os error 5)`
+- Local APIは起動に至らず、`127.0.0.1:8000` healthも未成立
+
+このため、今回の失敗をNode test、Python test、typecheck、Worker dry-run、Local APIのアプリケーション回帰失敗とは判定しない。filesystem/runtime配置の受入ブロッカーとして扱う。
+
+### 10.3 現時点の総合判定
+
+PC移行は **実装・文書化フェーズ完了、最終受入ブロック中** とする。
+
+source正本、可変データ正本、secret境界、Cloudflare environment安全策、runbookまでは確定している。一方、WSLから`/mnt/c`上のLinux用`node_modules`を再生成・使用する現在の依存配置は、最終受入で安定性を証明できなかった。
+
+したがって、移行完了とはまだ判定しない。
+
+### 10.4 次回の再開地点
+
+次回はタスク9を直接再試行せず、先に以下を行う。
+
+1. `/mnt/c` EIOの再現条件と一時障害か構成依存かを切り分ける。
+2. source正本をWindows側に維持したまま、`node_modules`と必要に応じて`.venv`をWSL native filesystemへ分離する構成を再評価する。
+3. 採用構成をrunbookと移行資料へ反映する。
+4. その構成でタスク9を最初から再実行する。
+5. タスク9が成功した後、移行を完了判定し、通常開発のクリティカルパスである`I0-002`へ戻る。
+
+残作業は `docs/REPORT_REMAINING_WORK_AFTER_WSL_MIGRATION_CHECKPOINT_2026-09-21.md` を正として管理する。
