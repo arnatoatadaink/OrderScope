@@ -343,7 +343,7 @@ Windows側sourceでの継続運用、Git変更確定、最終受入が完了す�
 | 6. npm警告調査 | 完了 | advisory、依存経路、bundle非包含、allowScripts、後続方針を記録済み |
 | 7. Wrangler environment明示 | **完了** | `live-canary`のresourceをread-only照合し、deploy入口のenv必須化を実装済み |
 | 8. secret用途別確認 | **完了** | 用途別変数名、Git非追跡、WSL native側mode `600`、値非表示のLocal API/Python/Wrangler確認を記録済み |
-| 9. 移行後の最終受入 | 未実施 | タスク7・8・12完了後の最終ゲート |
+| 9. 移行後の最終受入 | **ブロック中** | `/mnt/c`上の依存再生成でEIOを検出。runtime依存配置を再設計後に再実行 |
 | 10. WSL側完全コピー保留 | 継続中 | 削除せず保持することが現在の正しい状態 |
 | 11. 保留期間後のコピー整理 | 後工程 | 今回の移行完了条件から除外し、後日判断する |
 | 12. 移行手順の運用文書化 | **完了** | `docs/RUNBOOK_LOCAL_ENVIRONMENT_WSL_WINDOWS_2026-09-21.md`に再現手順を追加し、READMEと本レポートから参照可能にした |
@@ -368,7 +368,9 @@ Windows側sourceでの継続運用、Git変更確定、最終受入が完了す�
         ↓
 12. 運用文書を最終構成へ更新（完了）
         ↓
-9. 最終受入
+9-A. `/mnt/c` EIO切り分け・runtime依存配置再設計
+        ↓
+9. 最終受入を再実行
         ↓
 移行完了
 
@@ -387,3 +389,18 @@ Windows側sourceでの継続運用、Git変更確定、最終受入が完了す�
 タスク8では、Worker用`ALPACA_API_KEY` / `ALPACA_API_SECRET`、Python local adapter用`ORDERSCOPE_SECRET_ALPACA_API_KEY` / `ORDERSCOPE_SECRET_ALPACA_API_SECRET`、Wrangler管理用`CLOUDFLARE_ACCOUNT_ID` / `CLOUDFLARE_API_TOKEN`の境界を確認した。dotenvの定義名、Git非追跡、WSL native側mode `600`を値非表示で検証し、Local API health、Python adapter境界、Python関連138件、Wrangler OAuth profileのread-only確認を完了した。
 
 `.env.cloudflare`を使った`whoami`はネットワーク到達性エラーだったため、認証成功とは記録していない。remote操作の認証根拠は既存Wrangler profileに限定し、remote environmentの明示はタスク7で追加したラッパーを継続利用する。詳細は `docs/REPORT_LOCAL_SECRET_BOUNDARY_TASK_8_2026-09-21.md` に記録した。タスク12は `docs/RUNBOOK_LOCAL_ENVIRONMENT_WSL_WINDOWS_2026-09-21.md` とREADMEへのリンク追加により完了した。次は **タスク9「移行後の最終受入」** を行う。
+
+### 6.5 タスク9初回受入の結果とブロッカー
+
+2026-09-21の最終受入では、移行manifestのSHA256確認とPython lock/syncの先行部分は成功した。その後、`npm ci`が`/mnt/c/Users/Y/Projects/codex_work/OrderScope/node_modules`への多数のEIOで停止し、続けてrepository直下の`package.json`および`uv.toml`の読み取りもEIOとなった。Local API healthも未成立である。
+
+この結果はアプリケーション回帰ではなく、Windows側sourceをWSLから参照しつつLinux用依存directoryを`/mnt/c`上へ配置する構成のfilesystem/runtime安定性ブロッカーと判定する。
+
+タスク9は完了扱いにせず、次の順序で再開する。
+
+1. `/mnt/c` EIOの再現条件を切り分ける。
+2. Windows側source正本を維持し、`node_modules`および必要に応じて`.venv`をWSL nativeへ分離する構成を評価する。
+3. runbookと移行資料を更新する。
+4. タスク9の全受入を再実行する。
+
+以後の残作業管理は `docs/REPORT_REMAINING_WORK_AFTER_WSL_MIGRATION_CHECKPOINT_2026-09-21.md` を使用する。
