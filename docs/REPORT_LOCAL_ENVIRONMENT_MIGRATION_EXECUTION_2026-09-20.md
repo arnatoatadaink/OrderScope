@@ -177,10 +177,11 @@ OrderScopeには`.nvmrc`および`package.json`の`engines`指定がない。プ
 
 `npm ci` は成功したが、次が報告された。
 
-- high severity vulnerability: 4件
-- `esbuild`および`workerd`のinstall-script承認警告
+- `sharp@0.35.2`（`miniflare`経由）にHigh advisory 1系統
+- `undici@7.28.0`（rootの`miniflare@4`経由）にHigh advisory 1系統とModerate advisory 4件
+- `esbuild@0.28.1`および`workerd@1.20260730.1` / `1.20260828.1`のinstall-script未承認警告
 
-試験、型検査、deploy dry-runには影響していない。`npm audit fix`や強制更新は未実施であり、依存経路とproduction影響をレビューしてから別変更として扱う。
+調査結果は `docs/REPORT_LOCAL_NPM_AUDIT_TASK_6_2026-09-21.md` に記録した。対象packageはdevDependenciesで、`wrangler deploy --dry-run --env live-canary`のproduction Worker bundleには含まれない。`npm audit fix`や強制更新は未実施であり、依存経路とlocal runtimeへの影響をレビューしてから別変更として扱う。install-scriptは確認済みの3 package/versionだけを`package.json`の`allowScripts`で許可した。
 
 ### 6.4 Wrangler環境指定
 

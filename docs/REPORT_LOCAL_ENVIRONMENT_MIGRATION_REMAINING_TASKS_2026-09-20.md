@@ -163,10 +163,11 @@ WSL側の完全コピーである。sourceの正式workspaceではなく、移�
 
 ### 6. npm警告を調査
 
-`npm ci`は成功しているが、次が報告されている。
+調査結果は `docs/REPORT_LOCAL_NPM_AUDIT_TASK_6_2026-09-21.md` に記録した。取得済みの監査応答で確認できた高severityは、次の2 advisory系統である。`undici@7.28.0`にはModerate advisoryも4件ある。
 
-- high severity vulnerability: 4件
-- `esbuild`、`workerd`等のinstall-script承認警告
+- `sharp@0.35.2`（`miniflare`経由）: GHSA-rgj7-g3m4-5g8c、High
+- `undici@7.28.0`（rootの`miniflare@4`経由）: GHSA-4cwx-7wf7-3272、High
+- `esbuild@0.28.1`、`workerd@1.20260730.1`、`workerd@1.20260828.1`: install-script未承認警告
 
 実施内容:
 
@@ -178,8 +179,9 @@ WSL側の完全コピーである。sourceの正式workspaceではなく、移�
 
 完了条件:
 
-- 4件の原因package、影響、対応方針が記録されている。
-- 依存更新を行う場合はpackage-lock差分と全試験結果が記録されている。
+- 原因package、依存経路、production bundleへの影響、対応方針が記録されている。
+- install-scriptは対象とバージョンを`package.json`の`allowScripts`で固定している。
+- 依存更新を行う場合はpackage-lock差分と全試験結果を記録する。今回は脆弱性修正の依存更新は未実施。
 
 ### 7. Wrangler environmentを明示
 
