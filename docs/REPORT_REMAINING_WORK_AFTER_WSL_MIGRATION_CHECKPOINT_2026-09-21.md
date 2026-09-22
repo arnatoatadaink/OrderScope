@@ -211,7 +211,7 @@ I0-002 provenance / timestamp共通型
 | ID | 作業 | 状態 | 備考 |
 |---|---|---|---|
 | DEV-I0-002 | provenance / timestamp共通型 | **完了 / Accepted** | 既存実装・専用テスト・全Python suite 696件PASSを確認。`REPORT_DEV_I0_002_PROVENANCE_TIMESTAMP_ACCEPTANCE_2026-09-22.md`参照 |
-| DEV-I0-003 | cursor / checkpoint contract | **実装完了 / local acceptance pending** | checkpoint/provider既存実装をレビューし、PARTIAL=>error必須の不変条件を追加。`REPORT_DEV_I0_003_CURSOR_CHECKPOINT_ACCEPTANCE_2026-09-22.md`参照 |
+| DEV-I0-003 | cursor / checkpoint contract | **完了 / Accepted** | PARTIAL=>error必須の不変条件追加後、CodexDesktop側専用テスト28件PASS・cleanを確認。`REPORT_DEV_I0_003_CURSOR_CHECKPOINT_ACCEPTANCE_2026-09-22.md`参照 |
 | DEV-I0-004 | idempotency / evidence系の後続 | I0-002待ち | I0-007受入へ接続 |
 | DEV-I0-005 | Fact Store論理schema ADR Accepted化 | preimplemented | I0-002 provenance型・fixture待ち |
 | DEV-I0-006 | temporary content lifecycle | 後続 | I0-005系とI0-007へ接続 |
