@@ -213,8 +213,8 @@ I0-002 provenance / timestamp共通型
 | DEV-I0-002 | provenance / timestamp共通型 | **完了 / Accepted** | 既存実装・専用テスト・全Python suite 696件PASSを確認。`REPORT_DEV_I0_002_PROVENANCE_TIMESTAMP_ACCEPTANCE_2026-09-22.md`参照 |
 | DEV-I0-003 | cursor / checkpoint contract | **完了 / Accepted** | PARTIAL=>error必須の不変条件追加後、CodexDesktop側専用テスト28件PASS・cleanを確認。`REPORT_DEV_I0_003_CURSOR_CHECKPOINT_ACCEPTANCE_2026-09-22.md`参照 |
 | DEV-I0-004 | idempotency / duplicate boundary | **完了 / Accepted** | stable accession/article/signal ID + content hashによるNEW/DUPLICATE/UPDATE/CONFLICT契約を確認。`REPORT_DEV_I0_004_IDEMPOTENCY_DUPLICATE_ACCEPTANCE_2026-09-22.md`参照 |
-| DEV-I0-005 | Fact Store論理schema ADR Accepted化 | **次の本流** | I0-002/003/004完了。既存schema・fixture・受入条件を再レビュー |
-| DEV-I0-006 | temporary content lifecycle | 後続 | I0-005系とI0-007へ接続 |
+| DEV-I0-005 | Fact Store論理schema ADR Accepted化 | **完了 / Accepted** | 5 record境界、append-only履歴、Evidence相互参照、as-of可視性、I0-002〜004整合を確認。`REPORT_DEV_I0_005_FACT_STORE_ACCEPTANCE_2026-09-22.md`参照 |
+| DEV-I0-006 | temporary content lifecycle | **次の本流** | I0-005完了によりblock解除。I0-007正式受入へ接続 |
 | DEV-I0-007 | provider-neutral contract test正式受入 | 部分実装済み | I0-003/004/006統合待ち |
 | DEV-S0-004 | strict SEC form filter | 完了 | 追加作業なし |
 | DEV-S0-007 | SEC統合受入 | 部分完了 | S0-002/003/005/006待ち |
@@ -263,4 +263,4 @@ I0-002 provenance / timestamp共通型
 
 ## 9. 区切り時点の判定
 
-2026-09-22時点で、Windows側source + WSL runtimeへの移行は **完了**。MIG-09E正式受入、MIG-09F Git最終確認、CodexDesktop側検収合格を通過した。通常開発へ復帰し、`DEV-I0-002` は既存実装の正式受入まで完了したため、次は `DEV-I0-003` から進める。
+2026-09-22時点で、Windows側source + WSL runtimeへの移行は **完了**。MIG-09E正式受入、MIG-09F Git最終確認、CodexDesktop側検収合格を通過した。通常開発へ復帰し、`DEV-I0-002`〜`DEV-I0-005` は正式受入まで完了した。次の本流は `DEV-I0-006 temporary content lifecycle` とする。
