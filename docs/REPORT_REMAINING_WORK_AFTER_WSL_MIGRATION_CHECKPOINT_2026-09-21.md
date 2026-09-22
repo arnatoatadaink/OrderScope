@@ -33,7 +33,7 @@ Windows側source + WSL runtimeへの移行作業を一区切りとし、次回�
 | MIG-09A | `/mnt/c` EIOの切り分け | 最優先 | なし | **完了**。修正版再試験で通常read / small I/O / isolated `npm ci` / post-heavy readが全PASS。EIOは非再現として記録 |
 | MIG-09B | runtime dependency配置の再設計 | 最優先 | MIG-09A | **完了**。Python environmentはWSL nativeへ移動、Node `node_modules`は現配置維持。詳細はMIG-09B decision report |
 | MIG-09C | wrapper / path設計の実装 | 高 | MIG-09B | **完了**。PythonはWSL native envへ固定、Node pathは現行維持。Python 696件 / Node 199件 / typecheck PASS |
-| MIG-09D | README / runbook / migration report更新 | 高 | MIG-09B〜09C | 実際の最終構成と文書が一致する |
+| MIG-09D | README / runbook / migration report更新 | 高 | MIG-09B〜09C | **完了**。README / runbook / migration reportを最終runtime layoutへ整合 |
 | MIG-09E | タスク9最終受入を再実行 | 最優先 | MIG-09D | hash、uv、npm、Node tests、typecheck、Wrangler dry-run、Python tests、Local API healthが全て成功 |
 | MIG-09F | Git最終確定確認 | 高 | MIG-09E | migration資料、lockfile、runbook、修正scriptがremoteに確定し、secret / runtime dependency / cacheが追跡されていない |
 | MIG-DONE | PC移行完了判定 | 最優先 | MIG-09E〜09F | 移行実施レポートを「完了」へ更新し、本流開発へ戻れる |
@@ -102,6 +102,31 @@ MIG-09Cは **完了**。ローカル検証でPython 696件、Node 199件、TypeS
 
 MIG-09Cの最終検証結果と完了判定は `docs/REPORT_MIG_09C_RUNTIME_PATH_IMPLEMENTATION_2026-09-22.md` を正とする。次の実施対象は **MIG-09D README / runbook / migration report更新**。
 
+
+
+
+### 3.5 MIG-09D 文書整合完了
+
+MIG-09Dは **完了**。
+
+更新済み:
+
+- `README.md`
+- `docs/RUNBOOK_LOCAL_ENVIRONMENT_WSL_WINDOWS_2026-09-21.md`
+- `docs/REPORT_LOCAL_ENVIRONMENT_MIGRATION_EXECUTION_2026-09-20.md`
+- `docs/REPORT_MIG_09C_RUNTIME_PATH_IMPLEMENTATION_2026-09-22.md` のstatus確定
+
+最終文書上のruntime boundary:
+
+- source: Windows側 `/mnt/c/Users/Y/Projects/codex_work/OrderScope`
+- Node dependencies: source-local `node_modules`
+- Python project environment: WSL native `${HOME}/.local/share/orderscope/venv`
+- mutable local data: `${HOME}/data/orderscope/local`
+- Wrangler persistence: `${HOME}/data/orderscope/wrangler-state`
+
+Python dependency構築は `bash scripts/run-local-wsl.sh sync` を正式入口とする。legacy source-local `.venv` はruntimeとして使用せず、MIG-09E完了までrollback用残置を許可する。
+
+次の実施対象は **MIG-09E タスク9最終受入の再実行**。
 
 ## 4. 移行完了後に再開する通常開発
 
