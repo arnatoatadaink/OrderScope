@@ -32,7 +32,7 @@ Windows側source + WSL runtimeへの移行作業を一区切りとし、次回�
 |---|---|---:|---|---|
 | MIG-09A | `/mnt/c` EIOの切り分け | 最優先 | なし | **完了**。修正版再試験で通常read / small I/O / isolated `npm ci` / post-heavy readが全PASS。EIOは非再現として記録 |
 | MIG-09B | runtime dependency配置の再設計 | 最優先 | MIG-09A | **完了**。Python environmentはWSL nativeへ移動、Node `node_modules`は現配置維持。詳細はMIG-09B decision report |
-| MIG-09C | wrapper / path設計の実装 | 高 | MIG-09B | **実装済み・ローカル検証待ち**。PythonはWSL native envへ固定、Node pathは現行維持 |
+| MIG-09C | wrapper / path設計の実装 | 高 | MIG-09B | **完了**。PythonはWSL native envへ固定、Node pathは現行維持。Python 696件 / Node 199件 / typecheck PASS |
 | MIG-09D | README / runbook / migration report更新 | 高 | MIG-09B〜09C | 実際の最終構成と文書が一致する |
 | MIG-09E | タスク9最終受入を再実行 | 最優先 | MIG-09D | hash、uv、npm、Node tests、typecheck、Wrangler dry-run、Python tests、Local API healthが全て成功 |
 | MIG-09F | Git最終確定確認 | 高 | MIG-09E | migration資料、lockfile、runbook、修正scriptがremoteに確定し、secret / runtime dependency / cacheが追跡されていない |
@@ -81,7 +81,7 @@ MIG-09Bは **完了**。
 
 ### 3.4 MIG-09C wrapper / path実装状況
 
-MIG-09Cのコード実装は完了し、**ローカル検証待ち**。
+MIG-09Cは **完了**。ローカル検証でPython 696件、Node 199件、TypeScript typecheckが成功し、`npm ci`でもEIOは再発しなかった。
 
 追加・変更:
 
@@ -100,7 +100,7 @@ MIG-09Cのコード実装は完了し、**ローカル検証待ち**。
 - `env` subcommandへPython environment path表示を追加。
 - Node / Wranglerはsource直下 `node_modules` と既存module resolutionを維持。
 
-MIG-09Cの完了判定はローカル検証後に行う。検証項目はMIG-09C実装レポートを正とする。
+MIG-09Cの最終検証結果と完了判定は `docs/REPORT_MIG_09C_RUNTIME_PATH_IMPLEMENTATION_2026-09-22.md` を正とする。次の実施対象は **MIG-09D README / runbook / migration report更新**。
 
 
 ## 4. 移行完了後に再開する通常開発
