@@ -87,6 +87,7 @@ def test_complete_checkpoint_cannot_be_resumed():
         (lambda: CheckpointScope("", "source"), "provider_key"),
         (lambda: OpaqueCursor(" "), "cursor"),
         (lambda: checkpoint(state=CheckpointState.IN_PROGRESS, resume_cursor=None), "resume_cursor"),
+        (lambda: checkpoint(state=CheckpointState.PARTIAL), "partial checkpoint"),
         (lambda: checkpoint(state=CheckpointState.COMPLETE), "complete checkpoint"),
     ],
 )
