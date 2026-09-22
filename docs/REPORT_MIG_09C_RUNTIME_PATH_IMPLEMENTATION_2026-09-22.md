@@ -1,7 +1,7 @@
 # MIG-09C wrapper / runtime path implementation
 
 作成日: 2026-09-22（Asia/Tokyo）
-Status: implemented, local validation pending
+Status: complete
 親タスク: `MIG-09C` in `docs/REPORT_REMAINING_WORK_AFTER_WSL_MIGRATION_CHECKPOINT_2026-09-21.md`
 
 ## 1. 実装目的
