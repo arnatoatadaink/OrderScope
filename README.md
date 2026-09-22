@@ -95,8 +95,8 @@ The local development environment uses a Windows-side source workspace and a WSL
 | Operation | Execution location |
 | --- | --- |
 | Edit and save source with Codex Desktop | Windows-side source: `/mnt/c/Users/Y/Projects/codex_work/OrderScope` |
-| `uv sync`, `uv run` with uv-managed Python 3.13, Python tests, and the Local API | WSL, from the Windows-side source workspace |
-| `npm ci`, Node tests, and typecheck | WSL, from the Windows-side source workspace, with Node.js 24 selected |
+| Python dependency sync, Python tests, and the Local API | WSL, from the Windows-side source workspace, using `bash scripts/run-local-wsl.sh ...` and a WSL-native Python environment |
+| `npm ci`, Node tests, and typecheck | WSL, from the Windows-side source workspace, with Node.js 24 selected and source-local `node_modules` |
 | Wrangler commands and deploy dry-runs | WSL, from the Windows-side source workspace |
 | Windows-native Python or Node execution | Not permitted for this project |
 
@@ -107,14 +107,16 @@ cd /mnt/c/Users/Y/Projects/codex_work/OrderScope
 source "$HOME/.nvm/nvm.sh"
 nvm use
 node --version                 # v24.21.0 from .nvmrc
-uv sync --locked
-uv run python --version        # Python 3.13.x
+bash scripts/run-local-wsl.sh sync
+bash scripts/run-local-wsl.sh python -c 'import sys; print(sys.version); print(sys.executable)'
 npm ci
 bash scripts/run-local-wsl.sh env
 bash scripts/run-local-wsl.sh api
 ```
 
-`.venv` and `node_modules` are Linux/WSL runtime dependencies even though they are generated under the Windows-side workspace. Do not invoke them with Windows-native Python or Node. The WSL-side copy at `/home/y/code/OrderScope` is a migration backup/comparison copy; while it is retained, do not edit or execute the project from that copy. Operational mutable data is canonical under `${HOME}/data/orderscope` in the WSL-native filesystem: Python uses `${HOME}/data/orderscope/local` through `ORDERSCOPE_DATA_ROOT`, and local Wrangler uses `${HOME}/data/orderscope/wrangler-state` through `--persist-to`. Use `bash scripts/run-local-wsl.sh ...` or `npm run dev` so these boundaries are applied. Do not open SQLite files concurrently from multiple processes or copies. See `docs/REPORT_LOCAL_DB_WSL_CANONICALIZATION_2026-09-20.md` for migration evidence and `docs/REPORT_LOCAL_ENVIRONMENT_MIGRATION_REMAINING_TASKS_2026-09-20.md` for remaining operational work.
+`node_modules` remains a Linux/WSL runtime dependency generated under the Windows-side workspace. The Python project environment does **not** live under the source checkout; `scripts/run-local-wsl.sh` fixes `UV_PROJECT_ENVIRONMENT` to `${HOME}/.local/share/orderscope/venv` by default. A legacy source-local `.venv` may remain temporarily during migration, but the wrapper does not use it. Do not invoke the project with Windows-native Python or Node. The WSL-side copy at `/home/y/code/OrderScope` is a migration backup/comparison copy; while it is retained, do not edit or execute the project from that copy. Operational mutable data is canonical under `${HOME}/data/orderscope` in the WSL-native filesystem: Python uses `${HOME}/data/orderscope/local` through `ORDERSCOPE_DATA_ROOT`, and local Wrangler uses `${HOME}/data/orderscope/wrangler-state` through `--persist-to`. Use `bash scripts/run-local-wsl.sh ...` or `npm run dev` so these boundaries are applied. Do not open SQLite files concurrently from multiple processes or copies. See `docs/REPORT_LOCAL_DB_WSL_CANONICALIZATION_2026-09-20.md` for migration evidence and `docs/REPORT_LOCAL_ENVIRONMENT_MIGRATION_REMAINING_TASKS_2026-09-20.md` for remaining operational work.
+
+If `/mnt/c` EIO reappears during `npm ci` or other heavy Node dependency I/O, stop the acceptance run and preserve the error output. The current design keeps source-local `node_modules` because MIG-09A could not reproduce the failure after restart and MIG-09C passed `npm ci`, 199 Node tests, and typecheck. A generated WSL-native runtime mirror is the first fallback to evaluate if the failure becomes reproducible; do not introduce `NODE_PATH`, source symlinks, or bind mounts ad hoc.
 
 The initial data migration is reproducible with `bash scripts/migrate-local-data-to-wsl.sh`. It copies the Windows-side `var/` and `.wrangler/state/` into the WSL-native data root and writes a timestamped manifest there. The source-side directories remain as non-operational migration backups until the final acceptance and retention decision is complete.
 
