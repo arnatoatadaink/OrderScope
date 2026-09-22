@@ -1,7 +1,7 @@
 # MIG-09E final acceptance rerun
 
 作成日: 2026-09-22（Asia/Tokyo）
-Status: prepared, local execution pending
+Status: complete
 親タスク: `MIG-09E` in `docs/REPORT_REMAINING_WORK_AFTER_WSL_MIGRATION_CHECKPOINT_2026-09-21.md`
 
 ## 1. 目的
@@ -77,3 +77,45 @@ runnerは次を順番に検証する。
 `summary.tsv` が全てPASSし、受入後Git working treeがcleanならMIG-09Eを完了とする。
 
 MIG-09E完了後の次工程はMIG-09F Git最終確定確認。
+
+
+## 7. 2026-09-22 final acceptance result
+
+正式ローカル受入は `20260922T031204Z` runで成功した。
+
+確認結果:
+
+- canonical source path: PASS
+- clean worktree before acceptance: PASS
+- Node.js: v24.21.0 / Linux: PASS
+- migration snapshot SHA-256: all entries OK
+- `uv lock --check`: PASS
+- wrapper Python sync: PASS
+- Python environment filesystem: ext4
+- Python version: 3.13.15
+- Python executable: `/home/y/.local/share/orderscope/venv/bin/python`
+- `npm ci`: PASS、EIO再発なし
+- Node tests: **199 passed / 0 failed**
+- TypeScript typecheck: PASS
+- Python tests: **696 passed**
+- Wrangler `live-canary` deploy dry-run: PASS
+- Local API bind: `127.0.0.1:8000`
+- Local API `/health`: HTTP 200
+- forbidden tracked files: none
+- `.env` / `.env.cloudflare`: ignored
+- final worktree: clean
+- `git diff --check`: PASS
+
+受入証跡directory:
+
+```text
+/home/y/data/orderscope/mig09e/20260922T031204Z
+```
+
+### MIG-09E 完了判定
+
+MIG-09Eは **完了** とする。
+
+旧タスク9でブロッカーとなった `/mnt/c` EIOは、今回の正式 `npm ci` でも再発しなかった。
+
+次工程はMIG-09F Git最終確定確認。
