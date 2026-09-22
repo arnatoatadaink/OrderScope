@@ -53,7 +53,7 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 - `I0-004` idempotency / duplicate boundaryは2026-09-22に既存実装・専用テストを再レビューし **Accepted** とした。stable accession/article/signal IDとcontent hashを基準にNEW/DUPLICATE/UPDATE/CONFLICTを分離し、明示的revisionなしではUPDATEへ昇格しない。受入記録は `REPORT_DEV_I0_004_IDEMPOTENCY_DUPLICATE_ACCEPTANCE_2026-09-22.md` を参照する。
 - `I0-005` Fact Store logical schemaは2026-09-22にADR・実装・fixtureをI0-002〜004と再照合し **Accepted** とした。受入記録は `REPORT_DEV_I0_005_FACT_STORE_ACCEPTANCE_2026-09-22.md` を参照する。
 - `I0-006` temporary content lifecycleは2026-09-22に既存schema・provider handoff・fixtureを再レビューし **Accepted** とした。content ref / retention class / expiry / exception reason / deletion proof境界を確認済み。受入記録は `REPORT_DEV_I0_006_TEMPORARY_CONTENT_ACCEPTANCE_2026-09-22.md` を参照する。
-- `I0-003 / I0-004 / I0-006` がすべてAcceptedとなったため、Corporate Intelligence全体のクリティカルパス上の次作業は `I0-007` provider-neutral contract test正式受入である。
+- `I0-003 / I0-004 / I0-006` はすべてAccepted済み。`I0-007` provider-neutral contract test kitへ統合し、provider時刻UTC必須化とbounded paginationのmax-pages負例を追加した。実装は完了し、追加差分後のlocal acceptance待ちである。受入記録は `REPORT_DEV_I0_007_PROVIDER_NEUTRAL_CONTRACT_TEST_ACCEPTANCE_2026-09-22.md` を参照する。
 - `WEB-013 / N1-001` は `WEB-007 + I0-005` の依存が充足したため、`保留（依存）` から `未着手` へ移し、Web側で着手可能とする。
 - `I0-005`はFact / Evidence / Relationship / DerivedMetric / Interpretationの論理schema、append-only履歴、Evidence参照、as-of可視性を確認し **Accepted**。次はI0-006 lifecycleを進める。
 - `I0-007`は共通contract test kitが先行実装済みだが、正式受入は`I0-003/004/006`統合待ちである。
@@ -205,7 +205,7 @@ I0-002  ✓
 2. `I0-003`: cursor/checkpoint、`I0-004`: idempotency/duplicate — Accepted。
 3. `I0-005`: Fact Store logical schema — Accepted。
 4. `I0-006`: temporary content lifecycle — Accepted。
-5. **次に先行実装済み`I0-007` test kitを正式受入する。**
+5. `I0-007`: contract kit統合・受入差分実装済み。**次はlocal testで正式受入する。**
 6. `S0-001`のWeb調査済み接続条件を利用し、`S0-002 → S0-003 → S0-005/S0-006`を実装する。
 7. 完了済み`S0-004`を再実装せずadapter出力へ接続し、`S0-007`を正式完了する。
 8. `E0-001〜007`を進め、その後にNews Fact化、Official品質、X0統合へ進む。
@@ -226,13 +226,13 @@ I0-002  ✓
 | タスク | 2026-09-04状態 | 次の判定 |
 |---|---|---|
 | `I0-005` | **Accepted (2026-09-22)** | I0-002〜004整合、5 record境界、fixtureを再確認済み |
-| `I0-007` | provider-neutral test kit先行実装済み | I0-003/004/006の依存がすべてAccepted。正式受入が次の主作業 |
+| `I0-007` | **実装完了 / local acceptance pending** | I0-003/004/006統合済み。UTC/max_pages追加差分のlocal test待ち |
 | `S0-004` | strict SEC form filterとfixture実装済み | 再実装せず`S0-007`統合へ利用 |
 | `S0-007` | form-filter fixture sliceのみ実施済み | `S0-002/003/005/006`後にfull acceptance |
 
 ### 10.4 次回セッション開始規則
 
-- 主経路の次セッションは原則`I0-007`正式受入から開始する。
+- 主経路の次セッションは`I0-007`追加差分のlocal acceptance確認から開始する。
 - 別セッションを並列利用する場合は`L0-002`を進めてよい。
 - `I0-002`〜`I0-006`はAccepted済み。次はI0-007の正式受入へ進む。
 - 既に先行実装済みの`I0-005`、`I0-007`、`S0-004`は「新規実装」ではなく依存充足後の整合・受入として扱う。
