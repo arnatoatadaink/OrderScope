@@ -281,3 +281,96 @@ source正本、可変データ正本、secret境界、Cloudflare environment安�
 5. タスク9が成功した後、移行を完了判定し、通常開発のクリティカルパスである`I0-002`へ戻る。
 
 残作業は `docs/REPORT_REMAINING_WORK_AFTER_WSL_MIGRATION_CHECKPOINT_2026-09-21.md` を正として管理する。
+
+
+## 11. 2026-09-22 MIG-09A〜MIG-09D 更新
+
+### 11.1 MIG-09A: /mnt/c EIO切り分け
+
+正式証跡:
+
+- `docs/evidence/mig09a/20260921T092425Z/diagnostic.log`
+- `docs/evidence/mig09a/20260921T092425Z/summary.tsv`
+
+WSL restart後の修正版診断では以下が全てPASSした。
+
+- source通常read
+- repeated source read
+- `/mnt/c` small I/O
+- WSL native small I/O
+- `/mnt/c` isolated `npm ci`
+- WSL native isolated `npm ci`
+- heavy I/O後のsource read
+
+初回最終受入で観測したEIOは事実として保持するが、再現条件は得られなかったためMIG-09Aは完了とした。
+
+### 11.2 MIG-09B: runtime dependency配置決定
+
+Accepted構成:
+
+- source正本: `/mnt/c/Users/Y/Projects/codex_work/OrderScope`
+- Node dependency: source-local `node_modules` を維持
+- Python project environment: `${HOME}/.local/share/orderscope/venv`
+- local mutable data: `${HOME}/data/orderscope/local`
+- local Wrangler persistence: `${HOME}/data/orderscope/wrangler-state`
+
+Node側は、MIG-09AでEIOが再現せず、ESM module resolutionへ新しい複雑性を追加しないため現配置を維持した。Python側は `UV_PROJECT_ENVIRONMENT` でWSL nativeへ分離した。
+
+`NODE_PATH`、source symlink、bind mountは非採用。EIOが再現した場合はgenerated WSL-native runtime mirrorを第一fallbackとして評価する。
+
+### 11.3 MIG-09C: wrapper / path実装
+
+`scripts/run-local-wsl.sh` を更新し、以下を実装した。
+
+- `ORDERSCOPE_PYTHON_ENV`
+- `UV_PROJECT_ENVIRONMENT`
+- default Python env: `${HOME}/.local/share/orderscope/venv`
+- WSL native filesystem validation
+- source checkout内Python envの拒否
+- unexpected active `VIRTUAL_ENV` の拒否
+- legacy source-local `.venv` のwarning
+- `sync` subcommand
+- `env` subcommandへのPython environment表示
+
+ローカル最終検証:
+
+- Python 3.13.15
+- Python tests: **696 passed**
+- `npm ci`: 成功、EIO再発なし
+- `import("miniflare")`: PASS
+- Node tests: **199 passed / 0 failed**
+- TypeScript typecheck: PASS
+- Git working tree: clean
+
+従ってMIG-09Cは完了。
+
+### 11.4 MIG-09D: 文書整合
+
+以下を最終runtime layoutへ更新した。
+
+- `README.md`
+- `docs/RUNBOOK_LOCAL_ENVIRONMENT_WSL_WINDOWS_2026-09-21.md`
+- 本移行実施レポート
+
+文書上のPython dependency構築入口は `bash scripts/run-local-wsl.sh sync` に統一した。Python testは `bash scripts/run-local-wsl.sh pytest -q`、Python runtime確認はwrapper経由で行う。
+
+source-local legacy `.venv` は移行期間中のrollback用残置を許可するが、runtimeとしては使用しない。MIG-09Eの最終受入完了後に削除可否を判断する。
+
+### 11.5 現時点の総合判定
+
+PC移行は **MIG-09Dまで完了、MIG-09E最終受入待ち**。
+
+MIG-09Eでは、最新runbookの入口から次を再検証する。
+
+1. source / data hash・path境界
+2. `uv lock --check`
+3. wrapper経由 `sync`
+4. `npm ci`
+5. Node tests
+6. typecheck
+7. Python tests
+8. Wrangler deploy dry-run
+9. Local API health
+10. Git working tree / secret / runtime dependency非追跡
+
+MIG-09E成功後にMIG-09F Git最終確認へ進む。
