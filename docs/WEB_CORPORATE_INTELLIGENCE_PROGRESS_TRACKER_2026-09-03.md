@@ -31,11 +31,11 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 
 | 状態 | 件数 |
 |---|---:|
-| 未着手 | 0 |
+| 未着手 | 1 |
 | 進行中 | 0 |
 | 調査完了 | 0 |
 | 引渡し済み | 15 |
-| 保留（依存） | 5 |
+| 保留（依存） | 4 |
 | 保留（外部） | 0 |
 | 再確認要 | 0 |
 
@@ -51,8 +51,10 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 - `I0-002` provenance / timestamp共通型は2026-09-22に既存実装・専用テストを再レビューし **Accepted** とした。受入記録は `REPORT_DEV_I0_002_PROVENANCE_TIMESTAMP_ACCEPTANCE_2026-09-22.md` を参照する。
 - `I0-003` cursor / checkpoint contractは2026-09-22に既存実装をレビューし、durable checkpoint側へ`PARTIAL => error required`の不変条件を追加した。CodexDesktop側専用テスト28件PASS・clean working treeを確認し **Accepted** とした。受入記録は `REPORT_DEV_I0_003_CURSOR_CHECKPOINT_ACCEPTANCE_2026-09-22.md` を参照する。
 - `I0-004` idempotency / duplicate boundaryは2026-09-22に既存実装・専用テストを再レビューし **Accepted** とした。stable accession/article/signal IDとcontent hashを基準にNEW/DUPLICATE/UPDATE/CONFLICTを分離し、明示的revisionなしではUPDATEへ昇格しない。受入記録は `REPORT_DEV_I0_004_IDEMPOTENCY_DUPLICATE_ACCEPTANCE_2026-09-22.md` を参照する。
-- Corporate Intelligence全体のクリティカルパス上の次作業は `I0-005` Fact Store logical schema Accepted化である。
-- `I0-005`は論理schema ADRが先行作成済みであり、`I0-002/003/004`完了により共通provenance/checkpoint/idempotency境界との整合確認へ進める。残るfixture/後続整合を確認してAccepted化する。
+- `I0-005` Fact Store logical schemaは2026-09-22にADR・実装・fixtureをI0-002〜004と再照合し **Accepted** とした。受入記録は `REPORT_DEV_I0_005_FACT_STORE_ACCEPTANCE_2026-09-22.md` を参照する。
+- Corporate Intelligence全体のクリティカルパス上の次作業は `I0-006` temporary content lifecycleである。
+- `WEB-013 / N1-001` は `WEB-007 + I0-005` の依存が充足したため、`保留（依存）` から `未着手` へ移し、Web側で着手可能とする。
+- `I0-005`はFact / Evidence / Relationship / DerivedMetric / Interpretationの論理schema、append-only履歴、Evidence参照、as-of可視性を確認し **Accepted**。次はI0-006 lifecycleを進める。
 - `I0-007`は共通contract test kitが先行実装済みだが、正式受入は`I0-003/004/006`統合待ちである。
 - `S0-004`はstrict SEC form filterのローカル実装・fixtureが完了している。`S0-007`全体は`S0-002/003/005/006`待ちである。
 - 親作業分解と既存実装トラッカー上、WorkerとPredictionはShadowを維持する。
@@ -73,7 +75,7 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 | WEB-010 | E0-007 | D | 保留（依存） | WEB-007〜009引渡し済み、残りlocal E0-004〜006 contract/adapter形状 | WEB-009でsegment fallback/recast入力を準備済み | local reconciliation・品質report | E0-004〜006のfield/identity形状確定後に複数四半期の公式照合setを準備 | 2026-09-04 | — |
 | WEB-011 | N0-001 | A | 引渡し済み | WEB-003引渡し済み | [`REPORT_NEWS_PROVIDER_COMPARISON_WEB_011_2026-09-04.md`](REPORT_NEWS_PROVIDER_COMPARISON_WEB_011_2026-09-04.md); Evidence確認 `2026-09-03T21:42Z` | N0-001 News Provider ADR、N0-002/004、I0-006、N1-006 | Tiingo Powerをdefault candidateとしてADR化。本文権利・durable retentionは契約確認までdisabled。Massive/Benzingaをfull-text昇格候補、Alpaca Newsを統合候補として保持 | 2026-09-04 | web-2026-09-04-WEB-011 |
 | WEB-012 | N0-003 | C | 引渡し済み | WEB-011引渡し済み | [`REPORT_NEWS_CANONICALIZATION_CASES_WEB_012_2026-09-04.md`](REPORT_NEWS_CANONICALIZATION_CASES_WEB_012_2026-09-04.md); Evidence確認 `2026-09-04T07:24Z` | N0-003 canonicalization fixture/test、N0-002/004、I0-006 | story / distribution / revisionを分離し、same-story mirror、syndication、correction、material update、ambiguous relation fixtureを実装。Tiingo revision semanticsはcredential付きlocal観測で確定 | 2026-09-04 | web-2026-09-04-WEB-012 |
-| WEB-013 | N1-001 | C | 保留（依存） | WEB-007とI0-005のcontract方針 | 親計画に初期分類あり | taxonomy schema・extractor fixture | 定義とEvidence付き事例を作成 | 2026-09-03 | — |
+| WEB-013 | N1-001 | C | 未着手 | 依存充足: WEB-007引渡し済み、I0-005 Accepted | 親計画に初期分類あり | taxonomy schema・extractor fixture | 定義とEvidence付き事例を作成 | 2026-09-22 | — |
 | WEB-014 | N1-006 | D | 保留（依存） | WEB-008、WEB-010とlocal評価形状 | WEB-008でIR基準source経路は準備済み | recall/latency評価 | WEB-010とlocal評価形状が揃った後、1〜3か月のSEC/IR基準イベントsetを準備 | 2026-09-04 | — |
 | WEB-015 | O0-001 | A | 引渡し済み | なし | [`REPORT_OFFICIAL_SOURCE_REGISTRY_WEB_015_2026-09-04.md`](REPORT_OFFICIAL_SOURCE_REGISTRY_WEB_015_2026-09-04.md); Evidence確認 `2026-09-04T07:44Z` | O0-002 official feed adapter、I0-001 OfficialSource/SourceActorRule | registry seedをlocal schemaへ反映。Web側はWEB-016で各entryのRSS/API/更新一覧、pagination、timestamp、update/delete挙動を調査 | 2026-09-04 | web-2026-09-04-WEB-015 |
 | WEB-016 | O0-002 | B | 引渡し済み | WEB-002/015引渡し済み | [`REPORT_OFFICIAL_FEED_BEHAVIOR_WEB_016_2026-09-04.md`](REPORT_OFFICIAL_FEED_BEHAVIOR_WEB_016_2026-09-04.md); Evidence確認 `2026-09-04T07:50Z` | O0-002 official feed adapter、I0-003/004/007 | Fed/SECはRSS-first + HTML/archive fallback、White House/TreasuryはHTML-index-first。date-only精度、overlap checkpoint、hash update、404/410/redirectをcontract/fixtureへ反映 | 2026-09-04 | web-2026-09-04-WEB-016 |
@@ -176,7 +178,7 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 ```text
 I0-001
   ↓
-I0-002  ← 現在の主作業
+I0-002  ✓
   ├─→ I0-003 ─┐
   ├─→ I0-004 ─┼─→ I0-007 正式受入
   └─→ I0-005 → I0-006 ─┘
@@ -198,10 +200,10 @@ I0-002  ← 現在の主作業
 
 実行優先順位は次のとおり。
 
-1. `I0-002`: provenance/timestamp共通型を確定する。
-2. `I0-003`と`I0-004`を可能なら並列で実装する。
-3. 先行作成済み`I0-005` ADRを`I0-002`の型へ適合させ、fixtureを追加してAccepted化する。
-4. `I0-006` temporary content lifecycleを確定する。
+1. `I0-002`: provenance/timestamp共通型 — Accepted。
+2. `I0-003`: cursor/checkpoint、`I0-004`: idempotency/duplicate — Accepted。
+3. `I0-005`: Fact Store logical schema — Accepted。
+4. **次に `I0-006` temporary content lifecycleを確定する。**
 5. 先行実装済み`I0-007` test kitへ`I0-003/004/006`を統合し正式受入する。
 6. `S0-001`のWeb調査済み接続条件を利用し、`S0-002 → S0-003 → S0-005/S0-006`を実装する。
 7. 完了済み`S0-004`を再実装せずadapter出力へ接続し、`S0-007`を正式完了する。
@@ -222,14 +224,14 @@ I0-002  ← 現在の主作業
 
 | タスク | 2026-09-04状態 | 次の判定 |
 |---|---|---|
-| `I0-005` | Fact Store logical schema ADR作成済み | `I0-002` provenance型とcontract fixture後にAccepted化 |
+| `I0-005` | **Accepted (2026-09-22)** | I0-002〜004整合、5 record境界、fixtureを再確認済み |
 | `I0-007` | provider-neutral test kit実装済み、58 tests passed | `I0-003/004/006`統合後に正式受入 |
 | `S0-004` | strict SEC form filterとfixture実装済み | 再実装せず`S0-007`統合へ利用 |
 | `S0-007` | form-filter fixture sliceのみ実施済み | `S0-002/003/005/006`後にfull acceptance |
 
 ### 10.4 次回セッション開始規則
 
-- 主経路の次セッションは原則`I0-002`から開始する。
+- 主経路の次セッションは原則`I0-006`から開始する。
 - 別セッションを並列利用する場合は`L0-002`を進めてよい。
-- `I0-002`完了後、`I0-003`と`I0-004`を分離セッションで並列化できる。
+- `I0-002`〜`I0-005`はAccepted済み。I0-006完了後、I0-007の正式受入へ進む。
 - 既に先行実装済みの`I0-005`、`I0-007`、`S0-004`は「新規実装」ではなく依存充足後の整合・受入として扱う。
