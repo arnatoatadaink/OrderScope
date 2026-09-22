@@ -48,8 +48,9 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 - `W0-001`はローカルMVP開始条件として満たされている。Workerの残り`SMOKE-*`、`CANARY-*`は別バックログである。
 - `L0-001`は`ADR_LOCAL_ANALYSIS_STACK_v0.1.md`により完了している。
 - `L0-002`はlocal skeleton側の次作業として並列実行可能である。
-- Corporate Intelligence全体のクリティカルパス上の次作業は`I0-002`である。
-- `I0-005`は論理schema ADRが先行作成済みだが、`I0-002` provenance型とfixtureを受けてAccepted化する必要がある。
+- `I0-002` provenance / timestamp共通型は2026-09-22に既存実装・専用テストを再レビューし **Accepted** とした。受入記録は `REPORT_DEV_I0_002_PROVENANCE_TIMESTAMP_ACCEPTANCE_2026-09-22.md` を参照する。
+- Corporate Intelligence全体のクリティカルパス上の次作業は`I0-003`である。
+- `I0-005`は論理schema ADRが先行作成済みであり、`I0-002`完了によりprovenance型依存は解除された。残るfixture/後続整合を確認してAccepted化する。
 - `I0-007`は共通contract test kitが先行実装済みだが、正式受入は`I0-003/004/006`統合待ちである。
 - `S0-004`はstrict SEC form filterのローカル実装・fixtureが完了している。`S0-007`全体は`S0-002/003/005/006`待ちである。
 - 親作業分解と既存実装トラッカー上、WorkerとPredictionはShadowを維持する。
