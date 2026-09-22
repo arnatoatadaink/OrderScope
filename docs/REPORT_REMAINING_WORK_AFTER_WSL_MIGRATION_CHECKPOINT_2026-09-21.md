@@ -8,7 +8,7 @@ Status: active remaining-work ledger (non-normative)
 
 Windows側source + WSL runtimeへの移行作業を一区切りとし、次回以降は本書を再開入口として残作業を管理する。移行作業と通常開発作業を混在させず、完了条件・依存条件・後工程を明示する。
 
-現時点では移行は完了ではない。タスク9の最終受入中に `/mnt/c` でEIOが発生し、runtime dependency配置の安定性確認が必要になった。
+移行は **完了**。旧タスク9で発生した `/mnt/c` EIOをMIG-09A〜MIG-09Eで再評価し、2026-09-22の正式最終受入で全項目PASS、EIO非再発を確認した。
 
 ## 2. 区切り時点の状態
 
@@ -23,7 +23,7 @@ Windows側source + WSL runtimeへの移行作業を一区切りとし、次回�
 | Wrangler environment安全策 | 完了 | remote操作でenv明示、deploy入口fail-closed |
 | secret境界 | 完了 | Worker / Python / Wrangler管理を分離 |
 | 運用runbook | 完了 | `RUNBOOK_LOCAL_ENVIRONMENT_WSL_WINDOWS_2026-09-21.md` |
-| タスク9最終受入 | **ブロック中** | `/mnt/c`上の`npm ci`でEIO、後続で`package.json`/`uv.toml`もEIO |
+| タスク9最終受入 | **完了** | MIG-09E正式runでhash / uv / npm / Node 199 / Python 696 / typecheck / Wrangler dry-run / Local API / Git境界が全PASS |
 | WSL退避copy | 保留継続 | `/home/y/code/OrderScope`。編集・実行しない |
 
 ## 3. 移行完了までの残作業
@@ -35,8 +35,8 @@ Windows側source + WSL runtimeへの移行作業を一区切りとし、次回�
 | MIG-09C | wrapper / path設計の実装 | 高 | MIG-09B | **完了**。PythonはWSL native envへ固定、Node pathは現行維持。Python 696件 / Node 199件 / typecheck PASS |
 | MIG-09D | README / runbook / migration report更新 | 高 | MIG-09B〜09C | **完了**。README / runbook / migration reportを最終runtime layoutへ整合 |
 | MIG-09E | タスク9最終受入を再実行 | 最優先 | MIG-09D | **完了**。20260922T031204Z runで全項目PASS、EIO再発なし |
-| MIG-09F | Git最終確定確認 | 高 | MIG-09E | migration資料、lockfile、runbook、修正scriptがremoteに確定し、secret / runtime dependency / cacheが追跡されていない |
-| MIG-DONE | PC移行完了判定 | 最優先 | MIG-09E〜09F | 移行実施レポートを「完了」へ更新し、本流開発へ戻れる |
+| MIG-09F | Git最終確定確認 | 高 | MIG-09E | **完了**。migration資料 / lockfile / runbook / wrapperがremoteに存在し、MIG-09Eでsecret / runtime dependency / cache非追跡・cleanを確認 |
+| MIG-DONE | PC移行完了判定 | 最優先 | MIG-09E〜09F | **完了**。Windows source + WSL runtime移行を完了判定し、本流開発は `DEV-I0-002` から再開 |
 
 ### 3.1 MIG-09Aで最低限確認する事項
 
@@ -145,6 +145,42 @@ MIG-09EのWeb側準備は完了し、**ローカル実行待ち**。
 
 20260922T031204Zの正式受入で全項目PASS。MIG-09Eは **完了**。次はMIG-09F Git最終確定確認。
 
+
+
+### 3.7 MIG-09F / MIG-DONE 最終確定
+
+MIG-09Fは **完了**。
+
+remote確認対象:
+
+- `README.md`
+- `docs/RUNBOOK_LOCAL_ENVIRONMENT_WSL_WINDOWS_2026-09-21.md`
+- `docs/REPORT_LOCAL_ENVIRONMENT_MIGRATION_EXECUTION_2026-09-20.md`
+- `docs/REPORT_MIG_09B_RUNTIME_DEPENDENCY_PLACEMENT_2026-09-22.md`
+- `docs/REPORT_MIG_09C_RUNTIME_PATH_IMPLEMENTATION_2026-09-22.md`
+- `docs/REPORT_MIG_09E_FINAL_ACCEPTANCE_2026-09-22.md`
+- `scripts/run-local-wsl.sh`
+- `scripts/run-mig09e-acceptance.sh`
+- `package-lock.json`
+- `uv.lock`
+- `.gitignore`
+
+MIG-09Eの正式run `20260922T031204Z` では、forbidden tracked files = none、dotenv ignore = PASS、final working tree = clean、`git diff --check` = PASSを確認済み。
+
+したがってMIG-09Fの完了条件を満たす。
+
+MIG-09EとMIG-09Fがともに完了したため、MIG-DONEも **完了** とする。
+
+PC移行の最終runtime boundary:
+
+- source正本: `/mnt/c/Users/Y/Projects/codex_work/OrderScope`
+- Node runtime/dependencies: WSL + source-local `node_modules`
+- Python runtime environment: `${HOME}/.local/share/orderscope/venv`
+- local mutable data: `${HOME}/data/orderscope/local`
+- local Wrangler state: `${HOME}/data/orderscope/wrangler-state`
+
+通常開発の再開地点は **DEV-I0-002 provenance / timestamp共通型**。
+
 ## 4. 移行完了後に再開する通常開発
 
 `WEB_CORPORATE_INTELLIGENCE_PROGRESS_TRACKER_2026-09-03.md` と既存WBS上の現在地から、通常開発の再開地点は `I0-002` とする。
@@ -227,6 +263,4 @@ I0-002 provenance / timestamp共通型
 
 ## 9. 区切り時点の判定
 
-2026-09-21時点で、WSL移行の設計・データ正本化・安全境界・運用文書化は完了した。最終受入でruntime dependencyを`/mnt/c`上へ配置する構成のI/O安定性問題を検出したため、移行完了判定だけを保留する。
-
-次回の唯一の再開入口は `MIG-09A` とする。
+2026-09-22時点で、Windows側source + WSL runtimeへの移行は **完了**。MIG-09E正式受入とMIG-09F Git最終確認を通過したため、移行作業を終了し、通常開発は `DEV-I0-002` から再開する。
