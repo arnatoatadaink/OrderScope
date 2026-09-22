@@ -138,3 +138,28 @@ MIG-09Cローカル検証後、MIG-09Dで次を更新する。
 - source直下 `.venv` の扱い
 - dependency構築手順を `run-local-wsl.sh sync` ベースへ変更
 - EIO再発時のgenerated WSL runtime mirror fallback
+
+
+## 8. 2026-09-22 first local validation interruption
+
+初回ローカル検証ではPython側のMIG-09C項目は成功した。
+
+- WSL-native Python environment: `/home/y/.local/share/orderscope/venv`
+- filesystem: ext4
+- Python: 3.13.15
+- source-local `.venv` 非使用
+- Python tests: 696 passed
+
+Node testでは7件が `ERR_MODULE_NOT_FOUND` で失敗し、`node_modules/miniflare/index.js` を解決できなかった。
+
+これはMIG-09C wrapperによるNode path変更ではない。MIG-09CではNode module resolutionを変更しておらず、初回検証コマンドにworkspace側 `npm ci` が含まれていなかったため、過去のEIO受入時に不完全となった可能性があるsource-local `node_modules` をそのまま使用した。
+
+修正後の検証順序では、Node test前に必ず以下を実行する。
+
+```bash
+npm ci
+npm test
+npm run typecheck
+```
+
+`npm ci` 自体でEIOが再発した場合はMIG-09Aの再発証跡として扱い、MIG-09BのNode配置判断を再オープンする。
