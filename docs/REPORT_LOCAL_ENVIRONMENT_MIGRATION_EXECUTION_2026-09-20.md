@@ -374,3 +374,68 @@ MIG-09Eでは、最新runbookの入口から次を再検証する。
 10. Git working tree / secret / runtime dependency非追跡
 
 MIG-09E成功後にMIG-09F Git最終確認へ進む。
+
+
+## 12. 2026-09-22 最終完了判定
+
+### 12.1 MIG-09E 最終受入
+
+正式run: `20260922T031204Z`
+
+全受入項目がPASSした。
+
+- canonical source path: PASS
+- clean worktree before acceptance: PASS
+- Node.js v24.21.0 / Linux: PASS
+- migration snapshot SHA-256: PASS
+- `uv lock --check`: PASS
+- wrapper Python sync: PASS
+- Python environment filesystem: ext4
+- Python 3.13.15: PASS
+- Python executable: `/home/y/.local/share/orderscope/venv/bin/python`
+- `npm ci`: PASS、EIO再発なし
+- Node tests: **199 passed / 0 failed**
+- TypeScript typecheck: PASS
+- Python tests: **696 passed**
+- Wrangler `live-canary` dry-run: PASS
+- Local API bind: `127.0.0.1:8000`
+- Local API health: HTTP 200
+- forbidden tracked files: none
+- dotenv ignore: PASS
+- final worktree: clean
+- `git diff --check`: PASS
+
+### 12.2 MIG-09F Git最終確認
+
+migration資料、runbook、lockfile、runtime wrapper、acceptance runnerがremote branchへ確定していることを確認した。
+
+MIG-09Eのローカル受入でもsecret / runtime dependency / cacheの非追跡とclean working treeを確認済み。
+
+MIG-09Fは完了。
+
+### 12.3 PC移行完了
+
+MIG-09A〜MIG-09Fがすべて完了したため、Windows側source + WSL runtimeへのPC移行を **完了** と判定する。
+
+最終構成:
+
+```text
+/mnt/c/Users/Y/Projects/codex_work/OrderScope
+  source正本
+  node_modules        WSL/Linux用
+
+/home/y/.local/share/orderscope/venv
+  Python project environment
+
+/home/y/data/orderscope/local
+  mutable local data
+
+/home/y/data/orderscope/wrangler-state
+  local Wrangler persistence
+```
+
+旧source-local `.venv` はruntimeとして使用しない。削除は移行完了後の整理タスクとして扱える。
+
+`/home/y/code/OrderScope` の退避copyも移行完了条件から分離済みであり、必要性を再評価した後に整理する。
+
+通常開発は `DEV-I0-002 provenance / timestamp共通型` から再開する。
