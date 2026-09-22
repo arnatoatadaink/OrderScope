@@ -122,6 +122,7 @@ Use this section for newly proposed work before deciding whether it deserves a f
 | DISC-007 | 2026-09-15 | Track staged PIPE financing, strategic-investor/governance participation, milestone-triggered follow-on funding, dilution context, and subsequent repricing using PDSB as the composite reference case | `docs/work-management/local-corporate-intelligence/REPORT_PDSB_PIPE_STRATEGIC_INVESTOR_REPRICING_CASE_2026-09-15.md` | Capital Structure / Governance / Market Reaction / I0 | Promoted to UWBS-027..029 |
 | DISC-008 | 2026-09-15 | Decompose AI exposure into foundation/application/security/governance themes and model news-triggered event×theme reaction coefficients, cross-sectional confirmation, theme activation/rotation and historical calibration | `docs/work-management/local-corporate-intelligence/REPORT_AI_THEME_DECOMPOSITION_REACTION_COEFFICIENTS_2026-09-15.md` | Theme Ontology / News Interpretation / Market Reaction / Regime | Promoted to UWBS-030..034 |
 | DISC-009 | 2026-09-22 | Extend macro monitoring with direct WTI/Brent, structured oil supply/fundamental facts, commodity supply/shipping/geopolitical events, BTC spot ETF flow, and cross-asset Risk-On / Crypto Risk-On interpretation; include Worker/D1 capacity acceptance | `docs/work-management/local-corporate-intelligence/REPORT_BTC_RISK_ON_OIL_COMMODITY_MARKET_STRUCTURE_2026-09-22.md` | A0 / Macro-Commodity Intelligence / Crypto Market Structure / Worker-D1 Capacity | Promoted to UWBS-048..054 |
+| DISC-010 | 2026-09-22 | Generalize the Powerfleet review into a Physical-SaaS / Deployment-to-Recurring-Revenue lifecycle model that distinguishes demand, contract, deployment, activation, recurring revenue, cash conversion, leverage and integration/security evidence | `docs/work-management/local-corporate-intelligence/REPORT_PHYSICAL_SAAS_DEPLOYMENT_TO_RECURRING_REVENUE_MODEL_2026-09-22.md` | I0 / N0-N1 / Company Operating Model / Regime / Capital Structure | Promoted to UWBS-055..061 |
 
 When a proposal is accepted for tracking:
 
@@ -222,6 +223,13 @@ The revision must preserve a mapping table:
 | UWBS-052 | Pending | — | — |
 | UWBS-053 | Pending | — | — |
 | UWBS-054 | Pending | — | — |
+| UWBS-055 | Pending | — | — |
+| UWBS-056 | Pending | — | — |
+| UWBS-057 | Pending | — | — |
+| UWBS-058 | Pending | — | — |
+| UWBS-059 | Pending | — | — |
+| UWBS-060 | Pending | — | — |
+| UWBS-061 | Pending | — | — |
 
 ## 11. Current planning interpretation
 
@@ -548,3 +556,40 @@ Planning notes:
 - Heavy historical analysis remains local. D1 should remain bounded hot operational state under the accepted export/custody/purge lifecycle.
 - Workers Free capacity is not rejected by task count alone. `UWBS-054` owns measured capacity acceptance before any paid-tier activation decision or Cron/Worker change.
 - No live provider activation, Worker/Cron mutation, D1 purge, paid procurement or trading action is authorized by these rows.
+
+## 21. Physical-SaaS / deployment-to-recurring-revenue extension
+
+Source report:
+
+- `docs/work-management/local-corporate-intelligence/REPORT_PHYSICAL_SAAS_DEPLOYMENT_TO_RECURRING_REVENUE_MODEL_2026-09-22.md`
+
+The Powerfleet review exposed a reusable blind spot: for companies where recurring software/service revenue depends on physical deployment, quarterly revenue can lag demand through contract -> readiness -> installation -> activation -> recurring-revenue stages. This extension adds lifecycle Facts and derived state reconstruction. It must not turn a revenue miss into demand weakness when explicit contract/deployment evidence supports a timing or execution explanation.
+
+| UWBS ID | Proposed task | Proposed package | Completion condition summary | Likely inputs / dependencies | Status | Disposition |
+|---|---|---|---|---|---|---|
+| UWBS-055 | Define Physical-SaaS deployment lifecycle Fact contract | I0 / Company Operating Model | Normalize contract/TCV, expected ARR where explicit, addressable/contracted/ready/installed/activated units, rollout phase, deployment window, explicit constraints and revenue-shift statements with event/available/accepted/as-of time, unit/scope and provenance; missing stages remain unknown rather than imputed | I0-002/004/005; SEC/IR/news/official procurement inputs | Ready for WBS design | Pending |
+| UWBS-056 | Implement operational-milestone extraction and reconciliation | N0/N1 / SEC / Company Operating Model | Extract deployment and activation milestones from SEC/IR/news/official sources; preserve historical revisions and reconcile contradictory unit/timing statements without overwriting earlier accepted Facts | UWBS-055; S0 filing path; N0/N1 provenance/idempotency | Needs decomposition | Pending |
+| UWBS-057 | Implement deployment-funnel Derived Metrics and slippage interpretation | Company Operating Model / Derived Metrics / Regime | Compute stage ratios, deployment/activation velocity, backlogs and explicit revenue-slippage metrics; support demand-weakness vs deployment-bottleneck vs activation-lag vs timing-slippage evidence with SUPPORT/PARTIAL/CONTRADICT/UNKNOWN | UWBS-055/056; Fact/Derived Metric/Interpretation boundary | Needs decomposition | Pending |
+| UWBS-058 | Define recurring-revenue quality, cash-conversion and deleveraging model | Company Operating Model / Capital Structure / Regime | Link service mix, recurring growth, gross-margin progression, operating/FCF conversion and leverage so operating improvement can coexist with interest/amortization/net-loss burden; do not use net income alone as operating-health state | UWBS-055/057; existing Capital Structure lane; financial statements | Needs decomposition | Pending |
+| UWBS-059 | Define M&A integration / legacy-system evidence overlay | Company Operating Model / Corporate Action / Security evidence | Track acquired installed bases, migration/cross-sell milestones, integration progress and explicit IT-control/security weakness or incident evidence; keep generic legacy/security exposure as hypothesis and prohibit unsupported platform-compromise/remote-control claims | UWBS-056; Corporate Action lane; SEC/IR security disclosures | Ready for WBS design | Pending |
+| UWBS-060 | Add Physical-SaaS classifier and applicability guard | Company model registry / Analysis routing | Define evidence that physical deployment is material to recurring revenue; route qualifying companies to the lifecycle model and fail back to ordinary company analysis when deployment stages are immaterial or unobservable | UWBS-055; company/segment metadata; model-routing policy | Needs decomposition | Pending |
+| UWBS-061 | Powerfleet deployment-lifecycle Canary and false-positive suite | Company Operating Model QA / Regime QA | Replay the motivating Powerfleet case and false positives covering demand loss, explicit install delay, activation stall, hardware-to-service mix shift, FCF improvement with financing burden, generic M&A security risk and source-grounded security incidents; verify Fact/Derived Metric/Interpretation separation | UWBS-055..060; accepted historical SEC/IR/news evidence | Needs decomposition | Pending |
+
+Proposed CP relationship:
+
+UWBS-055 -> UWBS-056 -> UWBS-057
+UWBS-055 -> UWBS-058
+existing Capital Structure / I0 -> UWBS-058
+UWBS-056 -> UWBS-059
+UWBS-055 -> UWBS-060
+UWBS-057 + UWBS-058 + UWBS-059 + UWBS-060 -> UWBS-061
+
+Planning notes:
+
+- This is a CP candidate only until a formal WBS/CP revision adopts it.
+- The model is intended to generalize beyond Powerfleet to qualifying AIoT, telematics, EV-charging, industrial-IoT, robotics, communications-endpoint and related deployment-driven recurring-revenue businesses.
+- Contract/TCV, installed units, activated units and explicitly disclosed ARR are Facts only when source-grounded. Estimated hidden stage counts must not be silently imputed.
+- Revenue miss, guidance reduction and net loss are not sufficient by themselves to identify demand weakness.
+- Capitalized deployment cost does not imply low economic or accounting risk; working-capital, inventory, contractor, impairment, schedule and cash-conversion effects remain separately observable.
+- Cybersecurity/integration risk remains an Interpretation unless supported by explicit control weakness, incident or technical evidence.
+- No live-provider activation, Worker/Cron mutation, paid procurement or trading action is authorized by these rows.
