@@ -1,7 +1,7 @@
 # OrderScope — DEV-I0-003 cursor / checkpoint contract 実装・受入記録
 
 作成日: 2026-09-22（Asia/Tokyo）
-Status: implementation complete / local acceptance pending
+Status: accepted
 対象: `DEV-I0-003 / I0-003 Implement cursor/checkpoint contract`
 
 ## 1. 結論
@@ -86,7 +86,7 @@ WBS `I0-003` の完了条件:
 - partial page safe-boundary resume
 - secret/raw provider body exclusion
 
-今回追加したコードとテストはremoteへ反映済みだが、追加差分後のローカルpytestは未実行である。
+今回追加したコードとテストはremoteへ反映済みであり、2026-09-22にCodexDesktop側で同期後の専用テストを実行し、`28 passed in 2.85s`、作業ツリーcleanを確認した。
 
 推奨受入コマンド:
 
@@ -102,8 +102,8 @@ bash scripts/run-local-wsl.sh python -m pytest -q
 
 ## 7. 判定
 
-`DEV-I0-003`: **実装完了 / local acceptance pending**
+`DEV-I0-003`: **完了 / Accepted**
 
-ローカル専用テストまたは全Python suiteがPASSした時点で **Accepted** へ更新できる。
+CodexDesktop側の専用テストPASSとclean working treeを受入根拠として **Accepted** とする。
 
-Accepted後の次作業は `DEV-I0-004 idempotency / duplicate boundary` とする。
+次作業は `DEV-I0-004 idempotency / duplicate boundary` とする。
