@@ -131,6 +131,8 @@ class AcquisitionCheckpoint:
                 raise ContractViolation("in_progress checkpoint requires a resume_cursor")
             if self.error is not None or self.retry_not_before is not None:
                 raise ContractViolation("in_progress checkpoint cannot retain error state")
+        elif self.state is CheckpointState.PARTIAL and self.error is None:
+            raise ContractViolation("partial checkpoint requires error information")
         elif self.state is CheckpointState.ERROR and self.error is None:
             raise ContractViolation("error checkpoint requires error information")
         if self.retry_not_before is not None:
