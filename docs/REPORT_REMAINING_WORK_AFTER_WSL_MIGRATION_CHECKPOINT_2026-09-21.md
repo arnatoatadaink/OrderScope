@@ -215,7 +215,7 @@ I0-002 provenance / timestamp共通型
 | DEV-I0-004 | idempotency / duplicate boundary | **完了 / Accepted** | stable accession/article/signal ID + content hashによるNEW/DUPLICATE/UPDATE/CONFLICT契約を確認。`REPORT_DEV_I0_004_IDEMPOTENCY_DUPLICATE_ACCEPTANCE_2026-09-22.md`参照 |
 | DEV-I0-005 | Fact Store論理schema ADR Accepted化 | **完了 / Accepted** | 5 record境界、append-only履歴、Evidence相互参照、as-of可視性、I0-002〜004整合を確認。`REPORT_DEV_I0_005_FACT_STORE_ACCEPTANCE_2026-09-22.md`参照 |
 | DEV-I0-006 | temporary content lifecycle | **完了 / Accepted** | content ref / retention / expiry / exception / deletion proof契約とprovider handoffを確認。`REPORT_DEV_I0_006_TEMPORARY_CONTENT_ACCEPTANCE_2026-09-22.md`参照 |
-| DEV-I0-007 | provider-neutral contract test正式受入 | **次の本流** | I0-003/004/006がすべてAccepted。既存test kitの正式受入へ進む |
+| DEV-I0-007 | provider-neutral contract test正式受入 | **実装完了 / local acceptance pending** | I0-003/004/006統合済み。provider時刻UTC必須化とmax_pages負例を追加。`REPORT_DEV_I0_007_PROVIDER_NEUTRAL_CONTRACT_TEST_ACCEPTANCE_2026-09-22.md`参照 |
 | DEV-S0-004 | strict SEC form filter | 完了 | 追加作業なし |
 | DEV-S0-007 | SEC統合受入 | 部分完了 | S0-002/003/005/006待ち |
 
