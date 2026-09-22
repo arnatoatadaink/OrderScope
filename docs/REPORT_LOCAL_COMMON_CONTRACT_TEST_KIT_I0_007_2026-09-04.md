@@ -1,6 +1,6 @@
 # OrderScope — 共通provider contract test kit実装報告
 
-Status: `I0-007` integrated; formal local acceptance pending
+Status: `I0-007` accepted
 Date: 2026-09-04
 Local session: `01a06629-cc5d-7d33-99c7-eaa309911188` continuation
 
@@ -42,7 +42,7 @@ provider固有のHTTP・payload・保存方式を持ち込まず、adapterが返
 
 2026-09-22時点で `I0-003 / I0-004 / I0-006` はすべてAcceptedとなり、共通kitへの統合も完了した。
 
-正式受入レビューではprovider境界のoperational timestampをI0-002/I0-003と同じUTC必須へ統一し、bounded paginationの `max_pages` 超過fixtureを追加した。追加差分後のローカルpytestは未実行のため、正式状態は **local acceptance pending** とする。
+正式受入レビューではprovider境界のoperational timestampをI0-002/I0-003と同じUTC必須へ統一し、bounded paginationの `max_pages` 超過fixtureを追加した。2026-09-22にCodexDesktop側で指定4契約テストを実行し `55 passed in 2.45s`、clean working treeを確認したため **Accepted** とする。WSL書き込み制限への対応としてデータ・Python環境・uv cacheのみ `/tmp` を使用した。
 
 詳細は `REPORT_DEV_I0_007_PROVIDER_NEUTRAL_CONTRACT_TEST_ACCEPTANCE_2026-09-22.md` を参照する。
 
