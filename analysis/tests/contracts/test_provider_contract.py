@@ -105,6 +105,38 @@ def test_common_kit_rejects_unzoned_timestamp_and_unbounded_page():
         )
 
 
+def test_common_kit_requires_utc_request_and_page_timestamps():
+    non_utc = timezone(timedelta(hours=-4))
+    with pytest.raises(ContractViolation, match="UTC"):
+        assert_page_contract(
+            page(),
+            AdapterRequest(
+                "sec:submissions:amd",
+                datetime(2026, 1, 1, tzinfo=non_utc),
+                datetime(2026, 1, 2, tzinfo=non_utc),
+                page_size=2,
+            ),
+        )
+    with pytest.raises(ContractViolation, match="UTC"):
+        assert_page_contract(
+            AdapterPage(
+                (),
+                None,
+                False,
+                datetime(2026, 1, 1, 0, 0, 1, tzinfo=non_utc),
+                datetime(2026, 1, 1, tzinfo=non_utc),
+                None,
+            ),
+            REQUEST,
+        )
+
+
+def test_common_kit_rejects_pagination_that_exceeds_max_pages():
+    adapter = ScriptedAdapter([page(cursor="p2")])
+    with pytest.raises(ContractViolation, match="max_pages"):
+        collect_pages(adapter, REQUEST, max_pages=1)
+
+
 def test_common_kit_requires_typed_provider_revision():
     valid = page()
     assert valid.provider_revision == ProviderRevision("fixture-v1")
