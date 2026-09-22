@@ -34,7 +34,7 @@ Windows側source + WSL runtimeへの移行作業を一区切りとし、次回�
 | MIG-09B | runtime dependency配置の再設計 | 最優先 | MIG-09A | **完了**。Python environmentはWSL nativeへ移動、Node `node_modules`は現配置維持。詳細はMIG-09B decision report |
 | MIG-09C | wrapper / path設計の実装 | 高 | MIG-09B | **完了**。PythonはWSL native envへ固定、Node pathは現行維持。Python 696件 / Node 199件 / typecheck PASS |
 | MIG-09D | README / runbook / migration report更新 | 高 | MIG-09B〜09C | **完了**。README / runbook / migration reportを最終runtime layoutへ整合 |
-| MIG-09E | タスク9最終受入を再実行 | 最優先 | MIG-09D | **runner準備完了・ローカル実行待ち**。hash、uv、npm、Node tests、typecheck、Wrangler dry-run、Python tests、Local API healthを一括検証 |
+| MIG-09E | タスク9最終受入を再実行 | 最優先 | MIG-09D | **完了**。20260922T031204Z runで全項目PASS、EIO再発なし |
 | MIG-09F | Git最終確定確認 | 高 | MIG-09E | migration資料、lockfile、runbook、修正scriptがremoteに確定し、secret / runtime dependency / cacheが追跡されていない |
 | MIG-DONE | PC移行完了判定 | 最優先 | MIG-09E〜09F | 移行実施レポートを「完了」へ更新し、本流開発へ戻れる |
 
@@ -143,7 +143,7 @@ MIG-09EのWeb側準備は完了し、**ローカル実行待ち**。
 
 証跡は `${HOME}/data/orderscope/mig09e/<timestamp>/` に保存し、repositoryへruntime logを自動追加しない。
 
-全項目PASS後にMIG-09Eを完了とし、MIG-09Fへ進む。
+20260922T031204Zの正式受入で全項目PASS。MIG-09Eは **完了**。次はMIG-09F Git最終確定確認。
 
 ## 4. 移行完了後に再開する通常開発
 
