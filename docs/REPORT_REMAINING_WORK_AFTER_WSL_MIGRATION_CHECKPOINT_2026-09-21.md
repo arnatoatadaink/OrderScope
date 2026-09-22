@@ -8,7 +8,7 @@ Status: active remaining-work ledger (non-normative)
 
 Windows側source + WSL runtimeへの移行作業を一区切りとし、次回以降は本書を再開入口として残作業を管理する。移行作業と通常開発作業を混在させず、完了条件・依存条件・後工程を明示する。
 
-移行は **完了**。旧タスク9で発生した `/mnt/c` EIOをMIG-09A〜MIG-09Eで再評価し、2026-09-22の正式最終受入で全項目PASS、EIO非再発を確認した。
+移行は **完了**。旧タスク9で発生した `/mnt/c` EIOをMIG-09A〜MIG-09Eで再評価し、2026-09-22の正式最終受入で全項目PASS、EIO非再発を確認した。さらにCodexDesktop側でも移行後環境の検収合格を確認済みである。
 
 ## 2. 区切り時点の状態
 
@@ -210,8 +210,8 @@ I0-002 provenance / timestamp共通型
 
 | ID | 作業 | 状態 | 備考 |
 |---|---|---|---|
-| DEV-I0-002 | provenance / timestamp共通型 | 次の本流 | Corporate Intelligenceの現在のクリティカルパス |
-| DEV-I0-003 | provider contract系の後続 | I0-002待ち | I0-007受入へ接続 |
+| DEV-I0-002 | provenance / timestamp共通型 | **完了 / Accepted** | 既存実装・専用テスト・全Python suite 696件PASSを確認。`REPORT_DEV_I0_002_PROVENANCE_TIMESTAMP_ACCEPTANCE_2026-09-22.md`参照 |
+| DEV-I0-003 | cursor / checkpoint contract | **次の本流** | I0-002完了によりblock解除。I0-007受入へ接続 |
 | DEV-I0-004 | idempotency / evidence系の後続 | I0-002待ち | I0-007受入へ接続 |
 | DEV-I0-005 | Fact Store論理schema ADR Accepted化 | preimplemented | I0-002 provenance型・fixture待ち |
 | DEV-I0-006 | temporary content lifecycle | 後続 | I0-005系とI0-007へ接続 |
@@ -263,4 +263,4 @@ I0-002 provenance / timestamp共通型
 
 ## 9. 区切り時点の判定
 
-2026-09-22時点で、Windows側source + WSL runtimeへの移行は **完了**。MIG-09E正式受入とMIG-09F Git最終確認を通過したため、移行作業を終了し、通常開発は `DEV-I0-002` から再開する。
+2026-09-22時点で、Windows側source + WSL runtimeへの移行は **完了**。MIG-09E正式受入、MIG-09F Git最終確認、CodexDesktop側検収合格を通過した。通常開発へ復帰し、`DEV-I0-002` は既存実装の正式受入まで完了したため、次は `DEV-I0-003` から進める。
