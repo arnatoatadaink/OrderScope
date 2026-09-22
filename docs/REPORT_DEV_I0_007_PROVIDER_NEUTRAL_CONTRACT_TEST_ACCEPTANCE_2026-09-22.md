@@ -1,7 +1,7 @@
 # OrderScope — DEV-I0-007 provider-neutral contract test 正式受入記録
 
 作成日: 2026-09-22（Asia/Tokyo）
-Status: implementation complete / local acceptance pending
+Status: accepted
 対象: `DEV-I0-007 / I0-007 Build common contract-test kit`
 
 ## 1. 結論
@@ -14,7 +14,7 @@ Status: implementation complete / local acceptance pending
 
 併せて `max_pages` 超過を明示的に検証するpagination negative fixtureを追加した。
 
-コード・fixture更新は完了。追加差分後のローカルpytest実行証跡が未取得のため、現時点は **実装完了 / local acceptance pending** とする。
+コード・fixture更新後、2026-09-22にCodexDesktop側でremote `5aa9b5f` へfast-forward同期して指定4契約テストを実行し、`55 passed in 2.45s` を確認した。作業ツリーもcleanである。WSLの書き込み制限に対応するため、データ・Python環境・uv cacheのみ `/tmp` へ切り替えて実行したが、source checkoutと対象test/codeはremote同期済み正本を使用しているため受入結果へ影響しない。
 
 ## 2. 受入対象
 
@@ -141,8 +141,8 @@ bash scripts/run-local-wsl.sh python -m pytest -q
 
 ## 10. 判定
 
-`DEV-I0-007`: **実装完了 / local acceptance pending**
+`DEV-I0-007`: **完了 / Accepted**
 
-ローカル受入テストPASS後に **Accepted** へ更新する。
+CodexDesktop側の4契約テスト `55 passed in 2.45s` とclean working treeを受入根拠として **Accepted** とする。
 
-I0-007 Accepted後は共通I0 contract chainが完了し、`S0-002 Implement CIK/submissions adapter` のI0依存が解除される。
+これにより `I0-002`〜`I0-007` の共通I0 contract chainは完了した。次の主経路は `S0-002 Implement CIK/submissions adapter` とする。
