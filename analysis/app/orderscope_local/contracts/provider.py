@@ -74,6 +74,8 @@ class ProviderAdapter(Protocol):
 def _utc(value: datetime, field: str) -> None:
     if value.tzinfo is None or value.utcoffset() is None:
         raise ContractViolation(f"{field} must include an explicit timezone")
+    if value.utcoffset() != timedelta(0):
+        raise ContractViolation(f"{field} must be normalized to UTC")
 
 
 def assert_page_contract(page: AdapterPage, request: AdapterRequest) -> None:
