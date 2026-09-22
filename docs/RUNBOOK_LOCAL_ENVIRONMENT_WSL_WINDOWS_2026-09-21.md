@@ -11,7 +11,7 @@
 | 編集・保存するsource | `/mnt/c/Users/Y/Projects/codex_work/OrderScope` |
 | Python/Node/Wranglerの実行 | WSLからsource workspaceをcwdにして実行 |
 | Node.js | `.nvmrc`の`24.21.0`を`nvm use`で選択 |
-| Python | `uv`管理のPython `>=3.13,<3.14` |
+| Python | `uv`管理のPython `>=3.13,<3.14`。project environmentは `${HOME}/.local/share/orderscope/venv` |
 | Pythonの可変データ | `${HOME}/data/orderscope/local` |
 | local Wrangler persistence | `${HOME}/data/orderscope/wrangler-state` |
 | 移行検証用の退避copy | `/home/y/code/OrderScope`。保持中は編集・実行しない |
@@ -32,14 +32,14 @@ test "$(node -p 'process.platform')" = linux
 uv --version
 
 uv lock --check
-uv sync --locked
-uv run python --version
+bash scripts/run-local-wsl.sh sync
+bash scripts/run-local-wsl.sh python -c 'import sys; print(sys.version); print(sys.executable)'
 npm ci
 ```
 
-期待値はNode.js `v24.21.0`、Linux runtime、Python `3.13.x`である。`.venv`と`node_modules`はWindows側source配下に生成されるがLinux/WSL用であり、Windows nativeのPythonまたはNodeから起動しない。
+期待値はNode.js `v24.21.0`、Linux runtime、Python `3.13.x`である。Nodeの `node_modules` はWindows側source配下に生成されるLinux/WSL用dependencyとして維持する。Python project environmentはWindows側source配下へ生成せず、wrapperが `UV_PROJECT_ENVIRONMENT=${HOME}/.local/share/orderscope/venv` を設定する。Windows nativeのPythonまたはNodeから起動しない。
 
-`uv lock --check`が失敗した場合や、`uv sync --locked`後にlockfileが変更された場合は、実行を進めず差分を確認する。`npm ci`はNode.js 24を選択した後に実行する。
+`uv lock --check`が失敗した場合や、`run-local-wsl.sh sync`後にlockfileが変更された場合は、実行を進めず差分を確認する。`npm ci`はNode.js 24を選択した後に実行する。source直下にlegacy `.venv` が残っている場合、wrapperはwarningを出すが使用しない。異なる `VIRTUAL_ENV` が既にactivateされている場合はfail-closedで停止する。
 
 ## 3. ローカルデータの初回移行
 
@@ -88,7 +88,7 @@ curl --fail --silent --show-error http://127.0.0.1:8787/health
 bash scripts/run-local-wsl.sh wrangler --port 8787
 ```
 
-`npm run dev`はlocal Wrangler専用であり、remote environmentの指定は要求しない。`bash scripts/run-local-wsl.sh env`で、source root、Python data root、Wrangler persistence pathを実行前に確認できる。
+`npm run dev`はlocal Wrangler専用であり、remote environmentの指定は要求しない。`bash scripts/run-local-wsl.sh env`で、source root、Python data root、Wrangler persistence path、`ORDERSCOPE_PYTHON_ENV`、`UV_PROJECT_ENVIRONMENT`を実行前に確認できる。
 
 ## 5. テストと最終受入の入口
 
@@ -100,11 +100,11 @@ source "$HOME/.nvm/nvm.sh"
 nvm use
 
 uv lock --check
-uv sync --locked
+bash scripts/run-local-wsl.sh sync
 npm ci
 npm test
 npm run typecheck
-uv run pytest -q
+bash scripts/run-local-wsl.sh pytest -q
 ```
 
 Wranglerのdeploy dry-runは、対象environmentを必ず明示する。
@@ -165,6 +165,10 @@ git status --short --ignored .env .env.cloudflare
 
 ## 8. 失敗時の停止基準
 
+- `npm ci` またはNode dependency大量I/O中に `EIO` / `Input/output error` が再発した場合は、その場で停止してログを保存する。MIG-09Aを再オープンし、`/mnt/c` とWSL nativeの比較を再実行する。再現差が得られた場合はgenerated WSL-native runtime mirrorを第一fallbackとして評価する。
+- `NODE_PATH`、source直下のWSL symlink、bind mountで一時回避しない。これらはMIG-09Bで非採用。
+
+
 - `run-local-wsl.sh`がdata pathの絶対pathまたはWSL native filesystem違反で停止した場合は、source checkout内や`/mnt/c`へdataを作らず、`${HOME}/data/orderscope`を確認する。
 - migration scriptが「移行先が空でない」と停止した場合は、既存dataを上書きせず、稼働中processとdata rootを調査する。
 - deploy wrapperがenvironment未指定または不一致で停止した場合は、対象environmentを確認してから再実行する。
@@ -174,7 +178,7 @@ git status --short --ignored .env .env.cloudflare
 
 - [ ] Codex DesktopでWindows側sourceだけを開き、編集・保存する。
 - [ ] WSL shellのcwdがWindows側sourceである。
-- [ ] `nvm use`後のNode.jsが24.21.0、`uv run python --version`が3.13.xである。
+- [ ] `nvm use`後のNode.jsが24.21.0、wrapper経由Pythonが3.13.xで、executableが `${HOME}/.local/share/orderscope/venv/bin/python` 配下である。
 - [ ] Pythonとlocal Wranglerの可変data rootがWSL native filesystemにある。
 - [ ] `/home/y/code/OrderScope`を編集・実行していない。
 - [ ] remote Wrangler操作に`--env <name>`がある。
