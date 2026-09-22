@@ -30,8 +30,8 @@ Windows側source + WSL runtimeへの移行作業を一区切りとし、次回�
 
 | ID | 作業 | 優先度 | 依存 | 完了条件 |
 |---|---|---:|---|---|
-| MIG-09A | `/mnt/c` EIOの切り分け | 最優先 | なし | WSL再起動後を含め、source直下の通常ファイル読み取りと大量I/O時の再現条件を記録できる |
-| MIG-09B | runtime dependency配置の再設計 | 最優先 | MIG-09A | Windows側source正本を維持したまま、`node_modules`と必要に応じて`.venv`をWSL nativeへ置く構成を採否決定 |
+| MIG-09A | `/mnt/c` EIOの切り分け | 最優先 | なし | **完了**。修正版再試験で通常read / small I/O / isolated `npm ci` / post-heavy readが全PASS。EIOは非再現として記録 |
+| MIG-09B | runtime dependency配置の再設計 | 最優先 | MIG-09A | **完了**。Python environmentはWSL nativeへ移動、Node `node_modules`は現配置維持。詳細はMIG-09B decision report |
 | MIG-09C | wrapper / path設計の実装 | 高 | MIG-09B | npm / Node / Python / Wranglerが採用したruntime dependency pathを一貫して使用する |
 | MIG-09D | README / runbook / migration report更新 | 高 | MIG-09B〜09C | 実際の最終構成と文書が一致する |
 | MIG-09E | タスク9最終受入を再実行 | 最優先 | MIG-09D | hash、uv、npm、Node tests、typecheck、Wrangler dry-run、Python tests、Local API healthが全て成功 |
@@ -40,7 +40,7 @@ Windows側source + WSL runtimeへの移行作業を一区切りとし、次回�
 
 ### 3.1 MIG-09Aで最低限確認する事項
 
-- `package.json` / `uv.toml` / Git metadataが `/mnt/c` 上で安定して読み取れるか。
+- `package.json` / `pyproject.toml` / Git metadataが `/mnt/c` 上で安定して読み取れるか。
 - EIOが `npm ci` の大量削除・展開時だけ発生するか、通常readでも再現するか。
 - WSL restart後に再発するか。
 - Windows側のディスク/NTFS、WSL drvfs、セキュリティソフト、同時アクセスのどこに相関があるか。
@@ -57,7 +57,25 @@ Web側の診断設計は完了。ローカル実測のみ未実施。
 
 診断scriptはrepository直下の `node_modules` / `.venv` を変更せず、repository外の一時directoryで `/mnt/c` とWSL native filesystemを比較する。通常実行でsource readと小規模I/O、`--heavy`でisolated `npm ci` とheavy I/O後のsource readまで確認する。
 
-MIG-09Aの現在状態は **Web側準備完了・ローカル実測待ち** とする。実測結果は `$HOME/data/orderscope/mig09a/<timestamp>/` の `summary.tsv` / `diagnostic.log` を証跡とし、結果をレビュー後にMIG-09Bへ進むか判定する。
+MIG-09Aは **完了**。正式証跡は `docs/evidence/mig09a/20260921T092425Z/summary.tsv` と `diagnostic.log`。修正版runでは全項目PASSで、WSL restart後にEIOは再現しなかった。直接原因は未特定だが、再現条件を記録できたためMIG-09Aの完了条件を満たす。
+
+
+
+### 3.3 MIG-09B runtime dependency配置決定
+
+MIG-09Bは **完了**。
+
+採用方針:
+
+- Windows側source正本は維持する。
+- Python project environmentは `UV_PROJECT_ENVIRONMENT` を使いWSL nativeへ分離する。既定候補は `${HOME}/.local/share/orderscope/venv`。
+- Node `node_modules` は当面source直下に維持する。
+- `NODE_PATH`、WSL symlink、bind mountは採用しない。
+- `/mnt/c` EIOが再発し、WSL nativeとの差が再現できた場合はgenerated WSL runtime mirrorを第一fallbackとして評価する。
+
+判断根拠とMIG-09Cへの実装要求は `docs/REPORT_MIG_09B_RUNTIME_DEPENDENCY_PLACEMENT_2026-09-22.md` を正とする。
+
+次の実施対象は **MIG-09C wrapper / path設計の実装**。
 
 ## 4. 移行完了後に再開する通常開発
 
