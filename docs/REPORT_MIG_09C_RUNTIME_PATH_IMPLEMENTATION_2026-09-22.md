@@ -163,3 +163,39 @@ npm run typecheck
 ```
 
 `npm ci` 自体でEIOが再発した場合はMIG-09Aの再発証跡として扱い、MIG-09BのNode配置判断を再オープンする。
+
+
+## 9. 2026-09-22 final local validation
+
+ローカル再検証は成功した。
+
+確認結果:
+
+- `npm ci`: 成功。46 packages added、EIO再発なし。
+- `import("miniflare")`: PASS。
+- Node tests: **199 passed / 0 failed**。
+- TypeScript typecheck: PASS。
+- Python environment: `/home/y/.local/share/orderscope/venv`。
+- Python filesystem: ext4。
+- Python version: 3.13.15。
+- source-local `.venv` はactive environmentとして不使用。
+- Python tests: **696 passed**。
+- repository status: clean、remote branchと同期。
+
+注記:
+
+`node_modules/miniflare/index.js` の直接存在確認は失敗したが、これは現行Miniflare packageのentry layoutを仮定した検証コマンド側の問題である。実際のESM importは成功し、Miniflare依存テストを含むNode test 199件が全PASSしたため、runtime dependency自体は正常と判定する。
+
+### MIG-09C 完了判定
+
+MIG-09Cは **完了** とする。
+
+採用された最終runtime path:
+
+- source: `/mnt/c/Users/Y/Projects/codex_work/OrderScope`
+- Node dependencies: source-local `node_modules`
+- Python project environment: `${HOME}/.local/share/orderscope/venv`
+- mutable local data: `${HOME}/data/orderscope/local`
+- Wrangler persistence: `${HOME}/data/orderscope/wrangler-state`
+
+次工程はMIG-09D。
