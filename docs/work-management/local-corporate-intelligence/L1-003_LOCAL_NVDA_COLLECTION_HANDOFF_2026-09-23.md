@@ -195,3 +195,71 @@ PB-05                  still BLOCKED remotely
 
 The local bundle is now suitable as reviewed input to a separately designed
 import path. It does not itself move the remote checkpoint.
+
+
+## 10. PB-04 local-evidence import contract
+
+A local-evidence adapter now exists for future PB-04 recovery without re-querying
+Alpaca. It deliberately does not write D1 by itself.
+
+Implementation:
+
+- `src/local-history-evidence.ts`
+- `src/execution.ts` coverage-absence evidence support
+- `src/local-history-evidence.test.ts`
+- additional executor tests in `src/execution.test.ts`
+
+Required data path:
+
+```text
+Local JSON
+  -> hash verification
+  -> validation recomputation
+  -> range-bounded local fetchPage adapter
+  -> normalizer
+  -> acceptance receipt
+  -> normalized_bar
+  -> missing-range evaluation
+  -> checkpoint CAS
+```
+
+Raw JSON -> direct SQL insert is prohibited for PB recovery.
+
+### Reproducible sparse provider minute
+
+The September 11 source bundle carries exactly one explicit provider absence:
+
+```text
+2026-09-11T16:57:00.000Z
+reason = REPRODUCIBLE_PROVIDER_ABSENCE
+evidence hash = session content SHA-256
+```
+
+This is not a synthetic bar. It only satisfies expected-grid coverage when:
+
+1. the v3 session file hash verifies;
+2. validation recomputed from the bars exactly matches stored validation;
+3. the session is structurally valid;
+4. a sparse session has `reproducible=true`;
+5. the absence lies on the expected session grid;
+6. the absence is inside the current recovery chunk;
+7. no accepted provider bar exists at the same timestamp.
+
+The executor records the count as `acknowledgedAbsent`. Ordinary unacknowledged
+missing bars continue to produce `PARTIAL` and stop checkpoint progression.
+
+### Local acceptance before any remote PB-04 import
+
+Run:
+
+```bash
+npm test -- --test-name-pattern="local history|provider absence"
+npm run typecheck
+git diff --check
+```
+
+A full repository test run is still required before opening a remote D1
+change window.
+
+No remote D1, Worker, Cron, secret, or checkpoint mutation is authorized by
+this implementation.
