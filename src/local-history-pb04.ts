@@ -43,7 +43,7 @@ export type LocalPb04DryRunPacket = {
 };
 
 function nextMarketDate(date: string): string {
-  const at = Date.parse(\`\${date}T00:00:00.000Z\`);
+  const at = Date.parse(date + "T00:00:00.000Z");
   if (!Number.isFinite(at)) throw new Error("market date is invalid");
   return new Date(at + 86_400_000).toISOString().slice(0, 10);
 }
@@ -97,8 +97,9 @@ export function buildLocalPb04DryRunPacket(input: {
     revision: calendarRevision,
     sessions: [sessionCalendar],
   };
-  const recoveryId = input.recoveryId ?? \`L1-003-NVDA-\${session.plan.marketDate.replaceAll("-", "")}-LOCAL\`;
-  const campaignId = input.campaignId ?? \`PB04-NVDA-\${session.plan.marketDate.replaceAll("-", "")}-LOCAL-DRYRUN\`;
+  const compactDate = session.plan.marketDate.replaceAll("-", "");
+  const recoveryId = input.recoveryId ?? ("L1-003-NVDA-" + compactDate + "-LOCAL");
+  const campaignId = input.campaignId ?? ("PB04-NVDA-" + compactDate + "-LOCAL-DRYRUN");
   const request: HistoricalRecoveryRequest = {
     recoveryId,
     providerRevision: session.providerRevision,
