@@ -89,6 +89,7 @@ if (packet.schemaVersion !== "l1-003-pb04-remote-execution-packet-v1"
   || packet.frozenRemoteCheckpoint?.completeThrough !== "2026-09-08T20:00:00.000Z"
   || packet.source?.marketDate !== "2026-09-09"
   || packet.source?.contentSha256 !== evidence.contentSha256
+  || evidence.contentSha256 !== "a0ac9c8aab46e9381982bb789c0c59463e536c6d19babf0457dff4dac13f86a2"
   || packet.recoveryId !== "L1-003-NVDA-20260909-LOCAL"
   || packet.chunks?.length !== 4) {
   throw new Error("Sep9 packet/evidence frozen identity mismatch");
