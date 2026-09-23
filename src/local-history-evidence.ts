@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import type { ProviderNeutralBar } from "./alpaca.ts";
 import type { CoverageAbsenceEvidence } from "./execution.ts";
 import type { HistoricalBarRequest } from "./alpaca.ts";
+import { validateRegularSession } from "./local-history-collector.ts";
 
 export type LocalHistoryEvidenceSession = {
   schemaVersion: "l1-003-local-history-session-v3";
@@ -78,6 +79,10 @@ export async function loadLocalHistoryEvidence(path: string): Promise<{
   const session = parsed;
   const actualHash = sha256(canonicalStablePayload(session));
   if (actualHash !== session.contentSha256) throw new Error("local history evidence hash mismatch");
+  const recomputed = validateRegularSession(session.plan, session.bars);
+  if (JSON.stringify(recomputed) !== JSON.stringify(session.validation)) {
+    throw new Error("local history evidence validation does not match bars");
+  }
   if (!session.validation.structurallyValid) throw new Error("local history evidence is not structurally valid");
   if (!session.validation.denseSession && session.reproducible !== true) {
     throw new Error("sparse local history evidence is not reproducible");
