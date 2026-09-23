@@ -23,6 +23,7 @@ import { D1SchedulerRunEvidenceStore, type SchedulerRunEvidenceStore } from "./r
 import { SchedulerRunEvidenceSession } from "./run-evidence-session";
 import { runHistoricalRecoveryChunk } from "./historical-recovery-runner";
 import { planNextHistoricalRecoveryChunk, type HistoricalRecoveryRequest } from "./historical-recovery";
+import { coverageAbsencesForRange, localHistoryFetchPage, parseLocalHistoryEvidence } from "./local-history-evidence";
 
 type PredictionMode = "off" | "shadow";
 
@@ -514,6 +515,180 @@ export function createWorker(dependencies: ScheduledOrchestrationDependencies = 
 
     async fetch(request: Request, env: RuntimeEnv): Promise<Response> {
       const url = new URL(request.url);
+
+      const localEvidenceRecoveryPath = url.pathname === "/control/historical-recovery/nvda/local-evidence-next-chunk";
+      if (localEvidenceRecoveryPath) {
+        if (!historicalRecoveryEnabled(env)) return json({ error: "not_found" }, 404);
+        if (request.method !== "POST") return json({ error: "method_not_allowed" }, 405);
+        if (!await authorizeHistoricalRecovery(request, env)) return json({ error: "unauthorized" }, 401);
+        if (!env.ALPACA_API_KEY || !env.ALPACA_API_SECRET || !("STATE_DB" in env) || !env.STATE_DB) {
+          return json({ error: "runtime_binding_unavailable" }, 503);
+        }
+        if (env.ALPACA_FEED !== "iex" || env.UNIVERSE_PROFILE !== "canary-v0.1"
+          || env.WORKER_MODE !== "shadow" || loadNewsAcquisitionRuntimeConfig(env).enabled) {
+          return json({ error: "runtime_precondition_mismatch" }, 409);
+        }
+
+        const expectedJobId = request.headers.get("x-orderscope-job-id");
+        const suppliedVersion = parseCheckpointVersion(request.headers.get("x-orderscope-checkpoint-version"));
+        const suppliedCompleteThrough = request.headers.get("x-orderscope-complete-through");
+        const recoveryId = request.headers.get("x-orderscope-recovery-id");
+        if (!expectedJobId || suppliedVersion === undefined || suppliedCompleteThrough === null || !recoveryId
+          || !Number.isFinite(Date.parse(suppliedCompleteThrough))
+          || new Date(Date.parse(suppliedCompleteThrough)).toISOString() !== suppliedCompleteThrough) {
+          return json({ error: "frozen_identity_mismatch" }, 409);
+        }
+
+        let parsedBody: unknown;
+        try {
+          parsedBody = await request.json();
+        } catch {
+          return json({ error: "invalid_local_evidence_json" }, 400);
+        }
+        if (typeof parsedBody !== "object" || parsedBody === null || !("sessionJson" in parsedBody)
+          || typeof parsedBody.sessionJson !== "string"
+          || !("calendarRevision" in parsedBody) || typeof parsedBody.calendarRevision !== "string") {
+          return json({ error: "invalid_local_evidence_payload" }, 400);
+        }
+
+        let loaded;
+        try {
+          loaded = await parseLocalHistoryEvidence(parsedBody.sessionJson);
+        } catch {
+          return json({ error: "local_evidence_validation_failed" }, 409);
+        }
+        const session = loaded.session;
+        if (session.coverageKey !== "NVDA|1Min|REGULAR|stock:iex:raw"
+          || session.feed !== "iex"
+          || session.providerRevision !== "alpaca-stock-bars-v1") {
+          return json({ error: "local_evidence_identity_mismatch" }, 409);
+        }
+
+        const budget = new InvocationBudget();
+        const stateDb = budgetedD1(env.STATE_DB, budget);
+        const checkpoints = dependencies.checkpointPort?.(stateDb) ?? new D1CoverageCheckpointPort(stateDb);
+        const checkpointBefore = await checkpoints.get(session.coverageKey);
+        if (!checkpointBefore
+          || checkpointBefore.symbol !== "NVDA"
+          || checkpointBefore.interval !== "1Min"
+          || checkpointBefore.sessionScope !== "REGULAR"
+          || checkpointBefore.logicalDataVariant !== "stock:iex:raw"
+          || checkpointBefore.state !== "COMPLETE"
+          || checkpointBefore.completeThrough !== suppliedCompleteThrough
+          || checkpointBefore.version !== suppliedVersion
+          || checkpointBefore.universeRevision !== "stock-monitoring-canary-v0.1"
+          || checkpointBefore.missingRanges.length !== 0
+          || checkpointBefore.blocker !== undefined) {
+          return json({ error: "checkpoint_preflight_mismatch" }, 409);
+        }
+
+        const calendarRevision = parsedBody.calendarRevision;
+        const calendar = {
+          market: "US_EQUITIES" as const,
+          dateRange: {
+            startInclusive: session.plan.marketDate,
+            endExclusive: new Date(Date.parse(session.plan.marketDate + "T00:00:00.000Z") + 86_400_000)
+              .toISOString().slice(0, 10),
+          },
+          generatedAt: new Date().toISOString(),
+          revision: calendarRevision,
+          sessions: [{
+            marketDate: session.plan.marketDate,
+            sessionKind: "REGULAR" as const,
+            opensAt: session.plan.startInclusive,
+            closesAt: session.plan.endExclusive,
+            isShortened: false,
+            calendarRevision,
+          }],
+        };
+        const recoveryRequest: HistoricalRecoveryRequest = {
+          recoveryId,
+          providerRevision: session.providerRevision,
+          universeRevision: checkpointBefore.universeRevision,
+          calendarRevision,
+          instrument: { symbol: "NVDA", cadence: "1Min", providerRoute: "alpaca_stock_bars" },
+          coverageKey: session.coverageKey,
+          sessionScope: "REGULAR",
+          logicalDataVariant: "stock:iex:raw",
+          mode: "CATCH_UP",
+          recoveryRange: {
+            startInclusive: checkpointBefore.completeThrough!,
+            endExclusive: session.plan.endExclusive,
+          },
+          checkpointBefore,
+          maxBarsPerJob: 100,
+          createdAt: new Date().toISOString(),
+        };
+        const plannedJob = planNextHistoricalRecoveryChunk(recoveryRequest, calendar);
+        if (!plannedJob || plannedJob.jobId !== expectedJobId) {
+          return json({ error: "planned_job_mismatch" }, 409);
+        }
+        const chunkAbsences = coverageAbsencesForRange(
+          loaded.coverageAbsences,
+          plannedJob.requestedRange.startInclusive,
+          plannedJob.requestedRange.endExclusive,
+        );
+        const expectedGridBars = (Date.parse(plannedJob.requestedRange.endExclusive)
+          - Date.parse(plannedJob.requestedRange.startInclusive)) / 60_000;
+        const expectedProviderBars = expectedGridBars - chunkAbsences.length;
+
+        const leases = dependencies.leaseStore?.(stateDb) ?? new D1AcquisitionLeaseStore(stateDb);
+        const ownerId = expectedJobId + ":" + crypto.randomUUID();
+        const acquired = await leases.acquire(session.coverageKey, ownerId, new Date().toISOString(), 5 * 60_000);
+        if (!acquired) return json({ error: "recovery_locked" }, 409);
+        try {
+          const result = await runHistoricalRecoveryChunk(recoveryRequest, calendar, {
+            credentials: { keyId: "local-evidence", secretKey: "local-evidence" },
+            checkpoints,
+            bars: dependencies.barStore?.(stateDb) ?? new D1NormalizedBarStore(stateDb),
+            feed: "iex",
+            maxPages: 1,
+            maxBars: 100,
+            gapRetryDelayMs: loadAcquisitionRuntimeConfig(env).gapRetryMinutes * 60_000,
+            now: () => new Date(),
+            fetchPage: localHistoryFetchPage(session),
+            coverageAbsences: chunkAbsences,
+            budget,
+          });
+          const checkpointAfter = await checkpoints.get(session.coverageKey);
+          const accepted = result.outcome === "SUCCEEDED"
+            && result.summary.jobId === expectedJobId
+            && result.summary.inserted + result.summary.matched === expectedProviderBars
+            && (result.summary.acknowledgedAbsent ?? 0) === chunkAbsences.length
+            && result.summary.conflicts === 0
+            && result.summary.rejected === 0
+            && result.summary.missing === 0
+            && checkpointAfter?.completeThrough === plannedJob.requestedRange.endExclusive
+            && checkpointAfter.state === "COMPLETE"
+            && checkpointAfter.missingRanges.length === 0
+            && checkpointAfter.blocker === undefined
+            && checkpointAfter.version === suppliedVersion + 1;
+          return json({
+            accepted,
+            recoveryId,
+            expectedJobId,
+            evidenceHash: session.contentSha256,
+            checkpointBefore: { completeThrough: suppliedCompleteThrough, version: suppliedVersion },
+            requestedRange: plannedJob.requestedRange,
+            expectedGridBars,
+            expectedProviderBars,
+            acknowledgedAbsent: chunkAbsences.length,
+            result,
+            checkpointAfter: checkpointAfter ? {
+              completeThrough: checkpointAfter.completeThrough,
+              state: checkpointAfter.state,
+              missingRanges: checkpointAfter.missingRanges,
+              version: checkpointAfter.version,
+            } : null,
+            budget: budget.snapshot(),
+            stoppedAfterOneChunk: true,
+          }, accepted ? 200 : 409);
+        } catch {
+          return json({ error: "local_evidence_recovery_failed", recoveryId }, 409);
+        } finally {
+          await leases.release(session.coverageKey, ownerId);
+        }
+      }
 
       const firstRecoveryPath = url.pathname === "/control/historical-recovery/nvda/first-chunk";
       const continuationRecoveryPath = url.pathname === "/control/historical-recovery/nvda/next-chunk";
