@@ -27,6 +27,7 @@ export type LocalHistorySessionValidation = {
   lastTimestamp?: string;
   duplicateTimestamps: string[];
   outOfRangeTimestamps: string[];
+  missingTimestamps: string[];
   complete: boolean;
 };
 
@@ -93,6 +94,11 @@ export function validateRegularSession(
     return !Number.isFinite(value) || value < start || value >= end;
   });
 
+  const expectedTimestamps = Array.from({ length: plan.expectedBars }, (_, index) =>
+    new Date(start + index * 60_000).toISOString());
+  const actualSet = new Set(timestamps);
+  const missingTimestamps = expectedTimestamps.filter((timestamp) => !actualSet.has(timestamp));
+
   const sorted = [...timestamps].sort();
   return {
     marketDate: plan.marketDate,
@@ -102,8 +108,10 @@ export function validateRegularSession(
     ...(sorted.at(-1) ? { lastTimestamp: sorted.at(-1) } : {}),
     duplicateTimestamps,
     outOfRangeTimestamps,
+    missingTimestamps,
     complete: bars.length === plan.expectedBars
       && duplicateTimestamps.length === 0
-      && outOfRangeTimestamps.length === 0,
+      && outOfRangeTimestamps.length === 0
+      && missingTimestamps.length === 0,
   };
 }
