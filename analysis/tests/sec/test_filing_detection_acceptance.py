@@ -7,6 +7,8 @@ import sqlite3
 import pytest
 
 from orderscope_local.contracts import AdapterRequest
+from orderscope_local.storage import apply_migrations
+
 from orderscope_local.sec import (
     SEC_DATA_ORIGIN,
     FilingWriteResult,
@@ -83,19 +85,10 @@ class Store:
 
 
 @pytest.fixture
-def repository():
-    connection = sqlite3.connect(":memory:")
-    connection.execute(
-        """
-        CREATE TABLE filing_records (
-            accession TEXT PRIMARY KEY, content_hash TEXT NOT NULL,
-            cik TEXT NOT NULL, ticker TEXT NOT NULL, form TEXT NOT NULL,
-            filed_at TEXT NOT NULL, period_end TEXT,
-            primary_document_ref TEXT, source_ref TEXT NOT NULL,
-            retrieved_at TEXT NOT NULL
-        )
-        """
-    )
+def repository(tmp_path):
+    database = tmp_path / "filing-acceptance.sqlite3"
+    apply_migrations(database)
+    connection = sqlite3.connect(database)
     try:
         yield SqliteFilingRecordRepository(connection)
     finally:
@@ -143,6 +136,77 @@ def test_fixture_replay_accepts_bounded_canary_new_duplicate_and_amendment(repos
     )
     assert limiter.calls == 2
     assert all(user_agent == USER_AGENT for _, user_agent in transport.calls)
+
+
+def test_fixture_replay_integrates_document_and_company_facts_success(repository) -> None:
+    submissions_payload = _submissions_payload(2488, AMD_FILINGS)
+    submissions = SecSubmissionsAdapter(
+        transport=JsonTransport({
+            f"{SEC_DATA_ORIGIN}/submissions/CIK0000002488.json": submissions_payload,
+        }),
+        user_agent=USER_AGENT,
+        limiter=Limiter(),
+        clock=lambda: NOW,
+    ).fetch(AdapterRequest("sec:submissions:amd", WINDOW_START, WINDOW_END))
+
+    record = repository.put(submissions.items[0], retrieved_at=NOW).record
+    decision = classify_filing_record(record)
+    assert decision.family is SecFormFamily.QUARTERLY_REPORT
+
+    store = Store()
+    document = SecFilingDocumentAcquirer(
+        transport=BytesTransport(b"<html><body>fixture filing</body></html>"),
+        store=store,
+        user_agent=USER_AGENT,
+        limiter=Limiter(),
+        clock=lambda: NOW,
+    ).acquire(record)
+    assert document.error is None
+    assert document.content_hash is not None
+    assert document.temporary_content is not None
+    assert store.values[document.temporary_content.content_ref]
+
+    facts_payload = {
+        "cik": 2488,
+        "entityName": "ADVANCED MICRO DEVICES INC",
+        "facts": {
+            "us-gaap": {
+                "RevenueFromContractWithCustomerExcludingAssessedTax": {
+                    "units": {
+                        "USD": [{
+                            "start": "2026-03-29",
+                            "end": "2026-06-27",
+                            "val": 7685000000,
+                            "accn": "0000002488-26-000120",
+                            "form": "10-Q",
+                            "filed": "2026-08-03",
+                        }]
+                    }
+                }
+            }
+        },
+    }
+    facts = SecCompanyFactsAdapter(
+        transport=JsonTransport({
+            f"{SEC_DATA_ORIGIN}/api/xbrl/companyfacts/CIK0000002488.json": facts_payload,
+        }),
+        user_agent=USER_AGENT,
+        limiter=Limiter(),
+        clock=lambda: NOW,
+    ).fetch(
+        source_key="sec:companyfacts:amd",
+        window_start=date(2026, 1, 1),
+        window_end=date(2027, 1, 1),
+    )
+
+    assert facts.error is None
+    assert len(facts.facts) == 1
+    fact = facts.facts[0]
+    assert fact.source_accession == record.accession
+    assert fact.source_form == record.form
+    assert fact.filing_source_ref == record.source_ref
+    assert fact.unit == "USD"
+    assert fact.dimensions == ()
 
 
 def test_partial_submissions_document_and_company_facts_are_retryable_and_sanitized() -> None:
