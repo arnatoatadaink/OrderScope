@@ -1,4 +1,4 @@
-import type { ProviderNeutralBar } from "./alpaca";
+import type { ProviderNeutralBar } from "./alpaca.ts";
 
 export const L1_003_NVDA_DEFAULT_SESSIONS = Object.freeze([
   "2026-09-09",
