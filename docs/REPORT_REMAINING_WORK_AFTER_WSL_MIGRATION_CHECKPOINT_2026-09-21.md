@@ -217,7 +217,7 @@ I0-002 provenance / timestamp共通型
 | DEV-I0-006 | temporary content lifecycle | **完了 / Accepted** | content ref / retention / expiry / exception / deletion proof契約とprovider handoffを確認。`REPORT_DEV_I0_006_TEMPORARY_CONTENT_ACCEPTANCE_2026-09-22.md`参照 |
 | DEV-I0-007 | provider-neutral contract test正式受入 | **完了 / Accepted** | UTC/max_pages追加差分後、CodexDesktop側4契約テスト55件PASS・cleanを確認。`REPORT_DEV_I0_007_PROVIDER_NEUTRAL_CONTRACT_TEST_ACCEPTANCE_2026-09-22.md`参照 |
 | DEV-S0-002 | SEC CIK/submissions adapter | **完了 / Accepted** | SEC統合slice 27件PASS・diffなしを確認。`REPORT_DEV_S0_002_SEC_SUBMISSIONS_ADAPTER_ACCEPTANCE_2026-09-23.md`参照 |
-| DEV-S0-003 | FilingRecord persistence | **次の本流** | S0-002 Accepted。既存先行実装・migration・idempotency境界を再レビュー |
+| DEV-S0-003 | FilingRecord persistence | **実装完了 / local acceptance pending** | versioned migration欠落を修正し、migration経由repository fixtureを追加。`REPORT_DEV_S0_003_FILING_RECORD_PERSISTENCE_ACCEPTANCE_2026-09-23.md`参照 |
 | DEV-S0-004 | strict SEC form filter | 完了 | 追加作業なし |
 | DEV-S0-007 | SEC統合受入 | 部分完了 | S0-002/003/005/006待ち |
 
