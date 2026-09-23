@@ -47,7 +47,7 @@ def test_current_migrations_install_filing_records_schema(tmp_path: Path) -> Non
             for row in connection.execute("PRAGMA table_info(filing_records)")
         }
         assert columns == {
-            "accession": ("TEXT", 0, 1),
+            "accession": ("TEXT", 1, 1),
             "content_hash": ("TEXT", 1, 0),
             "cik": ("TEXT", 1, 0),
             "ticker": ("TEXT", 1, 0),
