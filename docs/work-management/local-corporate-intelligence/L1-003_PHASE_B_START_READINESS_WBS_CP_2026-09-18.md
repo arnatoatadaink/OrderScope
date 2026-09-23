@@ -231,3 +231,20 @@ See `L1-003_PB01_READ_ONLY_PREFLIGHT_2026-09-23.md`.
 
 Immediate no-mutation continuation: collect Sep 22 locally as contingency
 evidence, then design the import path. Remote PB-04/PB-05 state is unchanged.
+
+
+## 11. R0-006..009 connection map
+
+The relationship between L1-003/PB recovery and the R0 D1 hot-store drain
+lifecycle is documented in:
+
+`L1-003_R0-006-009_PB_CONNECTION_MAP_2026-09-23.md`
+
+Key rule: PB restores/advances remote acquisition and checkpoint continuity;
+R0-006..009 exports already accepted D1 hot history into Local durable custody
+and governs later purge eligibility. Local direct-provider evidence is neither a
+PB completion nor an R0-007 D1 export by itself.
+
+The current Sep 9..22 Local bundle may be used immediately for local analysis.
+Any future use for remote PB recovery must pass through the existing
+normalization, acceptance receipt, missing-range, and checkpoint-CAS contracts.
