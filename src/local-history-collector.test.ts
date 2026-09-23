@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import type { ProviderNeutralBar } from "./alpaca";
-import { planRegularSession, validateRegularSession } from "./local-history-collector";
+import type { ProviderNeutralBar } from "./alpaca.ts";
+import { planRegularSession, validateRegularSession } from "./local-history-collector.ts";
 
 function bar(timestamp: string): ProviderNeutralBar {
   return {
