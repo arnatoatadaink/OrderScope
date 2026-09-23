@@ -1,7 +1,7 @@
 # OrderScope — DEV-S0-005 Filing Document Acquisition 受入記録
 
 作成日: 2026-09-23（Asia/Tokyo）
-Status: implementation complete / local acceptance pending
+Status: accepted
 対象: `S0-005 / Implement filing-document acquisition`
 
 ## 1. 結論
@@ -139,8 +139,8 @@ bash scripts/run-local-wsl.sh python -m pytest -q analysis/tests/sec \
 
 ## 10. 判定
 
-`DEV-S0-005`: **実装完了 / local acceptance pending**
+`DEV-S0-005`: **完了 / Accepted**
 
-fixture追加後のlocal test PASSでAccepted化する。
+2026-09-23にCodexDesktop側で指定受入テストを再実行し、`18 passed in 2.63s`、diffなしを確認したため **Accepted** とする。
 
-Accepted後は `S0-006 Company Facts/XBRL adapter` を正式受入し、S0-002〜006が揃った時点で `S0-007 Filing-detection acceptance test` へ進む。
+次は `S0-006 Company Facts/XBRL adapter` を正式受入し、S0-002〜006が揃った時点で `S0-007 Filing-detection acceptance test` へ進む。
