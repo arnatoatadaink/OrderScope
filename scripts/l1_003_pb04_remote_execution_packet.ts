@@ -89,7 +89,7 @@ async function main(): Promise<void> {
       requiredBlocker: null,
     },
     campaignId: packet.campaignId.replace("-LOCAL-DRYRUN", "-REMOTE"),
-    recoveryId: packet.recoveryId.replace("-LOCAL", "-REMOTE"),
+    recoveryId: packet.recoveryId,
     session: packet.session,
     chunks: packet.chunks,
     mandatoryEntryChecks: [
