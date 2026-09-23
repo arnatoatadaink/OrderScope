@@ -96,8 +96,9 @@ export function validateRegularSession(
 
   const expectedTimestamps = Array.from({ length: plan.expectedBars }, (_, index) =>
     new Date(start + index * 60_000).toISOString());
-  const actualSet = new Set(timestamps);
-  const missingTimestamps = expectedTimestamps.filter((timestamp) => !actualSet.has(timestamp));
+  const actualEpochs = new Set(timestamps.map((timestamp) => Date.parse(timestamp)));
+  const missingTimestamps = expectedTimestamps.filter((timestamp) =>
+    !actualEpochs.has(Date.parse(timestamp)));
 
   const sorted = [...timestamps].sort();
   return {
