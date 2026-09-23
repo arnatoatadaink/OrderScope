@@ -5,6 +5,7 @@ import pytest
 
 from orderscope_local.contracts import AdapterItem, ContentHash, ContentIdentity, ContractViolation, StableIdentity
 from orderscope_local.sec import FilingWriteResult, SqliteFilingRecordRepository
+from orderscope_local.storage import apply_migrations
 
 
 RETRIEVED = datetime(2026, 9, 8, 1, tzinfo=timezone.utc)
@@ -55,6 +56,19 @@ def item(*, content_hash: str = "a" * 64, **overrides: object) -> AdapterItem:
             StableIdentity.filing_accession(accession), ContentHash(content_hash)
         ),
     )
+
+
+def test_versioned_migration_supports_filing_repository(tmp_path) -> None:
+    database = tmp_path / "catalog.sqlite3"
+    apply_migrations(database)
+    connection = sqlite3.connect(database)
+    try:
+        store = SqliteFilingRecordRepository(connection)
+        write = store.put(item(), retrieved_at=RETRIEVED)
+        assert write.result is FilingWriteResult.NEW
+        assert store.get(ACCESSION) == write.record
+    finally:
+        connection.close()
 
 
 def test_persists_provider_neutral_filing_record_by_accession(repository) -> None:
