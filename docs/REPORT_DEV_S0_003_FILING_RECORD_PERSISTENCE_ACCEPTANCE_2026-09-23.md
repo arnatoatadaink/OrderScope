@@ -1,7 +1,7 @@
 # OrderScope — DEV-S0-003 FilingRecord persistence 受入記録
 
 作成日: 2026-09-23（Asia/Tokyo）
-Status: implementation complete / local acceptance pending
+Status: accepted
 対象: `S0-003 / Persist FilingRecord`
 
 ## 1. 結論
@@ -12,7 +12,7 @@ repository自体は accessionをprimary identityとして NEW / DUPLICATE / conf
 
 この差分を修正し、`0003_filing_records.sql` を追加した。migration schemaとrepository実利用をfixtureで検証するtestも追加した。
 
-コード・migration差分後のローカルpytest証跡が未取得のため、状態は **実装完了 / local acceptance pending** とする。
+migration fixture期待値をSQLite STRICTの実挙動へ修正後、2026-09-23にCodexDesktop側で指定受入テストを再実行し、`21 passed in 2.90s` を確認した。実行後diffなし。
 
 ## 2. 受入対象
 
@@ -132,8 +132,8 @@ bash scripts/run-local-wsl.sh python -m pytest -q analysis/tests/sec analysis/te
 
 ## 9. 判定
 
-`DEV-S0-003`: **実装完了 / local acceptance pending**
+`DEV-S0-003`: **完了 / Accepted**
 
-PASS後にAccepted化する。
+CodexDesktop側の受入テスト `21 passed in 2.90s` とdiffなしを根拠として **Accepted** とする。
 
-S0-003 Accepted後は、既に完了しているS0-004を再実装せず、主経路を `S0-005 filing-document acquisition` と `S0-006 Company Facts/XBRL adapter` へ進める。
+S0-004は既に完了済みのため再実装せず、主経路を `S0-005 filing-document acquisition` と `S0-006 Company Facts/XBRL adapter` へ進める。
