@@ -123,3 +123,20 @@ export function localHistoryFetchPage(
     };
   };
 }
+
+
+export function coverageAbsencesForRange(
+  absences: readonly CoverageAbsenceEvidence[],
+  startInclusive: string,
+  endExclusive: string,
+): readonly CoverageAbsenceEvidence[] {
+  const from = Date.parse(startInclusive);
+  const to = Date.parse(endExclusive);
+  if (!Number.isFinite(from) || !Number.isFinite(to) || from >= to) {
+    throw new Error("coverage absence filter range is invalid");
+  }
+  return absences.filter((absence) => {
+    const at = Date.parse(absence.identityStart);
+    return at >= from && at < to;
+  });
+}
