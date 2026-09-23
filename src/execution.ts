@@ -22,7 +22,7 @@ export type AcquisitionExecutionSummary = {
   conflicts: number;
   rejected: number;
   missing: number;
-  acknowledgedAbsent: number;
+  acknowledgedAbsent?: number;
 };
 
 export type AcquisitionExecutorOptions = {
@@ -219,8 +219,18 @@ export async function executeAcquisitionJob(
     const acknowledgedAbsent = [...absenceStarts.values()].reduce((sum, starts) => sum + starts.size, 0);
     const outcome = missingCount || counts.conflicts || counts.rejected ? "PARTIAL" : "SUCCEEDED";
     await options.checkpoints.recordAttempt({ attemptId, coverageKey: expectation.coverageKey, jobId: job.jobId,
-      startedAt, finishedAt, outcome, diagnostic: { ...counts, missing: missingCount, acknowledgedAbsent } });
-    return { jobId: job.jobId, outcome, ...counts, missing: missingCount, acknowledgedAbsent };
+      startedAt, finishedAt, outcome, diagnostic: {
+        ...counts,
+        missing: missingCount,
+        ...(acknowledgedAbsent > 0 ? { acknowledgedAbsent } : {}),
+      } });
+    return {
+      jobId: job.jobId,
+      outcome,
+      ...counts,
+      missing: missingCount,
+      ...(acknowledgedAbsent > 0 ? { acknowledgedAbsent } : {}),
+    };
   } catch (error) {
     await options.checkpoints.recordAttempt({ attemptId, coverageKey: expectation.coverageKey, jobId: job.jobId,
       startedAt, finishedAt: now().toISOString(), outcome: "FAILED",
