@@ -221,7 +221,7 @@ I0-002 provenance / timestamp共通型
 | DEV-S0-004 | strict SEC form filter | 完了 | 追加作業なし |
 | DEV-S0-005 | filing-document acquisition | **完了 / Accepted** | fixture強化後、18件PASS・diffなしを確認。`REPORT_DEV_S0_005_FILING_DOCUMENT_ACQUISITION_ACCEPTANCE_2026-09-23.md`参照 |
 | DEV-S0-006 | Company Facts/XBRL adapter | **完了 / Accepted** | bounded retry修正後、指定受入テスト27件PASSを確認。`REPORT_DEV_S0_006_COMPANY_FACTS_XBRL_ACCEPTANCE_2026-09-23.md`参照 |
-| DEV-S0-007 | SEC統合受入 | **実装完了 / local acceptance pending** | migration-backed success pipelineとS0-002〜006統合fixtureを補強。`REPORT_DEV_S0_007_FILING_DETECTION_ACCEPTANCE_2026-09-23.md`参照 |
+| DEV-S0-007 | SEC統合受入 | **完了 / Accepted** | S0 SEC統合受入94件PASSを確認。`REPORT_DEV_S0_007_FILING_DETECTION_ACCEPTANCE_2026-09-23.md`参照 |
 
 ## 5. Web調査側の保留タスク
 
@@ -267,4 +267,4 @@ I0-002 provenance / timestamp共通型
 
 ## 9. 区切り時点の判定
 
-2026-09-22時点で、Windows側source + WSL runtimeへの移行は **完了**。MIG-09E正式受入、MIG-09F Git最終確認、CodexDesktop側検収合格を通過した。通常開発へ復帰し、`DEV-I0-002`〜`DEV-I0-007` は正式受入まで完了した。現在の本流は `DEV-S0-003 FilingRecord persistence` である。
+2026-09-22時点で、Windows側source + WSL runtimeへの移行は **完了**。MIG-09E正式受入、MIG-09F Git最終確認、CodexDesktop側検収合格を通過した。通常開発へ復帰し、`DEV-I0-002`〜`DEV-I0-007` は正式受入まで完了した。現在の本流は `E0-001 earnings event/result contract` である。
