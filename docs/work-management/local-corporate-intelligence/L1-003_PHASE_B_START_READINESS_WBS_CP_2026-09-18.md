@@ -162,3 +162,45 @@ exact September 9 session identities from checkpoint version 18, and obtain a
 separate change-window authorization for that one-session campaign. Do not
 cross sessions automatically. Re-freeze the boundary if the moving retention
 horizon changes before completion.
+
+
+## 9. 2026-09-23 local-collection reconciliation
+
+A separate local-only recovery branch, `l1-003-local-market-recovery`, was
+used to collect the post-September-8 NVDA IEX Regular-session history without
+deploying a Worker or mutating D1/checkpoint state.
+
+Accepted local sessions:
+
+```text
+Sep 9, 10, 11, 14, 15, 16, 17, 18, 21
+provider bars = 3,509
+```
+
+Eight sessions are dense at 390 provider bars. September 11 is a reproducible
+sparse provider session with 389 bars and the single absent clock minute
+`2026-09-11T16:57:00.000Z`. Its complete v3 dataset hash reproduced exactly:
+
+```text
+a41dcb05888182dada5dbde3fc420b74684abaac6e5f2aafcdb5fa81d8e8be90
+```
+
+This local evidence changes no PB state by itself. The authoritative remote
+checkpoint remains the last accepted PB-04 state, version 18 through the
+September 8 close, until a separately reviewed import/recovery mutation occurs.
+
+Current restart interpretation:
+
+```text
+PB-01  RE-RUN REQUIRED — moving retention boundary is stale
+PB-04  IN PROGRESS — remote checkpoint remains v18 / Sep 8 close
+        local provider dataset through Sep 21 is ACCEPTED as import input
+PB-05  BLOCKED — remote contiguity has not yet been established
+PB-06+ GATED
+```
+
+Before any D1 import or checkpoint movement, rerun PB-01 read-only preflight
+against current UTC and the authoritative exchange calendar, then freeze the
+actual historical target and import scope. The local bundle may reduce provider
+collection work, but must not bypass accepted-record or checkpoint-CAS
+contracts.
