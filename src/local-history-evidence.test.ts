@@ -4,7 +4,7 @@ import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { loadLocalHistoryEvidence, localHistoryFetchPage, type LocalHistoryEvidenceSession } from "./local-history-evidence.ts";
+import { coverageAbsencesForRange, loadLocalHistoryEvidence, localHistoryFetchPage, type LocalHistoryEvidenceSession } from "./local-history-evidence.ts";
 import { validateRegularSession } from "./local-history-collector.ts";
 
 function stableHash(session: Omit<LocalHistoryEvidenceSession, "contentSha256"> & { contentSha256?: string }): string {
@@ -110,4 +110,25 @@ test("serves only the requested frozen range from local evidence", async () => {
   });
   assert.equal(page.bars.length, 1);
   assert.equal(page.bars[0]?.timestamp, "2026-09-11T13:31:00Z");
+});
+
+
+test("filters reproducible absence evidence to the active recovery chunk", async () => {
+  const session = fixture();
+  const loaded = await loadLocalHistoryEvidence(await writeFixture(session));
+  assert.equal(coverageAbsencesForRange(
+    loaded.coverageAbsences,
+    "2026-09-11T13:30:00.000Z",
+    "2026-09-11T15:10:00.000Z",
+  ).length, 0);
+  assert.equal(coverageAbsencesForRange(
+    loaded.coverageAbsences,
+    "2026-09-11T15:10:00.000Z",
+    "2026-09-11T16:50:00.000Z",
+  ).length, 0);
+  assert.equal(coverageAbsencesForRange(
+    loaded.coverageAbsences,
+    "2026-09-11T16:50:00.000Z",
+    "2026-09-11T18:30:00.000Z",
+  ).length, 1);
 });
