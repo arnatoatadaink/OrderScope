@@ -138,3 +138,34 @@ After the local manifest reports PASS:
 6. only then consider D1/checkpoint mutation under a separate authorization.
 
 Do not advance the existing checkpoint merely because the local files exist.
+
+
+## 8. 2026-09-23 sparse-session reconciliation
+
+Repeated local retrieval of the September 11 IEX Regular session produced the
+same provider dataset:
+
+```text
+bars              389
+missing minute    2026-09-11T16:57:00.000Z
+content SHA-256   9d810707c426e25282ca6b3be9372378076563c06e9bc2492606c51540f154c4
+reproducible      true
+```
+
+The local acceptance model is therefore revised so that a provider session is
+not required to be artificially dense. Validation now separates:
+
+```text
+denseSession       every expected clock minute has a provider bar
+structurallyValid  no duplicate/out-of-range bars and all absent minutes are explicit
+accepted           structurallyValid AND (denseSession OR reproducible=true)
+```
+
+No missing minute is synthesized. A sparse session is accepted only after the
+same complete provider payload is retrieved again with an identical
+deterministic content hash.
+
+Because the validation schema contributes to the deterministic hash, the first
+run after this schema revision will establish a new v3 hash and may report
+`reproducible=false`. A second identical run is required to establish
+`reproducible=true` under the revised schema.
