@@ -1,5 +1,3 @@
-import { createHash } from "node:crypto";
-import { readFile } from "node:fs/promises";
 import type { ProviderNeutralBar } from "./alpaca.ts";
 import type { CoverageAbsenceEvidence } from "./execution.ts";
 import type { HistoricalBarRequest } from "./alpaca.ts";
@@ -36,8 +34,10 @@ export type LocalHistoryEvidenceSession = {
   bars: ProviderNeutralBar[];
 };
 
-function sha256(value: string): string {
-  return createHash("sha256").update(value, "utf8").digest("hex");
+async function sha256(value: string): Promise<string> {
+  const bytes = new TextEncoder().encode(value);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
 function canonicalStablePayload(session: LocalHistoryEvidenceSession): string {
@@ -70,14 +70,14 @@ function isSession(value: unknown): value is LocalHistoryEvidenceSession {
     && Array.isArray(record.bars);
 }
 
-export async function loadLocalHistoryEvidence(path: string): Promise<{
+export async function parseLocalHistoryEvidence(text: string): Promise<{
   session: LocalHistoryEvidenceSession;
   coverageAbsences: readonly CoverageAbsenceEvidence[];
 }> {
-  const parsed: unknown = JSON.parse(await readFile(path, "utf8"));
+  const parsed: unknown = JSON.parse(text);
   if (!isSession(parsed)) throw new Error("local history evidence has an unsupported schema");
   const session = parsed;
-  const actualHash = sha256(canonicalStablePayload(session));
+  const actualHash = await sha256(canonicalStablePayload(session));
   if (actualHash !== session.contentSha256) throw new Error("local history evidence hash mismatch");
   const recomputed = validateRegularSession(session.plan, session.bars);
   if (JSON.stringify(recomputed) !== JSON.stringify(session.validation)) {
