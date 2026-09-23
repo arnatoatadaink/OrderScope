@@ -39,6 +39,22 @@ if (!row || String(row[process.env.FIELD]) !== process.env.EXPECTED) {
 NODE
 }
 
+wait_for_endpoint_code() {
+  local expected="$1"
+  local attempts="${2:-15}"
+  local code=""
+  for ((i = 1; i <= attempts; i += 1)); do
+    code="$(curl -sS -o /dev/null -w '%{http_code}' -X POST       "${BASE_URL%/}/control/historical-recovery/nvda/local-evidence-next-chunk" || true)"
+    if [[ "${code}" == "${expected}" ]]; then
+      echo "endpoint HTTP=${code} after probe ${i}/${attempts}"
+      return 0
+    fi
+    sleep 2
+  done
+  echo "endpoint did not reach HTTP ${expected}; last HTTP=${code}" >&2
+  return 1
+}
+
 safe_close() {
   local status=$?
   if [[ "${CLOSED}" -eq 1 ]]; then
@@ -58,8 +74,11 @@ safe_close() {
   fi
   rm -f "${TEMP_CONFIG}" "${BODY_FILE}" "${RESPONSE_FILE}"
   if [[ -n "${BASE_URL}" ]]; then
-    code="$(curl -sS -o /dev/null -w '%{http_code}' -X POST       "${BASE_URL%/}/control/historical-recovery/nvda/local-evidence-next-chunk" || true)"
-    echo "final local-evidence endpoint HTTP=${code} (expected 404)"
+    if wait_for_endpoint_code "404" 15; then
+      echo "final local-evidence endpoint reached expected 404"
+    else
+      echo "WARNING: final endpoint did not confirm 404 inside the bounded probe window" >&2
+    fi
   fi
   echo "PB-04 safe close complete."
   exit "${status}"
@@ -183,8 +202,7 @@ echo "== deploy temporary recovery gate =="
 CLOUDFLARE_ENV="${ENV_NAME}" bash scripts/run-wrangler-with-env.sh deploy --config "${TEMP_CONFIG}"
 TEMP_GATE_DEPLOYED=1
 
-gate_code="$(curl -sS -o /dev/null -w '%{http_code}' -X POST   "${BASE_URL%/}/control/historical-recovery/nvda/local-evidence-next-chunk")"
-[[ "${gate_code}" == "401" ]] || fail "opened endpoint must reject missing token with 401; got ${gate_code}"
+wait_for_endpoint_code "401" 15   || fail "opened endpoint did not reach authenticated-gate state (expected 401 without token)"
 
 echo
 echo "== execute frozen Sep9 four-chunk campaign =="
@@ -219,7 +237,7 @@ NODE
   after_through="${fields[9]}"
 
   echo "-- chunk ${ordinal}: ${job_id} ${range_start} -> ${range_end}"
-  curl -fsS -X POST     -H "authorization: Bearer ${TOKEN}"     -H "content-type: application/json"     -H "x-orderscope-recovery-id: ${recovery_id}"     -H "x-orderscope-job-id: ${job_id}"     -H "x-orderscope-checkpoint-version: ${before_version}"     -H "x-orderscope-complete-through: ${before_through}"     --data-binary "@${BODY_FILE}"     "${BASE_URL%/}/control/historical-recovery/nvda/local-evidence-next-chunk"     > "${RESPONSE_FILE}"
+  curl -fsS -X POST     -H "authorization: Bearer ${TOKEN}"     -H "content-type: application/json"     -H "x-orderscope-recovery-id: ${recovery_id}"     -H "x-orderscope-job-id: ${job_id}"     -H "x-orderscope-checkpoint-version: ${before_version}"     -H "x-orderscope-complete-through: ${before_through}"     -H "x-orderscope-evidence-sha256: a0ac9c8aab46e9381982bb789c0c59463e536c6d19babf0457dff4dac13f86a2"     --data-binary "@${BODY_FILE}"     "${BASE_URL%/}/control/historical-recovery/nvda/local-evidence-next-chunk"     > "${RESPONSE_FILE}"
 
   RESPONSE_FILE="${RESPONSE_FILE}" JOB_ID="${job_id}" PROVIDER_BARS="${provider_bars}"   ABSENT="${acknowledged_absent}" AFTER_VERSION="${after_version}" AFTER_THROUGH="${after_through}"   node --input-type=module - <<'NODE'
 import fs from "node:fs";
