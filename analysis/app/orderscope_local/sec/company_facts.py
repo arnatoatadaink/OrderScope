@@ -141,8 +141,15 @@ class SecCompanyFactsAdapter:
             return XbrlFactPage(selected, f"offset:{next_offset}" if next_offset < len(facts) else None,
                                 retrieved_at, source_ref)
         except SecRequestFailure as exc:
-            return XbrlFactPage((), None, retrieved_at, source_ref,
-                                ErrorInfo(exc.category, exc.retryable, "SEC Company Facts request failed", exc.retry_after))
+            return XbrlFactPage(
+                (), None, retrieved_at, source_ref,
+                ErrorInfo(
+                    exc.category,
+                    exc.retryable,
+                    "SEC Company Facts request failed",
+                    _bounded_retry_after(exc.retry_after),
+                ),
+            )
         except (ContractViolation, InvalidOperation, TypeError, ValueError):
             return XbrlFactPage((), None, retrieved_at, source_ref,
                                 ErrorInfo("invalid_response", False, "SEC Company Facts request failed"))
@@ -199,6 +206,14 @@ def _decode_company_facts(payload: object, cik: str) -> list[XbrlFact]:
                         raise ValueError("Company Facts accession does not match root CIK")
                     result.append(fact)
     return result
+
+
+def _bounded_retry_after(value: timedelta | None) -> timedelta | None:
+    if value is None:
+        return None
+    if value < timedelta(0) or value > timedelta(hours=24):
+        return None
+    return value
 
 
 def _company(source_key: str):
