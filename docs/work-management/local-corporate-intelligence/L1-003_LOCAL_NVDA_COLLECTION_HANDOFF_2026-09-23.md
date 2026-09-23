@@ -1,6 +1,6 @@
 # OrderScope — L1-003 Local NVDA Historical Collection Handoff
 
-Status: **IMPLEMENTED LOCALLY — collection requires local Alpaca credentials**
+Status: **LOCAL COLLECTION ACCEPTED — import not authorized**
 Date: 2026-09-23 JST
 Branch: `l1-003-local-market-recovery`
 Parent: `L1-003_PHASE_B_START_READINESS_WBS_CP_2026-09-18.md`
@@ -89,27 +89,17 @@ node --experimental-strip-types scripts/l1_003_collect_nvda_local.ts \
 
 ## 5. Acceptance rule
 
-Local collection is PASS only when every requested session reports:
+Local collection uses provider-aware acceptance:
 
 ```text
-actualBars = 390
-duplicateTimestamps = []
-outOfRangeTimestamps = []
-complete = true
+denseSession       every expected clock minute has a provider bar
+structurallyValid  no duplicate/out-of-range bars and all absent minutes are explicit
+accepted           structurallyValid AND (denseSession OR reproducible=true)
 ```
 
-The aggregate manifest must report:
-
-```text
-sessionCount = 9
-expectedBars = 3510
-totalBars = 3510
-complete = true
-remoteMutation = false
-```
-
-Any incomplete session stops this artifact from being treated as import-ready
-evidence. Missing bars must not be synthesized.
+Missing bars are never synthesized. A sparse provider session requires a second
+identical retrieval with the same deterministic content SHA-256 before it is
+accepted.
 
 ## 6. Verification performed during implementation
 
@@ -169,3 +159,39 @@ Because the validation schema contributes to the deterministic hash, the first
 run after this schema revision will establish a new v3 hash and may report
 `reproducible=false`. A second identical run is required to establish
 `reproducible=true` under the revised schema.
+
+
+## 9. Final local collection acceptance
+
+The full nine-session v3 collection completed with every session accepted.
+
+```text
+2026-09-09  390 bars  dense=true   accepted=true
+2026-09-10  390 bars  dense=true   accepted=true
+2026-09-11  389 bars  dense=false  accepted=true  reproducible=true
+2026-09-14  390 bars  dense=true   accepted=true
+2026-09-15  390 bars  dense=true   accepted=true
+2026-09-16  390 bars  dense=true   accepted=true
+2026-09-17  390 bars  dense=true   accepted=true
+2026-09-18  390 bars  dense=true   accepted=true
+2026-09-21  390 bars  dense=true   accepted=true
+```
+
+Aggregate provider bars: **3,509**. The one explicit sparse minute is
+`2026-09-11T16:57:00.000Z`. The September 11 v3 content SHA-256 is
+`a41dcb05888182dada5dbde3fc420b74684abaac6e5f2aafcdb5fa81d8e8be90`
+and was reproduced exactly on the second retrieval.
+
+Final disposition:
+
+```text
+local collection       ACCEPTED
+remote mutation        none
+D1 import              NOT AUTHORIZED
+checkpoint             unchanged remotely
+PB-04                  still IN PROGRESS remotely
+PB-05                  still BLOCKED remotely
+```
+
+The local bundle is now suitable as reviewed input to a separately designed
+import path. It does not itself move the remote checkpoint.
