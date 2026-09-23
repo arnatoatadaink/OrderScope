@@ -1,7 +1,7 @@
 # OrderScope — DEV-E0-002 SEC Earnings Detection 受入記録
 
 作成日: 2026-09-23（Asia/Tokyo）
-Status: implementation complete / local acceptance pending
+Status: accepted
 対象: `E0-002 / Implement SEC earnings detection`
 
 ## 1. 結論
@@ -100,8 +100,8 @@ bash scripts/run-local-wsl.sh python -m pytest -q analysis/tests/sec \
 
 ## 9. 判定
 
-`DEV-E0-002`: **実装完了 / local acceptance pending**
+`DEV-E0-002`: **完了 / Accepted**
 
-local test PASS後にAccepted化する。
+2026-09-23にCodexDesktop側で指定受入テストを実行し、`21 passed in 5.20s` を確認したため **Accepted** とする。
 
-Accepted後の次の主経路は `E0-003 — Design/implement company-IR fallback` とする。
+次の主経路は `E0-003 — Design/implement company-IR fallback` とする。
