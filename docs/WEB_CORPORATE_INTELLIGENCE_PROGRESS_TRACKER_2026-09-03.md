@@ -60,7 +60,7 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 - `S0-005` filing-document acquisitionは2026-09-23にfixture強化後のCodexDesktop側受入テスト `18 passed in 2.63s`・diffなしを確認し **Accepted** とした。受入記録は `REPORT_DEV_S0_005_FILING_DOCUMENT_ACQUISITION_ACCEPTANCE_2026-09-23.md` を参照する。
 - `S0-006` Company Facts/XBRL adapterは2026-09-23にbounded retry修正後のCodexDesktop側受入テスト `27 passed in 3.19s` を確認し **Accepted** とした。受入記録は `REPORT_DEV_S0_006_COMPANY_FACTS_XBRL_ACCEPTANCE_2026-09-23.md` を参照する。
 - `S0-007` Filing-detection acceptanceは2026-09-23にS0 SEC統合受入テスト `94 passed in 4.32s` を確認し **Accepted** とした。これによりS0-002〜007を完了し、SEC Filing acquisition work packageを完了扱いとする。受入記録は `REPORT_DEV_S0_007_FILING_DETECTION_ACCEPTANCE_2026-09-23.md` を参照する。
-- Corporate Intelligence主経路の次作業は `E0-001 Define earnings event/result contract` である。
+- `E0-001` earnings event/result contractは2026-09-23に既存 `contracts/earnings.py` と専用fixtureをWEB-007/WBSへ再照合した。scheduled / actual release / call / fiscal label / period / currency / GAAP・non-GAAP / source roleの分離、unknown actual release非補完を確認し、現在は **実装完了 / local acceptance pending**。受入記録は `REPORT_DEV_E0_001_EARNINGS_EVENT_RESULT_CONTRACT_ACCEPTANCE_2026-09-23.md` を参照する。
 - `WEB-013 / N1-001` は `WEB-007 + I0-005` の依存が充足したため、`保留（依存）` から `未着手` へ移し、Web側で着手可能とする。
 - `I0-005`はFact / Evidence / Relationship / DerivedMetric / Interpretationの論理schema、append-only履歴、Evidence参照、as-of可視性を確認し **Accepted**。次はI0-006 lifecycleを進める。
 - `I0-007`は共通contract test kitが先行実装済みだが、正式受入は`I0-003/004/006`統合待ちである。
@@ -218,7 +218,8 @@ I0-002  ✓
 8. `S0-005`: filing-document acquisition — Accepted。
 9. `S0-006`: Company Facts/XBRL adapter — Accepted。
 10. `S0-007`: Filing-detection acceptance — Accepted。
-11. **次に `E0-001` earnings event/result contractを正式化する。**
+11. `E0-001`: earnings event/result contract — 既存実装再照合済み、local acceptance待ち。
+12. PASS後に `E0-002` SEC earnings detectionへ進む。
 7. 完了済み`S0-004`を再実装せずadapter出力へ接続し、`S0-007`を正式完了する。
 8. `E0-001〜007`を進め、その後にNews Fact化、Official品質、X0統合へ進む。
 
@@ -244,7 +245,7 @@ I0-002  ✓
 
 ### 10.4 次回セッション開始規則
 
-- 主経路の次セッションは `E0-001` earnings event/result contractから開始する。
+- 主経路の次セッションは `E0-001` local acceptance確認から開始する。
 - 別セッションを並列利用する場合は`L0-002`を進めてよい。
 - `I0-002`〜`I0-007`はAccepted済み。次はS0 SEC Filing acquisitionへ進む。
 - 既に先行実装済みの`I0-005`、`I0-007`、`S0-004`は「新規実装」ではなく依存充足後の整合・受入として扱う。
