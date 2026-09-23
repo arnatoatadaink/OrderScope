@@ -30,6 +30,13 @@ class SegmentRevenueStatus(StrEnum):
     FAILED = "failed"
 
 
+_DEFAULT_REVENUE_CONCEPTS = (
+    "us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax",
+    "us-gaap:Revenues",
+    "us-gaap:SalesRevenueNet",
+)
+
+
 class SegmentRevenueFailureReason(StrEnum):
     ENTITY_WIDE_ONLY = "entity_wide_only"
     DIMENSION_FACT_NOT_IN_COMPANYFACTS_SCOPE = "dimension_fact_not_in_companyfacts_scope"
@@ -166,6 +173,7 @@ def resolve_segment_revenue(
     dimension_provenance: Provenance | None = None,
     filing_observation: SegmentRevenueObservation | None = None,
     expected_unit: str = "USD",
+    revenue_concepts: tuple[str, ...] = _DEFAULT_REVENUE_CONCEPTS,
     company_facts_failure: SegmentRevenueFailureReason = SegmentRevenueFailureReason.DIMENSION_FACT_NOT_IN_COMPANYFACTS_SCOPE,
     dimension_failure: SegmentRevenueFailureReason = SegmentRevenueFailureReason.CONTEXT_MEMBER_UNRESOLVED,
     filing_failure: SegmentRevenueFailureReason = SegmentRevenueFailureReason.TABLE_LAYOUT_UNRESOLVED,
@@ -184,6 +192,18 @@ def resolve_segment_revenue(
         raise ContractViolation("segment revenue resolution requires explicit labels")
     if period_start > period_end:
         raise ContractViolation("segment revenue resolution period is invalid")
+    if (
+        not isinstance(revenue_concepts, tuple)
+        or not revenue_concepts
+        or any(
+            not isinstance(concept, str)
+            or concept.count(":") != 1
+            or not all(part for part in concept.split(":"))
+            for concept in revenue_concepts
+        )
+        or len(set(revenue_concepts)) != len(revenue_concepts)
+    ):
+        raise ContractViolation("segment revenue concepts must be unique canonical QNames")
     if company_facts and not isinstance(company_facts_provenance, Provenance):
         raise ContractViolation("Company Facts success candidates require explicit provenance")
     if dimension_facts and not isinstance(dimension_provenance, Provenance):
@@ -196,6 +216,7 @@ def resolve_segment_revenue(
         period_end=period_end,
         source_accession=source_accession,
         expected_unit=expected_unit,
+        allowed_concepts=revenue_concepts,
         require_dimensions=False,
     )
     if company is not None:
@@ -230,6 +251,7 @@ def resolve_segment_revenue(
         period_end=period_end,
         source_accession=source_accession,
         expected_unit=expected_unit,
+        allowed_concepts=revenue_concepts,
         require_dimensions=True,
     )
     if dimension is not None:
@@ -303,6 +325,7 @@ def _select_fact(
     period_end: date,
     source_accession: str,
     expected_unit: str,
+    allowed_concepts: tuple[str, ...],
     require_dimensions: bool,
 ) -> XbrlFact | None:
     if not isinstance(facts, tuple) or any(not isinstance(fact, XbrlFact) for fact in facts):
@@ -311,6 +334,7 @@ def _select_fact(
         fact
         for fact in facts
         if fact.source_accession == source_accession
+        and fact.concept in allowed_concepts
         and fact.period.start == period_start
         and fact.period.end == period_end
         and fact.unit == expected_unit
