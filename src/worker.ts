@@ -117,6 +117,21 @@ const NVDA_RECOVERY = {
   maxBars: 100,
 } as const;
 
+const NVDA_LOCAL_EVIDENCE_RECOVERY = {
+  recoveryId: "L1-003-NVDA-20260909-LOCAL",
+  providerRevision: "alpaca-stock-bars-v1",
+  universeRevision: "stock-monitoring-canary-v0.1",
+  calendarRevision: "local-evidence:2026-09-09",
+  coverageKey: "NVDA|1Min|REGULAR|stock:iex:raw",
+  marketDate: "2026-09-09",
+  sessionOpen: "2026-09-09T13:30:00.000Z",
+  sessionClose: "2026-09-09T20:00:00.000Z",
+  checkpointBefore: "2026-09-08T20:00:00.000Z",
+  checkpointVersion: 18,
+  evidenceSha256: "a0ac9c8aab46e9381982bb789c0c59463e536c6d19babf0457dff4dac13f86a2",
+} as const;
+
+
 async function constantTimeEqual(provided: string, expected: string): Promise<boolean> {
   const encoder = new TextEncoder();
   const [providedHash, expectedHash] = await Promise.all([
@@ -533,9 +548,14 @@ export function createWorker(dependencies: ScheduledOrchestrationDependencies = 
         const suppliedVersion = parseCheckpointVersion(request.headers.get("x-orderscope-checkpoint-version"));
         const suppliedCompleteThrough = request.headers.get("x-orderscope-complete-through");
         const recoveryId = request.headers.get("x-orderscope-recovery-id");
+        const suppliedEvidenceHash = request.headers.get("x-orderscope-evidence-sha256");
         if (!expectedJobId || suppliedVersion === undefined || suppliedCompleteThrough === null || !recoveryId
           || !Number.isFinite(Date.parse(suppliedCompleteThrough))
-          || new Date(Date.parse(suppliedCompleteThrough)).toISOString() !== suppliedCompleteThrough) {
+          || new Date(Date.parse(suppliedCompleteThrough)).toISOString() !== suppliedCompleteThrough
+          || recoveryId !== NVDA_LOCAL_EVIDENCE_RECOVERY.recoveryId
+          || suppliedVersion !== NVDA_LOCAL_EVIDENCE_RECOVERY.checkpointVersion
+          || suppliedCompleteThrough !== NVDA_LOCAL_EVIDENCE_RECOVERY.checkpointBefore
+          || suppliedEvidenceHash !== NVDA_LOCAL_EVIDENCE_RECOVERY.evidenceSha256) {
           return json({ error: "frozen_identity_mismatch" }, 409);
         }
 
@@ -558,9 +578,13 @@ export function createWorker(dependencies: ScheduledOrchestrationDependencies = 
           return json({ error: "local_evidence_validation_failed" }, 409);
         }
         const session = loaded.session;
-        if (session.coverageKey !== "NVDA|1Min|REGULAR|stock:iex:raw"
+        if (session.coverageKey !== NVDA_LOCAL_EVIDENCE_RECOVERY.coverageKey
           || session.feed !== "iex"
-          || session.providerRevision !== "alpaca-stock-bars-v1") {
+          || session.providerRevision !== NVDA_LOCAL_EVIDENCE_RECOVERY.providerRevision
+          || session.contentSha256 !== NVDA_LOCAL_EVIDENCE_RECOVERY.evidenceSha256
+          || session.plan.marketDate !== NVDA_LOCAL_EVIDENCE_RECOVERY.marketDate
+          || session.plan.startInclusive !== NVDA_LOCAL_EVIDENCE_RECOVERY.sessionOpen
+          || session.plan.endExclusive !== NVDA_LOCAL_EVIDENCE_RECOVERY.sessionClose) {
           return json({ error: "local_evidence_identity_mismatch" }, 409);
         }
 
@@ -576,13 +600,16 @@ export function createWorker(dependencies: ScheduledOrchestrationDependencies = 
           || checkpointBefore.state !== "COMPLETE"
           || checkpointBefore.completeThrough !== suppliedCompleteThrough
           || checkpointBefore.version !== suppliedVersion
-          || checkpointBefore.universeRevision !== "stock-monitoring-canary-v0.1"
+          || checkpointBefore.universeRevision !== NVDA_LOCAL_EVIDENCE_RECOVERY.universeRevision
           || checkpointBefore.missingRanges.length !== 0
           || checkpointBefore.blocker !== undefined) {
           return json({ error: "checkpoint_preflight_mismatch" }, 409);
         }
 
         const calendarRevision = parsedBody.calendarRevision;
+        if (calendarRevision !== NVDA_LOCAL_EVIDENCE_RECOVERY.calendarRevision) {
+          return json({ error: "local_evidence_calendar_mismatch" }, 409);
+        }
         const calendar = {
           market: "US_EQUITIES" as const,
           dateRange: {
