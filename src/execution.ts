@@ -6,6 +6,13 @@ import type { MarketCalendarSnapshot } from "./calendar";
 import type { CoverageCheckpointPort, StoredCoverageCheckpoint } from "./checkpoint";
 import type { AcquisitionJob, TimeRange } from "./schedule";
 
+export type CoverageAbsenceEvidence = {
+  symbol: string;
+  identityStart: string;
+  reason: "REPRODUCIBLE_PROVIDER_ABSENCE";
+  evidenceHash: string;
+};
+
 export type AcquisitionExecutionSummary = {
   jobId: string;
   outcome: "SUCCEEDED" | "PARTIAL" | "FAILED";
@@ -15,6 +22,7 @@ export type AcquisitionExecutionSummary = {
   conflicts: number;
   rejected: number;
   missing: number;
+  acknowledgedAbsent: number;
 };
 
 export type AcquisitionExecutorOptions = {
@@ -30,6 +38,7 @@ export type AcquisitionExecutorOptions = {
   budget?: InvocationBudget;
   now?: () => Date;
   fetchPage?: (credentials: AlpacaCredentials, request: HistoricalBarRequest, options?: HistoricalBarFetchOptions) => ReturnType<typeof fetchHistoricalBars>;
+  coverageAbsences?: readonly CoverageAbsenceEvidence[];
 };
 
 type ExpectedBar = { identityStart: string; completesAt: string; range: TimeRange };
@@ -97,6 +106,21 @@ export async function executeAcquisitionJob(
   await options.checkpoints.recordAttempt({ attemptId, coverageKey: expectation.coverageKey, jobId: job.jobId, startedAt });
   const counts = { pages: 0, inserted: 0, matched: 0, conflicts: 0, rejected: 0 };
   const acceptedStarts = new Map(job.instruments.map((item) => [item.symbol, new Set<string>()]));
+  const absenceStarts = new Map(job.instruments.map((item) => [item.symbol, new Set<string>()]));
+  for (const absence of options.coverageAbsences ?? []) {
+    const instrumentForAbsence = job.instruments.find((item) => item.symbol === absence.symbol);
+    if (!instrumentForAbsence) throw new Error(`coverage absence references unrequested symbol: ${absence.symbol}`);
+    if (absence.reason !== "REPRODUCIBLE_PROVIDER_ABSENCE" || !/^[0-9a-f]{64}$/.test(absence.evidenceHash)) {
+      throw new Error("coverage absence evidence is invalid");
+    }
+    const at = Date.parse(absence.identityStart);
+    const from = Date.parse(job.requestedRange.startInclusive);
+    const to = Date.parse(job.requestedRange.endExclusive);
+    if (!Number.isFinite(at) || new Date(at).toISOString() !== absence.identityStart || at < from || at >= to) {
+      throw new Error("coverage absence must be a canonical instant inside the requested range");
+    }
+    absenceStarts.get(absence.symbol)!.add(absence.identityStart);
+  }
   let pageToken: string | undefined;
   const seenTokens = new Set<string>();
   try {
@@ -157,13 +181,20 @@ export async function executeAcquisitionJob(
       const existing = existingByKey.get(itemExpectation.coverageKey);
       const expected = expectedBars(job, item, options.calendar);
       const starts = acceptedStarts.get(item.symbol)!;
+      const absences = absenceStarts.get(item.symbol)!;
+      const expectedStarts = new Set(expected.map((bar) => bar.identityStart));
+      for (const absent of absences) {
+        if (!expectedStarts.has(absent)) throw new Error("coverage absence is not on the expected session grid");
+        if (starts.has(absent)) throw new Error("coverage absence collides with an accepted provider bar");
+      }
       const missing = expected.filter((bar) => (!existing?.completeThrough || bar.completesAt > existing.completeThrough)
-        && !starts.has(bar.identityStart));
+        && !starts.has(bar.identityStart)
+        && !absences.has(bar.identityStart));
       missingCount += missing.length;
       let completeThrough = existing?.completeThrough;
       for (const bar of expected) {
         if (completeThrough && bar.completesAt <= completeThrough) continue;
-        if (!starts.has(bar.identityStart)) break;
+        if (!starts.has(bar.identityStart) && !absences.has(bar.identityStart)) break;
         completeThrough = bar.completesAt;
       }
       const proposed: StoredCoverageCheckpoint = {
@@ -185,10 +216,11 @@ export async function executeAcquisitionJob(
     if (results.some((updated) => updated.outcome === "VERSION_CONFLICT")) {
       throw new Error("checkpoint compare-and-set conflict");
     }
+    const acknowledgedAbsent = [...absenceStarts.values()].reduce((sum, starts) => sum + starts.size, 0);
     const outcome = missingCount || counts.conflicts || counts.rejected ? "PARTIAL" : "SUCCEEDED";
     await options.checkpoints.recordAttempt({ attemptId, coverageKey: expectation.coverageKey, jobId: job.jobId,
-      startedAt, finishedAt, outcome, diagnostic: { ...counts, missing: missingCount } });
-    return { jobId: job.jobId, outcome, ...counts, missing: missingCount };
+      startedAt, finishedAt, outcome, diagnostic: { ...counts, missing: missingCount, acknowledgedAbsent } });
+    return { jobId: job.jobId, outcome, ...counts, missing: missingCount, acknowledgedAbsent };
   } catch (error) {
     await options.checkpoints.recordAttempt({ attemptId, coverageKey: expectation.coverageKey, jobId: job.jobId,
       startedAt, finishedAt: now().toISOString(), outcome: "FAILED",
