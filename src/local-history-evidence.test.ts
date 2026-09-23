@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { loadLocalHistoryEvidence, localHistoryFetchPage, type LocalHistoryEvidenceSession } from "./local-history-evidence.ts";
+import { validateRegularSession } from "./local-history-collector.ts";
 
 function stableHash(session: Omit<LocalHistoryEvidenceSession, "contentSha256"> & { contentSha256?: string }): string {
   const stablePayload = JSON.stringify({
@@ -21,6 +22,24 @@ function stableHash(session: Omit<LocalHistoryEvidenceSession, "contentSha256"> 
 }
 
 function fixture(overrides: Partial<LocalHistoryEvidenceSession> = {}): LocalHistoryEvidenceSession {
+  const plan = {
+    marketDate: "2026-09-11",
+    startInclusive: "2026-09-11T13:30:00.000Z",
+    endExclusive: "2026-09-11T20:00:00.000Z",
+    expectedBars: 390,
+  };
+  const missing = "2026-09-11T16:57:00.000Z";
+  const bars = Array.from({ length: 390 }, (_, index) => {
+    const timestamp = new Date(Date.parse(plan.startInclusive) + index * 60_000).toISOString();
+    return {
+      symbol: "NVDA",
+      timestamp,
+      open: 1, high: 1, low: 1, close: 1, volume: 1,
+      provider: "alpaca" as const,
+      dataVariant: "stock:iex:raw",
+    };
+  }).filter((bar) => bar.timestamp !== missing);
+  const validation = validateRegularSession(plan, bars);
   const base = {
     schemaVersion: "l1-003-local-history-session-v3" as const,
     contentSha256: "",
@@ -30,32 +49,10 @@ function fixture(overrides: Partial<LocalHistoryEvidenceSession> = {}): LocalHis
     providerRevision: "alpaca-stock-bars-v1",
     feed: "iex" as const,
     adjustment: "raw" as const,
-    plan: {
-      marketDate: "2026-09-11",
-      startInclusive: "2026-09-11T13:30:00.000Z",
-      endExclusive: "2026-09-11T20:00:00.000Z",
-      expectedBars: 390,
-    },
-    validation: {
-      marketDate: "2026-09-11",
-      expectedBars: 390,
-      actualBars: 1,
-      firstTimestamp: "2026-09-11T13:30:00Z",
-      lastTimestamp: "2026-09-11T13:30:00Z",
-      duplicateTimestamps: [],
-      outOfRangeTimestamps: [],
-      missingTimestamps: ["2026-09-11T16:57:00.000Z"],
-      denseSession: false,
-      structurallyValid: true,
-    },
+    plan,
+    validation,
     pages: 1,
-    bars: [{
-      symbol: "NVDA",
-      timestamp: "2026-09-11T13:30:00Z",
-      open: 1, high: 1, low: 1, close: 1, volume: 1,
-      provider: "alpaca" as const,
-      dataVariant: "stock:iex:raw",
-    }],
+    bars,
   };
   const merged = { ...base, ...overrides } as LocalHistoryEvidenceSession;
   merged.contentSha256 = stableHash(merged);
@@ -93,18 +90,16 @@ test("rejects tampered or unreproduced sparse evidence", async () => {
 });
 
 test("serves only the requested frozen range from local evidence", async () => {
-  const session = fixture({
-    validation: {
-      ...fixture().validation,
-      actualBars: 2,
-      missingTimestamps: [],
-      denseSession: true,
-    },
-    bars: [
-      { symbol: "NVDA", timestamp: "2026-09-11T13:30:00Z", open: 1, high: 1, low: 1, close: 1, volume: 1, provider: "alpaca", dataVariant: "stock:iex:raw" },
-      { symbol: "NVDA", timestamp: "2026-09-11T13:31:00Z", open: 2, high: 2, low: 2, close: 2, volume: 2, provider: "alpaca", dataVariant: "stock:iex:raw" },
-    ],
+  const session = fixture();
+  const missing = session.validation.missingTimestamps[0]!;
+  session.bars.push({
+    symbol: "NVDA", timestamp: missing, open: 2, high: 2, low: 2, close: 2, volume: 2,
+    provider: "alpaca", dataVariant: "stock:iex:raw",
   });
+  session.bars.sort((left, right) => Date.parse(left.timestamp) - Date.parse(right.timestamp));
+  session.validation = validateRegularSession(session.plan, session.bars);
+  session.reproducible = undefined;
+  session.previousContentSha256 = undefined;
   session.contentSha256 = stableHash(session);
   const fetchPage = localHistoryFetchPage(session);
   const page = await fetchPage({}, {
