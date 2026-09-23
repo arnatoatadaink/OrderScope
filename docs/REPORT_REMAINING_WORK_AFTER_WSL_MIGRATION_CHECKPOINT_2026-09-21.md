@@ -216,8 +216,8 @@ I0-002 provenance / timestamp共通型
 | DEV-I0-005 | Fact Store論理schema ADR Accepted化 | **完了 / Accepted** | 5 record境界、append-only履歴、Evidence相互参照、as-of可視性、I0-002〜004整合を確認。`REPORT_DEV_I0_005_FACT_STORE_ACCEPTANCE_2026-09-22.md`参照 |
 | DEV-I0-006 | temporary content lifecycle | **完了 / Accepted** | content ref / retention / expiry / exception / deletion proof契約とprovider handoffを確認。`REPORT_DEV_I0_006_TEMPORARY_CONTENT_ACCEPTANCE_2026-09-22.md`参照 |
 | DEV-I0-007 | provider-neutral contract test正式受入 | **完了 / Accepted** | UTC/max_pages追加差分後、CodexDesktop側4契約テスト55件PASS・cleanを確認。`REPORT_DEV_I0_007_PROVIDER_NEUTRAL_CONTRACT_TEST_ACCEPTANCE_2026-09-22.md`参照 |
-| DEV-S0-002 | SEC CIK/submissions adapter | **実装完了 / local acceptance pending** | 先行実装をI0-007/WEB-005と再照合。`REPORT_DEV_S0_002_SEC_SUBMISSIONS_ADAPTER_ACCEPTANCE_2026-09-23.md`参照 |
-| DEV-S0-003 | FilingRecord persistence | 後続 | S0-002 Accepted後に受入確認 |
+| DEV-S0-002 | SEC CIK/submissions adapter | **完了 / Accepted** | SEC統合slice 27件PASS・diffなしを確認。`REPORT_DEV_S0_002_SEC_SUBMISSIONS_ADAPTER_ACCEPTANCE_2026-09-23.md`参照 |
+| DEV-S0-003 | FilingRecord persistence | **次の本流** | S0-002 Accepted。既存先行実装・migration・idempotency境界を再レビュー |
 | DEV-S0-004 | strict SEC form filter | 完了 | 追加作業なし |
 | DEV-S0-007 | SEC統合受入 | 部分完了 | S0-002/003/005/006待ち |
 
@@ -265,4 +265,4 @@ I0-002 provenance / timestamp共通型
 
 ## 9. 区切り時点の判定
 
-2026-09-22時点で、Windows側source + WSL runtimeへの移行は **完了**。MIG-09E正式受入、MIG-09F Git最終確認、CodexDesktop側検収合格を通過した。通常開発へ復帰し、`DEV-I0-002`〜`DEV-I0-007` は正式受入まで完了した。現在の本流は `DEV-S0-002 SEC CIK/submissions adapter` のlocal acceptanceである。
+2026-09-22時点で、Windows側source + WSL runtimeへの移行は **完了**。MIG-09E正式受入、MIG-09F Git最終確認、CodexDesktop側検収合格を通過した。通常開発へ復帰し、`DEV-I0-002`〜`DEV-I0-007` は正式受入まで完了した。現在の本流は `DEV-S0-003 FilingRecord persistence` である。
