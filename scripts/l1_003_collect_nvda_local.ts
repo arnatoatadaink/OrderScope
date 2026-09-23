@@ -1,4 +1,5 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import { resolve } from "node:path";
 import { fetchHistoricalBars, type ProviderNeutralBar } from "../src/alpaca.ts";
 import {
@@ -87,6 +88,10 @@ async function fetchSession(
   return { plan, bars, pages };
 }
 
+function sha256(value: string): string {
+  return createHash("sha256").update(value, "utf8").digest("hex");
+}
+
 async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
   const plans = args.sessions.map(planRegularSession);
@@ -119,8 +124,29 @@ async function main(): Promise<void> {
     const { plan, bars, pages } = await fetchSession(instrument, marketDate);
     const validation = validateRegularSession(plan, bars);
     const sessionPath = resolve(outputDir, `NVDA_1Min_REGULAR_${marketDate}.json`);
+    const stablePayload = JSON.stringify({
+      coverageKey: "NVDA|1Min|REGULAR|stock:iex:raw",
+      providerRevision: "alpaca-stock-bars-v1",
+      feed: "iex",
+      adjustment: "raw",
+      plan,
+      validation,
+      pages,
+      bars,
+    });
+    const contentSha256 = sha256(stablePayload);
+    let previousContentSha256: string | undefined;
+    try {
+      const previous = JSON.parse(await readFile(sessionPath, "utf8")) as { contentSha256?: unknown };
+      if (typeof previous.contentSha256 === "string") previousContentSha256 = previous.contentSha256;
+    } catch {
+      // First collection or unreadable prior artifact: no reproducibility comparison available.
+    }
+    const reproducible = previousContentSha256 === undefined ? undefined : previousContentSha256 === contentSha256;
     await writeFile(sessionPath, JSON.stringify({
-      schemaVersion: "l1-003-local-history-session-v1",
+      schemaVersion: "l1-003-local-history-session-v2",
+      contentSha256,
+      ...(previousContentSha256 ? { previousContentSha256, reproducible } : {}),
       coverageKey: "NVDA|1Min|REGULAR|stock:iex:raw",
       providerRevision: "alpaca-stock-bars-v1",
       feed: "iex",
@@ -140,12 +166,14 @@ async function main(): Promise<void> {
       bars: bars.length,
       complete: validation.complete,
       output: sessionPath,
+      contentSha256,
+      ...(previousContentSha256 ? { previousContentSha256, reproducible } : {}),
     });
-    console.log(`${marketDate}: bars=${bars.length} pages=${pages} complete=${validation.complete}`);
+    console.log(`${marketDate}: bars=${bars.length} pages=${pages} complete=${validation.complete} sha256=${contentSha256}${reproducible === undefined ? "" : ` reproducible=${reproducible}`}`);
   }
 
   const manifest = {
-    schemaVersion: "l1-003-local-history-manifest-v1",
+    schemaVersion: "l1-003-local-history-manifest-v2",
     generatedAt: new Date().toISOString(),
     coverageKey: "NVDA|1Min|REGULAR|stock:iex:raw",
     remoteMutation: false,
