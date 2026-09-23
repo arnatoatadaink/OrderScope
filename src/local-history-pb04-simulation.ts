@@ -1,4 +1,6 @@
 import { executeAcquisitionJob, type AcquisitionExecutionSummary } from "./execution.ts";
+import type { BarAcceptanceInput, BarAcceptanceResult, BarProvenance } from "./bar-store.ts";
+import type { BarNormalizationResult } from "./bar.ts";
 import { coverageAbsencesForRange, localHistoryFetchPage, type LocalHistoryEvidenceSession } from "./local-history-evidence.ts";
 import { planNextHistoricalRecoveryChunk, type HistoricalRecoveryRequest } from "./historical-recovery.ts";
 import type { MarketCalendarSnapshot, NormalizedMarketSession } from "./calendar.ts";
@@ -56,7 +58,7 @@ export async function simulateLocalPb04Session(input: {
   let current: StoredCoverageCheckpoint = { ...input.checkpointBefore };
   const accepted = new Set<string>();
   const attempts: Record<string, unknown>[] = [];
-  const chunks: LocalPb04SimulationResult["chunks"] = [];
+  const chunks: Array<LocalPb04SimulationResult["chunks"][number]> = [];
   const fetchPage = localHistoryFetchPage(input.session);
 
   for (let ordinal = 1; ordinal <= 4; ordinal += 1) {
@@ -108,7 +110,7 @@ export async function simulateLocalPb04Session(input: {
         },
       },
       bars: {
-        acceptBatch: async (inputs) => inputs.map((item) => {
+        acceptBatch: async (inputs: readonly BarAcceptanceInput[]): Promise<readonly BarAcceptanceResult[]> => inputs.map((item: BarAcceptanceInput) => {
           if (item.candidate.outcome !== "NORMALIZED") {
             return { outcome: "REJECTED" as const, acceptanceReceipt: item.provenance.idempotencyKey, provenanceAppended: true };
           }
@@ -121,7 +123,7 @@ export async function simulateLocalPb04Session(input: {
             provenanceAppended: true,
           };
         }),
-        accept: async (candidate, provenance) => {
+        accept: async (candidate: BarNormalizationResult, provenance: BarProvenance): Promise<BarAcceptanceResult> => {
           if (candidate.outcome !== "NORMALIZED") {
             return { outcome: "REJECTED" as const, acceptanceReceipt: provenance.idempotencyKey, provenanceAppended: true };
           }
