@@ -1,4 +1,4 @@
-import type { Cadence, UniverseInstrument } from "./universe";
+import type { Cadence, UniverseInstrument } from "./universe.ts";
 
 export type AlpacaCredentials = {
   keyId: string;
