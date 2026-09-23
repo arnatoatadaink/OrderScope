@@ -1,4 +1,4 @@
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 
 import pytest
@@ -159,6 +159,21 @@ def test_rejects_ambiguous_periods_dimensions_and_unbounded_inputs():
     with pytest.raises(ContractViolation, match="corporate canary"):
         adapter.fetch(source_key="sec:companyfacts:msft", window_start=date(2026, 1, 1),
                       window_end=date(2027, 1, 1))
+
+
+def test_company_facts_bounds_retry_after_to_common_contract() -> None:
+    adapter, _, _ = make_adapter(
+        SecRequestFailure("blocked", True, timedelta(days=2))
+    )
+    page = adapter.fetch(
+        source_key="sec:companyfacts:amd",
+        window_start=date(2026, 1, 1),
+        window_end=date(2027, 1, 1),
+    )
+
+    assert page.error is not None
+    assert page.error.retryable is True
+    assert page.error.retry_after is None
 
 
 def test_untyped_transport_failure_remains_retryable_without_leaking_details():
