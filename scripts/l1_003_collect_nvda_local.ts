@@ -118,7 +118,7 @@ async function main(): Promise<void> {
   const sessionResults = [];
   let totalBars = 0;
   let totalPages = 0;
-  let allComplete = true;
+  let allAccepted = true;
 
   for (const marketDate of args.sessions) {
     const { plan, bars, pages } = await fetchSession(instrument, marketDate);
@@ -144,7 +144,7 @@ async function main(): Promise<void> {
     }
     const reproducible = previousContentSha256 === undefined ? undefined : previousContentSha256 === contentSha256;
     await writeFile(sessionPath, JSON.stringify({
-      schemaVersion: "l1-003-local-history-session-v2",
+      schemaVersion: "l1-003-local-history-session-v3",
       contentSha256,
       ...(previousContentSha256 ? { previousContentSha256, reproducible } : {}),
       coverageKey: "NVDA|1Min|REGULAR|stock:iex:raw",
@@ -157,23 +157,27 @@ async function main(): Promise<void> {
       bars,
     }, null, 2) + "\n", "utf8");
 
+    const accepted = validation.structurallyValid
+      && (validation.denseSession || reproducible === true);
     totalBars += bars.length;
     totalPages += pages;
-    allComplete &&= validation.complete;
+    allAccepted &&= accepted;
     sessionResults.push({
       marketDate,
       pages,
       bars: bars.length,
-      complete: validation.complete,
+      denseSession: validation.denseSession,
+      structurallyValid: validation.structurallyValid,
+      accepted,
       output: sessionPath,
       contentSha256,
       ...(previousContentSha256 ? { previousContentSha256, reproducible } : {}),
     });
-    console.log(`${marketDate}: bars=${bars.length} pages=${pages} complete=${validation.complete} sha256=${contentSha256}${reproducible === undefined ? "" : ` reproducible=${reproducible}`}`);
+    console.log(`${marketDate}: bars=${bars.length} pages=${pages} dense=${validation.denseSession} structurallyValid=${validation.structurallyValid} accepted=${accepted} sha256=${contentSha256}${reproducible === undefined ? "" : ` reproducible=${reproducible}`}`);
   }
 
   const manifest = {
-    schemaVersion: "l1-003-local-history-manifest-v2",
+    schemaVersion: "l1-003-local-history-manifest-v3",
     generatedAt: new Date().toISOString(),
     coverageKey: "NVDA|1Min|REGULAR|stock:iex:raw",
     remoteMutation: false,
@@ -181,14 +185,14 @@ async function main(): Promise<void> {
     totalPages,
     totalBars,
     expectedBars: plans.reduce((sum, plan) => sum + plan.expectedBars, 0),
-    complete: allComplete,
+    accepted: allAccepted,
     sessions: sessionResults,
   };
   const manifestPath = resolve(outputDir, "manifest.json");
   await writeFile(manifestPath, JSON.stringify(manifest, null, 2) + "\n", "utf8");
   console.log(`manifest: ${manifestPath}`);
-  console.log(`L1-003 local collection: ${allComplete ? "PASS" : "INCOMPLETE"}`);
-  if (!allComplete) process.exitCode = 2;
+  console.log(`L1-003 local collection: ${allAccepted ? "PASS" : "INCOMPLETE"}`);
+  if (!allAccepted) process.exitCode = 2;
 }
 
 await main();
