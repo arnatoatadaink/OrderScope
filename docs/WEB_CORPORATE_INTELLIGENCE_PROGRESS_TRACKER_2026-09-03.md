@@ -57,7 +57,7 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 - `I0-002`〜`I0-007` の共通contract chainは完了した。
 - `S0-002` CIK/submissions adapterは2026-09-23に先行実装・fixtureをI0共通契約とWEB-005接続条件へ再照合し、CodexDesktop側SEC統合slice `27 passed in 3.22s`・diffなしを確認して **Accepted** とした。受入記録は `REPORT_DEV_S0_002_SEC_SUBMISSIONS_ADAPTER_ACCEPTANCE_2026-09-23.md` を参照する。
 - `S0-003` FilingRecord persistenceは2026-09-23にversioned migration欠落を修正し、SQLite STRICTのPK nullability期待値もfixtureへ反映した。CodexDesktop側受入テスト `21 passed in 2.90s`・diffなしを確認し **Accepted** とした。受入記録は `REPORT_DEV_S0_003_FILING_RECORD_PERSISTENCE_ACCEPTANCE_2026-09-23.md` を参照する。
-- `S0-005` filing-document acquisitionは2026-09-23に既存実装をI0-006/I0-007と再照合した。acquirer本体の変更は不要で、TEMPORARY_SUCCESS retentionとtemporary store failure sanitization fixtureを追加した。現在は **実装完了 / local acceptance pending**。受入記録は `REPORT_DEV_S0_005_FILING_DOCUMENT_ACQUISITION_ACCEPTANCE_2026-09-23.md` を参照する。
+- `S0-005` filing-document acquisitionは2026-09-23にfixture強化後のCodexDesktop側受入テスト `18 passed in 2.63s`・diffなしを確認し **Accepted** とした。受入記録は `REPORT_DEV_S0_005_FILING_DOCUMENT_ACQUISITION_ACCEPTANCE_2026-09-23.md` を参照する。
 - `S0-006 Company Facts/XBRL adapter` はS0-005と独立に次の正式受入対象として残る。
 - `WEB-013 / N1-001` は `WEB-007 + I0-005` の依存が充足したため、`保留（依存）` から `未着手` へ移し、Web側で着手可能とする。
 - `I0-005`はFact / Evidence / Relationship / DerivedMetric / Interpretationの論理schema、append-only履歴、Evidence参照、as-of可視性を確認し **Accepted**。次はI0-006 lifecycleを進める。
@@ -213,8 +213,8 @@ I0-002  ✓
 5. `I0-007`: provider-neutral contract test kit — Accepted。
 6. `S0-002`: CIK/submissions adapter — Accepted。
 7. `S0-003`: FilingRecord persistence — Accepted。
-8. `S0-005`: filing-document acquisition — fixture強化済み、local acceptance待ち。
-9. 次に `S0-006` を正式受入し、その後 `S0-007`へ進む。
+8. `S0-005`: filing-document acquisition — Accepted。
+9. **次に `S0-006` Company Facts/XBRL adapterを正式受入し、その後 `S0-007`へ進む。**
 7. 完了済み`S0-004`を再実装せずadapter出力へ接続し、`S0-007`を正式完了する。
 8. `E0-001〜007`を進め、その後にNews Fact化、Official品質、X0統合へ進む。
 
@@ -240,7 +240,7 @@ I0-002  ✓
 
 ### 10.4 次回セッション開始規則
 
-- 主経路の次セッションは `S0-005` local acceptance確認から開始する。
+- 主経路の次セッションは `S0-006` Company Facts/XBRL adapterから開始する。
 - 別セッションを並列利用する場合は`L0-002`を進めてよい。
 - `I0-002`〜`I0-007`はAccepted済み。次はS0 SEC Filing acquisitionへ進む。
 - 既に先行実装済みの`I0-005`、`I0-007`、`S0-004`は「新規実装」ではなく依存充足後の整合・受入として扱う。
