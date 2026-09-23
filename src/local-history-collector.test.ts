@@ -40,7 +40,8 @@ test("accepts exactly one unique bar per Regular minute", () => {
   const bars = Array.from({ length: 390 }, (_, index) =>
     bar(new Date(Date.parse(plan.startInclusive) + index * 60_000).toISOString()));
   const result = validateRegularSession(plan, bars);
-  assert.equal(result.complete, true);
+  assert.equal(result.denseSession, true);
+  assert.equal(result.structurallyValid, true);
   assert.equal(result.actualBars, 390);
   assert.deepEqual(result.duplicateTimestamps, []);
   assert.deepEqual(result.outOfRangeTimestamps, []);
@@ -54,8 +55,23 @@ test("fails closed on missing, duplicate, or out-of-range bars", () => {
     bar(plan.endExclusive),
   ];
   const result = validateRegularSession(plan, bars);
-  assert.equal(result.complete, false);
+  assert.equal(result.denseSession, false);
+  assert.equal(result.structurallyValid, false);
   assert.equal(result.actualBars, 3);
   assert.equal(result.duplicateTimestamps.length, 1);
   assert.equal(result.outOfRangeTimestamps.length, 1);
+});
+
+
+test("accepts sparse provider session as structurally valid without pretending it is dense", () => {
+  const plan = planRegularSession("2026-09-11");
+  const missing = "2026-09-11T16:57:00.000Z";
+  const bars = Array.from({ length: 390 }, (_, index) =>
+    bar(new Date(Date.parse(plan.startInclusive) + index * 60_000).toISOString()))
+    .filter((item) => Date.parse(item.timestamp) !== Date.parse(missing));
+  const result = validateRegularSession(plan, bars);
+  assert.equal(result.actualBars, 389);
+  assert.equal(result.denseSession, false);
+  assert.equal(result.structurallyValid, true);
+  assert.deepEqual(result.missingTimestamps, [missing]);
 });
