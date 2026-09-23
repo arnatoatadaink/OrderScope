@@ -1,7 +1,7 @@
 # OrderScope — DEV-S0-006 Company Facts/XBRL Adapter 受入記録
 
 作成日: 2026-09-23（Asia/Tokyo）
-Status: implementation complete / local acceptance pending
+Status: accepted
 対象: `S0-006 / Implement Company Facts/XBRL adapter`
 
 ## 1. 結論
@@ -179,8 +179,8 @@ bash scripts/run-local-wsl.sh python -m pytest -q analysis/tests/sec \
 
 ## 11. 判定
 
-`DEV-S0-006`: **実装完了 / local acceptance pending**
+`DEV-S0-006`: **完了 / Accepted**
 
-local test PASS後にAccepted化する。
+2026-09-23にCodexDesktop側で指定受入テストを再実行し、`27 passed in 3.19s` を確認したため **Accepted** とする。
 
-Accepted後はS0-002〜006が揃うため、`S0-007 Filing-detection acceptance test` を正式完了へ進める。
+これでS0-002〜006が揃ったため、次は `S0-007 Filing-detection acceptance test` を正式完了へ進める。
