@@ -204,3 +204,30 @@ against current UTC and the authoritative exchange calendar, then freeze the
 actual historical target and import scope. The local bundle may reduce provider
 collection work, but must not bypass accepted-record or checkpoint-CAS
 contracts.
+
+
+## 10. PB-01 read-only preflight — 2026-09-23
+
+The PB-01 moving-horizon check was rerun at `2026-09-23T08:19:36Z`.
+
+```text
+retention floor           2026-09-22T08:19:36Z
+last completed Regular    2026-09-22
+handoff candidate         2026-09-22 Regular
+historical target         2026-09-21T20:00:00Z
+local accepted coverage   through 2026-09-21 close
+```
+
+Result: **PB-01 PASS at the frozen timestamp.** The accepted local bundle
+matches the calculated historical target exactly.
+
+The handoff is time-bound. The Sep 22 Regular open is
+`2026-09-22T13:30:00Z`; once the 24-hour retention floor advances beyond that
+instant (at/after `2026-09-23T13:30:00Z`), a normal scheduler starting from
+Sep 21 close cannot recover the full Sep 22 Regular session. Therefore this
+snapshot must not be reused later without another PB-01 calculation.
+
+See `L1-003_PB01_READ_ONLY_PREFLIGHT_2026-09-23.md`.
+
+Immediate no-mutation continuation: collect Sep 22 locally as contingency
+evidence, then design the import path. Remote PB-04/PB-05 state is unchanged.
