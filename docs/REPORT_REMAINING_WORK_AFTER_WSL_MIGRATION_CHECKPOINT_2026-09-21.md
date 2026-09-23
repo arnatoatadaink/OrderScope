@@ -267,6 +267,6 @@ I0-002 provenance / timestamp共通型
 
 ## 9. 区切り時点の判定
 
-2026-09-22時点で、Windows側source + WSL runtimeへの移行は **完了**。MIG-09E正式受入、MIG-09F Git最終確認、CodexDesktop側検収合格を通過した。通常開発へ復帰し、`DEV-I0-002`〜`DEV-I0-007` は正式受入まで完了した。現在の本流は `E0-001 earnings event/result contract` のlocal acceptanceである。
+2026-09-22時点で、Windows側source + WSL runtimeへの移行は **完了**。MIG-09E正式受入、MIG-09F Git最終確認、CodexDesktop側検収合格を通過した。通常開発へ復帰し、`DEV-I0-002`〜`DEV-I0-007` は正式受入まで完了した。現在の本流は `E0-002 SEC earnings detection` である。
 
-| DEV-E0-001 | earnings event/result contract | **実装完了 / local acceptance pending** | 既存`contracts/earnings.py`をWEB-007/WBSと再照合。schedule/release/call/fiscal/currency/GAAP-non-GAAP/source分離を確認。`REPORT_DEV_E0_001_EARNINGS_EVENT_RESULT_CONTRACT_ACCEPTANCE_2026-09-23.md`参照 |
+| DEV-E0-001 | earnings event/result contract | **完了 / Accepted** | 指定受入テスト17件PASSを確認。`REPORT_DEV_E0_001_EARNINGS_EVENT_RESULT_CONTRACT_ACCEPTANCE_2026-09-23.md`参照 |
