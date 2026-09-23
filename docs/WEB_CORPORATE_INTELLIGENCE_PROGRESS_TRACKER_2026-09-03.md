@@ -63,7 +63,7 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 - `E0-001` earnings event/result contractは2026-09-23にCodexDesktop側受入テスト `17 passed in 3.88s` を確認し **Accepted** とした。受入記録は `REPORT_DEV_E0_001_EARNINGS_EVENT_RESULT_CONTRACT_ACCEPTANCE_2026-09-23.md` を参照する。
 - `E0-002` SEC earnings detectionは2026-09-23にCodexDesktop側受入テスト `21 passed in 5.20s` を確認し **Accepted** とした。受入記録は `REPORT_DEV_E0_002_SEC_EARNINGS_DETECTION_ACCEPTANCE_2026-09-23.md` を参照する。
 - `E0-003` company-IR fallbackは2026-09-23にCodexDesktop側受入テスト `27 passed in 5.01s` を確認し **Accepted** とした。受入記録は `REPORT_DEV_E0_003_COMPANY_IR_FALLBACK_ACCEPTANCE_2026-09-23.md` を参照する。
-- Corporate Intelligence主経路の次作業は `E0-004 basic earnings Facts` である。
+- `E0-004` basic earnings Factsは2026-09-23に既存 `basic_facts.py` とfixtureをI0-005/E0-002/E0-003へ再照合した。revenue/net income/basic/diluted EPSをperiod/unit/source付きFact/Evidenceへ変換し、欠損値・period/source時刻を推測しないこと、GAAP/non-GAAPおよびSEC/IRを別recordで保持することを確認した。現在は **実装完了 / local acceptance pending**。受入記録は `REPORT_DEV_E0_004_BASIC_EARNINGS_FACTS_ACCEPTANCE_2026-09-23.md` を参照する。
 - `WEB-013 / N1-001` は `WEB-007 + I0-005` の依存が充足したため、`保留（依存）` から `未着手` へ移し、Web側で着手可能とする。
 - `I0-005`はFact / Evidence / Relationship / DerivedMetric / Interpretationの論理schema、append-only履歴、Evidence参照、as-of可視性を確認し **Accepted**。次はI0-006 lifecycleを進める。
 - `I0-007`は共通contract test kitが先行実装済みだが、正式受入は`I0-003/004/006`統合待ちである。
@@ -224,7 +224,8 @@ I0-002  ✓
 11. `E0-001`: earnings event/result contract — Accepted。
 12. `E0-002`: SEC earnings detection — Accepted。
 13. `E0-003`: company-IR fallback — Accepted。
-14. **次に `E0-004` basic earnings Factsを正式受入する。**
+14. `E0-004`: basic earnings Facts — 既存実装再照合済み、local acceptance待ち。
+15. PASS後に `E0-005` segment-revenue fallbackへ進む。
 7. 完了済み`S0-004`を再実装せずadapter出力へ接続し、`S0-007`を正式完了する。
 8. `E0-001〜007`を進め、その後にNews Fact化、Official品質、X0統合へ進む。
 
@@ -250,7 +251,7 @@ I0-002  ✓
 
 ### 10.4 次回セッション開始規則
 
-- 主経路の次セッションは `E0-004` basic earnings Factsから開始する。
+- 主経路の次セッションは `E0-004` local acceptance確認から開始する。
 - 別セッションを並列利用する場合は`L0-002`を進めてよい。
 - `I0-002`〜`I0-007`はAccepted済み。次はS0 SEC Filing acquisitionへ進む。
 - 既に先行実装済みの`I0-005`、`I0-007`、`S0-004`は「新規実装」ではなく依存充足後の整合・受入として扱う。
