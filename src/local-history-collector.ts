@@ -28,7 +28,8 @@ export type LocalHistorySessionValidation = {
   duplicateTimestamps: string[];
   outOfRangeTimestamps: string[];
   missingTimestamps: string[];
-  complete: boolean;
+  denseSession: boolean;
+  structurallyValid: boolean;
 };
 
 function timezoneOffsetMilliseconds(instant: Date, timeZone: string): number {
@@ -110,9 +111,10 @@ export function validateRegularSession(
     duplicateTimestamps,
     outOfRangeTimestamps,
     missingTimestamps,
-    complete: bars.length === plan.expectedBars
-      && duplicateTimestamps.length === 0
-      && outOfRangeTimestamps.length === 0
+    denseSession: bars.length === plan.expectedBars
       && missingTimestamps.length === 0,
+    structurallyValid: duplicateTimestamps.length === 0
+      && outOfRangeTimestamps.length === 0
+      && bars.length + missingTimestamps.length === plan.expectedBars,
   };
 }
