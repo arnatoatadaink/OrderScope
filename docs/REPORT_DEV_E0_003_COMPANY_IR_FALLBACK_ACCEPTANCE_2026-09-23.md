@@ -1,7 +1,7 @@
 # OrderScope — DEV-E0-003 Company IR Fallback 受入記録
 
 作成日: 2026-09-23（Asia/Tokyo）
-Status: implementation complete / local acceptance pending
+Status: accepted
 対象: `E0-003 / Design/implement company-IR fallback`
 
 ## 1. 結論
@@ -168,8 +168,8 @@ bash scripts/run-local-wsl.sh python -m pytest -q analysis/tests/earnings \
 
 ## 10. 判定
 
-`DEV-E0-003`: **実装完了 / local acceptance pending**
+`DEV-E0-003`: **完了 / Accepted**
 
-local test PASS後にAccepted化する。
+2026-09-23にCodexDesktop側で指定受入テストを実行し、`27 passed in 5.01s` を確認したため **Accepted** とする。
 
-Accepted後の次の主経路は `E0-004 — Extract basic earnings Facts` とする。
+次の主経路は `E0-004 — Extract basic earnings Facts` とする。
