@@ -551,7 +551,7 @@ export function createWorker(dependencies: ScheduledOrchestrationDependencies = 
           return json({ error: "invalid_local_evidence_payload" }, 400);
         }
 
-        let loaded;
+        let loaded: Awaited<ReturnType<typeof parseLocalHistoryEvidence>>;
         try {
           loaded = await parseLocalHistoryEvidence(parsedBody.sessionJson);
         } catch {
