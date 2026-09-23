@@ -1,10 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { mkdtemp, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
 import test from "node:test";
-import { coverageAbsencesForRange, loadLocalHistoryEvidence, localHistoryFetchPage, type LocalHistoryEvidenceSession } from "./local-history-evidence.ts";
+import { coverageAbsencesForRange, parseLocalHistoryEvidence, localHistoryFetchPage, type LocalHistoryEvidenceSession } from "./local-history-evidence.ts";
 import { validateRegularSession } from "./local-history-collector.ts";
 
 function stableHash(session: Omit<LocalHistoryEvidenceSession, "contentSha256"> & { contentSha256?: string }): string {
@@ -59,17 +56,9 @@ function fixture(overrides: Partial<LocalHistoryEvidenceSession> = {}): LocalHis
   return merged;
 }
 
-async function writeFixture(session: LocalHistoryEvidenceSession): Promise<string> {
-  const dir = await mkdtemp(join(tmpdir(), "orderscope-local-history-"));
-  const path = join(dir, "session.json");
-  await writeFile(path, JSON.stringify(session), "utf8");
-  return path;
-}
-
 test("loads hash-verified reproducible sparse evidence and exposes explicit absence", async () => {
   const session = fixture();
-  const path = await writeFixture(session);
-  const loaded = await loadLocalHistoryEvidence(path);
+  const loaded = await parseLocalHistoryEvidence(JSON.stringify(session));
   assert.equal(loaded.session.contentSha256, session.contentSha256);
   assert.deepEqual(loaded.coverageAbsences, [{
     symbol: "NVDA",
@@ -82,11 +71,11 @@ test("loads hash-verified reproducible sparse evidence and exposes explicit abse
 test("rejects tampered or unreproduced sparse evidence", async () => {
   const tampered = fixture();
   tampered.bars[0]!.close = 2;
-  await assert.rejects(loadLocalHistoryEvidence(await writeFixture(tampered)), /hash mismatch/);
+  await assert.rejects(parseLocalHistoryEvidence(JSON.stringify(tampered)), /hash mismatch/);
 
   const unreproduced = fixture({ reproducible: false });
   unreproduced.contentSha256 = stableHash(unreproduced);
-  await assert.rejects(loadLocalHistoryEvidence(await writeFixture(unreproduced)), /not reproducible/);
+  await assert.rejects(parseLocalHistoryEvidence(JSON.stringify(unreproduced)), /not reproducible/);
 });
 
 test("serves only the requested frozen range from local evidence", async () => {
@@ -109,13 +98,13 @@ test("serves only the requested frozen range from local evidence", async () => {
     feed: "iex",
   });
   assert.equal(page.bars.length, 1);
-  assert.equal(page.bars[0]?.timestamp, "2026-09-11T13:31:00Z");
+  assert.equal(page.bars[0]?.timestamp, "2026-09-11T13:31:00.000Z");
 });
 
 
 test("filters reproducible absence evidence to the active recovery chunk", async () => {
   const session = fixture();
-  const loaded = await loadLocalHistoryEvidence(await writeFixture(session));
+  const loaded = await parseLocalHistoryEvidence(JSON.stringify(session));
   assert.equal(coverageAbsencesForRange(
     loaded.coverageAbsences,
     "2026-09-11T13:30:00.000Z",
