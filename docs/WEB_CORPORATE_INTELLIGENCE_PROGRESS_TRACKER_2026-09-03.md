@@ -66,7 +66,8 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 - `E0-004` basic earnings Factsは2026-09-23にCodexDesktop側受入テスト `18 passed in 4.09s` を確認し **Accepted** とした。受入記録は `REPORT_DEV_E0_004_BASIC_EARNINGS_FACTS_ACCEPTANCE_2026-09-23.md` を参照する。
 - `E0-005` segment-revenue fallbackは2026-09-23にCodexDesktop側受入テスト `26 passed in 3.38s` を確認し **Accepted** とした。受入記録は `REPORT_DEV_E0_005_SEGMENT_REVENUE_FALLBACK_ACCEPTANCE_2026-09-23.md` を参照する。
 - `E0-006` SegmentIdentityHistoryは2026-09-23にCodexDesktop側受入テスト `17 passed in 4.26s` を確認し **Accepted** とした。受入記録は `REPORT_DEV_E0_006_SEGMENT_IDENTITY_HISTORY_ACCEPTANCE_2026-09-23.md` を参照する。
-- `E0-007` earnings Canary quality reportは2026-09-23に既存 `quality_report.py` をE0-004〜006/WBSへ再照合した。AMD/NVDA複数quarterのSEC/IR agreement/conflict/single-source、segment extraction/failure pathを確認し、amount一致でもcurrency/unit不一致ならconflictとするsemantic比較とofficial hostname source境界を追加した。現在は **実装完了 / local acceptance pending**。受入記録は `REPORT_DEV_E0_007_EARNINGS_CANARY_QUALITY_ACCEPTANCE_2026-09-23.md` を参照する。
+- `E0-007` earnings Canary quality reportは2026-09-23にCodexDesktop側受入テスト `32 passed in 2.49s` を確認し **Accepted** とした。これにより `E0-001〜007` を完了し、Earnings/Fundamental work packageを一区切りとする。受入記録は `REPORT_DEV_E0_007_EARNINGS_CANARY_QUALITY_ACCEPTANCE_2026-09-23.md` を参照する。
+- E0-004〜006のfield / identity形状が確定したため、`WEB-010` は依存解除され **着手可能**。WEB-010完了後にWEB-014およびN1/O0/X0の次経路を再評価する。
 - `WEB-013 / N1-001` は `WEB-007 + I0-005` の依存が充足したため、`保留（依存）` から `未着手` へ移し、Web側で着手可能とする。
 - `I0-005`はFact / Evidence / Relationship / DerivedMetric / Interpretationの論理schema、append-only履歴、Evidence参照、as-of可視性を確認し **Accepted**。次はI0-006 lifecycleを進める。
 - `I0-007`は共通contract test kitが先行実装済みだが、正式受入は`I0-003/004/006`統合待ちである。
@@ -86,7 +87,7 @@ Web作業の意味は可視化レポート、本日時点のWeb進捗・Evidence
 | WEB-007 | E0-001 | C | 引渡し済み | WEB-001/005引渡し済み | [`REPORT_EARNINGS_EVENT_RESULT_CONTRACT_WEB_007_2026-09-04.md`](REPORT_EARNINGS_EVENT_RESULT_CONTRACT_WEB_007_2026-09-04.md); Evidence確認 `2026-09-03T18:16Z` | E0-001 Earnings contract実装、I0-002 provenance整合、E0-002 fixture | schedule/release/call/SEC accepted時刻を分離し、nullable actual release、issuer fiscal label、GAAP/non-GAAP dimensionをcontract testへ反映 | 2026-09-04 | web-2026-09-04-WEB-007 |
 | WEB-008 | E0-003 | B | 引渡し済み | WEB-001引渡し済み | [`REPORT_IR_FALLBACK_WEB_008_2026-09-04.md`](REPORT_IR_FALLBACK_WEB_008_2026-09-04.md); Evidence確認 `2026-09-03T21:15Z` | E0-003 IR fallback adapter、I0-002/004 provenance・idempotency contract | AMD Financial Results / Press Releases、NVIDIA Quarterly Results / News Archiveをdiscovery経路にし、listing hrefをcanonical release URLとして保存。SEC/IR Evidenceを同一eventへ関連付けつつ両方保持し、HTTP更新挙動をfixtureで検証 | 2026-09-04 | web-2026-09-04-WEB-008 |
 | WEB-009 | E0-005 | C | 引渡し済み | WEB-001/005引渡し済み | [`REPORT_SEGMENT_REVENUE_FALLBACK_WEB_009_2026-09-04.md`](REPORT_SEGMENT_REVENUE_FALLBACK_WEB_009_2026-09-04.md); Evidence確認 `2026-09-03T21:36Z` | E0-005 segment fallback実装、S0-006 XBRL adapter、E0-006 SegmentIdentityHistory | Company Facts失敗理由を保存し、dimension-aware XBRL→filing tableへfallback。AMDのcontext/member mappingはlocal instance parseで確定し、recast/business-line区別をE0-006 contract testへ反映 | 2026-09-04 | web-2026-09-04-WEB-009 |
-| WEB-010 | E0-007 | D | 保留（依存） | WEB-007〜009引渡し済み、残りlocal E0-004〜006 contract/adapter形状 | WEB-009でsegment fallback/recast入力を準備済み | local reconciliation・品質report | E0-004〜006のfield/identity形状確定後に複数四半期の公式照合setを準備 | 2026-09-04 | — |
+| WEB-010 | E0-007 | D | **未着手 / 依存解除** | WEB-007〜009引渡し済み、E0-004〜006 Accepted | WEB-009でsegment fallback/recast入力を準備済み | local reconciliation・品質report | E0で確定したfield/identity形状に合わせ、複数四半期の公式照合setを準備 | 2026-09-23 | — |
 | WEB-011 | N0-001 | A | 引渡し済み | WEB-003引渡し済み | [`REPORT_NEWS_PROVIDER_COMPARISON_WEB_011_2026-09-04.md`](REPORT_NEWS_PROVIDER_COMPARISON_WEB_011_2026-09-04.md); Evidence確認 `2026-09-03T21:42Z` | N0-001 News Provider ADR、N0-002/004、I0-006、N1-006 | Tiingo Powerをdefault candidateとしてADR化。本文権利・durable retentionは契約確認までdisabled。Massive/Benzingaをfull-text昇格候補、Alpaca Newsを統合候補として保持 | 2026-09-04 | web-2026-09-04-WEB-011 |
 | WEB-012 | N0-003 | C | 引渡し済み | WEB-011引渡し済み | [`REPORT_NEWS_CANONICALIZATION_CASES_WEB_012_2026-09-04.md`](REPORT_NEWS_CANONICALIZATION_CASES_WEB_012_2026-09-04.md); Evidence確認 `2026-09-04T07:24Z` | N0-003 canonicalization fixture/test、N0-002/004、I0-006 | story / distribution / revisionを分離し、same-story mirror、syndication、correction、material update、ambiguous relation fixtureを実装。Tiingo revision semanticsはcredential付きlocal観測で確定 | 2026-09-04 | web-2026-09-04-WEB-012 |
 | WEB-013 | N1-001 | C | 未着手 | 依存充足: WEB-007引渡し済み、I0-005 Accepted | 親計画に初期分類あり | taxonomy schema・extractor fixture | 定義とEvidence付き事例を作成 | 2026-09-22 | — |
@@ -230,7 +231,8 @@ I0-002  ✓
 14. `E0-004`: basic earnings Facts — Accepted。
 15. `E0-005`: segment-revenue fallback — Accepted。
 16. `E0-006`: SegmentIdentityHistory — Accepted。
-17. `E0-007`: earnings Canary quality report — semantic reconciliation補強済み、local acceptance待ち。PASS後はE0-001〜007完了。
+17. `E0-007`: earnings Canary quality report — Accepted。E0-001〜007完了。
+18. **次に `WEB-010` を再開する。**
 7. 完了済み`S0-004`を再実装せずadapter出力へ接続し、`S0-007`を正式完了する。
 8. `E0-001〜007`を進め、その後にNews Fact化、Official品質、X0統合へ進む。
 
@@ -256,7 +258,7 @@ I0-002  ✓
 
 ### 10.4 次回セッション開始規則
 
-- 主経路の次セッションは `E0-007` local acceptance確認から開始する。
+- 主経路の次セッションは依存解除された `WEB-010` から開始する。
 - 別セッションを並列利用する場合は`L0-002`を進めてよい。
 - `I0-002`〜`I0-007`はAccepted済み。次はS0 SEC Filing acquisitionへ進む。
 - 既に先行実装済みの`I0-005`、`I0-007`、`S0-004`は「新規実装」ではなく依存充足後の整合・受入として扱う。
