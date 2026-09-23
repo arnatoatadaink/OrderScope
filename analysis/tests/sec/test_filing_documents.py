@@ -2,7 +2,7 @@ from datetime import date, datetime, timedelta, timezone
 
 import pytest
 
-from orderscope_local.contracts import ContractViolation, TemporaryContentState
+from orderscope_local.contracts import ContractViolation, RetentionClass, TemporaryContentState
 from orderscope_local.sec import (
     FilingRecord,
     SecFilingDocumentAcquirer,
@@ -32,6 +32,11 @@ class Store:
 
     def put(self, content_ref: str, content: bytes) -> None:
         self.values[content_ref] = content
+
+
+class FailingStore:
+    def put(self, content_ref: str, content: bytes) -> None:
+        raise OSError("local storage failure with secret-token")
 
 
 class Limiter:
@@ -84,6 +89,7 @@ def test_stages_hashed_document_with_temporary_lifecycle() -> None:
     assert result.temporary_content is not None
     assert result.temporary_content.content_ref == f"tmp:sha256:{result.content_hash}"
     assert result.temporary_content.state is TemporaryContentState.STAGED
+    assert result.temporary_content.retention_class is RetentionClass.TEMPORARY_SUCCESS
     assert result.temporary_content.expires_at == NOW + timedelta(hours=24)
     assert store.values[result.temporary_content.content_ref] == DOCUMENT
     assert transport.calls == [(filing().primary_document_ref, "OrderScope ops@example.test")]
@@ -105,6 +111,28 @@ def test_provider_failure_remains_retryable_and_stores_no_body() -> None:
     assert result.temporary_content is None
     assert store.values == {}
     assert not hasattr(result, "body")
+
+
+def test_temporary_store_failure_is_sanitized_and_retryable() -> None:
+    transport = Transport(DOCUMENT)
+    limiter = Limiter()
+    value = SecFilingDocumentAcquirer(
+        transport=transport,
+        store=FailingStore(),
+        user_agent="OrderScope ops@example.test",
+        limiter=limiter,
+        clock=lambda: NOW,
+    )
+
+    result = value.acquire(filing())
+
+    assert result.error is not None
+    assert result.error.category == "transport_error"
+    assert result.error.retryable is True
+    assert "secret-token" not in result.error.message
+    assert result.content_hash is None
+    assert result.temporary_content is None
+    assert limiter.calls == 1
 
 
 def test_unknown_transport_failure_is_sanitized_and_retryable() -> None:
