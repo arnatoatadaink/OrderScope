@@ -37,6 +37,33 @@ def test_empty_databases_rebuild_to_identical_catalog_schema(tmp_path: Path) -> 
         ).fetchone() == ("orderscope-local-metadata",)
 
 
+def test_current_migrations_install_filing_records_schema(tmp_path: Path) -> None:
+    database = tmp_path / "catalog.sqlite3"
+    apply_migrations(database)
+
+    with closing(sqlite3.connect(database)) as connection:
+        columns = {
+            row[1]: (row[2], row[3], row[5])
+            for row in connection.execute("PRAGMA table_info(filing_records)")
+        }
+        assert columns == {
+            "accession": ("TEXT", 0, 1),
+            "content_hash": ("TEXT", 1, 0),
+            "cik": ("TEXT", 1, 0),
+            "ticker": ("TEXT", 1, 0),
+            "form": ("TEXT", 1, 0),
+            "filed_at": ("TEXT", 1, 0),
+            "period_end": ("TEXT", 0, 0),
+            "primary_document_ref": ("TEXT", 0, 0),
+            "source_ref": ("TEXT", 1, 0),
+            "retrieved_at": ("TEXT", 1, 0),
+        }
+        indexes = {
+            row[1] for row in connection.execute("PRAGMA index_list(filing_records)")
+        }
+        assert "filing_records_cik_filed_at_idx" in indexes
+
+
 def test_reapplying_current_migrations_is_idempotent(tmp_path: Path) -> None:
     database = tmp_path / "catalog.sqlite3"
     first = apply_migrations(database)
