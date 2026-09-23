@@ -5,6 +5,8 @@ import pytest
 from orderscope_local.contracts import ContentHash, ContractViolation, SourceTimestamp
 from orderscope_local.earnings import (
     EarningsSourcePriority,
+    IrFallbackPage,
+    IrFetchStatus,
     IrReleaseRecord,
     IrReleaseSource,
     reconcile_sec_ir_evidence,
@@ -69,6 +71,56 @@ def nvda_release():
         period_end=NVDA_PERIOD,
         published_at=SourceTimestamp.date_only(date(2026, 8, 26)),
     )
+
+
+def test_ir_fallback_page_preserves_retrieval_status_and_partial_error() -> None:
+    release = amd_release()
+    retrieved_at = datetime(2026, 8, 4, 21, 5, tzinfo=timezone.utc)
+
+    complete = IrFallbackPage(
+        source=IrReleaseSource.AMD_IR,
+        discovery_url=release.discovery_url,
+        releases=(release,),
+        status=IrFetchStatus.COMPLETE,
+        retrieved_at=retrieved_at,
+    )
+    assert complete.releases == (release,)
+    assert complete.error_category is None
+
+    partial = IrFallbackPage(
+        source=IrReleaseSource.AMD_IR,
+        discovery_url=release.discovery_url,
+        releases=(release,),
+        status=IrFetchStatus.PARTIAL,
+        retrieved_at=retrieved_at,
+        error_category="canonical_release_unavailable",
+    )
+    assert partial.status is IrFetchStatus.PARTIAL
+    assert partial.error_category == "canonical_release_unavailable"
+
+
+def test_ir_fallback_page_rejects_error_with_release_and_non_utc_retrieval() -> None:
+    release = amd_release()
+
+    with pytest.raises(ContractViolation, match="cannot carry successful releases"):
+        IrFallbackPage(
+            source=IrReleaseSource.AMD_IR,
+            discovery_url=release.discovery_url,
+            releases=(release,),
+            status=IrFetchStatus.ERROR,
+            retrieved_at=datetime(2026, 8, 4, 21, 5, tzinfo=timezone.utc),
+            error_category="listing_unavailable",
+        )
+
+    with pytest.raises(ContractViolation, match="normalized to UTC"):
+        IrFallbackPage(
+            source=IrReleaseSource.AMD_IR,
+            discovery_url=release.discovery_url,
+            releases=(),
+            status=IrFetchStatus.ERROR,
+            retrieved_at=datetime(2026, 8, 4, 21, 5),
+            error_category="listing_unavailable",
+        )
 
 
 def test_reconcile_retains_sec_and_ir_with_sec_discovery_priority() -> None:
