@@ -1,12 +1,12 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { fetchHistoricalBars, type ProviderNeutralBar } from "../src/alpaca";
+import { fetchHistoricalBars, type ProviderNeutralBar } from "../src/alpaca.ts";
 import {
   L1_003_NVDA_DEFAULT_SESSIONS,
   planRegularSession,
   validateRegularSession,
-} from "../src/local-history-collector";
-import type { UniverseInstrument } from "../src/universe";
+} from "../src/local-history-collector.ts";
+import type { UniverseInstrument } from "../src/universe.ts";
 
 type Args = {
   sessions: string[];
