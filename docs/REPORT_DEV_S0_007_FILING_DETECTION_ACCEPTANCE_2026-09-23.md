@@ -1,7 +1,7 @@
 # OrderScope — DEV-S0-007 Filing Detection Acceptance 受入記録
 
 作成日: 2026-09-23（Asia/Tokyo）
-Status: implementation complete / local acceptance pending
+Status: accepted
 対象: `S0-007 / Filing-detection acceptance test`
 
 ## 1. 結論
@@ -106,8 +106,8 @@ bash scripts/run-local-wsl.sh python -m pytest -q analysis/tests/sec
 
 ## 9. 判定
 
-`DEV-S0-007`: **実装完了 / local acceptance pending**
+`DEV-S0-007`: **完了 / Accepted**
 
-local test PASS後にAccepted化する。
+2026-09-23にCodexDesktop側でS0 SEC統合受入テストを実行し、`94 passed in 4.32s` を確認したため **Accepted** とする。
 
-Accepted後はS0 SEC Filing acquisition work packageを完了扱いとし、次の主経路は `E0-001 — Define earnings event/result contract` とする。
+これによりS0 SEC Filing acquisition work packageは完了。次の主経路は `E0-001 — Define earnings event/result contract` とする。
