@@ -47,7 +47,7 @@ function parseArgs(argv: readonly string[]): Args {
       if (!value) throw new Error("--created-at requires an ISO timestamp");
       createdAt = value; index += 1;
     } else {
-      throw new Error(\`unsupported argument: \${arg}\`);
+      throw new Error("unsupported argument: " + arg);
     }
   }
 
@@ -61,13 +61,13 @@ function parseArgs(argv: readonly string[]): Args {
   if (new Date(createdAt).toISOString() !== createdAt) {
     throw new Error("--created-at must be canonical UTC");
   }
-  if (!calendarRevision) calendarRevision = \`local-evidence:\${session}\`;
+  if (!calendarRevision) calendarRevision = "local-evidence:" + session;
   return { session, inputDir, output, checkpointVersion, checkpointThrough, calendarRevision, createdAt };
 }
 
 async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
-  const inputPath = resolve(args.inputDir, \`NVDA_1Min_REGULAR_\${args.session}.json\`);
+  const inputPath = resolve(args.inputDir, "NVDA_1Min_REGULAR_" + args.session + ".json");
   const loaded = await parseLocalHistoryEvidence(await readFile(inputPath, "utf8"));
   if (loaded.session.plan.marketDate !== args.session) {
     throw new Error("session argument does not match local evidence");
@@ -98,11 +98,11 @@ async function main(): Promise<void> {
   if (args.output) {
     const outputPath = resolve(args.output);
     await writeFile(outputPath, rendered, "utf8");
-    console.log(\`packet: \${outputPath}\`);
+    console.log("packet: " + outputPath);
   } else {
     process.stdout.write(rendered);
   }
-  console.log(\`PB-04 local dry-run: PASS session=\${args.session} chunks=\${packet.chunks.length} remoteMutation=false\`);
+  console.log("PB-04 local dry-run: PASS session=" + args.session + " chunks=" + packet.chunks.length + " remoteMutation=false");
 }
 
 await main();
