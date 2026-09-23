@@ -193,3 +193,64 @@ test("defers a checkpoint CAS conflict to the next cron by recording failure", a
   assert.equal(checkpoints.attempts.at(-1)?.outcome, "FAILED");
   assert.match(String((checkpoints.attempts.at(-1)?.diagnostic as Record<string, unknown>)?.message), /compare-and-set conflict/);
 });
+
+
+test("advances across an explicitly evidenced reproducible provider absence", async () => {
+  const checkpoints = new Checkpoints();
+  const result = await executeAcquisitionJob(job, {
+    credentials: { keyId: "key", secretKey: "secret" }, calendar,
+    checkpoints: checkpoints as never,
+    bars: { accept: async (_candidate, provenance) => ({
+      outcome: "INSERTED", acceptanceReceipt: provenance.idempotencyKey, provenanceAppended: true,
+    }) },
+    feed: "iex", maxPages: 10, maxBars: 100, now: () => new Date("2026-08-28T14:33:00Z"),
+    fetchPage: async () => ({ bars: [source("2026-08-28T14:31:00Z")] }),
+    coverageAbsences: [{
+      symbol: "SPY",
+      identityStart: "2026-08-28T14:30:00.000Z",
+      reason: "REPRODUCIBLE_PROVIDER_ABSENCE",
+      evidenceHash: "a".repeat(64),
+    }],
+  });
+  assert.equal(result.outcome, "SUCCEEDED");
+  assert.equal(result.missing, 0);
+  assert.equal(result.acknowledgedAbsent, 1);
+  assert.equal(checkpoints.proposed?.completeThrough, "2026-08-28T14:32:00.000Z");
+  assert.deepEqual(checkpoints.proposed?.missingRanges, []);
+});
+
+test("rejects absence evidence that is off-grid or collides with a returned bar", async () => {
+  const offGrid = new Checkpoints();
+  await assert.rejects(executeAcquisitionJob(job, {
+    credentials: { keyId: "key", secretKey: "secret" }, calendar,
+    checkpoints: offGrid as never,
+    bars: { accept: async (_candidate, provenance) => ({
+      outcome: "INSERTED", acceptanceReceipt: provenance.idempotencyKey, provenanceAppended: true,
+    }) },
+    feed: "iex", maxPages: 10, maxBars: 100,
+    fetchPage: async () => ({ bars: [source("2026-08-28T14:31:00Z")] }),
+    coverageAbsences: [{
+      symbol: "SPY",
+      identityStart: "2026-08-28T14:30:30.000Z",
+      reason: "REPRODUCIBLE_PROVIDER_ABSENCE",
+      evidenceHash: "b".repeat(64),
+    }],
+  }), /expected session grid/);
+
+  const collision = new Checkpoints();
+  await assert.rejects(executeAcquisitionJob(job, {
+    credentials: { keyId: "key", secretKey: "secret" }, calendar,
+    checkpoints: collision as never,
+    bars: { accept: async (_candidate, provenance) => ({
+      outcome: "INSERTED", acceptanceReceipt: provenance.idempotencyKey, provenanceAppended: true,
+    }) },
+    feed: "iex", maxPages: 10, maxBars: 100,
+    fetchPage: async () => ({ bars: [source("2026-08-28T14:30:00Z"), source("2026-08-28T14:31:00Z")] }),
+    coverageAbsences: [{
+      symbol: "SPY",
+      identityStart: "2026-08-28T14:30:00.000Z",
+      reason: "REPRODUCIBLE_PROVIDER_ABSENCE",
+      evidenceHash: "c".repeat(64),
+    }],
+  }), /collides/);
+});
