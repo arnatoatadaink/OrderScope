@@ -1,7 +1,7 @@
 # OrderScope — DEV-S0-002 SEC CIK/submissions adapter 受入記録
 
 作成日: 2026-09-23（Asia/Tokyo）
-Status: implementation complete / local acceptance pending
+Status: accepted
 対象: `S0-002 / Implement CIK/submissions adapter`
 
 ## 1. 結論
@@ -14,7 +14,7 @@ WBS完了条件:
 
 に対し、既存実装は必要な境界を満たしている。今回、新規コード変更は不要と判断した。
 
-ただしI0-007でprovider timestamp UTC契約を更新した後、SEC submissions専用testはまだ再実行していないため、状態は **実装完了 / local acceptance pending** とする。
+I0-007のprovider timestamp UTC契約更新後、2026-09-23にCodexDesktop側でSEC統合sliceを再実行し、`27 passed in 3.22s` を確認した。実行後のdiffはなく、作業ツリーにテスト起因の変更はない。
 
 ## 2. 受入対象
 
@@ -176,10 +176,10 @@ WSL書き込み制限が続く場合は、前回I0-007と同様にデータ・Py
 
 ## 11. 判定
 
-`DEV-S0-002`: **実装完了 / local acceptance pending**
+`DEV-S0-002`: **完了 / Accepted**
 
-local test PASS後に **Accepted** へ更新する。
+CodexDesktop側のSEC統合slice `27 passed in 3.22s` とdiffなしを受入根拠として **Accepted** とする。
 
-Accepted後の次の主作業は `S0-003 Persist FilingRecord` とする。
+次の主作業は `S0-003 Persist FilingRecord` とする。
 
 なお `S0-004` form filterは既に実装済みで、S0-007 full acceptanceはS0-003/005/006完了後に行う。
