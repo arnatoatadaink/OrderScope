@@ -3,6 +3,24 @@ import type { CoverageAbsenceEvidence } from "./execution.ts";
 import type { HistoricalBarRequest } from "./alpaca.ts";
 import { validateRegularSession } from "./local-history-collector.ts";
 
+const APPROVED_SPARSE_EVIDENCE = {
+  coverageKey: "NVDA|1Min|REGULAR|stock:iex:raw",
+  marketDate: "2026-09-11",
+  contentSha256: "a41dcb05888182dada5dbde3fc420b74684abaac6e5f2aafcdb5fa81d8e8be90",
+  missingTimestamps: ["2026-09-11T16:57:00.000Z"],
+} as const;
+
+function assertApprovedSparseEvidence(session: LocalHistoryEvidenceSession): void {
+  if (session.validation.denseSession) return;
+  if (session.reproducible !== true
+    || session.coverageKey !== APPROVED_SPARSE_EVIDENCE.coverageKey
+    || session.plan.marketDate !== APPROVED_SPARSE_EVIDENCE.marketDate
+    || session.contentSha256 !== APPROVED_SPARSE_EVIDENCE.contentSha256
+    || JSON.stringify(session.validation.missingTimestamps) !== JSON.stringify(APPROVED_SPARSE_EVIDENCE.missingTimestamps)) {
+    throw new Error("sparse local history evidence is not an approved reproducible provider absence");
+  }
+}
+
 export type LocalHistoryEvidenceSession = {
   schemaVersion: "l1-003-local-history-session-v3";
   contentSha256: string;
@@ -84,9 +102,7 @@ export async function parseLocalHistoryEvidence(text: string): Promise<{
     throw new Error("local history evidence validation does not match bars");
   }
   if (!session.validation.structurallyValid) throw new Error("local history evidence is not structurally valid");
-  if (!session.validation.denseSession && session.reproducible !== true) {
-    throw new Error("sparse local history evidence is not reproducible");
-  }
+  assertApprovedSparseEvidence(session);
 
   const coverageAbsences = session.validation.missingTimestamps.map((identityStart) => ({
     symbol: "NVDA",
