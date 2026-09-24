@@ -117,47 +117,254 @@ const NVDA_RECOVERY = {
   maxBars: 100,
 } as const;
 
-const NVDA_LOCAL_EVIDENCE_RECOVERY = {
-  recoveryId: "L1-003-NVDA-20260914-LOCAL",
-  providerRevision: "alpaca-stock-bars-v1",
-  universeRevision: "stock-monitoring-canary-v0.1",
-  calendarRevision: "local-evidence:2026-09-14",
-  coverageKey: "NVDA|1Min|REGULAR|stock:iex:raw",
-  marketDate: "2026-09-14",
-  sessionOpen: "2026-09-14T13:30:00.000Z",
-  sessionClose: "2026-09-14T20:00:00.000Z",
-  evidenceSha256: "d8e608efbedbef1c0657de01709ce7cfda594d3108355724c26bf56cee68fa55",
-  chunks: [
+const NVDA_LOCAL_EVIDENCE_RECOVERIES = [
+  {
+    recoveryId: "L1-003-NVDA-20260915-LOCAL",
+    providerRevision: "alpaca-stock-bars-v1",
+    universeRevision: "stock-monitoring-canary-v0.1",
+    calendarRevision: "local-evidence:2026-09-15",
+    coverageKey: "NVDA|1Min|REGULAR|stock:iex:raw",
+    marketDate: "2026-09-15",
+    sessionOpen: "2026-09-15T13:30:00.000Z",
+    sessionClose: "2026-09-15T20:00:00.000Z",
+    evidenceSha256: "a33fbca7483128ea2af2b21b765741400f024500a1e751cd9cea000d27751a56",
+    chunks: [
     {
-      jobId: "historical-market-recovery:45f7b21fb39a49eb",
-      checkpointBefore: "2026-09-11T20:00:00.000Z",
-      checkpointVersion: 30,
-      checkpointAfter: "2026-09-14T15:10:00.000Z",
-      checkpointAfterVersion: 31,
+      jobId: "historical-market-recovery:9d61f5ffec5f98e1",
+      checkpointBefore: "2026-09-14T20:00:00.000Z",
+      checkpointVersion: 34,
+      checkpointAfter: "2026-09-15T15:10:00.000Z",
+      checkpointAfterVersion: 35,
     },
     {
-      jobId: "historical-market-recovery:a36db20a321743de",
-      checkpointBefore: "2026-09-14T15:10:00.000Z",
-      checkpointVersion: 31,
-      checkpointAfter: "2026-09-14T16:50:00.000Z",
-      checkpointAfterVersion: 32,
+      jobId: "historical-market-recovery:7abcdc1f6aaaf6c8",
+      checkpointBefore: "2026-09-15T15:10:00.000Z",
+      checkpointVersion: 35,
+      checkpointAfter: "2026-09-15T16:50:00.000Z",
+      checkpointAfterVersion: 36,
     },
     {
-      jobId: "historical-market-recovery:9911442053a42595",
-      checkpointBefore: "2026-09-14T16:50:00.000Z",
-      checkpointVersion: 32,
-      checkpointAfter: "2026-09-14T18:30:00.000Z",
-      checkpointAfterVersion: 33,
+      jobId: "historical-market-recovery:86641fdfec9f511b",
+      checkpointBefore: "2026-09-15T16:50:00.000Z",
+      checkpointVersion: 36,
+      checkpointAfter: "2026-09-15T18:30:00.000Z",
+      checkpointAfterVersion: 37,
     },
     {
-      jobId: "historical-market-recovery:843809d1b9e52a87",
-      checkpointBefore: "2026-09-14T18:30:00.000Z",
-      checkpointVersion: 33,
-      checkpointAfter: "2026-09-14T20:00:00.000Z",
-      checkpointAfterVersion: 34,
+      jobId: "historical-market-recovery:a9d3cea1b647ef85",
+      checkpointBefore: "2026-09-15T18:30:00.000Z",
+      checkpointVersion: 37,
+      checkpointAfter: "2026-09-15T20:00:00.000Z",
+      checkpointAfterVersion: 38,
+    }
+    ],
+  },
+  {
+    recoveryId: "L1-003-NVDA-20260916-LOCAL",
+    providerRevision: "alpaca-stock-bars-v1",
+    universeRevision: "stock-monitoring-canary-v0.1",
+    calendarRevision: "local-evidence:2026-09-16",
+    coverageKey: "NVDA|1Min|REGULAR|stock:iex:raw",
+    marketDate: "2026-09-16",
+    sessionOpen: "2026-09-16T13:30:00.000Z",
+    sessionClose: "2026-09-16T20:00:00.000Z",
+    evidenceSha256: "759d3659ea9a21ed7df0008b8a233575f7502638c87a2c5b78b5e10f8cdc294c",
+    chunks: [
+    {
+      jobId: "historical-market-recovery:0d2f0b994de4c763",
+      checkpointBefore: "2026-09-15T20:00:00.000Z",
+      checkpointVersion: 38,
+      checkpointAfter: "2026-09-16T15:10:00.000Z",
+      checkpointAfterVersion: 39,
     },
-  ],
-} as const;
+    {
+      jobId: "historical-market-recovery:94bc39eade02760e",
+      checkpointBefore: "2026-09-16T15:10:00.000Z",
+      checkpointVersion: 39,
+      checkpointAfter: "2026-09-16T16:50:00.000Z",
+      checkpointAfterVersion: 40,
+    },
+    {
+      jobId: "historical-market-recovery:ea5e5d34f071ae5d",
+      checkpointBefore: "2026-09-16T16:50:00.000Z",
+      checkpointVersion: 40,
+      checkpointAfter: "2026-09-16T18:30:00.000Z",
+      checkpointAfterVersion: 41,
+    },
+    {
+      jobId: "historical-market-recovery:903eb22f2bbc51ef",
+      checkpointBefore: "2026-09-16T18:30:00.000Z",
+      checkpointVersion: 41,
+      checkpointAfter: "2026-09-16T20:00:00.000Z",
+      checkpointAfterVersion: 42,
+    }
+    ],
+  },
+  {
+    recoveryId: "L1-003-NVDA-20260917-LOCAL",
+    providerRevision: "alpaca-stock-bars-v1",
+    universeRevision: "stock-monitoring-canary-v0.1",
+    calendarRevision: "local-evidence:2026-09-17",
+    coverageKey: "NVDA|1Min|REGULAR|stock:iex:raw",
+    marketDate: "2026-09-17",
+    sessionOpen: "2026-09-17T13:30:00.000Z",
+    sessionClose: "2026-09-17T20:00:00.000Z",
+    evidenceSha256: "778f2b31cc3470c3366b4275afb1b2d3dabc6cb094c1667ffdf4740e0a84a729",
+    chunks: [
+    {
+      jobId: "historical-market-recovery:0a7565ed9ceb753d",
+      checkpointBefore: "2026-09-16T20:00:00.000Z",
+      checkpointVersion: 42,
+      checkpointAfter: "2026-09-17T15:10:00.000Z",
+      checkpointAfterVersion: 43,
+    },
+    {
+      jobId: "historical-market-recovery:17e8b31498d31b4c",
+      checkpointBefore: "2026-09-17T15:10:00.000Z",
+      checkpointVersion: 43,
+      checkpointAfter: "2026-09-17T16:50:00.000Z",
+      checkpointAfterVersion: 44,
+    },
+    {
+      jobId: "historical-market-recovery:92bb3e4217acdb3f",
+      checkpointBefore: "2026-09-17T16:50:00.000Z",
+      checkpointVersion: 44,
+      checkpointAfter: "2026-09-17T18:30:00.000Z",
+      checkpointAfterVersion: 45,
+    },
+    {
+      jobId: "historical-market-recovery:69128b228102f4a9",
+      checkpointBefore: "2026-09-17T18:30:00.000Z",
+      checkpointVersion: 45,
+      checkpointAfter: "2026-09-17T20:00:00.000Z",
+      checkpointAfterVersion: 46,
+    }
+    ],
+  },
+  {
+    recoveryId: "L1-003-NVDA-20260918-LOCAL",
+    providerRevision: "alpaca-stock-bars-v1",
+    universeRevision: "stock-monitoring-canary-v0.1",
+    calendarRevision: "local-evidence:2026-09-18",
+    coverageKey: "NVDA|1Min|REGULAR|stock:iex:raw",
+    marketDate: "2026-09-18",
+    sessionOpen: "2026-09-18T13:30:00.000Z",
+    sessionClose: "2026-09-18T20:00:00.000Z",
+    evidenceSha256: "421c0544a5939e29b9fe57ea116454c9e7e117249a91c6a495f562a9d63a7fad",
+    chunks: [
+    {
+      jobId: "historical-market-recovery:f16f2f7bd1b452cb",
+      checkpointBefore: "2026-09-17T20:00:00.000Z",
+      checkpointVersion: 46,
+      checkpointAfter: "2026-09-18T15:10:00.000Z",
+      checkpointAfterVersion: 47,
+    },
+    {
+      jobId: "historical-market-recovery:29b1e9cdb632645e",
+      checkpointBefore: "2026-09-18T15:10:00.000Z",
+      checkpointVersion: 47,
+      checkpointAfter: "2026-09-18T16:50:00.000Z",
+      checkpointAfterVersion: 48,
+    },
+    {
+      jobId: "historical-market-recovery:a31d792a516e818d",
+      checkpointBefore: "2026-09-18T16:50:00.000Z",
+      checkpointVersion: 48,
+      checkpointAfter: "2026-09-18T18:30:00.000Z",
+      checkpointAfterVersion: 49,
+    },
+    {
+      jobId: "historical-market-recovery:e6b827c690ea1bdf",
+      checkpointBefore: "2026-09-18T18:30:00.000Z",
+      checkpointVersion: 49,
+      checkpointAfter: "2026-09-18T20:00:00.000Z",
+      checkpointAfterVersion: 50,
+    }
+    ],
+  },
+  {
+    recoveryId: "L1-003-NVDA-20260921-LOCAL",
+    providerRevision: "alpaca-stock-bars-v1",
+    universeRevision: "stock-monitoring-canary-v0.1",
+    calendarRevision: "local-evidence:2026-09-21",
+    coverageKey: "NVDA|1Min|REGULAR|stock:iex:raw",
+    marketDate: "2026-09-21",
+    sessionOpen: "2026-09-21T13:30:00.000Z",
+    sessionClose: "2026-09-21T20:00:00.000Z",
+    evidenceSha256: "26d9bd244bc772e2a3a431edafc665e22c20d174d4f517397b8f5edd3c35f29b",
+    chunks: [
+    {
+      jobId: "historical-market-recovery:04d7e7f76f82e40f",
+      checkpointBefore: "2026-09-18T20:00:00.000Z",
+      checkpointVersion: 50,
+      checkpointAfter: "2026-09-21T15:10:00.000Z",
+      checkpointAfterVersion: 51,
+    },
+    {
+      jobId: "historical-market-recovery:8f27611aa5785b8a",
+      checkpointBefore: "2026-09-21T15:10:00.000Z",
+      checkpointVersion: 51,
+      checkpointAfter: "2026-09-21T16:50:00.000Z",
+      checkpointAfterVersion: 52,
+    },
+    {
+      jobId: "historical-market-recovery:0164debbb3775f7d",
+      checkpointBefore: "2026-09-21T16:50:00.000Z",
+      checkpointVersion: 52,
+      checkpointAfter: "2026-09-21T18:30:00.000Z",
+      checkpointAfterVersion: 53,
+    },
+    {
+      jobId: "historical-market-recovery:64edb95714442b7f",
+      checkpointBefore: "2026-09-21T18:30:00.000Z",
+      checkpointVersion: 53,
+      checkpointAfter: "2026-09-21T20:00:00.000Z",
+      checkpointAfterVersion: 54,
+    }
+    ],
+  },
+  {
+    recoveryId: "L1-003-NVDA-20260922-LOCAL",
+    providerRevision: "alpaca-stock-bars-v1",
+    universeRevision: "stock-monitoring-canary-v0.1",
+    calendarRevision: "local-evidence:2026-09-22",
+    coverageKey: "NVDA|1Min|REGULAR|stock:iex:raw",
+    marketDate: "2026-09-22",
+    sessionOpen: "2026-09-22T13:30:00.000Z",
+    sessionClose: "2026-09-22T20:00:00.000Z",
+    evidenceSha256: "bf08ff184109f4ec53e2793e7809a051db562eb120026eac3f639b9bd7dc492f",
+    chunks: [
+    {
+      jobId: "historical-market-recovery:a24c01ad8b3ef6a5",
+      checkpointBefore: "2026-09-21T20:00:00.000Z",
+      checkpointVersion: 54,
+      checkpointAfter: "2026-09-22T15:10:00.000Z",
+      checkpointAfterVersion: 55,
+    },
+    {
+      jobId: "historical-market-recovery:d8453e0b7a9758bc",
+      checkpointBefore: "2026-09-22T15:10:00.000Z",
+      checkpointVersion: 55,
+      checkpointAfter: "2026-09-22T16:50:00.000Z",
+      checkpointAfterVersion: 56,
+    },
+    {
+      jobId: "historical-market-recovery:01b976228f32948b",
+      checkpointBefore: "2026-09-22T16:50:00.000Z",
+      checkpointVersion: 56,
+      checkpointAfter: "2026-09-22T18:30:00.000Z",
+      checkpointAfterVersion: 57,
+    },
+    {
+      jobId: "historical-market-recovery:92d5690bb7a0ac85",
+      checkpointBefore: "2026-09-22T18:30:00.000Z",
+      checkpointVersion: 57,
+      checkpointAfter: "2026-09-22T20:00:00.000Z",
+      checkpointAfterVersion: 58,
+    }
+    ],
+  }
+] as const;
 
 
 async function constantTimeEqual(provided: string, expected: string): Promise<boolean> {
@@ -577,15 +784,16 @@ export function createWorker(dependencies: ScheduledOrchestrationDependencies = 
         const suppliedCompleteThrough = request.headers.get("x-orderscope-complete-through");
         const recoveryId = request.headers.get("x-orderscope-recovery-id");
         const suppliedEvidenceHash = request.headers.get("x-orderscope-evidence-sha256");
-        const frozenChunk = NVDA_LOCAL_EVIDENCE_RECOVERY.chunks.find((chunk) =>
+        const localRecovery = NVDA_LOCAL_EVIDENCE_RECOVERIES.find((candidate) =>
+          candidate.recoveryId === recoveryId && candidate.evidenceSha256 === suppliedEvidenceHash);
+        const frozenChunk = localRecovery?.chunks.find((chunk) =>
           chunk.jobId === expectedJobId
           && chunk.checkpointVersion === suppliedVersion
           && chunk.checkpointBefore === suppliedCompleteThrough);
         if (!expectedJobId || suppliedVersion === undefined || suppliedCompleteThrough === null || !recoveryId
           || !Number.isFinite(Date.parse(suppliedCompleteThrough))
           || new Date(Date.parse(suppliedCompleteThrough)).toISOString() !== suppliedCompleteThrough
-          || recoveryId !== NVDA_LOCAL_EVIDENCE_RECOVERY.recoveryId
-          || suppliedEvidenceHash !== NVDA_LOCAL_EVIDENCE_RECOVERY.evidenceSha256
+          || !localRecovery
           || !frozenChunk) {
           return json({ error: "frozen_identity_mismatch" }, 409);
         }
@@ -609,13 +817,13 @@ export function createWorker(dependencies: ScheduledOrchestrationDependencies = 
           return json({ error: "local_evidence_validation_failed" }, 409);
         }
         const session = loaded.session;
-        if (session.coverageKey !== NVDA_LOCAL_EVIDENCE_RECOVERY.coverageKey
+        if (session.coverageKey !== localRecovery!.coverageKey
           || session.feed !== "iex"
-          || session.providerRevision !== NVDA_LOCAL_EVIDENCE_RECOVERY.providerRevision
-          || session.contentSha256 !== NVDA_LOCAL_EVIDENCE_RECOVERY.evidenceSha256
-          || session.plan.marketDate !== NVDA_LOCAL_EVIDENCE_RECOVERY.marketDate
-          || session.plan.startInclusive !== NVDA_LOCAL_EVIDENCE_RECOVERY.sessionOpen
-          || session.plan.endExclusive !== NVDA_LOCAL_EVIDENCE_RECOVERY.sessionClose) {
+          || session.providerRevision !== localRecovery!.providerRevision
+          || session.contentSha256 !== localRecovery!.evidenceSha256
+          || session.plan.marketDate !== localRecovery!.marketDate
+          || session.plan.startInclusive !== localRecovery!.sessionOpen
+          || session.plan.endExclusive !== localRecovery!.sessionClose) {
           return json({ error: "local_evidence_identity_mismatch" }, 409);
         }
 
@@ -631,14 +839,14 @@ export function createWorker(dependencies: ScheduledOrchestrationDependencies = 
           || checkpointBefore.state !== "COMPLETE"
           || checkpointBefore.completeThrough !== suppliedCompleteThrough
           || checkpointBefore.version !== suppliedVersion
-          || checkpointBefore.universeRevision !== NVDA_LOCAL_EVIDENCE_RECOVERY.universeRevision
+          || checkpointBefore.universeRevision !== localRecovery!.universeRevision
           || checkpointBefore.missingRanges.length !== 0
           || checkpointBefore.blocker !== undefined) {
           return json({ error: "checkpoint_preflight_mismatch" }, 409);
         }
 
         const calendarRevision = parsedBody.calendarRevision;
-        if (calendarRevision !== NVDA_LOCAL_EVIDENCE_RECOVERY.calendarRevision) {
+        if (calendarRevision !== localRecovery!.calendarRevision) {
           return json({ error: "local_evidence_calendar_mismatch" }, 409);
         }
         const calendar = {
