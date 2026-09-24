@@ -68,14 +68,29 @@ test("loads hash-verified reproducible sparse evidence and exposes explicit abse
   }]);
 });
 
-test("rejects tampered or unreproduced sparse evidence", async () => {
+test("rejects tampered or unapproved sparse evidence", async () => {
   const tampered = fixture();
   tampered.bars[0]!.close = 2;
   await assert.rejects(parseLocalHistoryEvidence(JSON.stringify(tampered)), /hash mismatch/);
 
   const unreproduced = fixture({ reproducible: false });
   unreproduced.contentSha256 = stableHash(unreproduced);
-  await assert.rejects(parseLocalHistoryEvidence(JSON.stringify(unreproduced)), /not reproducible/);
+  await assert.rejects(parseLocalHistoryEvidence(JSON.stringify(unreproduced)), /approved reproducible provider absence/);
+
+  const wrongDate = fixture();
+  wrongDate.plan = {
+    ...wrongDate.plan,
+    marketDate: "2026-09-14",
+    startInclusive: "2026-09-14T13:30:00.000Z",
+    endExclusive: "2026-09-14T20:00:00.000Z",
+  };
+  wrongDate.bars = wrongDate.bars.map((bar, index) => ({
+    ...bar,
+    timestamp: new Date(Date.parse(wrongDate.plan.startInclusive) + index * 60_000).toISOString(),
+  }));
+  wrongDate.validation = validateRegularSession(wrongDate.plan, wrongDate.bars);
+  wrongDate.contentSha256 = stableHash(wrongDate);
+  await assert.rejects(parseLocalHistoryEvidence(JSON.stringify(wrongDate)), /approved reproducible provider absence/);
 });
 
 test("serves only the requested frozen range from local evidence", async () => {
