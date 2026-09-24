@@ -9,7 +9,7 @@ import { D1AcquisitionLeaseStore, type AcquisitionLeaseStore } from "./lease";
 import { gapRetryEligibility, type DeferredGapRetry } from "./gap-retry";
 import { loadPredictionRegistries, type PredictionRegistryBundle } from "./prediction-registry";
 import { buildPredictionPremarketUniverse, planPredictionPremarketAcquisition } from "./prediction";
-import { batchAcquisitionJobs, coverageKeyFor, SchedulePolicy } from "./schedule";
+import { coverageKeyFor, SchedulePolicy } from "./schedule";
 import { loadUniverseSnapshot, type UniverseInstrument, type UniverseSnapshot } from "./universe";
 import { loadNewsAcquisitionRuntimeConfig, type NewsAcquisitionConfigEnv } from "./news-acquisition-config";
 import { NEWS_COVERAGE_KEY, planNewsAcquisition } from "./news-schedule";
@@ -583,13 +583,10 @@ async function runScheduledTick(
     };
   }
   // Executor maxBars applies to the whole provider response, not per symbol.
-  // Until a batch-aware bar ceiling is implemented, keep normal scheduler
-  // execution to one symbol per provider job so a 100-bar range cannot become
-  // an unsafe 200+ bar response after batching.
-  const runnableJobs = batchAcquisitionJobs(
-    prioritizeAcquisitionJobs(jobs, stored),
-    1,
-  ).slice(0, acquisitionConfig.maxJobsPerTick);
+  // The normal scheduler therefore executes prioritized single-instrument jobs
+  // until batching has an explicit aggregate bar ceiling.
+  const runnableJobs = prioritizeAcquisitionJobs(jobs, stored)
+    .slice(0, acquisitionConfig.maxJobsPerTick);
   const jobPlans = runnableJobs.map((job) => ({
     jobId: job.jobId,
     dueReason: job.dueReason,
