@@ -157,11 +157,11 @@ WHERE coverage_key = '${COVERAGE_KEY}'
   AND interval = '1Min'
   AND session_scope = 'REGULAR'
   AND logical_data_variant = 'stock:iex:raw'
-  AND complete_through = '2026-09-11T20:00:00.000Z'
+  AND complete_through = '2026-09-10T20:00:00.000Z'
   AND state = 'COMPLETE'
   AND missing_ranges_json = '[]'
   AND universe_revision = 'stock-monitoring-canary-v0.1'
-  AND version = 30
+  AND version = 26
   AND blocker_json IS NULL
   AND retry_not_before IS NULL;
 "
