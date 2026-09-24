@@ -12,6 +12,7 @@ echo "== PB-06 scheduler handoff local acceptance =="
 node --test --experimental-strip-types   src/pb06-handoff.test.ts   src/schedule.test.ts   src/job-priority.test.ts   src/execution.test.ts
 
 npm run typecheck
+bash -n scripts/l1_003_pb06_change_window.sh
 git diff --check
 
 echo
