@@ -39,7 +39,7 @@ function cp(
   };
 }
 
-test("PB-07 frozen competition reaches NVDA twice within six unchanged Cron opportunities", () => {
+test("PB-07 frozen competition reaches NVDA twice within seven unchanged Cron opportunities", () => {
   const universe = loadUniverseSnapshot("canary-v0.1");
   const checkpoints: StoredCoverageCheckpoint[] = [
     cp("AMD","REGULAR","stock:iex:raw","2026-09-02T13:51:00.000Z",40),
@@ -58,7 +58,7 @@ test("PB-07 frozen competition reaches NVDA twice within six unchanged Cron oppo
 
   const selected: string[][] = [];
   const nvdaEnds: string[] = [];
-  for (let i=0;i<6;i++) {
+  for (let i=0;i<7;i++) {
     const now = new Date(Date.parse(now0)+i*60_000);
     const jobs = prioritizeAcquisitionJobs(p.plan(universe, calendar, checkpoints, now), checkpoints).slice(0,2);
     selected.push(jobs.map(j=>j.instruments[0]!.symbol));
@@ -75,10 +75,11 @@ test("PB-07 frozen competition reaches NVDA twice within six unchanged Cron oppo
   assert.deepEqual(selected, [
     ["AMD","QQQ"],
     ["SPY","BTCUSD"],
-    ["AMD","NVDA"],
-    ["QQQ","SPY"],
     ["BTCUSD","AMD"],
     ["BTCUSD","NVDA"],
+    ["QQQ","SPY"],
+    ["BTCUSD","AMD"],
+    ["NVDA","QQQ"],
   ]);
   assert.deepEqual(nvdaEnds, [
     "2026-09-23T16:49:00.000Z",
