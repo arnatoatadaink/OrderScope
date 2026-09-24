@@ -105,7 +105,7 @@ if (packet.schemaVersion !== "l1-003-pb04-remote-execution-packet-v1"
   || packet.environment !== "live-canary"
   || packet.coverageKey !== "NVDA|1Min|REGULAR|stock:iex:raw"
   || packet.frozenRemoteCheckpoint?.version !== 18
-  || packet.frozenRemoteCheckpoint?.completeThrough !== "2026-09-08T20:00:00.000Z"
+  || packet.frozenRemoteCheckpoint?.completeThrough !== "2026-09-09T20:00:00.000Z"
   || packet.source?.marketDate !== "2026-09-10"
   || packet.source?.contentSha256 !== evidence.contentSha256
   || evidence.contentSha256 !== "a6c9ee21c136303e41010434e27b5fd469e8c2f080a1c290449bb46d06ddfb19"
@@ -328,5 +328,5 @@ WHERE coverage_key = '${COVERAGE_KEY}'
 final_json="$(d1_json "${final_sql}")"
 assert_single_json_value "${final_json}" "final_ok" "1"
 
-echo "PB-04 Sep10 campaign: ACCEPTED REMOTELY at v22 / 2026-09-10T20:00:00.000Z"
+echo "PB-04 Sep10 campaign: ACCEPTED REMOTELY at v26 / 2026-09-10T20:00:00.000Z"
 echo "Safe-close will now restore the false gate and delete the temporary secret."
