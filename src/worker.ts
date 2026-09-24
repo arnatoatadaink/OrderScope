@@ -582,8 +582,13 @@ async function runScheduledTick(
       })),
     };
   }
+  // Executor maxBars applies to the whole provider response, not per symbol.
+  // Until a batch-aware bar ceiling is implemented, keep normal scheduler
+  // execution to one symbol per provider job so a 100-bar range cannot become
+  // an unsafe 200+ bar response after batching.
   const runnableJobs = batchAcquisitionJobs(
     prioritizeAcquisitionJobs(jobs, stored),
+    1,
   ).slice(0, acquisitionConfig.maxJobsPerTick);
   const jobPlans = runnableJobs.map((job) => ({
     jobId: job.jobId,
