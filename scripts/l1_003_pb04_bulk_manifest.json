@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "l1-003-pb04-bulk-manifest-v1",
+  "coverageKey": "NVDA|1Min|REGULAR|stock:iex:raw",
+  "environment": "live-canary",
+  "sessions": [
+    {
+      "marketDate": "2026-09-15",
+      "evidenceSha256": "a33fbca7483128ea2af2b21b765741400f024500a1e751cd9cea000d27751a56",
+      "entryVersion": 34,
+      "entryThrough": "2026-09-14T20:00:00.000Z",
+      "exitVersion": 38,
+      "exitThrough": "2026-09-15T20:00:00.000Z",
+      "jobIds": [
+        "historical-market-recovery:9d61f5ffec5f98e1",
+        "historical-market-recovery:7abcdc1f6aaaf6c8",
+        "historical-market-recovery:86641fdfec9f511b",
+        "historical-market-recovery:a9d3cea1b647ef85"
+      ]
+    },
+    {
+      "marketDate": "2026-09-16",
+      "evidenceSha256": "759d3659ea9a21ed7df0008b8a233575f7502638c87a2c5b78b5e10f8cdc294c",
+      "entryVersion": 38,
+      "entryThrough": "2026-09-15T20:00:00.000Z",
+      "exitVersion": 42,
+      "exitThrough": "2026-09-16T20:00:00.000Z",
+      "jobIds": [
+        "historical-market-recovery:0d2f0b994de4c763",
+        "historical-market-recovery:94bc39eade02760e",
+        "historical-market-recovery:ea5e5d34f071ae5d",
+        "historical-market-recovery:903eb22f2bbc51ef"
+      ]
+    },
+    {
+      "marketDate": "2026-09-17",
+      "evidenceSha256": "778f2b31cc3470c3366b4275afb1b2d3dabc6cb094c1667ffdf4740e0a84a729",
+      "entryVersion": 42,
+      "entryThrough": "2026-09-16T20:00:00.000Z",
+      "exitVersion": 46,
+      "exitThrough": "2026-09-17T20:00:00.000Z",
+      "jobIds": [
+        "historical-market-recovery:0a7565ed9ceb753d",
+        "historical-market-recovery:17e8b31498d31b4c",
+        "historical-market-recovery:92bb3e4217acdb3f",
+        "historical-market-recovery:69128b228102f4a9"
+      ]
+    },
+    {
+      "marketDate": "2026-09-18",
+      "evidenceSha256": "421c0544a5939e29b9fe57ea116454c9e7e117249a91c6a495f562a9d63a7fad",
+      "entryVersion": 46,
+      "entryThrough": "2026-09-17T20:00:00.000Z",
+      "exitVersion": 50,
+      "exitThrough": "2026-09-18T20:00:00.000Z",
+      "jobIds": [
+        "historical-market-recovery:f16f2f7bd1b452cb",
+        "historical-market-recovery:29b1e9cdb632645e",
+        "historical-market-recovery:a31d792a516e818d",
+        "historical-market-recovery:e6b827c690ea1bdf"
+      ]
+    },
+    {
+      "marketDate": "2026-09-21",
+      "evidenceSha256": "26d9bd244bc772e2a3a431edafc665e22c20d174d4f517397b8f5edd3c35f29b",
+      "entryVersion": 50,
+      "entryThrough": "2026-09-18T20:00:00.000Z",
+      "exitVersion": 54,
+      "exitThrough": "2026-09-21T20:00:00.000Z",
+      "jobIds": [
+        "historical-market-recovery:04d7e7f76f82e40f",
+        "historical-market-recovery:8f27611aa5785b8a",
+        "historical-market-recovery:0164debbb3775f7d",
+        "historical-market-recovery:64edb95714442b7f"
+      ]
+    },
+    {
+      "marketDate": "2026-09-22",
+      "evidenceSha256": "bf08ff184109f4ec53e2793e7809a051db562eb120026eac3f639b9bd7dc492f",
+      "entryVersion": 54,
+      "entryThrough": "2026-09-21T20:00:00.000Z",
+      "exitVersion": 58,
+      "exitThrough": "2026-09-22T20:00:00.000Z",
+      "jobIds": [
+        "historical-market-recovery:a24c01ad8b3ef6a5",
+        "historical-market-recovery:d8453e0b7a9758bc",
+        "historical-market-recovery:01b976228f32948b",
+        "historical-market-recovery:92d5690bb7a0ac85"
+      ]
+    }
+  ]
+}
