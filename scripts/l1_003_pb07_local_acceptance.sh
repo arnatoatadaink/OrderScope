@@ -13,6 +13,7 @@ node --test --experimental-strip-types   src/pb07-stability.test.ts   src/pb07-o
 
 npm run typecheck
 bash -n scripts/l1_003_pb07_readonly_preflight.sh
+bash -n scripts/l1_003_pb07_change_window.sh
 git diff --check
 
 echo
