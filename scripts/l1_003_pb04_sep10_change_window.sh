@@ -104,7 +104,7 @@ if (packet.schemaVersion !== "l1-003-pb04-remote-execution-packet-v1"
   || packet.remoteMutationPerformed !== false
   || packet.environment !== "live-canary"
   || packet.coverageKey !== "NVDA|1Min|REGULAR|stock:iex:raw"
-  || packet.frozenRemoteCheckpoint?.version !== 18
+  || packet.frozenRemoteCheckpoint?.version !== 22
   || packet.frozenRemoteCheckpoint?.completeThrough !== "2026-09-09T20:00:00.000Z"
   || packet.source?.marketDate !== "2026-09-10"
   || packet.source?.contentSha256 !== evidence.contentSha256
@@ -314,7 +314,7 @@ THEN 1 ELSE 0 END AS inspection_ok;
 done
 
 echo
-echo "== final Sep9 checkpoint =="
+echo "== final Sep10 checkpoint =="
 final_sql="
 SELECT CASE WHEN COUNT(*) = 1 THEN 1 ELSE 0 END AS final_ok
 FROM coverage_checkpoint
