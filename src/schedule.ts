@@ -124,7 +124,7 @@ export function batchAcquisitionJobs(
         instruments, checkpointExpectations });
     }
   }
-  return result;
+  return result.sort((a, b) => a.jobId.localeCompare(b.jobId));
 }
 
 export function coverageKeyFor(
