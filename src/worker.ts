@@ -126,9 +126,37 @@ const NVDA_LOCAL_EVIDENCE_RECOVERY = {
   marketDate: "2026-09-09",
   sessionOpen: "2026-09-09T13:30:00.000Z",
   sessionClose: "2026-09-09T20:00:00.000Z",
-  checkpointBefore: "2026-09-08T20:00:00.000Z",
-  checkpointVersion: 18,
   evidenceSha256: "a0ac9c8aab46e9381982bb789c0c59463e536c6d19babf0457dff4dac13f86a2",
+  chunks: [
+    {
+      jobId: "historical-market-recovery:e03dbae7560a43b7",
+      checkpointBefore: "2026-09-08T20:00:00.000Z",
+      checkpointVersion: 18,
+      checkpointAfter: "2026-09-09T15:10:00.000Z",
+      checkpointAfterVersion: 19,
+    },
+    {
+      jobId: "historical-market-recovery:285818c7fed36dda",
+      checkpointBefore: "2026-09-09T15:10:00.000Z",
+      checkpointVersion: 19,
+      checkpointAfter: "2026-09-09T16:50:00.000Z",
+      checkpointAfterVersion: 20,
+    },
+    {
+      jobId: "historical-market-recovery:df26f621a6c4b329",
+      checkpointBefore: "2026-09-09T16:50:00.000Z",
+      checkpointVersion: 20,
+      checkpointAfter: "2026-09-09T18:30:00.000Z",
+      checkpointAfterVersion: 21,
+    },
+    {
+      jobId: "historical-market-recovery:1d619625354a95ab",
+      checkpointBefore: "2026-09-09T18:30:00.000Z",
+      checkpointVersion: 21,
+      checkpointAfter: "2026-09-09T20:00:00.000Z",
+      checkpointAfterVersion: 22,
+    },
+  ],
 } as const;
 
 
@@ -549,13 +577,16 @@ export function createWorker(dependencies: ScheduledOrchestrationDependencies = 
         const suppliedCompleteThrough = request.headers.get("x-orderscope-complete-through");
         const recoveryId = request.headers.get("x-orderscope-recovery-id");
         const suppliedEvidenceHash = request.headers.get("x-orderscope-evidence-sha256");
+        const frozenChunk = NVDA_LOCAL_EVIDENCE_RECOVERY.chunks.find((chunk) =>
+          chunk.jobId === expectedJobId
+          && chunk.checkpointVersion === suppliedVersion
+          && chunk.checkpointBefore === suppliedCompleteThrough);
         if (!expectedJobId || suppliedVersion === undefined || suppliedCompleteThrough === null || !recoveryId
           || !Number.isFinite(Date.parse(suppliedCompleteThrough))
           || new Date(Date.parse(suppliedCompleteThrough)).toISOString() !== suppliedCompleteThrough
           || recoveryId !== NVDA_LOCAL_EVIDENCE_RECOVERY.recoveryId
-          || suppliedVersion !== NVDA_LOCAL_EVIDENCE_RECOVERY.checkpointVersion
-          || suppliedCompleteThrough !== NVDA_LOCAL_EVIDENCE_RECOVERY.checkpointBefore
-          || suppliedEvidenceHash !== NVDA_LOCAL_EVIDENCE_RECOVERY.evidenceSha256) {
+          || suppliedEvidenceHash !== NVDA_LOCAL_EVIDENCE_RECOVERY.evidenceSha256
+          || !frozenChunk) {
           return json({ error: "frozen_identity_mismatch" }, 409);
         }
 
@@ -685,11 +716,12 @@ export function createWorker(dependencies: ScheduledOrchestrationDependencies = 
             && result.summary.conflicts === 0
             && result.summary.rejected === 0
             && result.summary.missing === 0
-            && checkpointAfter?.completeThrough === plannedJob.requestedRange.endExclusive
+            && checkpointAfter?.completeThrough === frozenChunk.checkpointAfter
+            && plannedJob.requestedRange.endExclusive === frozenChunk.checkpointAfter
             && checkpointAfter.state === "COMPLETE"
             && checkpointAfter.missingRanges.length === 0
             && checkpointAfter.blocker === undefined
-            && checkpointAfter.version === suppliedVersion + 1;
+            && checkpointAfter.version === frozenChunk.checkpointAfterVersion;
           return json({
             accepted,
             recoveryId,
