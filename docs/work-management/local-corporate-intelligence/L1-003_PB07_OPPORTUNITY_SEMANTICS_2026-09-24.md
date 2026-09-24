@@ -41,18 +41,19 @@ scheduler failure or unsafe state is a stop condition.
 ## Frozen fairness-order expectation
 
 Using the read-only checkpoint snapshot and unchanged priority policy, the local
-simulation freezes this six-opportunity upper bound:
+simulation freezes this seven-opportunity upper bound:
 
 ```text
 Cron opportunity 1  AMD + QQQ
 Cron opportunity 2  SPY + BTCUSD
-Cron opportunity 3  AMD + NVDA   -> NVDA v60 / 16:49Z
-Cron opportunity 4  QQQ + SPY
-Cron opportunity 5  BTCUSD + AMD
-Cron opportunity 6  BTCUSD + NVDA -> NVDA v61 / 18:28Z
+Cron opportunity 3  BTCUSD + AMD
+Cron opportunity 4  BTCUSD + NVDA -> NVDA v60 / 16:49Z
+Cron opportunity 5  QQQ + SPY
+Cron opportunity 6  BTCUSD + AMD
+Cron opportunity 7  NVDA + QQQ    -> NVDA v61 / 18:28Z
 ```
 
-Thus the bounded remote window may require up to six Cron opportunities to
+Thus the bounded remote window may require up to seven Cron opportunities to
 observe two consecutive selected NVDA executions.
 
 The expected NVDA executions are:
