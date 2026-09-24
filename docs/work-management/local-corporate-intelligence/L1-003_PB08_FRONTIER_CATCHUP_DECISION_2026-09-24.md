@@ -89,3 +89,30 @@ frontier.
 ## Authority boundary
 
 This decision authorizes no remote mutation or Phase B pause/resume.
+
+
+## Snapshot-vs-moving-frontier clarification
+
+The fairness-order test is a **frozen read-only snapshot simulation**. Its job
+is to prove that, from the captured checkpoint state and captured frontier,
+unchanged scheduler fairness can reach that frozen frontier within the bounded
+Cron count.
+
+The test must therefore keep `now` fixed at the snapshot timestamp. Advancing
+`now` inside the simulation changes the target frontier while simultaneously
+testing the catch-up schedule and conflates two different properties.
+
+Operationally, the real frontier continues to move during a remote catch-up
+window. Therefore the final PB-08 packet must never reuse the old frozen
+frontier after the window. Instead:
+
+```text
+freeze snapshot
+  -> run separately authorized bounded normal-scheduler catch-up
+  -> immediately rerun read-only frontier preflight
+  -> capture the then-current frontier and exact checkpoint
+  -> only if sufficiently current, freeze checkpoint_before_pause
+```
+
+This clarification changes no runtime behavior and authorizes no remote
+mutation.
