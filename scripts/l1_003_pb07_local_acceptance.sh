@@ -9,7 +9,7 @@ git diff --quiet || { echo "ERROR: worktree has unstaged changes" >&2; exit 1; }
 git diff --cached --quiet || { echo "ERROR: worktree has staged changes" >&2; exit 1; }
 
 echo "== PB-07 stability local acceptance =="
-node --test --experimental-strip-types   src/pb07-stability.test.ts   src/pb06-handoff.test.ts   src/schedule.test.ts   src/job-priority.test.ts   src/execution.test.ts
+node --test --experimental-strip-types   src/pb07-stability.test.ts   src/pb07-opportunity-order.test.ts   src/pb06-handoff.test.ts   src/schedule.test.ts   src/job-priority.test.ts   src/execution.test.ts
 
 npm run typecheck
 bash -n scripts/l1_003_pb07_readonly_preflight.sh
