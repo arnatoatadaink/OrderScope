@@ -79,3 +79,50 @@ test("simulates the Sep9 local evidence through the real executor contract", asy
   assert.equal(result.finalCheckpoint.version, 22);
   assert.equal(result.finalCheckpoint.state, "COMPLETE");
 });
+
+
+test("simulates the Sep11 sparse evidence with one acknowledged absence", async () => {
+  const session = denseSession();
+  session.plan = {
+    marketDate: "2026-09-11",
+    startInclusive: "2026-09-11T13:30:00.000Z",
+    endExclusive: "2026-09-11T20:00:00.000Z",
+    expectedBars: 390,
+  };
+  const missing = "2026-09-11T16:57:00.000Z";
+  session.bars = Array.from({ length: 390 }, (_, index) => ({
+    symbol: "NVDA",
+    timestamp: new Date(Date.parse(session.plan.startInclusive) + index * 60_000).toISOString(),
+    open: 1, high: 1, low: 1, close: 1, volume: 1,
+    provider: "alpaca" as const,
+    dataVariant: "stock:iex:raw",
+  })).filter((bar) => bar.timestamp !== missing);
+  session.validation = validateRegularSession(session.plan, session.bars);
+  session.reproducible = true;
+  session.contentSha256 = stableHash(session);
+
+  const result = await simulateLocalPb04Session({
+    session,
+    coverageAbsences: [{
+      symbol: "NVDA",
+      identityStart: missing,
+      reason: "REPRODUCIBLE_PROVIDER_ABSENCE",
+      evidenceHash: session.contentSha256,
+    }],
+    checkpointBefore: {
+      ...checkpoint(),
+      completeThrough: "2026-09-10T20:00:00.000Z",
+      version: 26,
+    },
+    calendarRevision: "local-evidence:2026-09-11",
+    createdAt: "2026-09-24T02:00:00.000Z",
+  });
+
+  assert.equal(result.remoteMutation, false);
+  assert.deepEqual(result.chunks.map((chunk) => chunk.summary.inserted), [100, 100, 99, 90]);
+  assert.deepEqual(result.chunks.map((chunk) => chunk.summary.acknowledgedAbsent ?? 0), [0, 0, 1, 0]);
+  assert.deepEqual(result.chunks.map((chunk) => chunk.summary.missing), [0, 0, 0, 0]);
+  assert.equal(result.finalCheckpoint.completeThrough, "2026-09-11T20:00:00.000Z");
+  assert.equal(result.finalCheckpoint.version, 30);
+  assert.equal(result.finalCheckpoint.state, "COMPLETE");
+});
