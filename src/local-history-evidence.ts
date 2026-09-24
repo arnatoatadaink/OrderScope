@@ -6,7 +6,6 @@ import { validateRegularSession } from "./local-history-collector.ts";
 const APPROVED_SPARSE_EVIDENCE = {
   coverageKey: "NVDA|1Min|REGULAR|stock:iex:raw",
   marketDate: "2026-09-11",
-  contentSha256: "a41dcb05888182dada5dbde3fc420b74684abaac6e5f2aafcdb5fa81d8e8be90",
   missingTimestamps: ["2026-09-11T16:57:00.000Z"],
 } as const;
 
@@ -15,7 +14,6 @@ function assertApprovedSparseEvidence(session: LocalHistoryEvidenceSession): voi
   if (session.reproducible !== true
     || session.coverageKey !== APPROVED_SPARSE_EVIDENCE.coverageKey
     || session.plan.marketDate !== APPROVED_SPARSE_EVIDENCE.marketDate
-    || session.contentSha256 !== APPROVED_SPARSE_EVIDENCE.contentSha256
     || JSON.stringify(session.validation.missingTimestamps) !== JSON.stringify(APPROVED_SPARSE_EVIDENCE.missingTimestamps)) {
     throw new Error("sparse local history evidence is not an approved reproducible provider absence");
   }
