@@ -237,7 +237,21 @@ NODE
   after_through="${fields[9]}"
 
   echo "-- chunk ${ordinal}: ${job_id} ${range_start} -> ${range_end}"
-  curl -fsS -X POST     -H "authorization: Bearer ${TOKEN}"     -H "content-type: application/json"     -H "x-orderscope-recovery-id: ${recovery_id}"     -H "x-orderscope-job-id: ${job_id}"     -H "x-orderscope-checkpoint-version: ${before_version}"     -H "x-orderscope-complete-through: ${before_through}"     -H "x-orderscope-evidence-sha256: a0ac9c8aab46e9381982bb789c0c59463e536c6d19babf0457dff4dac13f86a2"     --data-binary "@${BODY_FILE}"     "${BASE_URL%/}/control/historical-recovery/nvda/local-evidence-next-chunk"     > "${RESPONSE_FILE}"
+  response_code=""
+  for probe in 1 2 3 4 5; do
+    response_code="$(curl -sS -o "${RESPONSE_FILE}" -w '%{http_code}' -X POST       -H "authorization: Bearer ${TOKEN}"       -H "content-type: application/json"       -H "x-orderscope-recovery-id: ${recovery_id}"       -H "x-orderscope-job-id: ${job_id}"       -H "x-orderscope-checkpoint-version: ${before_version}"       -H "x-orderscope-complete-through: ${before_through}"       -H "x-orderscope-evidence-sha256: a0ac9c8aab46e9381982bb789c0c59463e536c6d19babf0457dff4dac13f86a2"       --data-binary "@${BODY_FILE}"       "${BASE_URL%/}/control/historical-recovery/nvda/local-evidence-next-chunk" || true)"
+    if [[ "${response_code}" == "404" ]]; then
+      echo "chunk ${ordinal}: endpoint still on old/closed version (404), retry ${probe}/5"
+      sleep 2
+      continue
+    fi
+    break
+  done
+  [[ "${response_code}" == "200" ]] || {
+    echo "chunk ${ordinal}: unexpected HTTP=${response_code}" >&2
+    cat "${RESPONSE_FILE}" >&2 || true
+    fail "chunk ${ordinal} request failed before acceptance"
+  }
 
   RESPONSE_FILE="${RESPONSE_FILE}" JOB_ID="${job_id}" PROVIDER_BARS="${provider_bars}"   ABSENT="${acknowledged_absent}" AFTER_VERSION="${after_version}" AFTER_THROUGH="${after_through}"   node --input-type=module - <<'NODE'
 import fs from "node:fs";
