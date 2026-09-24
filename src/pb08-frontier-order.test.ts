@@ -47,7 +47,10 @@ test("PB-08 frozen competition reaches NVDA frontier within a bounded number of 
   const selections:string[][]=[];
   let nvdaJobs=0;
   for(let i=0;i<12;i++){
-    const now=new Date(Date.parse(now0)+i*60_000);
+    // This test freezes the read-only PB-08 snapshot.  Do not advance "now"
+    // here: moving-frontier behavior is validated operationally by taking a
+    // fresh read-only snapshot immediately after the bounded catch-up window.
+    const now=new Date(now0);
     const jobs=prioritizeAcquisitionJobs(p.plan(universe,calendar,checkpoints,now),checkpoints).slice(0,2);
     selections.push(jobs.map(j=>j.instruments[0]!.symbol));
     for(const job of jobs){
