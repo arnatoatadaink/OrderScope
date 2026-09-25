@@ -9,8 +9,9 @@ COVERAGE_KEY="NVDA|1Min|REGULAR|stock:iex:raw"
 
 ENTRY_VERSION=61
 ENTRY_THROUGH="2026-09-23T18:28:00.000Z"
-FROZEN_MIN_FRONTIER="2026-09-25T13:36:00.000Z"
-LATEST_ALLOWED_RETENTION_FLOOR="2026-09-24T20:00:00.000Z"
+FINAL_TARGET_VERSION=65
+FINAL_TARGET_THROUGH="2026-09-25T20:00:00.000Z"
+FIRST_RETAINED_START="2026-09-25T13:30:00.000Z"
 MAX_OPPORTUNITIES=16
 RETENTION_MINUTES=1440
 LIVE_DEPLOYED=0
@@ -59,8 +60,8 @@ git diff --cached --quiet || fail "worktree has staged changes"
 
 now_epoch="$(date -u +%s)"
 floor_epoch="$((now_epoch - RETENTION_MINUTES * 60))"
-latest_floor_epoch="$(date -u -d "${LATEST_ALLOWED_RETENTION_FLOOR}" +%s)"
-(( floor_epoch < latest_floor_epoch )) || fail "moving retention floor has passed the entire Sep24 retained Regular tail; re-freeze required"
+first_start_epoch="$(date -u -d "${FIRST_RETAINED_START}" +%s)"
+(( floor_epoch <= first_start_epoch )) || fail "moving retention floor has passed Sep25 Regular open; authorization packet is stale"
 
 echo "== local acceptance before remote mutation =="
 bash scripts/l1_003_pb08_local_acceptance.sh
@@ -224,7 +225,18 @@ if(Number(cp.version)!==61+attempts.length) {
   console.error(JSON.stringify({checkpoint:cp,attempts:attempts.length},null,2));
   throw new Error("NVDA checkpoint version does not match clean attempt count");
 }
-if((cp.complete_through??"")>="2026-09-25T13:36:00.000Z" && attempts.length>=1) {
+const expectedTotals=[100,100,100,93];
+for(const [index,a] of attempts.entries()) {
+  const d=JSON.parse(a.diagnostic_json??"{}");
+  const total=Number(d.inserted??0)+Number(d.matched??0);
+  if(total!==expectedTotals[index]) {
+    console.error(JSON.stringify({index,a,total,expected:expectedTotals[index]},null,2));
+    throw new Error("NVDA attempt bar count mismatch");
+  }
+}
+if(Number(cp.version)===65
+  && cp.complete_through==="2026-09-25T20:00:00.000Z"
+  && attempts.length===4) {
   process.stdout.write("accepted");
 } else {
   process.stdout.write("waiting");
@@ -234,12 +246,12 @@ NODE
 
   if [[ "${state}" == "accepted" ]]; then
     accepted=1
-    echo "PB-08 frozen minimum frontier reached or exceeded: ${FROZEN_MIN_FRONTIER}"
+    echo "PB-08 Sep25 Regular close reached: v65 / ${FINAL_TARGET_THROUGH}"
     break
   fi
 done
 
-[[ "${accepted}" == "1" ]] || fail "PB-08 frozen minimum frontier not reached within 16 Cron opportunities"
+[[ "${accepted}" == "1" ]] || fail "PB-08 Sep25 Regular close not reached within 16 Cron opportunities"
 
 echo
 echo "== exact PB-08 final evidence =="
@@ -247,9 +259,9 @@ final_json="$(d1_json "
 SELECT CASE WHEN COUNT(*)=1 THEN 1 ELSE 0 END AS final_checkpoint_ok
 FROM coverage_checkpoint
 WHERE coverage_key='${COVERAGE_KEY}'
-  AND version >= ${ENTRY_VERSION} + 1
-  AND complete_through >= '${FROZEN_MIN_FRONTIER}'
-  AND source_observed_through = complete_through
+  AND version=${FINAL_TARGET_VERSION}
+  AND complete_through='${FINAL_TARGET_THROUGH}'
+  AND source_observed_through='${FINAL_TARGET_THROUGH}'
   AND state='COMPLETE'
   AND missing_ranges_json='[]'
   AND blocker_json IS NULL
@@ -288,9 +300,9 @@ const clean=get("clean_nvda_attempts");
 const finalVersion=Number(finalRow?.final_version ?? -1);
 const finalThrough=String(finalRow?.final_through ?? "");
 if(get("final_checkpoint_ok")!==1
-  || clean<1
-  || finalVersion!==61+clean
-  || finalThrough<"2026-09-25T13:36:00.000Z"
+  || clean!==4
+  || finalVersion!==65
+  || finalThrough!=="2026-09-25T20:00:00.000Z"
   || get("bad_nvda_attempts")!==0) {
   console.error(JSON.stringify(rows,null,2));
   throw new Error("PB-08 final evidence mismatch");
@@ -305,5 +317,5 @@ console.log(JSON.stringify({
 NODE
 
 echo
-echo "PB-08 frontier catch-up: ACCEPTED REMOTELY at or beyond ${FROZEN_MIN_FRONTIER}"
+echo "PB-08 frontier catch-up: ACCEPTED REMOTELY at v65 / ${FINAL_TARGET_THROUGH}"
 echo "Safe-close will restore checked-in shadow deployment."
