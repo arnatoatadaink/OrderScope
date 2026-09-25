@@ -17,6 +17,6 @@ git diff --check
 
 echo
 echo "PB-08 local acceptance: PASS"
-echo "snapshot frontier target: 2026-09-24T15:15:00.000Z"
-echo "NVDA catch-up jobs: 3"
+echo "snapshot frontier target: 2026-09-24T20:00:00.000Z"
+echo "NVDA catch-up jobs: 4"
 echo "remoteMutation=false"
