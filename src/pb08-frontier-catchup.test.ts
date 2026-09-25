@@ -5,8 +5,8 @@ import type { StoredCoverageCheckpoint } from "./checkpoint.ts";
 import { SchedulePolicy } from "./schedule.ts";
 import { loadUniverseSnapshot } from "./universe.ts";
 
-const observedNow = new Date("2026-09-24T15:16:51.000Z");
-const retentionFloor = "2026-09-23T15:16:51.000Z";
+const observedNow = new Date("2026-09-25T02:44:38.000Z");
+const retentionFloor = "2026-09-24T02:44:38.000Z";
 
 const calendar: MarketCalendarSnapshot = {
   market: "US_EQUITIES",
@@ -49,7 +49,7 @@ function cp(version: number, through: string): StoredCoverageCheckpoint {
   };
 }
 
-test("PB-08 snapshot requires three clean NVDA jobs to reach the current Regular frontier", () => {
+test("PB-08 fresh snapshot requires four clean NVDA jobs to reach the retained Regular frontier", () => {
   const universe = {
     ...loadUniverseSnapshot("canary-v0.1"),
     instruments: loadUniverseSnapshot("canary-v0.1").instruments.filter(x => x.symbol === "NVDA"),
@@ -64,22 +64,28 @@ test("PB-08 snapshot requires three clean NVDA jobs to reach the current Regular
 
   const first = policy.plan(universe, calendar, [cp(61, "2026-09-23T18:28:00.000Z")], observedNow)[0]!;
   assert.deepEqual(first.requestedRange, {
-    startInclusive: "2026-09-23T18:27:00.000Z",
-    endExclusive: "2026-09-23T20:00:00.000Z",
-  });
-
-  const second = policy.plan(universe, calendar, [cp(62, "2026-09-23T20:00:00.000Z")], observedNow)[0]!;
-  assert.deepEqual(second.requestedRange, {
     startInclusive: "2026-09-24T13:30:00.000Z",
     endExclusive: "2026-09-24T15:10:00.000Z",
   });
 
-  const third = policy.plan(universe, calendar, [cp(63, "2026-09-24T15:10:00.000Z")], observedNow)[0]!;
-  assert.deepEqual(third.requestedRange, {
+  const second = policy.plan(universe, calendar, [cp(62, "2026-09-24T15:10:00.000Z")], observedNow)[0]!;
+  assert.deepEqual(second.requestedRange, {
     startInclusive: "2026-09-24T15:09:00.000Z",
-    endExclusive: "2026-09-24T15:15:00.000Z",
+    endExclusive: "2026-09-24T16:49:00.000Z",
   });
 
-  const done = policy.plan(universe, calendar, [cp(64, "2026-09-24T15:15:00.000Z")], observedNow);
+  const third = policy.plan(universe, calendar, [cp(63, "2026-09-24T16:49:00.000Z")], observedNow)[0]!;
+  assert.deepEqual(third.requestedRange, {
+    startInclusive: "2026-09-24T16:48:00.000Z",
+    endExclusive: "2026-09-24T18:28:00.000Z",
+  });
+
+  const fourth = policy.plan(universe, calendar, [cp(64, "2026-09-24T18:28:00.000Z")], observedNow)[0]!;
+  assert.deepEqual(fourth.requestedRange, {
+    startInclusive: "2026-09-24T18:27:00.000Z",
+    endExclusive: "2026-09-24T20:00:00.000Z",
+  });
+
+  const done = policy.plan(universe, calendar, [cp(65, "2026-09-24T20:00:00.000Z")], observedNow);
   assert.equal(done.length, 0);
 });
