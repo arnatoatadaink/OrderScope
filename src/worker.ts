@@ -24,6 +24,7 @@ import { SchedulerRunEvidenceSession } from "./run-evidence-session";
 import { runHistoricalRecoveryChunk } from "./historical-recovery-runner";
 import { planNextHistoricalRecoveryChunk, type HistoricalRecoveryRequest } from "./historical-recovery";
 import { coverageAbsencesForRange, localHistoryFetchPage, parseLocalHistoryEvidence } from "./local-history-evidence";
+import { acknowledgePb08ReproducibleAbsencesD1 } from "./pb08-reproducible-absence-d1";
 
 type PredictionMode = "off" | "shadow";
 
@@ -767,6 +768,68 @@ export function createWorker(dependencies: ScheduledOrchestrationDependencies = 
 
     async fetch(request: Request, env: RuntimeEnv): Promise<Response> {
       const url = new URL(request.url);
+
+      if (url.pathname === "/control/pb08/reproducible-absence/ack") {
+        if (request.method !== "POST") return json({ error: "method_not_allowed" }, 405);
+        if (!await authorizeHistoricalRecovery(request, env)) return json({ error: "unauthorized" }, 401);
+        if (!("STATE_DB" in env) || !env.STATE_DB) return json({ error: "runtime_binding_unavailable" }, 503);
+        if (env.ALPACA_FEED !== "iex"
+          || env.UNIVERSE_PROFILE !== "canary-v0.1"
+          || env.WORKER_MODE !== "shadow"
+          || loadNewsAcquisitionRuntimeConfig(env).enabled
+          || historicalRecoveryEnabled(env)) {
+          return json({ error: "runtime_precondition_mismatch" }, 409);
+        }
+
+        const budget = new InvocationBudget();
+        const stateDb = budgetedD1(env.STATE_DB, budget);
+        const checkpoints = dependencies.checkpointPort?.(stateDb) ?? new D1CoverageCheckpointPort(stateDb);
+        const nvda = await checkpoints.get("NVDA|1Min|REGULAR|stock:iex:raw");
+        if (!nvda
+          || nvda.version !== 61
+          || nvda.completeThrough !== "2026-09-23T18:28:00.000Z"
+          || nvda.sourceObservedThrough !== "2026-09-23T18:28:00.000Z"
+          || nvda.state !== "COMPLETE"
+          || nvda.missingRanges.length !== 0
+          || nvda.blocker !== undefined
+          || nvda.retryNotBefore !== undefined) {
+          return json({ error: "nvda_entry_mismatch" }, 409);
+        }
+
+        const acknowledgedAt = new Date().toISOString();
+        const rows = await acknowledgePb08ReproducibleAbsencesD1(stateDb, acknowledgedAt);
+        if (rows.length !== 2) return json({ error: "absence_checkpoint_mismatch" }, 409);
+
+        const after = await checkpoints.getMany([
+          "AMD|1Min|REGULAR|stock:iex:raw",
+          "QQQ|1Min|REGULAR|stock:iex:raw",
+        ]);
+        const accepted = after.length === 2 && after.every((checkpoint) =>
+          checkpoint.state === "COMPLETE"
+          && checkpoint.missingRanges.length === 0
+          && checkpoint.blocker === undefined
+          && checkpoint.retryNotBefore === undefined
+          && checkpoint.completeThrough === checkpoint.sourceObservedThrough
+        );
+        return json({
+          accepted,
+          acknowledgedAt,
+          evidence: {
+            reason: "REPRODUCIBLE_PROVIDER_ABSENCE",
+            observations: 2,
+            AMD: "2026-09-24T14:49:00.000Z",
+            QQQ: "2026-09-24T14:32:00.000Z",
+          },
+          checkpoints: after.map((checkpoint) => ({
+            coverageKey: checkpoint.coverageKey,
+            version: checkpoint.version,
+            completeThrough: checkpoint.completeThrough,
+            state: checkpoint.state,
+            missingRanges: checkpoint.missingRanges,
+          })),
+          budget: budget.snapshot(),
+        }, accepted ? 200 : 409);
+      }
 
       const localEvidenceRecoveryPath = url.pathname === "/control/historical-recovery/nvda/local-evidence-next-chunk";
       if (localEvidenceRecoveryPath) {
