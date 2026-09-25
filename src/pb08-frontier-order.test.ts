@@ -6,8 +6,8 @@ import { prioritizeAcquisitionJobs } from "./job-priority.ts";
 import { SchedulePolicy } from "./schedule.ts";
 import { loadUniverseSnapshot } from "./universe.ts";
 
-const now0 = "2026-09-24T15:16:51.000Z";
-const floor = "2026-09-23T15:16:51.000Z";
+const now0 = "2026-09-25T02:44:38.000Z";
+const floor = "2026-09-24T02:44:38.000Z";
 const calendar: MarketCalendarSnapshot = {
   market: "US_EQUITIES",
   dateRange: { startInclusive: "2026-09-23", endExclusive: "2026-09-25" },
@@ -27,7 +27,7 @@ function cp(symbol:string, scope:"REGULAR"|"ALL_TRADING", variant:string, throug
   };
 }
 
-test("PB-08 frozen competition reaches NVDA frontier within a bounded number of unchanged Cron opportunities", () => {
+test("PB-08 fresh frozen competition reaches the retained NVDA frontier within a bounded number of unchanged Cron opportunities", () => {
   const universe=loadUniverseSnapshot("canary-v0.1");
   const checkpoints:StoredCoverageCheckpoint[]=[
     cp("AMD","REGULAR","stock:iex:raw","2026-09-02T13:51:00.000Z",40,"PARTIAL"),
@@ -46,7 +46,7 @@ test("PB-08 frozen competition reaches NVDA frontier within a bounded number of 
 
   const selections:string[][]=[];
   let nvdaJobs=0;
-  for(let i=0;i<12;i++){
+  for(let i=0;i<16;i++){
     // This test freezes the read-only PB-08 snapshot.  Do not advance "now"
     // here: moving-frontier behavior is validated operationally by taking a
     // fresh read-only snapshot immediately after the bounded catch-up window.
@@ -63,12 +63,12 @@ test("PB-08 frozen competition reaches NVDA frontier within a bounded number of 
       if(item.symbol==="NVDA") nvdaJobs+=1;
     }
     const nvda=checkpoints.find(c=>c.symbol==="NVDA")!;
-    if(nvda.completeThrough>="2026-09-24T15:15:00.000Z") break;
+    if(nvda.completeThrough>="2026-09-24T20:00:00.000Z") break;
   }
 
   const nvda=checkpoints.find(c=>c.symbol==="NVDA")!;
-  assert.equal(nvda.completeThrough,"2026-09-24T15:15:00.000Z");
-  assert.equal(nvda.version,64);
-  assert.equal(nvdaJobs,3);
-  assert.ok(selections.length<=12);
+  assert.equal(nvda.completeThrough,"2026-09-24T20:00:00.000Z");
+  assert.equal(nvda.version,65);
+  assert.equal(nvdaJobs,4);
+  assert.ok(selections.length<=16);
 });
