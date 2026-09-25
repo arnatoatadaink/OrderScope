@@ -13,6 +13,7 @@ node --test --experimental-strip-types   src/pb08-frontier-catchup.test.ts   src
 
 npm run typecheck
 bash -n scripts/l1_003_pb08_entry_packet_preflight.sh
+bash -n scripts/l1_003_pb08_frontier_catchup_change_window.sh
 git diff --check
 
 echo
