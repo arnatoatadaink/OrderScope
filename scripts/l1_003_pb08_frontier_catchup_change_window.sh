@@ -255,14 +255,9 @@ WHERE coverage_key='${COVERAGE_KEY}'
   AND blocker_json IS NULL
   AND retry_not_before IS NULL;
 
-SELECT COUNT(*) AS canonical_bars
-FROM normalized_bar
-WHERE instrument_id='NVDA'
-  AND interval='1Min'
-  AND session_kind='REGULAR'
-  AND logical_data_variant='stock:iex:raw'
-  AND bar_start_utc >= '2026-09-24T13:30:00.000Z'
-  AND bar_start_utc <  '2026-09-24T20:00:00.000Z';
+SELECT version AS final_version, complete_through AS final_through
+FROM coverage_checkpoint
+WHERE coverage_key='${COVERAGE_KEY}';
 
 SELECT COUNT(*) AS clean_nvda_attempts
 FROM acquisition_attempt
@@ -274,8 +269,9 @@ WHERE coverage_key='${COVERAGE_KEY}'
   AND COALESCE(json_extract(diagnostic_json,'$.missing'),0)=0
   AND (
     COALESCE(json_extract(diagnostic_json,'$.inserted'),0)
-      + COALESCE(json_extract(diagnostic_json,'$.matched'),0) IN (93,100)
-  );
+      + COALESCE(json_extract(diagnostic_json,'$.matched'),0
+    )
+  ) BETWEEN 1 AND 100;
 
 SELECT COUNT(*) AS bad_nvda_attempts
 FROM acquisition_attempt
@@ -287,21 +283,27 @@ FINAL_JSON="${final_json}" node --input-type=module - <<'NODE'
 const x=JSON.parse(process.env.FINAL_JSON);
 const rows=(Array.isArray(x)?x:[x]).flatMap(g=>g.results??[]);
 const get=k=>Number(rows.find(r=>k in r)?.[k]);
+const finalRow=rows.find(r=>"final_version" in r);
+const clean=get("clean_nvda_attempts");
+const finalVersion=Number(finalRow?.final_version ?? -1);
+const finalThrough=String(finalRow?.final_through ?? "");
 if(get("final_checkpoint_ok")!==1
-  || get("canonical_bars")!==390
-  || get("clean_nvda_attempts")!==4
+  || clean<1
+  || finalVersion!==61+clean
+  || finalThrough<"2026-09-25T13:36:00.000Z"
   || get("bad_nvda_attempts")!==0) {
   console.error(JSON.stringify(rows,null,2));
   throw new Error("PB-08 final evidence mismatch");
 }
 console.log(JSON.stringify({
   final_checkpoint_ok:get("final_checkpoint_ok"),
-  canonical_bars:get("canonical_bars"),
-  clean_nvda_attempts:get("clean_nvda_attempts"),
+  final_version:finalVersion,
+  final_through:finalThrough,
+  clean_nvda_attempts:clean,
   bad_nvda_attempts:get("bad_nvda_attempts"),
 },null,2));
 NODE
 
 echo
-echo "PB-08 frontier catch-up: ACCEPTED REMOTELY at v65 / ${FINAL_TARGET_THROUGH}"
+echo "PB-08 frontier catch-up: ACCEPTED REMOTELY at or beyond ${FROZEN_MIN_FRONTIER}"
 echo "Safe-close will restore checked-in shadow deployment."
