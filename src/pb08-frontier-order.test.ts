@@ -74,18 +74,17 @@ test("PB-08 fresh frozen competition reaches the retained NVDA frontier within a
 });
 
 
-test("PB-08 post-absence-ack snapshot reaches the frozen Sep25 minimum frontier under moving-retention competition", () => {
-  const observedNow = "2026-09-25T13:37:34.000Z";
-  const retentionFloor = "2026-09-24T13:37:34.000Z";
-  const frozenMinimumFrontier = "2026-09-25T13:36:00.000Z";
+test("PB-08 post-absence-ack closed-session snapshot reaches Sep25 Regular close in four clean NVDA jobs", () => {
+  const observedNow = "2026-09-25T22:14:11.000Z";
+  const retentionFloor = "2026-09-24T22:14:11.000Z";
+  const frozenFrontier = "2026-09-25T20:00:00.000Z";
   const liveCalendar: MarketCalendarSnapshot = {
     market: "US_EQUITIES",
-    dateRange: { startInclusive: "2026-09-24", endExclusive: "2026-09-26" },
+    dateRange: { startInclusive: "2026-09-25", endExclusive: "2026-09-26" },
     generatedAt: observedNow,
-    revision: "pb08-post-absence-ack-snapshot",
+    revision: "pb08-post-absence-ack-closed-session-snapshot",
     sessions: [
-      { marketDate:"2026-09-24",sessionKind:"REGULAR",opensAt:"2026-09-24T13:30:00.000Z",closesAt:"2026-09-24T20:00:00.000Z",isShortened:false,calendarRevision:"pb08-post-absence-ack-snapshot" },
-      { marketDate:"2026-09-25",sessionKind:"REGULAR",opensAt:"2026-09-25T13:30:00.000Z",closesAt:"2026-09-25T20:00:00.000Z",isShortened:false,calendarRevision:"pb08-post-absence-ack-snapshot" },
+      { marketDate:"2026-09-25",sessionKind:"REGULAR",opensAt:"2026-09-25T13:30:00.000Z",closesAt:"2026-09-25T20:00:00.000Z",isShortened:false,calendarRevision:"pb08-post-absence-ack-closed-session-snapshot" },
     ],
   };
   const universe=loadUniverseSnapshot("canary-v0.1");
@@ -122,13 +121,14 @@ test("PB-08 post-absence-ack snapshot reaches the frozen Sep25 minimum frontier 
       if(item.symbol==="NVDA") nvdaJobs+=1;
     }
     const nvda=checkpoints.find(c=>c.symbol==="NVDA")!;
-    if((nvda.completeThrough ?? "")>=frozenMinimumFrontier) break;
+    if((nvda.completeThrough ?? "")>=frozenFrontier) break;
   }
 
   const nvda=checkpoints.find(c=>c.symbol==="NVDA")!;
-  assert.ok((nvda.completeThrough ?? "")>=frozenMinimumFrontier);
+  assert.equal(nvda.completeThrough,frozenFrontier);
+  assert.equal(nvda.version,65);
   assert.equal(nvda.state,"COMPLETE");
   assert.deepEqual(nvda.missingRanges,[]);
-  assert.ok(nvdaJobs>=4 && nvdaJobs<=5);
+  assert.equal(nvdaJobs,4);
   assert.ok(opportunities<16);
 });
