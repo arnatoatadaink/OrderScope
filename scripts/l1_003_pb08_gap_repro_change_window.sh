@@ -147,6 +147,10 @@ done
 [[ -n "${observed}" ]] || fail "no live digest observed"
 echo "digest=${observed}"
 
+echo "== close live window immediately after one scheduler opportunity =="
+CLOUDFLARE_ENV="${ENV_NAME}" bash scripts/run-wrangler-with-env.sh deploy
+LIVE_DEPLOYED=0
+
 PAYLOAD="${payload}" node --input-type=module - <<'NODE'
 const p=JSON.parse(process.env.PAYLOAD);
 const s=p.summaries??[];
@@ -168,6 +172,10 @@ result="$(d1_json "
 SELECT coverage_key, started_at, finished_at, outcome, job_id, diagnostic_json
 FROM acquisition_attempt
 WHERE started_at >= '${window_start}'
+  AND coverage_key IN (
+    'AMD|1Min|REGULAR|stock:iex:raw',
+    'QQQ|1Min|REGULAR|stock:iex:raw'
+  )
 ORDER BY started_at, coverage_key;
 
 SELECT coverage_key, complete_through, source_observed_through, state,
