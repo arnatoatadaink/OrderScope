@@ -72,3 +72,63 @@ test("PB-08 fresh frozen competition reaches the retained NVDA frontier within a
   assert.equal(nvdaJobs,4);
   assert.ok(selections.length<=16);
 });
+
+
+test("PB-08 post-absence-ack snapshot reaches the frozen Sep25 minimum frontier under moving-retention competition", () => {
+  const observedNow = "2026-09-25T13:37:34.000Z";
+  const retentionFloor = "2026-09-24T13:37:34.000Z";
+  const frozenMinimumFrontier = "2026-09-25T13:36:00.000Z";
+  const liveCalendar: MarketCalendarSnapshot = {
+    market: "US_EQUITIES",
+    dateRange: { startInclusive: "2026-09-24", endExclusive: "2026-09-26" },
+    generatedAt: observedNow,
+    revision: "pb08-post-absence-ack-snapshot",
+    sessions: [
+      { marketDate:"2026-09-24",sessionKind:"REGULAR",opensAt:"2026-09-24T13:30:00.000Z",closesAt:"2026-09-24T20:00:00.000Z",isShortened:false,calendarRevision:"pb08-post-absence-ack-snapshot" },
+      { marketDate:"2026-09-25",sessionKind:"REGULAR",opensAt:"2026-09-25T13:30:00.000Z",closesAt:"2026-09-25T20:00:00.000Z",isShortened:false,calendarRevision:"pb08-post-absence-ack-snapshot" },
+    ],
+  };
+  const universe=loadUniverseSnapshot("canary-v0.1");
+  const checkpoints:StoredCoverageCheckpoint[]=[
+    cp("AMD","REGULAR","stock:iex:raw","2026-09-24T14:50:00.000Z",43),
+    cp("QQQ","REGULAR","stock:iex:raw","2026-09-24T14:33:00.000Z",12),
+    cp("SPY","REGULAR","stock:iex:raw","2026-09-24T15:10:00.000Z",44),
+    cp("NVDA","REGULAR","stock:iex:raw","2026-09-23T18:28:00.000Z",61),
+    cp("BTCUSD","ALL_TRADING","crypto:us","2026-09-24T08:13:00.000Z",49),
+  ];
+  const p=new SchedulePolicy({
+    retentionFloor,
+    overlapMs:{"1Min":60_000,"15Min":900_000,"1Day":86_400_000},
+    finalizationLagMs:{"1Min":60_000,"15Min":120_000,"1Day":1_800_000},
+    maxBarsPerJob:100,
+    logicalDataVariant:i=>i.providerRoute==="alpaca_crypto_bars"?"crypto:us":"stock:iex:raw",
+  });
+
+  let nvdaJobs=0;
+  let opportunities=0;
+  for(;opportunities<16;opportunities++){
+    const jobs=prioritizeAcquisitionJobs(
+      p.plan(universe,liveCalendar,checkpoints,new Date(observedNow)),
+      checkpoints,
+    ).slice(0,2);
+    for(const job of jobs){
+      const key=job.checkpointExpectations[0]!.coverageKey;
+      const item=checkpoints.find(c=>c.coverageKey===key)!;
+      item.completeThrough=job.requestedRange.endExclusive;
+      item.sourceObservedThrough=job.requestedRange.endExclusive;
+      item.version+=1;
+      item.state="COMPLETE";
+      item.missingRanges=[];
+      if(item.symbol==="NVDA") nvdaJobs+=1;
+    }
+    const nvda=checkpoints.find(c=>c.symbol==="NVDA")!;
+    if((nvda.completeThrough ?? "")>=frozenMinimumFrontier) break;
+  }
+
+  const nvda=checkpoints.find(c=>c.symbol==="NVDA")!;
+  assert.ok((nvda.completeThrough ?? "")>=frozenMinimumFrontier);
+  assert.equal(nvda.state,"COMPLETE");
+  assert.deepEqual(nvda.missingRanges,[]);
+  assert.ok(nvdaJobs>=4 && nvdaJobs<=5);
+  assert.ok(opportunities<16);
+});
