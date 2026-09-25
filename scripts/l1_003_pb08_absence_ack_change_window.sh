@@ -102,15 +102,36 @@ wait_for_code "404" 5 || fail "ack endpoint must be closed before change window"
 echo
 echo "== exact remote acknowledgement entry =="
 entry="$(d1_json "
-SELECT coverage_key, complete_through, source_observed_through, state,
-       missing_ranges_json, version, blocker_json, retry_not_before
+SELECT CASE WHEN COUNT(*)=1 THEN 1 ELSE 0 END AS amd_ok
 FROM coverage_checkpoint
-WHERE coverage_key IN (
-  'AMD|1Min|REGULAR|stock:iex:raw',
-  'QQQ|1Min|REGULAR|stock:iex:raw',
-  'NVDA|1Min|REGULAR|stock:iex:raw'
-)
-ORDER BY coverage_key;
+WHERE coverage_key='AMD|1Min|REGULAR|stock:iex:raw'
+  AND version=42
+  AND complete_through='2026-09-24T14:49:00.000Z'
+  AND source_observed_through='2026-09-24T14:50:00.000Z'
+  AND state='PARTIAL'
+  AND missing_ranges_json='[{"startInclusive":"2026-09-24T14:49:00.000Z","endExclusive":"2026-09-24T14:50:00.000Z"}]'
+  AND blocker_json IS NULL;
+
+SELECT CASE WHEN COUNT(*)=1 THEN 1 ELSE 0 END AS qqq_ok
+FROM coverage_checkpoint
+WHERE coverage_key='QQQ|1Min|REGULAR|stock:iex:raw'
+  AND version=11
+  AND complete_through='2026-09-24T14:32:00.000Z'
+  AND source_observed_through='2026-09-24T14:33:00.000Z'
+  AND state='PARTIAL'
+  AND missing_ranges_json='[{"startInclusive":"2026-09-24T14:32:00.000Z","endExclusive":"2026-09-24T14:33:00.000Z"}]'
+  AND blocker_json IS NULL;
+
+SELECT CASE WHEN COUNT(*)=1 THEN 1 ELSE 0 END AS nvda_ok
+FROM coverage_checkpoint
+WHERE coverage_key='NVDA|1Min|REGULAR|stock:iex:raw'
+  AND version=61
+  AND complete_through='2026-09-23T18:28:00.000Z'
+  AND source_observed_through='2026-09-23T18:28:00.000Z'
+  AND state='COMPLETE'
+  AND missing_ranges_json='[]'
+  AND blocker_json IS NULL
+  AND retry_not_before IS NULL;
 
 SELECT COUNT(*) AS unresolved_canary_attempts
 FROM acquisition_attempt
@@ -124,51 +145,25 @@ WHERE coverage_key IN (
 AND finished_at IS NULL AND outcome IS NULL;
 ")"
 
+echo "${entry}"
+
 ENTRY="${entry}" node --input-type=module - <<'NODE'
 const x=JSON.parse(process.env.ENTRY);
 const rows=(Array.isArray(x)?x:[x]).flatMap(g=>g.results??[]);
-const by=new Map(rows.filter(r=>r.coverage_key).map(r=>[r.coverage_key,r]));
-const amd=by.get("AMD|1Min|REGULAR|stock:iex:raw");
-const qqq=by.get("QQQ|1Min|REGULAR|stock:iex:raw");
-const nvda=by.get("NVDA|1Min|REGULAR|stock:iex:raw");
-const unresolved=Number(rows.find(r=>"unresolved_canary_attempts" in r)?.unresolved_canary_attempts ?? -1);
-
-function exact(r,v,through,observed,missing){
-  return r
-    && Number(r.version)===v
-    && r.complete_through===through
-    && r.source_observed_through===observed
-    && r.state==="PARTIAL"
-    && r.missing_ranges_json===missing
-    && r.blocker_json===null;
+const get=(key)=>Number(rows.find(r=>key in r)?.[key] ?? -1);
+const evidence={
+  amd_ok:get("amd_ok"),
+  qqq_ok:get("qqq_ok"),
+  nvda_ok:get("nvda_ok"),
+  unresolved_canary_attempts:get("unresolved_canary_attempts"),
+};
+console.log(JSON.stringify(evidence,null,2));
+if(evidence.amd_ok!==1
+  || evidence.qqq_ok!==1
+  || evidence.nvda_ok!==1
+  || evidence.unresolved_canary_attempts!==0) {
+  throw new Error("PB-08 absence acknowledgement exact entry failed");
 }
-
-if(!exact(
-  amd,42,
-  "2026-09-24T14:49:00.000Z",
-  "2026-09-24T14:50:00.000Z",
-  '[{"startInclusive":"2026-09-24T14:49:00.000Z","endExclusive":"2026-09-24T14:50:00.000Z"}]'
-)) throw new Error("AMD acknowledgement entry changed");
-
-if(!exact(
-  qqq,11,
-  "2026-09-24T14:32:00.000Z",
-  "2026-09-24T14:33:00.000Z",
-  '[{"startInclusive":"2026-09-24T14:32:00.000Z","endExclusive":"2026-09-24T14:33:00.000Z"}]'
-)) throw new Error("QQQ acknowledgement entry changed");
-
-if(!nvda
-  || Number(nvda.version)!==61
-  || nvda.complete_through!=="2026-09-23T18:28:00.000Z"
-  || nvda.source_observed_through!=="2026-09-23T18:28:00.000Z"
-  || nvda.state!=="COMPLETE"
-  || nvda.missing_ranges_json!=="[]"
-  || nvda.blocker_json!==null
-  || nvda.retry_not_before!==null) {
-  throw new Error("NVDA frozen entry changed");
-}
-
-if(unresolved!==0) throw new Error("unresolved canary attempt exists");
 NODE
 
 echo
