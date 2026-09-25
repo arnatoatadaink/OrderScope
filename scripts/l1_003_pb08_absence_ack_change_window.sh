@@ -101,7 +101,7 @@ wait_for_code "404" 5 || fail "ack endpoint must be closed before change window"
 
 echo
 echo "== exact remote acknowledgement entry =="
-entry="$(d1_json "
+preflight_sql="$(cat <<'SQL'
 SELECT CASE WHEN COUNT(*)=1 THEN 1 ELSE 0 END AS amd_ok
 FROM coverage_checkpoint
 WHERE coverage_key='AMD|1Min|REGULAR|stock:iex:raw'
@@ -143,7 +143,9 @@ WHERE coverage_key IN (
   'BTCUSD|1Min|ALL_TRADING|crypto:us'
 )
 AND finished_at IS NULL AND outcome IS NULL;
-")"
+SQL
+)"
+entry="$(d1_json "${preflight_sql}")"
 
 echo "${entry}"
 
