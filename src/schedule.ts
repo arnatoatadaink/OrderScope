@@ -294,7 +294,11 @@ export class SchedulePolicy {
       // reject, a checkpoint exactly at close would otherwise overlap the last
       // bar of the old session forever instead of advancing to the next open.
       if (!isCrypto && instrument.cadence !== "1Day") {
-        const session = nextEquitySession(calendar, equitySessionScope!, progressionAnchorMs, boundary);
+        // If the checkpoint is older than retention, select the first
+        // authoritative session that is still inside retention rather than
+        // getting stuck on an expired prior session.
+        const sessionAnchorMs = Math.max(progressionAnchorMs, retentionFloorMs);
+        const session = nextEquitySession(calendar, equitySessionScope!, sessionAnchorMs, boundary);
         if (!session) continue;
         startMs = Math.max(startMs, instant(session.opensAt, "session open"));
         endMs = Math.min(endMs, instant(session.closesAt, "session close"));
