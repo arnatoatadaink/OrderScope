@@ -59,6 +59,7 @@ type ProvisionedBindings = {
   SCHEDULER_RUN_EVIDENCE_ENABLED?: string;
   HISTORICAL_RECOVERY_CONTROL_TOKEN?: string;
   HISTORICAL_RECOVERY_ENABLED?: string;
+  PB08_ABSENCE_ACK_ENABLED?: string;
 };
 
 type RuntimeEnv = Omit<Env,
@@ -381,6 +382,14 @@ function historicalRecoveryEnabled(env: RuntimeEnv): boolean {
   const value = env.HISTORICAL_RECOVERY_ENABLED ?? "false";
   if (value !== "true" && value !== "false") {
     throw new Error("HISTORICAL_RECOVERY_ENABLED must be true or false");
+  }
+  return value === "true";
+}
+
+function pb08AbsenceAckEnabled(env: RuntimeEnv): boolean {
+  const value = env.PB08_ABSENCE_ACK_ENABLED ?? "false";
+  if (value !== "true" && value !== "false") {
+    throw new Error("PB08_ABSENCE_ACK_ENABLED must be true or false");
   }
   return value === "true";
 }
@@ -770,6 +779,7 @@ export function createWorker(dependencies: ScheduledOrchestrationDependencies = 
       const url = new URL(request.url);
 
       if (url.pathname === "/control/pb08/reproducible-absence/ack") {
+        if (!pb08AbsenceAckEnabled(env)) return json({ error: "not_found" }, 404);
         if (request.method !== "POST") return json({ error: "method_not_allowed" }, 405);
         if (!await authorizeHistoricalRecovery(request, env)) return json({ error: "unauthorized" }, 401);
         if (!("STATE_DB" in env) || !env.STATE_DB) return json({ error: "runtime_binding_unavailable" }, 503);
