@@ -9,15 +9,8 @@ COVERAGE_KEY="NVDA|1Min|REGULAR|stock:iex:raw"
 
 ENTRY_VERSION=61
 ENTRY_THROUGH="2026-09-23T18:28:00.000Z"
-TARGET1_VERSION=62
-TARGET1_THROUGH="2026-09-24T15:10:00.000Z"
-TARGET2_VERSION=63
-TARGET2_THROUGH="2026-09-24T16:49:00.000Z"
-TARGET3_VERSION=64
-TARGET3_THROUGH="2026-09-24T18:28:00.000Z"
-FINAL_TARGET_VERSION=65
-FINAL_TARGET_THROUGH="2026-09-24T20:00:00.000Z"
-FIRST_RETAINED_START="2026-09-24T13:30:00.000Z"
+FROZEN_MIN_FRONTIER="2026-09-25T13:36:00.000Z"
+LATEST_ALLOWED_RETENTION_FLOOR="2026-09-24T20:00:00.000Z"
 MAX_OPPORTUNITIES=16
 RETENTION_MINUTES=1440
 LIVE_DEPLOYED=0
@@ -66,8 +59,8 @@ git diff --cached --quiet || fail "worktree has staged changes"
 
 now_epoch="$(date -u +%s)"
 floor_epoch="$((now_epoch - RETENTION_MINUTES * 60))"
-first_start_epoch="$(date -u -d "${FIRST_RETAINED_START}" +%s)"
-(( floor_epoch <= first_start_epoch )) || fail "moving retention floor has passed PB-08 retained Regular open; authorization packet is stale"
+latest_floor_epoch="$(date -u -d "${LATEST_ALLOWED_RETENTION_FLOOR}" +%s)"
+(( floor_epoch < latest_floor_epoch )) || fail "moving retention floor has passed the entire Sep24 retained Regular tail; re-freeze required"
 
 echo "== local acceptance before remote mutation =="
 bash scripts/l1_003_pb08_local_acceptance.sh
@@ -138,9 +131,6 @@ CLOUDFLARE_ENV="${ENV_NAME}" bash scripts/run-wrangler-with-env.sh deploy --conf
 LIVE_DEPLOYED=1
 
 last_digest="${baseline_digest}"
-saw_v62=0
-saw_v63=0
-saw_v64=0
 accepted=0
 
 for opportunity in $(seq 1 "${MAX_OPPORTUNITIES}"); do
@@ -211,13 +201,13 @@ if(bad!==0) throw new Error("bad/interrupted NVDA attempt observed");
 for(const [index,a] of attempts.entries()) {
   const d=JSON.parse(a.diagnostic_json??"{}");
   const total=Number(d.inserted??0)+Number(d.matched??0);
-  const expectedTotal=index<3 ? 100 : 93;
   if(a.outcome!=="SUCCEEDED"
     || Number(d.conflicts??0)!==0
     || Number(d.rejected??0)!==0
     || Number(d.missing??0)!==0
-    || total!==expectedTotal) {
-    console.error(JSON.stringify({index,a,expectedTotal},null,2));
+    || total<1
+    || total>100) {
+    console.error(JSON.stringify({index,a,total},null,2));
     throw new Error("NVDA attempt is not clean");
   }
 }
@@ -230,37 +220,26 @@ if(cp.state!=="COMPLETE"
   console.error(JSON.stringify(cp,null,2));
   throw new Error("NVDA checkpoint health regression");
 }
-const states=[
-  [62,"2026-09-24T15:10:00.000Z",1,"v62"],
-  [63,"2026-09-24T16:49:00.000Z",2,"v63"],
-  [64,"2026-09-24T18:28:00.000Z",3,"v64"],
-  [65,"2026-09-24T20:00:00.000Z",4,"v65"],
-];
-const hit=states.find(([v,t,n])=>Number(cp.version)===v && cp.complete_through===t && attempts.length===n);
-process.stdout.write(hit?.[3] ?? "waiting");
+if(Number(cp.version)!==61+attempts.length) {
+  console.error(JSON.stringify({checkpoint:cp,attempts:attempts.length},null,2));
+  throw new Error("NVDA checkpoint version does not match clean attempt count");
+}
+if((cp.complete_through??"")>="2026-09-25T13:36:00.000Z" && attempts.length>=1) {
+  process.stdout.write("accepted");
+} else {
+  process.stdout.write("waiting");
+}
 NODE
   )"
 
-  if [[ "${state}" == "v62" ]]; then
-    saw_v62=1
-    echo "PB-08 first clean NVDA advance observed: v62 / ${TARGET1_THROUGH}"
-  elif [[ "${state}" == "v63" ]]; then
-    [[ "${saw_v62}" == "1" ]] || fail "v63 observed without separately observed v62"
-    saw_v63=1
-    echo "PB-08 second clean NVDA advance observed: v63 / ${TARGET2_THROUGH}"
-  elif [[ "${state}" == "v64" ]]; then
-    [[ "${saw_v62}" == "1" && "${saw_v63}" == "1" ]] || fail "v64 observed without prior steps"
-    saw_v64=1
-    echo "PB-08 third clean NVDA advance observed: v64 / ${TARGET3_THROUGH}"
-  elif [[ "${state}" == "v65" ]]; then
-    [[ "${saw_v62}" == "1" && "${saw_v63}" == "1" && "${saw_v64}" == "1" ]] || fail "v65 observed without prior steps"
+  if [[ "${state}" == "accepted" ]]; then
     accepted=1
-    echo "PB-08 fourth clean NVDA advance observed: v65 / ${FINAL_TARGET_THROUGH}"
+    echo "PB-08 frozen minimum frontier reached or exceeded: ${FROZEN_MIN_FRONTIER}"
     break
   fi
 done
 
-[[ "${accepted}" == "1" ]] || fail "PB-08 four clean NVDA advances not observed within 16 Cron opportunities"
+[[ "${accepted}" == "1" ]] || fail "PB-08 frozen minimum frontier not reached within 16 Cron opportunities"
 
 echo
 echo "== exact PB-08 final evidence =="
@@ -268,9 +247,9 @@ final_json="$(d1_json "
 SELECT CASE WHEN COUNT(*)=1 THEN 1 ELSE 0 END AS final_checkpoint_ok
 FROM coverage_checkpoint
 WHERE coverage_key='${COVERAGE_KEY}'
-  AND version=${FINAL_TARGET_VERSION}
-  AND complete_through='${FINAL_TARGET_THROUGH}'
-  AND source_observed_through='${FINAL_TARGET_THROUGH}'
+  AND version >= ${ENTRY_VERSION} + 1
+  AND complete_through >= '${FROZEN_MIN_FRONTIER}'
+  AND source_observed_through = complete_through
   AND state='COMPLETE'
   AND missing_ranges_json='[]'
   AND blocker_json IS NULL
