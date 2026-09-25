@@ -173,6 +173,48 @@ test("advances from a prior equity close to the next authoritative session open"
   });
 });
 
+test("resumes an equity checkpoint from the first retained session when the prior session checkpoint expired", () => {
+  const nvda: UniverseInstrument = { symbol: "NVDA", cadence: "1Min", providerRoute: "alpaca_stock_bars" };
+  const coverageKey = coverageKeyFor(nvda, "REGULAR", "raw-iex");
+  const retainedCalendar: MarketCalendarSnapshot = {
+    market: "US_EQUITIES",
+    dateRange: { startInclusive: "2026-09-23", endExclusive: "2026-09-25" },
+    generatedAt: "2026-09-25T02:44:38.000Z",
+    revision: "calendar-retention-cross-session-v1",
+    sessions: [
+      {
+        marketDate: "2026-09-23", sessionKind: "REGULAR",
+        opensAt: "2026-09-23T13:30:00.000Z", closesAt: "2026-09-23T20:00:00.000Z",
+        isShortened: false, calendarRevision: "calendar-retention-cross-session-v1",
+      },
+      {
+        marketDate: "2026-09-24", sessionKind: "REGULAR",
+        opensAt: "2026-09-24T13:30:00.000Z", closesAt: "2026-09-24T20:00:00.000Z",
+        isShortened: false, calendarRevision: "calendar-retention-cross-session-v1",
+      },
+    ],
+  };
+  const policy = new SchedulePolicy({
+    ...config,
+    retentionFloor: "2026-09-24T02:44:38.000Z",
+    maxBarsPerJob: 100,
+  });
+  const jobs = policy.plan(universe([nvda]), retainedCalendar, [{
+    coverageKey,
+    completeThrough: "2026-09-23T18:28:00.000Z",
+    missingRanges: [],
+    version: 61,
+  }], new Date("2026-09-25T02:44:38.000Z"));
+
+  assert.equal(jobs.length, 1);
+  assert.equal(jobs[0]?.dueReason, "FORWARD_COVERAGE");
+  assert.deepEqual(jobs[0]?.requestedRange, {
+    startInclusive: "2026-09-24T13:30:00.000Z",
+    endExclusive: "2026-09-24T15:10:00.000Z",
+  });
+  assert.equal(jobs[0]?.checkpointExpectations[0]?.expectedVersion, 61);
+});
+
 test("bounds an initial crypto backfill and deterministically continues from its checkpoint", () => {
   const btc: UniverseInstrument = { symbol: "BTCUSD", cadence: "1Min", providerRoute: "alpaca_crypto_bars" };
   const bounded = { ...config, maxBarsPerJob: 100 };
