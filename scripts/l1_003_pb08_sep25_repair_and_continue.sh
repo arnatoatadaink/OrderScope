@@ -16,7 +16,7 @@ for endpoint in historical-recovery/nvda/local-evidence-next-chunk pb08/reproduc
 done
 bash scripts/l1_003_pb08_local_acceptance.sh
 echo '== exact single-row AMD repair; preserve NVDA v62 =='
-if ! repair="$(CLOUDFLARE_ENV=live-canary bash scripts/run-wrangler-with-env.sh d1 execute orderscope-state-live-canary --remote --json --command "$(cat scripts/l1_003_pb08_sep25_amd_absence_ack.sql)")"; then
+if ! repair="$(CLOUDFLARE_ENV=live-canary bash scripts/run-wrangler-with-env.sh d1 execute orderscope-state-live-canary --remote --json --command="$(cat scripts/l1_003_pb08_sep25_amd_absence_ack.sql)")"; then
   echo "${repair}" >&2
   exit 1
 fi
