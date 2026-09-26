@@ -25,6 +25,7 @@ import { runHistoricalRecoveryChunk } from "./historical-recovery-runner";
 import { planNextHistoricalRecoveryChunk, type HistoricalRecoveryRequest } from "./historical-recovery";
 import { coverageAbsencesForRange, localHistoryFetchPage, parseLocalHistoryEvidence } from "./local-history-evidence";
 import { acknowledgePb08ReproducibleAbsencesD1 } from "./pb08-reproducible-absence-d1";
+import { pb08Sep25AbsencesForJob } from "./pb08-sep25-absence-window";
 
 type PredictionMode = "off" | "shadow";
 
@@ -60,6 +61,7 @@ type ProvisionedBindings = {
   HISTORICAL_RECOVERY_CONTROL_TOKEN?: string;
   HISTORICAL_RECOVERY_ENABLED?: string;
   PB08_ABSENCE_ACK_ENABLED?: string;
+  PB08_SEP25_ABSENCE_ENABLED?: string;
 };
 
 type RuntimeEnv = Omit<Env,
@@ -650,6 +652,7 @@ async function runScheduledTick(
           providerFetchOptions: { retry: acquisitionConfig.providerRetry },
           now: () => now,
           fetchPage: dependencies.fetchPage,
+          coverageAbsences: pb08Sep25AbsencesForJob(job, env.PB08_SEP25_ABSENCE_ENABLED, env.ALPACA_FEED, now),
           budget: invocationBudget,
         });
         return {

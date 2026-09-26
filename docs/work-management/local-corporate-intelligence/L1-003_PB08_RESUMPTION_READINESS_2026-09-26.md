@@ -1,6 +1,11 @@
 # L1-003 PB-08 resumption readiness
 
-Status: **REMOTE READY / NEW WINDOW AUTHORIZATION REQUIRED**
+Status: **SUPERSEDED BY AUTHORIZED ATTEMPT / SEE SEP25 ATTEMPT AND CONTINUATION**
+
+The user authorized this packet and it ran on Sep26. It safely stopped at the
+fourth observed opportunity due to a newly reproduced AMD provider absence.
+NVDA progressed to v62. The v61 entry below is historical evidence, not reusable.
+See `L1-003_PB08_SEP25_ATTEMPT_AND_CONTINUATION_2026-09-26.md` for current state.
 
 ## Resume point
 

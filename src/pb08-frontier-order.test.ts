@@ -132,3 +132,62 @@ test("PB-08 post-absence-ack closed-session snapshot reaches Sep25 Regular close
   assert.equal(nvdaJobs,4);
   assert.ok(opportunities<16);
 });
+
+test("PB-08 post-absence-ack closed-session snapshot reaches Sep25 Regular close in three clean NVDA jobs after AMD repair", () => {
+  const observedNow = "2026-09-26T07:38:02.000Z";
+  const retentionFloor = "2026-09-25T07:38:02.000Z";
+  const frozenFrontier = "2026-09-25T20:00:00.000Z";
+  const liveCalendar: MarketCalendarSnapshot = {
+    market: "US_EQUITIES",
+    dateRange: { startInclusive: "2026-09-25", endExclusive: "2026-09-26" },
+    generatedAt: observedNow,
+    revision: "pb08-post-absence-ack-closed-session-snapshot",
+    sessions: [
+      { marketDate:"2026-09-25",sessionKind:"REGULAR",opensAt:"2026-09-25T13:30:00.000Z",closesAt:"2026-09-25T20:00:00.000Z",isShortened:false,calendarRevision:"pb08-post-absence-ack-closed-session-snapshot" },
+    ],
+  };
+  const universe=loadUniverseSnapshot("canary-v0.1");
+  const checkpoints:StoredCoverageCheckpoint[]=[
+    cp("AMD","REGULAR","stock:iex:raw","2026-09-25T16:49:00.000Z",46),
+    cp("QQQ","REGULAR","stock:iex:raw","2026-09-25T15:10:00.000Z",13),
+    cp("SPY","REGULAR","stock:iex:raw","2026-09-25T15:10:00.000Z",45),
+    cp("NVDA","REGULAR","stock:iex:raw","2026-09-25T15:10:00.000Z",62),
+    cp("BTCUSD","ALL_TRADING","crypto:us","2026-09-25T12:31:00.000Z",52),
+  ];
+  const p=new SchedulePolicy({
+    retentionFloor,
+    overlapMs:{"1Min":60_000,"15Min":900_000,"1Day":86_400_000},
+    finalizationLagMs:{"1Min":60_000,"15Min":120_000,"1Day":1_800_000},
+    maxBarsPerJob:100,
+    logicalDataVariant:i=>i.providerRoute==="alpaca_crypto_bars"?"crypto:us":"stock:iex:raw",
+  });
+
+  let nvdaJobs=0;
+  let opportunities=0;
+  for(;opportunities<16;opportunities++){
+    const jobs=prioritizeAcquisitionJobs(
+      p.plan(universe,liveCalendar,checkpoints,new Date(observedNow)),
+      checkpoints,
+    ).slice(0,2);
+    for(const job of jobs){
+      const key=job.checkpointExpectations[0]!.coverageKey;
+      const item=checkpoints.find(c=>c.coverageKey===key)!;
+      item.completeThrough=job.requestedRange.endExclusive;
+      item.sourceObservedThrough=job.requestedRange.endExclusive;
+      item.version+=1;
+      item.state="COMPLETE";
+      item.missingRanges=[];
+      if(item.symbol==="NVDA") nvdaJobs+=1;
+    }
+    const nvda=checkpoints.find(c=>c.symbol==="NVDA")!;
+    if((nvda.completeThrough ?? "")>=frozenFrontier) break;
+  }
+
+  const nvda=checkpoints.find(c=>c.symbol==="NVDA")!;
+  assert.equal(nvda.completeThrough,frozenFrontier);
+  assert.equal(nvda.version,65);
+  assert.equal(nvda.state,"COMPLETE");
+  assert.deepEqual(nvda.missingRanges,[]);
+  assert.equal(nvdaJobs,3);
+  assert.ok(opportunities<16);
+});
