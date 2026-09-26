@@ -75,8 +75,8 @@ test("PB-08 fresh frozen competition reaches the retained NVDA frontier within a
 
 
 test("PB-08 post-absence-ack closed-session snapshot reaches Sep25 Regular close in four clean NVDA jobs", () => {
-  const observedNow = "2026-09-25T22:14:11.000Z";
-  const retentionFloor = "2026-09-24T22:14:11.000Z";
+  const observedNow = "2026-09-26T07:11:42.000Z";
+  const retentionFloor = "2026-09-25T07:11:42.000Z";
   const frozenFrontier = "2026-09-25T20:00:00.000Z";
   const liveCalendar: MarketCalendarSnapshot = {
     market: "US_EQUITIES",
