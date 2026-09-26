@@ -5,7 +5,27 @@ Date: 2026-09-18 JST
 Parent WBS: `docs/WORK_BREAKDOWN_LOCAL_CORPORATE_INTELLIGENCE_2026-09-03.md` (`L1-003`)
 Parent CP: `docs/WORK_PLAN_LOCAL_CORPORATE_INTELLIGENCE_CRITICAL_PATH_2026-09-05.md`
 Recovery plan: `L1-003_PHASE_B_PREREQUISITE_MARKET_RECOVERY_SCHEDULE_2026-09-16.md`
-Latest evidence: `L1-003_PB04_NVDA_SEP08_CAMPAIGN_ACCEPTANCE_2026-09-18.md`
+Latest evidence: `L1-003_PB08_SEP25_REMOTE_ACCEPTANCE_2026-09-26.md`
+
+## Current progress — 2026-09-26
+
+The numbered sections below preserve the original September 18 planning
+snapshot. Use this current table and the linked acceptance records to resume;
+the old checkpoint/count/status rows are not current execution inputs.
+
+| Work | Current state | Controlling evidence |
+|---|---|---|
+| PB-00–PB-03 | Accepted preparation/history preserved | Existing closeout and local campaign records |
+| PB-04 / PB-05 | COMPLETE / ACCEPTED | [Bulk closeout](L1-003_PB04_BULK_REMOTE_CLOSEOUT_AND_PB05_ACCEPTANCE_2026-09-24.md) |
+| PB-06 | ACCEPTED; no day-boundary repetition | [Scheduler handoff](L1-003_PB06_REMOTE_ACCEPTANCE_2026-09-24.md) |
+| PB-07 | ACCEPTED; no day-boundary repetition | [Stability acceptance](L1-003_PB07_REMOTE_ACCEPTANCE_2026-09-24.md) |
+| PB-08 catch-up | ACCEPTED at NVDA v65 / Sep25 20:00Z; safe closed | [PB-08 closeout](L1-003_PB08_SEP25_REMOTE_ACCEPTANCE_2026-09-26.md) |
+| PB-09 | Next gate; fresh market-session Phase B packet and separate authorization required | PB-08 closeout / moving-retention runbook |
+| PB-10 | Not authorized or executed | PB-09 |
+
+Current remaining critical path: fresh Phase B market-session packet → PB-09
+explicit authorization → PB-10 bounded pause/resume and safe-close. Preserve
+accepted work when refreshing time-dependent entry inputs.
 
 ## 1. Objective and authority boundary
 

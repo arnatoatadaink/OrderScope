@@ -1,6 +1,11 @@
 # PB-08 Sep25 attempt and bounded continuation
 
-Status: **FIRST WINDOW NOT ACCEPTED / SAFE CLOSED / CONTINUATION NOT AUTHORIZED**
+Status: **FIRST WINDOW SAFE CLOSED / CONTINUATION SUBSEQUENTLY AUTHORIZED AND ACCEPTED**
+
+The user explicitly authorized the continuation recorded below. It completed
+at NVDA v65 / Sep25 20:00Z in seven opportunities and safe-closed. Current
+acceptance: `L1-003_PB08_SEP25_REMOTE_ACCEPTANCE_2026-09-26.md`. The preparation
+and authority statements below describe the historical pre-authorization state.
 
 ## Authorized attempt
 
