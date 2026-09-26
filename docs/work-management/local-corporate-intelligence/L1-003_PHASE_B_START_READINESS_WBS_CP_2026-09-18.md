@@ -20,7 +20,7 @@ the old checkpoint/count/status rows are not current execution inputs.
 | PB-06 | ACCEPTED; no day-boundary repetition | [Scheduler handoff](L1-003_PB06_REMOTE_ACCEPTANCE_2026-09-24.md) |
 | PB-07 | ACCEPTED; no day-boundary repetition | [Stability acceptance](L1-003_PB07_REMOTE_ACCEPTANCE_2026-09-24.md) |
 | PB-08 catch-up | ACCEPTED at NVDA v65 / Sep25 20:00Z; safe closed | [PB-08 closeout](L1-003_PB08_SEP25_REMOTE_ACCEPTANCE_2026-09-26.md) |
-| PB-09 | Next gate; fresh market-session Phase B packet and separate authorization required | PB-08 closeout / moving-retention runbook |
+| PB-09 | Approval preparation COMPLETE; active-session entry freeze and concrete execution review pending | [PB-09 preparation](L1-003_PB09_PHASE_B_AUTHORIZATION_PREPARATION_2026-09-26.md) / [authorization template](L1-003_PB09_PHASE_B_AUTHORIZATION_TEMPLATE.md) |
 | PB-10 | Not authorized or executed | PB-09 |
 
 Current remaining critical path: fresh Phase B market-session packet → PB-09
