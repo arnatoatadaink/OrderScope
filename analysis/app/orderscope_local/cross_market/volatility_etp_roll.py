@@ -1,9 +1,12 @@
-"""UWBS-096 VIX-linked ETP roll / decay boundary.
+"""Auxiliary VIX-linked ETP roll / decay analysis.
 
 This module keeps deterministic ETP return measurements separate from term-
 structure-implied roll pressure and from causal interpretation.  Contango or
 backwardation may provide context, but neither is sufficient by itself to claim
 that an observed ETP move was caused by roll.
+
+The canonical UWBS-096 task is the VIX level/change/curve interpretation
+contract in ``vix_interpretation.py``.  This module is supporting analysis.
 """
 
 from __future__ import annotations
@@ -139,6 +142,7 @@ def assess_etp_roll(
     subject_ref: str,
     observed_window_start: datetime,
     observed_window_end: datetime,
+    roll_pressure: VolatilityEtpRollPressure,
     etp_return_metric_refs: tuple[str, ...],
     term_structure_metric_refs: tuple[str, ...],
     contradicting_evidence_refs: tuple[str, ...] = (),
@@ -148,6 +152,8 @@ def assess_etp_roll(
     _utc(observed_window_start, "observed_window_start")
     _utc(observed_window_end, "observed_window_end")
     _utc(generated_at, "generated_at")
+    if not isinstance(roll_pressure, VolatilityEtpRollPressure):
+        raise ContractViolation("roll_pressure must be VolatilityEtpRollPressure")
     if observed_window_start >= observed_window_end:
         raise ContractViolation("observed window must be non-empty and half-open")
     if generated_at < observed_window_end:
@@ -168,8 +174,12 @@ def assess_etp_roll(
         assessment = VolatilityEtpRollAssessment.UNKNOWN
     elif contradicting_evidence_refs:
         assessment = VolatilityEtpRollAssessment.MOVE_NOT_EXPLAINED_BY_ROLL
-    else:
+    elif roll_pressure is VolatilityEtpRollPressure.NEGATIVE:
         assessment = VolatilityEtpRollAssessment.ROLL_HEADWIND_CANDIDATE
+    elif roll_pressure is VolatilityEtpRollPressure.POSITIVE:
+        assessment = VolatilityEtpRollAssessment.ROLL_TAILWIND_CANDIDATE
+    else:
+        assessment = VolatilityEtpRollAssessment.MOVE_NOT_EXPLAINED_BY_ROLL
 
     basis = etp_return_metric_refs + term_structure_metric_refs + contradicting_evidence_refs
     if not basis:
@@ -183,13 +193,14 @@ def assess_etp_roll(
         interpretation_type=f"volatility.{assessment.value}",
         statement={
             "assessment": assessment.value,
+            "roll_pressure": roll_pressure.value,
             "etp_metric_count": len(etp_return_metric_refs),
             "term_structure_metric_count": len(term_structure_metric_refs),
             "contradicting_count": len(contradicting_evidence_refs),
         },
         basis_record_ids=basis,
         method="volatility_etp_roll_assessment",
-        method_version="uwbs-096-v0.1",
+        method_version="auxiliary-v0.1",
         assertion_kind=InterpretationAssertionKind.ASSESSMENT,
     )
 
@@ -204,7 +215,7 @@ def _metric(*, record_id: str, subject_ref: str, accepted_at: datetime, as_of: d
         metric_name=metric_name,
         value=str(value),
         calculation_method=method,
-        method_version="uwbs-096-v0.1",
+        method_version="auxiliary-v0.1",
         as_of=as_of,
         input_record_ids=inputs,
         unit=unit,
