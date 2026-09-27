@@ -2,11 +2,11 @@ from datetime import datetime, timezone
 
 import pytest
 
-from orderscope_local.contracts import (
+from orderscope_local.contracts import ContractViolation
+from orderscope_local.contracts.commodity_interpretation import (
     CommodityInterpretationAssessment,
     CommodityInterpretationRating,
     CommodityInterpretationType,
-    ContractViolation,
 )
 
 
