@@ -32,12 +32,29 @@ from .commodity_fundamental import (
     CommodityGeography,
     CommodityProduct,
 )
+from .commodity_interpretation import (
+    CommodityInterpretationAssessment,
+    CommodityInterpretationRating,
+    CommodityInterpretationType,
+)
 from .commodity_market import (
     CommodityLocation,
     CommodityPriceForm,
     CommodityPriceObservation,
     CommodityVenue,
     CrudeBenchmark,
+)
+from .crypto_etf_flow import BtcSpotEtfFlowObservation, aggregate_btc_spot_etf_flow
+from .cross_asset_canary import (
+    CanaryDecision,
+    CapacityObservation,
+    CrossAssetCanaryAssessment,
+    CrossAssetCanaryResult,
+)
+from .cross_asset_regime import (
+    CrossAssetRegimeAssessment,
+    CrossAssetRegimeRating,
+    CrossAssetRegimeType,
 )
 from .debt_resolution import DebtResolutionAttentionLevel, DebtResolutionWindowAssessment
 from .identity import (
@@ -137,6 +154,9 @@ __all__ = [
     "AdapterItem",
     "AdapterRequest",
     "BoundedWindow",
+    "BtcSpotEtfFlowObservation",
+    "CanaryDecision",
+    "CapacityObservation",
     "CapitalInstrumentKind",
     "CapitalInstrumentLifecycleFact",
     "CapitalInstrumentState",
@@ -158,6 +178,9 @@ __all__ = [
     "CommodityFundamentalObservation",
     "CommodityGeography",
     "CommodityProduct",
+    "CommodityInterpretationAssessment",
+    "CommodityInterpretationRating",
+    "CommodityInterpretationType",
     "CommodityLocation",
     "CommodityPriceForm",
     "CommodityPriceObservation",
@@ -168,6 +191,11 @@ __all__ = [
     "CheckpointError",
     "CheckpointState",
     "ContractViolation",
+    "CrossAssetCanaryAssessment",
+    "CrossAssetCanaryResult",
+    "CrossAssetRegimeAssessment",
+    "CrossAssetRegimeRating",
+    "CrossAssetRegimeType",
     "CrossMarketHypothesis",
     "DebtResolutionAttentionLevel",
     "DebtResolutionWindowAssessment",
@@ -207,6 +235,7 @@ __all__ = [
     "assert_page_contract",
     "assert_adapter_item_contract",
     "assert_secret_free",
+    "aggregate_btc_spot_etf_flow",
     "checkpoint_for_page",
     "classify_adapter_item",
     "collect_pages",
