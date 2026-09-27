@@ -143,7 +143,7 @@ UWBS-083  oil-down-reason / inflation-growth-risk interpretation           [ACCE
 UWBS-085  cross-asset Risk-On / Crypto Risk-On regime                     [ACCEPTED]
    |
    v
-UWBS-086  historical Canary + Worker/D1 capacity acceptance               [BASE SOFTWARE ACCEPTED / HISTORICAL-PACKET EXTENSION LOCAL VERIFY]
+UWBS-086  historical Canary + Worker/D1 capacity acceptance               [SOFTWARE PREPARATION ACCEPTED / HISTORICAL-CAPACITY OPEN]
 ```
 
 ### UWBS-080 current state
@@ -223,31 +223,51 @@ Accepted boundary requires multiple independent signal classes and prevents a si
 
 ### UWBS-086 current state
 
-Status: **BASE SOFTWARE BOUNDARY ACCEPTED / FINAL HISTORICAL-CAPACITY ACCEPTANCE OPEN**
+Status: **SOFTWARE PREPARATION ACCEPTED / FINAL HISTORICAL-CAPACITY ACCEPTANCE OPEN**
 
-Software acceptance evidence:
+Base software acceptance evidence:
 
 `UWBS-086_SOFTWARE_BOUNDARY_ACCEPTANCE_2026-09-27.md`
 
+Historical-packet/capacity extension acceptance evidence:
+
+`UWBS-086_HISTORICAL_PACKET_CAPACITY_EXTENSION_LOCAL_ACCEPTANCE_2026-09-27.md`
+
+Latest local verification:
+
 ```text
-cross-asset Canary focused tests: 8 passed
-replay/capacity focused tests:    10 passed
-full Python regression:          780 passed
-compileall:                      PASS
-git diff --check:                PASS
+cross-asset Canary contract:            8 passed
+replay/capacity evaluator:             11 passed
+historical replay packet completeness:  9 passed
+full Python regression:               790 passed
+compileall:                            PASS
+git diff --check:                      PASS
 ```
 
-Accepted base software includes deterministic replay/capacity mechanics and synthetic-only regression fixtures. A repository audit then identified two additional prerequisites that must be locally verified before final evidence construction:
+Accepted software preparation now includes:
 
-1. historical replay packet completeness contract;
-2. D1 `rows_read/day` inclusion in capacity headroom.
+- deterministic replay/capacity evaluator;
+- historical replay packet completeness contract;
+- one common replay window across the required cross-asset lanes;
+- repository-backed historical evidence requirement;
+- explicit rejection of synthetic data as historical calibration;
+- independent expected-label evidence separate from classifier inputs;
+- D1 rows-read, rows-written and storage-growth resources in capacity headroom;
+- external `CapacityEnvelope` rather than hard-coded Cloudflare quotas.
 
-Remote implementation now adds:
+Required historical packet lanes are:
 
-- `historical_replay_packet.py`, requiring one common replay window and repository-backed evidence for oil price, commodity fundamentals/events/interpretation, BTC spot ETF flow, traditional-risk, crypto-market, crypto-derivatives and volatility lanes;
-- independent expected-label evidence that cannot be reused from classifier inputs;
-- explicit rejection of synthetic or non-repository-backed inputs as historical calibration;
-- D1 rows-read limits/usage in `CapacityEnvelope`, `ProjectedCapacityUsage` and `CapacityObservation` headroom calculations.
+```text
+oil_price
+commodity_fundamental
+commodity_event
+commodity_interpretation
+btc_spot_etf_flow
+traditional_risk
+crypto_market
+crypto_derivatives
+volatility
+```
 
 Current repository audit confirms genuine NVDA historical recovery evidence exists, but it covers only part of the required cross-asset packet and must not be treated as complete UWBS-086 historical calibration.
 
@@ -269,14 +289,16 @@ Historical/capacity evidence audit:
 ### Selected restart point
 
 ```text
-UWBS-086 historical-packet/capacity extension local verification
-  -> focused cross-asset Canary tests
-  -> focused replay/capacity tests (including D1 reads)
-  -> focused historical packet completeness tests
-  -> full Python regression / compileall / diff check
-  -> acquire/build repository-backed complete replay packet
+UWBS-086 repository-backed historical replay packet construction
+  -> choose one bounded historical episode/window
+  -> inventory repository-backed evidence for all nine required lanes
+  -> acquire or prepare only missing historical inputs
+  -> define expected regime/alert labels independently of classifier inputs
+  -> replay canonical UWBS-080..085 pipeline
+  -> summarize false positives / false negatives / regime mismatches
   -> measure or defensibly bound D1 rows read/written + storage growth
-  -> replay + final ACCEPT / REVIEW / REJECT
+  -> calculate Worker/D1 quota headroom
+  -> final ACCEPT / REVIEW / REJECT
 ```
 
 UWBS-086 remains open until historical replay and capacity evidence satisfy the final acceptance prerequisites.
@@ -292,4 +314,4 @@ After an interruption:
 5. for market-dependent work, refresh only time-dependent preflight inputs;
 6. for market-independent work, resume at the first incomplete canonical dependency.
 
-Current restart is `UWBS-086 historical-packet/capacity extension local verification` unless the user explicitly selects another lane.
+Current restart is `UWBS-086 repository-backed historical replay packet construction` unless the user explicitly selects another lane.
