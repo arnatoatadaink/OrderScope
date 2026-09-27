@@ -108,14 +108,14 @@ class VixInterpretationAssessment:
             if not self.contradicting_evidence_refs:
                 raise ContractViolation("CONTRADICT requires contradicting evidence")
             return
+        if self.state is VixInterpretationState.CURVE_STRESS_PERSISTING:
+            if not self.curve_metric_refs or not self.curve_transition_refs:
+                raise ContractViolation("curve persistence requires curve level and transition/persistence evidence")
         required = 2 if self.rating is VixInterpretationRating.SUPPORT else 1
         if directional_groups < required:
             raise ContractViolation(
                 f"{self.rating.value} requires at least {required} independent VIX evidence classes"
             )
-        if self.state is VixInterpretationState.CURVE_STRESS_PERSISTING:
-            if not self.curve_metric_refs or not self.curve_transition_refs:
-                raise ContractViolation("curve persistence requires curve level and transition/persistence evidence")
 
     def to_interpretation(self, *, record_id: str, accepted_at: datetime) -> Interpretation:
         _canonical(record_id, "record_id")
