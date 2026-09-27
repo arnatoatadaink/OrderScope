@@ -1,0 +1,12 @@
+check	result	detail
+source_on_mntc	PASS	/mnt/c/Users/Y/Projects/codex_work/OrderScope
+readable:package.json	PASS	readable
+readable:package-lock.json	PASS	readable
+readable:uv.toml	FAIL	not readable
+readable:.git/HEAD	PASS	readable
+repeated_source_read	FAIL	see /home/y/data/orderscope/mig09a/20260921T060314Z/repeated-read.out
+small_io_mntc	PASS	2000 files
+small_io_wsl	PASS	2000 files
+npm_ci_mntc	PASS	exit=0; log=/home/y/data/orderscope/mig09a/20260921T060314Z/npm_ci_mntc.out
+npm_ci_wsl	PASS	exit=0; log=/home/y/data/orderscope/mig09a/20260921T060314Z/npm_ci_wsl.out
+post_heavy_source_read	FAIL	see /home/y/data/orderscope/mig09a/20260921T060314Z/post-heavy-read.out

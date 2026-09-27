@@ -1,0 +1,33 @@
+[project]
+name = "orderscope-local"
+version = "0.1.0"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+  "duckdb>=1.4,<2",
+  "fastapi>=0.116,<1",
+  "pyarrow>=21,<22",
+  "typer>=0.16,<1",
+  "uvicorn>=0.35,<1",
+]
+
+[project.scripts]
+orderscope = "orderscope_local.cli:app"
+
+[dependency-groups]
+dev = [
+  "httpx>=0.28,<1",
+  "httpx2>=2.12,<3",
+  "pytest>=8.4,<9",
+]
+
+[tool.pytest.ini_options]
+addopts = "--strict-config --strict-markers"
+filterwarnings = [
+  # Treat every warning as an error by default so new dependency/API regressions fail CI.
+  "error",
+  # Starlette 1.6.0 still imports AnyIO's deprecated alias in testclient.py.
+  # Remove this narrow exception once Starlette uses anyio.from_thread.BlockingPortal.
+  "ignore:The anyio[.]abc[.]BlockingPortal alias is deprecated.*:DeprecationWarning:starlette[.]testclient",
+]
+pythonpath = ["analysis/app"]
+testpaths = ["analysis/tests"]

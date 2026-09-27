@@ -1,7 +1,7 @@
 # Stock Monitoring Project v0.1 — 統合仕様書
 
 ## 1. 目的
-米国市場を対象として、価格・市場Proxy・セクター・テーマ・企業ニュース・SEC開示・政府高官発言・四半期業績・企業Regime・FFT・相関構造を継続監視し、「何が変化したか」をFactとして記録する。
+米国市場を対象として、価格・市場Proxy・セクター・テーマ・企業ニュース・SEC開示・政府高官発言・四半期業績・企業Regime・FFT・相関構造・アナリスト期待形成を継続監視し、「何が変化したか」をFactとして記録する。
 
 本システムは価格予測を主目的としない。
 
@@ -11,7 +11,7 @@
 - Country Proxyは米国上場ETFのみ
 - 初期Universeは約100 instrumentsで固定
 - 価格取得頻度は 1m / 15m / 1d に分離
-- News / SEC / Official Signalはevent-driven
+- News / SEC / Official Signal / Analyst Consensusはevent-drivenまたは定期snapshot
 
 ## 3. Universe
 Universeは市場・国・セクター・テーマ・企業特性・個別企業の階層で構成する。
@@ -61,6 +61,7 @@ Frequency Low/Mid/Highは価格変化率ではなく周期で定義する。
 - Segment Revenue
 - Major Contract
 - CAPEX / Financing / Partnership / M&A
+- Analyst Consensus / Rating / Price Target Revision
 
 処理:
 External Information → Event Extraction → Corporate Fact → Regime Engine → Classification
@@ -170,7 +171,94 @@ Revenue StrengthとRevenue Shareは別指標。
 
 例外本文は最大30日保持。
 
-## 13. Provider Boundary
+## 13. Analyst Consensus Tracking
+企業自身のGuidanceと、市場側の評価であるAnalyst Consensusを分離して保存する。
+
+Consensus Snapshot:
+- ticker
+- observed_at
+- analyst_count
+- rating_counts: buy / hold / sell
+- consensus_rating
+- target_low
+- target_median
+- target_average
+- target_high
+- source
+- source_timestamp
+
+Revision Event:
+- analyst / firm
+- action: initiate / maintain / upgrade / downgrade / target_raise / target_cut
+- rating_before / rating_after
+- target_before / target_after
+- published_at
+
+Derived Metric:
+- median_target_change
+- average_target_change
+- revision_breadth = upward_revisions - downward_revisions
+- target_dispersion = target_high - target_low
+- price_to_median_target = current_price / target_median
+- price_to_low_target = current_price / target_low
+- price_to_high_target = current_price / target_high
+
+InterpretationはFactと分離する。代表的な検出条件:
+- `current_price < target_low && revision_breadth >= 0`: consensus下限より市場価格のみが下方乖離
+- `current_price > target_high`: 既存consensus rangeを上方突破し価格発見フェーズ候補
+- `target_median`の大幅変化と高出来高・方向性の一致: expectation repricing候補
+
+Consensusは後から過去値が上書きされる集約サイトがあるため、取得時点のsnapshotを時系列保存する。単一Providerの現在値だけから過去の中央値変化を再構築しない。
+
+## 14. Macro / Cross-Market Context
+個別株の大口フロー解釈で、金利・債券・為替・地域間資金移動は独立したMarket/Policy Factとして保持し、個別株Factへ直接原因として書き込まない。
+
+最低限保持するContext:
+- US Treasury yield / Fed policy expectation
+- JGB yield / BOJ policy expectation
+- USD/JPY
+- major equity index / AI-semiconductor proxy
+- month-end / quarter-end calendar flag
+
+Derived Interpretation例:
+- RATE_HEADWIND_EASING
+- GLOBAL_BOND_RISK_OFF
+- AI_RISK_APPETITE_RECOVERY
+- CROSS_MARKET_CAPITAL_ROTATION_CANDIDATE
+
+`CROSS_MARKET_CAPITAL_ROTATION_CANDIDATE` は直接観測された資金移動ではなく、複数市場の価格・出来高・為替・金利の同時変化から生成するInterpretation/Hypothesisとし、Factへ昇格させない。
+
+Cross-Market Rotation Hypothesisでは少なくとも以下を保持する:
+- source_region
+- destination_region
+- proposed_direction
+- observed_window_start / observed_window_end
+- supporting_evidence_refs
+- contradicting_evidence_refs
+- fx_direction_consistency
+- confidence
+- generated_at
+- rule/model version
+
+`fx_direction_consistency` は以下のordinal値を取る:
+- SUPPORT
+- NEUTRAL
+- CONTRADICT
+- UNKNOWN
+
+例えばJapan → US direct rotationを仮定する場合、単純化したJPY売り/USD買い経路に対してUSD/JPY上昇はsupport候補、USD/JPYの大幅低下はcontradiction候補となる。ただしFXはcarry unwind、政策期待、hedging、介入警戒等でも動くため、FX単独で資金移動仮説をFact確定または完全棄却しない。
+
+v0.1のconfidenceは精密確率ではなく以下のordinalとする:
+- HIGH
+- MEDIUM
+- LOW
+- UNKNOWN
+
+重大なFX contradictionがある場合、他の独立したsupport evidenceが十分でない限りHIGHを付与しない。
+
+詳細作業は `WORK_BREAKDOWN_ANALYST_CROSS_MARKET_2026-09-05.md` を参照。
+
+## 15. Provider Boundary
 Coreはベンダ固有APIを知らない。
 
 Provider:
@@ -179,10 +267,11 @@ Provider:
 - FilingProvider
 - OfficialSignalProvider
 - FundamentalProvider
+- AnalystConsensusProvider
 
 詳細は `stock_monitoring_v0.1_provider_research.md` を参照。
 
-## 14. Fact Model
+## 16. Fact Model
 Fact / Derived Metric / Interpretation / Predictionを分離する。
 
 主Event:
@@ -193,6 +282,9 @@ Fact / Derived Metric / Interpretation / Predictionを分離する。
 - PARTNERSHIP
 - M_AND_A
 - GUIDANCE_CHANGE
+- ANALYST_RATING_CHANGE
+- ANALYST_PRICE_TARGET_CHANGE
+- ANALYST_CONSENSUS_SNAPSHOT
 - EARNINGS
 - FINANCING
 - REGULATION
@@ -205,7 +297,7 @@ Fact / Derived Metric / Interpretation / Predictionを分離する。
 - CORRELATION_REGIME_CHANGE
 - REACTIVATION_SIGNAL
 
-## 15. v0.1 Definition of Done
+## 17. v0.1 Definition of Done
 - 約100 instrumentsを設定からロード
 - 銘柄ごとのcadenceでMarket Data取得
 - Provider差替え可能
@@ -217,6 +309,10 @@ Fact / Derived Metric / Interpretation / Predictionを分離する。
 - Negative Evidenceでinactive
 - Reactivation Signal生成
 - News本文をFact化後削除
+- Analyst Consensus snapshotを時系列保存
+- Rating / Price Target RevisionをFact化
+- current priceとconsensus low/median/highの乖離をDerived Metric化
+- Cross-Market Rotation仮説でsupport/contradiction EvidenceとFX方向整合性を保持
 - 1D/7D/20D/60D FFT
 - Market/Corporate/Policy Factを共通Storeへ保存
 - Regime Historyを時系列再現

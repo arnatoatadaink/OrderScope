@@ -1,0 +1,198 @@
+{
+  "schema_version": "uwbs-086-historical-replay-manifest-v0.1",
+  "packet_id": "uwbs-086-2024-08-05-global-risk-off-v0.1",
+  "window": {
+    "start": "2024-08-02T00:00:00Z",
+    "end": "2024-08-08T00:00:00Z"
+  },
+  "expected_label": {
+    "regime": "risk_off",
+    "alert": true,
+    "evidence_ids": [
+      "label-bis-bulletin-90",
+      "label-bis-quarterly-2024-09"
+    ]
+  },
+  "sources": [
+    {
+      "source_id": "input-fred-brent",
+      "authority": "Federal Reserve Bank of St. Louis / U.S. EIA",
+      "repository_ref": "analysis/config/cross_market/uwbs-086-2024-08-05-risk-off-v0.1.json#oil_price",
+      "external_url": "https://fred.stlouisfed.org/series/DCOILBRENTEU",
+      "known_at": "2024-08-07T23:59:59Z",
+      "role": "classifier_input"
+    },
+    {
+      "source_id": "input-eia-crude-stocks",
+      "authority": "U.S. Energy Information Administration",
+      "repository_ref": "analysis/config/cross_market/uwbs-086-2024-08-05-risk-off-v0.1.json#commodity_fundamental",
+      "external_url": "https://www.eia.gov/dnav/pet/hist/LeafHandler.ashx?f=W&n=PET&s=WCRSTUS1",
+      "known_at": "2024-08-07T14:30:00Z",
+      "role": "classifier_input"
+    },
+    {
+      "source_id": "input-eia-gasoline-product-supplied",
+      "authority": "U.S. Energy Information Administration",
+      "repository_ref": "analysis/config/cross_market/uwbs-086-2024-08-05-risk-off-v0.1.json#commodity_fundamental",
+      "external_url": "https://www.eia.gov/dnav/pet/hist/LeafHandler.ashx?f=W&n=PET&s=WGFUPUS2",
+      "known_at": "2024-08-07T14:30:00Z",
+      "role": "classifier_input"
+    },
+    {
+      "source_id": "input-opec-voluntary-cuts",
+      "authority": "OPEC",
+      "repository_ref": "analysis/config/cross_market/uwbs-086-2024-08-05-risk-off-v0.1.json#commodity_event",
+      "external_url": "https://www.opec.org/pr-detail/11-02-jun-2024.html",
+      "known_at": "2024-06-02T23:59:59Z",
+      "role": "classifier_input"
+    },
+    {
+      "source_id": "input-derived-oil-demand-weakness",
+      "authority": "OrderScope UWBS-083 derived interpretation",
+      "repository_ref": "analysis/config/cross_market/uwbs-086-2024-08-05-risk-off-v0.1.json#commodity_interpretation",
+      "external_url": null,
+      "known_at": "2024-08-07T23:59:59Z",
+      "role": "classifier_input"
+    },
+    {
+      "source_id": "input-farside-btc-etf-flow",
+      "authority": "Farside Investors",
+      "repository_ref": "analysis/config/cross_market/uwbs-086-2024-08-05-risk-off-v0.1.json#btc_spot_etf_flow",
+      "external_url": "https://farside.co.uk/bitcoin-etf-flow-all-data/",
+      "known_at": "2024-08-07T23:59:59Z",
+      "role": "classifier_input"
+    },
+    {
+      "source_id": "input-fred-sp500",
+      "authority": "Federal Reserve Bank of St. Louis / S&P Dow Jones Indices",
+      "repository_ref": "analysis/config/cross_market/uwbs-086-2024-08-05-risk-off-v0.1.json#traditional_risk",
+      "external_url": "https://fred.stlouisfed.org/series/SP500",
+      "known_at": "2024-08-07T23:59:59Z",
+      "role": "classifier_input"
+    },
+    {
+      "source_id": "input-btc-spot-2024-08-05",
+      "authority": "StatMuse market-data snapshot",
+      "repository_ref": "analysis/config/cross_market/uwbs-086-2024-08-05-risk-off-v0.1.json#crypto_market",
+      "external_url": "https://www.statmuse.com/money/ask?q=bitcoin+price+aug+5%2C+2024",
+      "known_at": "2024-08-05T23:59:59Z",
+      "role": "classifier_input"
+    },
+    {
+      "source_id": "input-cftc-btc-futures-2024-07-30",
+      "authority": "U.S. Commodity Futures Trading Commission",
+      "repository_ref": "analysis/config/cross_market/uwbs-086-2024-08-05-risk-off-v0.1.json#crypto_derivatives",
+      "external_url": "https://www.cftc.gov/sites/default/files/files/dea/cotarchives/2024/futures/deacmesf073024.htm",
+      "known_at": "2024-08-02T23:59:59Z",
+      "role": "classifier_input"
+    },
+    {
+      "source_id": "input-fred-vix",
+      "authority": "Federal Reserve Bank of St. Louis / Cboe",
+      "repository_ref": "analysis/config/cross_market/uwbs-086-2024-08-05-risk-off-v0.1.json#volatility",
+      "external_url": "https://fred.stlouisfed.org/series/VIXCLS",
+      "known_at": "2024-08-07T23:59:59Z",
+      "role": "classifier_input"
+    },
+    {
+      "source_id": "label-bis-bulletin-90",
+      "authority": "Bank for International Settlements",
+      "repository_ref": "docs/work-management/local-corporate-intelligence/UWBS-086_2024-08-05_EXPECTED_LABEL_EVIDENCE.md#bis-bulletin-90",
+      "external_url": "https://www.bis.org/publications/bulletin-90-market-turbulence-and-carry-trade-unwind-august-2024",
+      "known_at": "2024-08-27T00:00:00Z",
+      "role": "expected_label"
+    },
+    {
+      "source_id": "label-bis-quarterly-2024-09",
+      "authority": "Bank for International Settlements",
+      "repository_ref": "docs/work-management/local-corporate-intelligence/UWBS-086_2024-08-05_EXPECTED_LABEL_EVIDENCE.md#bis-quarterly-review",
+      "external_url": "https://www.bis.org/publications/qr-202409/carry-off-carry-on",
+      "known_at": "2024-09-16T00:00:00Z",
+      "role": "expected_label"
+    }
+  ],
+  "lanes": [
+    {
+      "lane": "oil_price",
+      "evidence_ids": ["input-fred-brent"],
+      "observations": [
+        {"date": "2024-08-02", "benchmark": "BRENT", "usd_per_barrel": 78.35},
+        {"date": "2024-08-05", "benchmark": "BRENT", "usd_per_barrel": 77.51},
+        {"date": "2024-08-06", "benchmark": "BRENT", "usd_per_barrel": 76.62},
+        {"date": "2024-08-07", "benchmark": "BRENT", "usd_per_barrel": 78.26}
+      ]
+    },
+    {
+      "lane": "commodity_fundamental",
+      "evidence_ids": ["input-eia-crude-stocks", "input-eia-gasoline-product-supplied"],
+      "observations": [
+        {"period_end": "2024-07-26", "measure": "crude_oil_ending_stocks", "value": 808146, "unit": "thousand_barrels"},
+        {"period_end": "2024-08-02", "measure": "crude_oil_ending_stocks", "value": 805154, "unit": "thousand_barrels"},
+        {"period_end": "2024-07-26", "measure": "motor_gasoline_product_supplied", "value": 9250, "unit": "thousand_barrels_per_day"},
+        {"period_end": "2024-08-02", "measure": "motor_gasoline_product_supplied", "value": 8967, "unit": "thousand_barrels_per_day"}
+      ],
+      "note": "Product supplied is preserved as source semantics and is not renamed final demand."
+    },
+    {
+      "lane": "commodity_event",
+      "evidence_ids": ["input-opec-voluntary-cuts"],
+      "observations": [
+        {"event": "production_policy_action", "state": "active", "detail": "OPEC+ 2.2 mb/d additional voluntary cuts extended through end-September 2024"}
+      ],
+      "note": "Active production restraint is a countervailing supply-tightness fact, not an oil-down causal label."
+    },
+    {
+      "lane": "commodity_interpretation",
+      "evidence_ids": ["input-derived-oil-demand-weakness"],
+      "observations": [
+        {"interpretation": "oil_down_demand_weakness_candidate", "rating": "PARTIAL", "supporting_classes": ["oil_price", "commodity_fundamental"], "contradicting_classes": ["commodity_event"]}
+      ]
+    },
+    {
+      "lane": "btc_spot_etf_flow",
+      "evidence_ids": ["input-farside-btc-etf-flow"],
+      "observations": [
+        {"date": "2024-08-02", "aggregate_usd_millions": -237.4},
+        {"date": "2024-08-05", "aggregate_usd_millions": -168.4},
+        {"date": "2024-08-06", "aggregate_usd_millions": -148.6},
+        {"date": "2024-08-07", "aggregate_usd_millions": 45.1}
+      ],
+      "note": "Aggregate values are historical comparison material; UWBS-084 canonical Fact remains individual-fund signed flow."
+    },
+    {
+      "lane": "traditional_risk",
+      "evidence_ids": ["input-fred-sp500"],
+      "observations": [
+        {"date": "2024-08-02", "series": "SP500", "close": 5346.56},
+        {"date": "2024-08-05", "series": "SP500", "close": 5186.33},
+        {"date": "2024-08-06", "series": "SP500", "close": 5240.03},
+        {"date": "2024-08-07", "series": "SP500", "close": 5199.50}
+      ]
+    },
+    {
+      "lane": "crypto_market",
+      "evidence_ids": ["input-btc-spot-2024-08-05"],
+      "observations": [
+        {"date": "2024-08-05", "asset": "BTCUSD", "close": 54017.79, "daily_change_percent": -7.1, "intraday_low": 49578.89}
+      ]
+    },
+    {
+      "lane": "crypto_derivatives",
+      "evidence_ids": ["input-cftc-btc-futures-2024-07-30"],
+      "observations": [
+        {"as_of": "2024-07-30", "contract": "CME_BITCOIN_5BTC", "open_interest_contracts": 28605, "noncommercial_long": 24160, "noncommercial_short": 25162, "weekly_open_interest_change": -3830}
+      ],
+      "note": "Uses the latest CFTC positioning snapshot available at the start of the episode; no post-event August 6 positioning is used as classifier input."
+    },
+    {
+      "lane": "volatility",
+      "evidence_ids": ["input-fred-vix"],
+      "observations": [
+        {"date": "2024-08-02", "series": "VIXCLS", "close": 23.39},
+        {"date": "2024-08-05", "series": "VIXCLS", "close": 38.57},
+        {"date": "2024-08-06", "series": "VIXCLS", "close": 27.71},
+        {"date": "2024-08-07", "series": "VIXCLS", "close": 27.85}
+      ]
+    }
+  ]
+}

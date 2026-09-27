@@ -1,0 +1,1217 @@
+import { loadAcquisitionRuntimeConfig } from "./acquisition-config";
+import { D1NormalizedBarStore, type NormalizedBarStore } from "./bar-store";
+import { AlpacaMarketCalendarProvider, type MarketCalendarProvider } from "./calendar";
+import { D1CoverageCheckpointPort, type CoverageCheckpointPort } from "./checkpoint";
+import { DIGEST_HISTORY_DEFAULT_LIMIT, DIGEST_HISTORY_MAX_LIMIT, D1LatestDigestStore, LATEST_DIGEST_KEY } from "./digest";
+import { executeAcquisitionJob, type AcquisitionExecutionSummary, type AcquisitionExecutorOptions } from "./execution";
+import { prioritizeAcquisitionJobs } from "./job-priority";
+import { D1AcquisitionLeaseStore, type AcquisitionLeaseStore } from "./lease";
+import { gapRetryEligibility, type DeferredGapRetry } from "./gap-retry";
+import { loadPredictionRegistries, type PredictionRegistryBundle } from "./prediction-registry";
+import { buildPredictionPremarketUniverse, planPredictionPremarketAcquisition } from "./prediction";
+import { coverageKeyFor, SchedulePolicy } from "./schedule";
+import { loadUniverseSnapshot, type UniverseInstrument, type UniverseSnapshot } from "./universe";
+import { loadNewsAcquisitionRuntimeConfig, type NewsAcquisitionConfigEnv } from "./news-acquisition-config";
+import { NEWS_COVERAGE_KEY, planNewsAcquisition } from "./news-schedule";
+import { D1NewsCheckpointPort, executeNewsAcquisition, type NewsCheckpointPort, type NewsExecutionSummary } from "./news-execution";
+import { D1NewsStore, type NewsStore } from "./news-store";
+import type { NewsExecutionOptions } from "./news-execution";
+import { D1_QUERY_CEILING, EXTERNAL_SUBREQUEST_CEILING, InvocationBudget } from "./invocation-budget";
+import { loadMarketCheckpoints } from "./market-checkpoint-load";
+import { budgetedD1 } from "./budgeted-d1";
+import { D1SchedulerRunEvidenceStore, type SchedulerRunEvidenceStore } from "./run-evidence";
+import { SchedulerRunEvidenceSession } from "./run-evidence-session";
+import { runHistoricalRecoveryChunk } from "./historical-recovery-runner";
+import { planNextHistoricalRecoveryChunk, type HistoricalRecoveryRequest } from "./historical-recovery";
+import { coverageAbsencesForRange, localHistoryFetchPage, parseLocalHistoryEvidence } from "./local-history-evidence";
+import { acknowledgePb08ReproducibleAbsencesD1 } from "./pb08-reproducible-absence-d1";
+import { pb08Sep25AbsencesForJob } from "./pb08-sep25-absence-window";
+
+type PredictionMode = "off" | "shadow";
+
+const SCHEDULER_EVIDENCE_REVISION = "packet-d-v1";
+const DISABLED_RUN_EVIDENCE_STORE: SchedulerRunEvidenceStore = {
+  async startRun() {},
+  async finishRun() {},
+  async startJob() {},
+  async finishJob() {},
+  async supersedeStaleJobs() { return 0; },
+};
+
+type Digest = {
+  generatedAt: string;
+  mode: string;
+  status: "shadow" | "ready" | "blocked";
+  marketTimezone: string;
+  feed: string;
+  predictionMode?: PredictionMode;
+  predictionTargetProfile?: string;
+  notes: string[];
+  news?: Readonly<Record<string, unknown>>;
+};
+
+// `Env` is generated from wrangler.jsonc. Dashboard secrets and bindings that
+// are intentionally provisioned after the first shadow deploy are supplemental.
+type ProvisionedBindings = {
+  ALPACA_API_KEY?: string;
+  ALPACA_API_SECRET?: string;
+  STATE_DB?: D1Database;
+  BAR_ARCHIVE?: R2Bucket;
+  SCHEDULER_RUN_EVIDENCE_ENABLED?: string;
+  HISTORICAL_RECOVERY_CONTROL_TOKEN?: string;
+  HISTORICAL_RECOVERY_ENABLED?: string;
+  PB08_ABSENCE_ACK_ENABLED?: string;
+  PB08_SEP25_ABSENCE_ENABLED?: string;
+};
+
+type RuntimeEnv = Omit<Env,
+  "WORKER_MODE" | "PREDICTION_MODE" | "PREDICTION_TARGET_PROFILE" | "HISTORICAL_RECOVERY_ENABLED"
+  | keyof NewsAcquisitionConfigEnv> & ProvisionedBindings & {
+  WORKER_MODE: "shadow" | "live";
+  PREDICTION_MODE?: PredictionMode;
+  PREDICTION_TARGET_PROFILE?: string;
+} & NewsAcquisitionConfigEnv;
+
+type PredictionRuntimeConfig = {
+  mode: PredictionMode;
+  targetProfile?: string;
+};
+
+function json(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body, null, 2), {
+    status,
+    headers: {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-store",
+    },
+  });
+}
+
+function predictionRuntimeConfig(env: RuntimeEnv): PredictionRuntimeConfig {
+  const mode = env.PREDICTION_MODE ?? "off";
+  if (mode !== "off" && mode !== "shadow") throw new Error(`unsupported PREDICTION_MODE: ${mode}`);
+  const targetProfile = env.PREDICTION_TARGET_PROFILE?.trim();
+  if (mode === "shadow" && !targetProfile) {
+    throw new Error("PREDICTION_TARGET_PROFILE is required in prediction shadow mode");
+  }
+  return { mode, ...(targetProfile ? { targetProfile } : {}) };
+}
+
+function schedulerRunEvidenceEnabled(env: RuntimeEnv): boolean {
+  const value = env.SCHEDULER_RUN_EVIDENCE_ENABLED ?? "false";
+  if (value !== "true" && value !== "false") {
+    throw new Error("SCHEDULER_RUN_EVIDENCE_ENABLED must be true or false");
+  }
+  return value === "true";
+}
+
+const NVDA_RECOVERY = {
+  recoveryId: "L1-003-NVDA-20260916-01",
+  expectedJobId: "historical-market-recovery:ef94f87d37bf2746",
+  providerRevision: "alpaca-stock-bars-v1",
+  universeRevision: "stock-monitoring-canary-v0.1",
+  calendarRevision: "alpaca-calendar-v2:da7d32f3",
+  calendarStart: "2026-09-02",
+  calendarEnd: "2026-09-17",
+  coverageKey: "NVDA|1Min|REGULAR|stock:iex:raw",
+  recoveryStart: "2026-09-02T20:00:00.000Z",
+  recoveryEnd: "2026-09-15T20:00:00.000Z",
+  checkpointBefore: "2026-09-02T20:00:00.000Z",
+  checkpointVersion: 6,
+  maxBars: 100,
+} as const;
+
+const NVDA_LOCAL_EVIDENCE_RECOVERIES = [
+  {
+    recoveryId: "L1-003-NVDA-20260915-LOCAL",
+    providerRevision: "alpaca-stock-bars-v1",
+    universeRevision: "stock-monitoring-canary-v0.1",
+    calendarRevision: "local-evidence:2026-09-15",
+    coverageKey: "NVDA|1Min|REGULAR|stock:iex:raw",
+    marketDate: "2026-09-15",
+    sessionOpen: "2026-09-15T13:30:00.000Z",
+    sessionClose: "2026-09-15T20:00:00.000Z",
+    evidenceSha256: "a33fbca7483128ea2af2b21b765741400f024500a1e751cd9cea000d27751a56",
+    chunks: [
+    {
+      jobId: "historical-market-recovery:9d61f5ffec5f98e1",
+      checkpointBefore: "2026-09-14T20:00:00.000Z",
+      checkpointVersion: 34,
+      checkpointAfter: "2026-09-15T15:10:00.000Z",
+      checkpointAfterVersion: 35,
+    },
+    {
+      jobId: "historical-market-recovery:7abcdc1f6aaaf6c8",
+      checkpointBefore: "2026-09-15T15:10:00.000Z",
+      checkpointVersion: 35,
+      checkpointAfter: "2026-09-15T16:50:00.000Z",
+      checkpointAfterVersion: 36,
+    },
+    {
+      jobId: "historical-market-recovery:86641fdfec9f511b",
+      checkpointBefore: "2026-09-15T16:50:00.000Z",
+      checkpointVersion: 36,
+      checkpointAfter: "2026-09-15T18:30:00.000Z",
+      checkpointAfterVersion: 37,
+    },
+    {
+      jobId: "historical-market-recovery:a9d3cea1b647ef85",
+      checkpointBefore: "2026-09-15T18:30:00.000Z",
+      checkpointVersion: 37,
+      checkpointAfter: "2026-09-15T20:00:00.000Z",
+      checkpointAfterVersion: 38,
+    }
+    ],
+  },
+  {
+    recoveryId: "L1-003-NVDA-20260916-LOCAL",
+    providerRevision: "alpaca-stock-bars-v1",
+    universeRevision: "stock-monitoring-canary-v0.1",
+    calendarRevision: "local-evidence:2026-09-16",
+    coverageKey: "NVDA|1Min|REGULAR|stock:iex:raw",
+    marketDate: "2026-09-16",
+    sessionOpen: "2026-09-16T13:30:00.000Z",
+    sessionClose: "2026-09-16T20:00:00.000Z",
+    evidenceSha256: "759d3659ea9a21ed7df0008b8a233575f7502638c87a2c5b78b5e10f8cdc294c",
+    chunks: [
+    {
+      jobId: "historical-market-recovery:0d2f0b994de4c763",
+      checkpointBefore: "2026-09-15T20:00:00.000Z",
+      checkpointVersion: 38,
+      checkpointAfter: "2026-09-16T15:10:00.000Z",
+      checkpointAfterVersion: 39,
+    },
+    {
+      jobId: "historical-market-recovery:94bc39eade02760e",
+      checkpointBefore: "2026-09-16T15:10:00.000Z",
+      checkpointVersion: 39,
+      checkpointAfter: "2026-09-16T16:50:00.000Z",
+      checkpointAfterVersion: 40,
+    },
+    {
+      jobId: "historical-market-recovery:ea5e5d34f071ae5d",
+      checkpointBefore: "2026-09-16T16:50:00.000Z",
+      checkpointVersion: 40,
+      checkpointAfter: "2026-09-16T18:30:00.000Z",
+      checkpointAfterVersion: 41,
+    },
+    {
+      jobId: "historical-market-recovery:903eb22f2bbc51ef",
+      checkpointBefore: "2026-09-16T18:30:00.000Z",
+      checkpointVersion: 41,
+      checkpointAfter: "2026-09-16T20:00:00.000Z",
+      checkpointAfterVersion: 42,
+    }
+    ],
+  },
+  {
+    recoveryId: "L1-003-NVDA-20260917-LOCAL",
+    providerRevision: "alpaca-stock-bars-v1",
+    universeRevision: "stock-monitoring-canary-v0.1",
+    calendarRevision: "local-evidence:2026-09-17",
+    coverageKey: "NVDA|1Min|REGULAR|stock:iex:raw",
+    marketDate: "2026-09-17",
+    sessionOpen: "2026-09-17T13:30:00.000Z",
+    sessionClose: "2026-09-17T20:00:00.000Z",
+    evidenceSha256: "778f2b31cc3470c3366b4275afb1b2d3dabc6cb094c1667ffdf4740e0a84a729",
+    chunks: [
+    {
+      jobId: "historical-market-recovery:0a7565ed9ceb753d",
+      checkpointBefore: "2026-09-16T20:00:00.000Z",
+      checkpointVersion: 42,
+      checkpointAfter: "2026-09-17T15:10:00.000Z",
+      checkpointAfterVersion: 43,
+    },
+    {
+      jobId: "historical-market-recovery:17e8b31498d31b4c",
+      checkpointBefore: "2026-09-17T15:10:00.000Z",
+      checkpointVersion: 43,
+      checkpointAfter: "2026-09-17T16:50:00.000Z",
+      checkpointAfterVersion: 44,
+    },
+    {
+      jobId: "historical-market-recovery:92bb3e4217acdb3f",
+      checkpointBefore: "2026-09-17T16:50:00.000Z",
+      checkpointVersion: 44,
+      checkpointAfter: "2026-09-17T18:30:00.000Z",
+      checkpointAfterVersion: 45,
+    },
+    {
+      jobId: "historical-market-recovery:69128b228102f4a9",
+      checkpointBefore: "2026-09-17T18:30:00.000Z",
+      checkpointVersion: 45,
+      checkpointAfter: "2026-09-17T20:00:00.000Z",
+      checkpointAfterVersion: 46,
+    }
+    ],
+  },
+  {
+    recoveryId: "L1-003-NVDA-20260918-LOCAL",
+    providerRevision: "alpaca-stock-bars-v1",
+    universeRevision: "stock-monitoring-canary-v0.1",
+    calendarRevision: "local-evidence:2026-09-18",
+    coverageKey: "NVDA|1Min|REGULAR|stock:iex:raw",
+    marketDate: "2026-09-18",
+    sessionOpen: "2026-09-18T13:30:00.000Z",
+    sessionClose: "2026-09-18T20:00:00.000Z",
+    evidenceSha256: "421c0544a5939e29b9fe57ea116454c9e7e117249a91c6a495f562a9d63a7fad",
+    chunks: [
+    {
+      jobId: "historical-market-recovery:f16f2f7bd1b452cb",
+      checkpointBefore: "2026-09-17T20:00:00.000Z",
+      checkpointVersion: 46,
+      checkpointAfter: "2026-09-18T15:10:00.000Z",
+      checkpointAfterVersion: 47,
+    },
+    {
+      jobId: "historical-market-recovery:29b1e9cdb632645e",
+      checkpointBefore: "2026-09-18T15:10:00.000Z",
+      checkpointVersion: 47,
+      checkpointAfter: "2026-09-18T16:50:00.000Z",
+      checkpointAfterVersion: 48,
+    },
+    {
+      jobId: "historical-market-recovery:a31d792a516e818d",
+      checkpointBefore: "2026-09-18T16:50:00.000Z",
+      checkpointVersion: 48,
+      checkpointAfter: "2026-09-18T18:30:00.000Z",
+      checkpointAfterVersion: 49,
+    },
+    {
+      jobId: "historical-market-recovery:e6b827c690ea1bdf",
+      checkpointBefore: "2026-09-18T18:30:00.000Z",
+      checkpointVersion: 49,
+      checkpointAfter: "2026-09-18T20:00:00.000Z",
+      checkpointAfterVersion: 50,
+    }
+    ],
+  },
+  {
+    recoveryId: "L1-003-NVDA-20260921-LOCAL",
+    providerRevision: "alpaca-stock-bars-v1",
+    universeRevision: "stock-monitoring-canary-v0.1",
+    calendarRevision: "local-evidence:2026-09-21",
+    coverageKey: "NVDA|1Min|REGULAR|stock:iex:raw",
+    marketDate: "2026-09-21",
+    sessionOpen: "2026-09-21T13:30:00.000Z",
+    sessionClose: "2026-09-21T20:00:00.000Z",
+    evidenceSha256: "26d9bd244bc772e2a3a431edafc665e22c20d174d4f517397b8f5edd3c35f29b",
+    chunks: [
+    {
+      jobId: "historical-market-recovery:04d7e7f76f82e40f",
+      checkpointBefore: "2026-09-18T20:00:00.000Z",
+      checkpointVersion: 50,
+      checkpointAfter: "2026-09-21T15:10:00.000Z",
+      checkpointAfterVersion: 51,
+    },
+    {
+      jobId: "historical-market-recovery:8f27611aa5785b8a",
+      checkpointBefore: "2026-09-21T15:10:00.000Z",
+      checkpointVersion: 51,
+      checkpointAfter: "2026-09-21T16:50:00.000Z",
+      checkpointAfterVersion: 52,
+    },
+    {
+      jobId: "historical-market-recovery:0164debbb3775f7d",
+      checkpointBefore: "2026-09-21T16:50:00.000Z",
+      checkpointVersion: 52,
+      checkpointAfter: "2026-09-21T18:30:00.000Z",
+      checkpointAfterVersion: 53,
+    },
+    {
+      jobId: "historical-market-recovery:64edb95714442b7f",
+      checkpointBefore: "2026-09-21T18:30:00.000Z",
+      checkpointVersion: 53,
+      checkpointAfter: "2026-09-21T20:00:00.000Z",
+      checkpointAfterVersion: 54,
+    }
+    ],
+  },
+  {
+    recoveryId: "L1-003-NVDA-20260922-LOCAL",
+    providerRevision: "alpaca-stock-bars-v1",
+    universeRevision: "stock-monitoring-canary-v0.1",
+    calendarRevision: "local-evidence:2026-09-22",
+    coverageKey: "NVDA|1Min|REGULAR|stock:iex:raw",
+    marketDate: "2026-09-22",
+    sessionOpen: "2026-09-22T13:30:00.000Z",
+    sessionClose: "2026-09-22T20:00:00.000Z",
+    evidenceSha256: "bf08ff184109f4ec53e2793e7809a051db562eb120026eac3f639b9bd7dc492f",
+    chunks: [
+    {
+      jobId: "historical-market-recovery:a24c01ad8b3ef6a5",
+      checkpointBefore: "2026-09-21T20:00:00.000Z",
+      checkpointVersion: 54,
+      checkpointAfter: "2026-09-22T15:10:00.000Z",
+      checkpointAfterVersion: 55,
+    },
+    {
+      jobId: "historical-market-recovery:d8453e0b7a9758bc",
+      checkpointBefore: "2026-09-22T15:10:00.000Z",
+      checkpointVersion: 55,
+      checkpointAfter: "2026-09-22T16:50:00.000Z",
+      checkpointAfterVersion: 56,
+    },
+    {
+      jobId: "historical-market-recovery:01b976228f32948b",
+      checkpointBefore: "2026-09-22T16:50:00.000Z",
+      checkpointVersion: 56,
+      checkpointAfter: "2026-09-22T18:30:00.000Z",
+      checkpointAfterVersion: 57,
+    },
+    {
+      jobId: "historical-market-recovery:92d5690bb7a0ac85",
+      checkpointBefore: "2026-09-22T18:30:00.000Z",
+      checkpointVersion: 57,
+      checkpointAfter: "2026-09-22T20:00:00.000Z",
+      checkpointAfterVersion: 58,
+    }
+    ],
+  }
+] as const;
+
+
+async function constantTimeEqual(provided: string, expected: string): Promise<boolean> {
+  const encoder = new TextEncoder();
+  const [providedHash, expectedHash] = await Promise.all([
+    crypto.subtle.digest("SHA-256", encoder.encode(provided)),
+    crypto.subtle.digest("SHA-256", encoder.encode(expected)),
+  ]);
+  return crypto.subtle.timingSafeEqual(providedHash, expectedHash);
+}
+
+function historicalRecoveryEnabled(env: RuntimeEnv): boolean {
+  const value = env.HISTORICAL_RECOVERY_ENABLED ?? "false";
+  if (value !== "true" && value !== "false") {
+    throw new Error("HISTORICAL_RECOVERY_ENABLED must be true or false");
+  }
+  return value === "true";
+}
+
+function pb08AbsenceAckEnabled(env: RuntimeEnv): boolean {
+  const value = env.PB08_ABSENCE_ACK_ENABLED ?? "false";
+  if (value !== "true" && value !== "false") {
+    throw new Error("PB08_ABSENCE_ACK_ENABLED must be true or false");
+  }
+  return value === "true";
+}
+
+async function authorizeHistoricalRecovery(request: Request, env: RuntimeEnv): Promise<boolean> {
+  const expected = env.HISTORICAL_RECOVERY_CONTROL_TOKEN;
+  const authorization = request.headers.get("authorization");
+  if (!expected || !authorization?.startsWith("Bearer ")) return false;
+  return constantTimeEqual(authorization.slice("Bearer ".length), expected);
+}
+
+function parseCheckpointVersion(value: string | null): number | undefined {
+  if (value === null || !/^(0|[1-9]\d*)$/.test(value)) return undefined;
+  const parsed = Number(value);
+  return Number.isSafeInteger(parsed) ? parsed : undefined;
+}
+
+function currentDigest(
+  env: RuntimeEnv,
+  now: Date,
+  predictionConfig = predictionRuntimeConfig(env),
+): Digest {
+  const hasCredentials = Boolean(env.ALPACA_API_KEY && env.ALPACA_API_SECRET);
+  const hasState = "STATE_DB" in env && Boolean(env.STATE_DB);
+  const hasArchive = "BAR_ARCHIVE" in env && Boolean(env.BAR_ARCHIVE);
+  const liveRequested = env.WORKER_MODE === "live";
+  const newsConfig = loadNewsAcquisitionRuntimeConfig(env);
+
+  return {
+    generatedAt: now.toISOString(),
+    mode: env.WORKER_MODE ?? "shadow",
+    status: liveRequested && hasCredentials && hasState ? "ready" : liveRequested ? "blocked" : "shadow",
+    marketTimezone: env.MARKET_TIMEZONE ?? "America/New_York",
+    feed: env.ALPACA_FEED ?? "iex",
+    ...(env.PREDICTION_MODE !== undefined ? { predictionMode: predictionConfig.mode } : {}),
+    ...(predictionConfig.targetProfile ? { predictionTargetProfile: predictionConfig.targetProfile } : {}),
+    news: { mode: newsConfig.enabled && liveRequested ? "active" : newsConfig.enabled ? "shadow-plan" : "disabled",
+      cadenceMinutes: newsConfig.cadenceMinutes, plannedJobs: 0, selectedJobs: 0, completedJobs: 0,
+      partialJobs: 0, failedJobs: 0, articlesObserved: 0, duplicates: 0, updates: 0, pages: 0 },
+    notes: [
+      hasCredentials ? "alpaca credentials configured" : "alpaca credentials not configured",
+      hasState ? "D1 state binding configured" : "D1 state binding not configured",
+      hasArchive ? "R2 archive binding configured" : "R2 archive binding not configured",
+      "calendar-aware acquisition is intentionally not simulated from weekday/UTC rules",
+    ],
+  };
+}
+
+export type ScheduledOrchestrationDependencies = {
+  calendarProvider: (
+    credentials: { keyId: string; secretKey: string },
+    options: { includePremarket: boolean; includeAfterHours: boolean },
+  ) => MarketCalendarProvider;
+  universe: (profile: string) => UniverseSnapshot;
+  predictionRegistries?: (profile: string) => PredictionRegistryBundle;
+  predictionUniverse?: () => UniverseSnapshot;
+  fetchPage?: AcquisitionExecutorOptions["fetchPage"];
+  checkpointPort?: (db: D1Database) => CoverageCheckpointPort;
+  leaseStore?: (db: D1Database) => AcquisitionLeaseStore;
+  barStore?: (db: D1Database) => NormalizedBarStore;
+  newsCheckpointPort?: (db: D1Database) => NewsCheckpointPort;
+  newsStore?: (db: D1Database) => NewsStore;
+  fetchNewsPage?: NewsExecutionOptions["fetchPage"];
+  runEvidenceStore?: (db: D1Database) => SchedulerRunEvidenceStore;
+};
+
+const productionDependencies: ScheduledOrchestrationDependencies = {
+  calendarProvider: (credentials, options) => new AlpacaMarketCalendarProvider({ credentials, ...options }),
+  universe: (profile) => loadUniverseSnapshot(profile),
+  predictionRegistries: (profile) => loadPredictionRegistries(profile),
+  predictionUniverse: () => loadUniverseSnapshot("full-v0.1"),
+};
+
+function schedulerEvidenceRunStatus(
+  marketSummaries: readonly (AcquisitionExecutionSummary | { jobId: string; outcome: "FAILED" | "SKIPPED_LOCKED" })[],
+  newsSummaries: readonly NewsExecutionSummary[],
+): "SUCCEEDED" | "PARTIAL" {
+  return marketSummaries.some((summary) => summary.outcome !== "SUCCEEDED")
+    || newsSummaries.some((summary) => summary.outcome !== "SUCCEEDED")
+    ? "PARTIAL"
+    : "SUCCEEDED";
+}
+
+async function runScheduledTick(
+  controller: ScheduledController,
+  env: RuntimeEnv,
+  dependencies: ScheduledOrchestrationDependencies,
+): Promise<void> {
+  const now = new Date(controller.scheduledTime);
+  const predictionConfig = predictionRuntimeConfig(env);
+  const digest = currentDigest(env, now, predictionConfig);
+
+  // Shadow mode is deployable before credentials/storage exist and deliberately
+  // performs no market-data writes. This prevents a calendar/session guess from
+  // becoming production behavior.
+  if (env.WORKER_MODE !== "live") {
+    if ("STATE_DB" in env && env.STATE_DB) {
+      await new D1LatestDigestStore(env.STATE_DB).put(LATEST_DIGEST_KEY, digest.generatedAt, digest);
+    }
+    console.log(JSON.stringify({ event: "scheduler_tick", ...digest }));
+    return;
+  }
+
+  if (!env.ALPACA_API_KEY || !env.ALPACA_API_SECRET) {
+    throw new Error("live mode requires Alpaca secrets");
+  }
+  if (!("STATE_DB" in env) || !env.STATE_DB) {
+    throw new Error("live mode requires STATE_DB D1 binding");
+  }
+
+  const credentials = { keyId: env.ALPACA_API_KEY, secretKey: env.ALPACA_API_SECRET };
+  const invocationBudget = new InvocationBudget();
+  const stateDb = budgetedD1(env.STATE_DB, invocationBudget);
+  const acquisitionConfig = loadAcquisitionRuntimeConfig(env);
+  const newsConfig = loadNewsAcquisitionRuntimeConfig(env);
+  const evidenceEnabled = schedulerRunEvidenceEnabled(env);
+  const universe = dependencies.universe(env.UNIVERSE_PROFILE);
+  const predictionRegistries = predictionConfig.mode === "shadow"
+    ? (dependencies.predictionRegistries ?? productionDependencies.predictionRegistries!)(predictionConfig.targetProfile!)
+    : undefined;
+  const predictionUniverse = predictionRegistries
+    ? buildPredictionPremarketUniverse(
+      predictionRegistries.target,
+      (dependencies.predictionUniverse ?? productionDependencies.predictionUniverse!)(),
+      now.toISOString(),
+    )
+    : undefined;
+  const retentionFloor = new Date(now.getTime() - acquisitionConfig.retentionLookbackMs).toISOString();
+  const calendarStart = new Date(Date.parse(retentionFloor) - 24 * 60 * 60_000).toISOString().slice(0, 10);
+  const calendarEnd = new Date(now.getTime() + 2 * 24 * 60 * 60_000).toISOString().slice(0, 10);
+  const calendar = await dependencies.calendarProvider(credentials, {
+    includePremarket: predictionConfig.mode === "shadow",
+    includeAfterHours: newsConfig.enabled,
+  }).getCalendar(calendarStart, calendarEnd);
+  const checkpoints = dependencies.checkpointPort?.(stateDb) ?? new D1CoverageCheckpointPort(stateDb);
+  const stored = await loadMarketCheckpoints(universe, checkpoints, env.ALPACA_FEED);
+  const marketBootstrapD1Queries = invocationBudget.snapshot().d1Queries;
+  const policy = new SchedulePolicy({
+    retentionFloor,
+    overlapMs: acquisitionConfig.overlapMs,
+    finalizationLagMs: acquisitionConfig.finalizationLagMs,
+    maxBarsPerJob: acquisitionConfig.maxBarsPerJob,
+    logicalDataVariant: (instrument) => logicalVariant(instrument, env.ALPACA_FEED),
+  });
+  const planned = policy.plan(universe, calendar, stored, now)
+    .filter((job) => stored.find((checkpoint) => checkpoint.coverageKey === job.checkpointExpectations[0]?.coverageKey)?.state !== "BLOCKED");
+  const deferredGapRetries = stored
+    .map((checkpoint) => gapRetryEligibility(checkpoint, now, acquisitionConfig.gapRetryMinutes, retentionFloor))
+    .filter((retry): retry is DeferredGapRetry => retry !== undefined);
+  const deferredCoverageKeys = new Set(deferredGapRetries.map((retry) => retry.coverageKey));
+  const jobs = planned.filter((job) => job.dueReason !== "MISSING_RANGE"
+    || !deferredCoverageKeys.has(job.checkpointExpectations[0]?.coverageKey ?? ""));
+  let predictionShadow: Record<string, unknown> | undefined;
+  if (predictionRegistries && predictionUniverse) {
+    const predictionKeys = predictionUniverse.instruments.map((instrument) =>
+      coverageKeyFor(instrument, "PREMARKET", logicalVariant(instrument, env.ALPACA_FEED)));
+    const predictionBefore = invocationBudget.snapshot().d1Queries;
+    const predictionStored = await checkpoints.getMany(predictionKeys);
+    const predictionPlanned = planPredictionPremarketAcquisition({
+      acquisitionUniverse: predictionUniverse,
+      calendar,
+      checkpoints: predictionStored,
+      now,
+      scheduleConfig: {
+        retentionFloor,
+        overlapMs: acquisitionConfig.overlapMs,
+        finalizationLagMs: acquisitionConfig.finalizationLagMs,
+        maxBarsPerJob: acquisitionConfig.maxBarsPerJob,
+        logicalDataVariant: (instrument) => logicalVariant(instrument, env.ALPACA_FEED),
+      },
+    }).filter((job) => predictionStored.find((checkpoint) =>
+      checkpoint.coverageKey === job.checkpointExpectations[0]?.coverageKey)?.state !== "BLOCKED");
+    const predictionDeferredGapRetries = predictionStored
+      .map((checkpoint) => gapRetryEligibility(
+        checkpoint, now, acquisitionConfig.gapRetryMinutes, retentionFloor,
+      ))
+      .filter((retry): retry is DeferredGapRetry => retry !== undefined);
+    const predictionDeferredCoverageKeys = new Set(
+      predictionDeferredGapRetries.map((retry) => retry.coverageKey),
+    );
+    const predictionJobs = predictionPlanned.filter((job) => job.dueReason !== "MISSING_RANGE"
+      || !predictionDeferredCoverageKeys.has(job.checkpointExpectations[0]?.coverageKey ?? ""));
+    predictionShadow = {
+      mode: "shadow",
+      targetProfile: predictionConfig.targetProfile,
+      inputRegistryRevision: predictionRegistries.input.revision,
+      targetRegistryRevision: predictionRegistries.target.revision,
+      inputInstrumentCount: predictionRegistries.input.instruments.filter((instrument) => instrument.enabled).length,
+      targetCount: predictionRegistries.target.targets.length,
+      acquisitionInstrumentCount: predictionUniverse.instruments.length,
+      plannedPremarketJobs: predictionJobs.length,
+      checkpointKeys: new Set(predictionKeys).size,
+      checkpointBootstrapD1Queries: invocationBudget.snapshot().d1Queries - predictionBefore,
+      deferredGapRetries: predictionDeferredGapRetries.length,
+      jobPlans: predictionJobs.slice(0, acquisitionConfig.maxJobsPerTick).map((job) => ({
+        jobId: job.jobId,
+        dueReason: job.dueReason,
+        sessionScope: job.sessionScope,
+        requestedRange: job.requestedRange,
+      })),
+    };
+  }
+  // Executor maxBars applies to the whole provider response, not per symbol.
+  // The normal scheduler therefore executes prioritized single-instrument jobs
+  // until batching has an explicit aggregate bar ceiling.
+  const runnableJobs = prioritizeAcquisitionJobs(jobs, stored)
+    .slice(0, acquisitionConfig.maxJobsPerTick);
+  const jobPlans = runnableJobs.map((job) => ({
+    jobId: job.jobId,
+    dueReason: job.dueReason,
+    requestedRange: job.requestedRange,
+  }));
+  const summaries: Array<AcquisitionExecutionSummary
+    | { jobId: string; outcome: "FAILED" | "SKIPPED_LOCKED" }> = [];
+  const staleBefore = new Date(now.getTime() - acquisitionConfig.staleAttemptMinutes * 60_000).toISOString();
+  const runId = `scheduler:${now.toISOString()}:${crypto.randomUUID()}`;
+  const runEvidence = await SchedulerRunEvidenceSession.start({
+    store: evidenceEnabled
+      ? (dependencies.runEvidenceStore?.(stateDb) ?? new D1SchedulerRunEvidenceStore(stateDb))
+      : DISABLED_RUN_EVIDENCE_STORE,
+    runId,
+    scheduledAt: now.toISOString(),
+    schedulerRevision: SCHEDULER_EVIDENCE_REVISION,
+    workerMode: env.WORKER_MODE,
+  });
+  const supersededStaleRunJobs = await runEvidence.supersedeStaleJobs(staleBefore);
+  let supersededStaleAttempts = 0;
+  const leases = dependencies.leaseStore?.(stateDb) ?? new D1AcquisitionLeaseStore(stateDb);
+  for (const job of runnableJobs) {
+    const evidenceDescriptor = {
+      jobId: job.jobId,
+      jobKind: "MARKET_BARS",
+      source: "alpaca-market-data",
+      boundaryStart: job.requestedRange.startInclusive,
+      boundaryEnd: job.requestedRange.endExclusive,
+    };
+    const coverageKey = job.instruments.length === 1
+      ? job.checkpointExpectations[0]!.coverageKey
+      : `batch:${job.jobId}`;
+    const ownerId = `${job.jobId}:${now.toISOString()}`;
+    const acquired = await leases.acquire(coverageKey, ownerId, now.toISOString(), 5 * 60_000);
+    if (!acquired) {
+      await runEvidence.recordLocked(evidenceDescriptor);
+      summaries.push({ jobId: job.jobId, outcome: "SKIPPED_LOCKED" });
+      continue;
+    }
+    try {
+      supersededStaleAttempts += await checkpoints.supersedeStaleAttempts({
+        coverageKey, staleBefore, finishedAt: now.toISOString(), replacementJobId: job.jobId,
+      });
+      const summary = await runEvidence.runJob(evidenceDescriptor, async () => {
+        const value = await executeAcquisitionJob(job, {
+          credentials, calendar, checkpoints,
+          bars: dependencies.barStore?.(stateDb) ?? new D1NormalizedBarStore(stateDb),
+          feed: env.ALPACA_FEED, maxPages: acquisitionConfig.maxPagesPerJob,
+          maxBars: acquisitionConfig.maxBarsPerJob,
+          gapRetryDelayMs: acquisitionConfig.gapRetryMinutes * 60_000,
+          providerFetchOptions: { retry: acquisitionConfig.providerRetry },
+          now: () => now,
+          fetchPage: dependencies.fetchPage,
+          coverageAbsences: pb08Sep25AbsencesForJob(job, env.PB08_SEP25_ABSENCE_ENABLED, env.ALPACA_FEED, now),
+          budget: invocationBudget,
+        });
+        return {
+          value,
+          completion: {
+            status: value.outcome,
+            diagnostic: {
+              pages: value.pages, inserted: value.inserted, matched: value.matched,
+              conflicts: value.conflicts, rejected: value.rejected, missing: value.missing,
+            },
+          },
+        };
+      });
+      summaries.push(summary);
+    } catch {
+      // Detailed diagnostics are already recorded on the attempt/evidence rows.
+      // Keep the public operational digest compact and free of provider details.
+      summaries.push({ jobId: job.jobId, outcome: "FAILED" });
+    } finally {
+      await leases.release(coverageKey, ownerId);
+    }
+  }
+  const staleAttempts = await checkpoints.summarizeStaleAttempts(staleBefore);
+  const marketExternalSubrequests = invocationBudget.snapshot().externalSubrequests;
+  const marketD1Queries = invocationBudget.snapshot().d1Queries;
+  const newsCheckpoints = dependencies.newsCheckpointPort?.(stateDb) ?? new D1NewsCheckpointPort(stateDb);
+  const newsBefore = invocationBudget.snapshot().d1Queries;
+  const newsStored = newsConfig.enabled ? await newsCheckpoints.get(NEWS_COVERAGE_KEY) : undefined;
+  const newsPlanned = planNewsAcquisition(newsConfig, calendar, newsStored, now);
+  const newsSummaries: NewsExecutionSummary[] = [];
+  for (const newsJob of newsPlanned) {
+    const summary = await runEvidence.runJob({
+      jobId: newsJob.jobId,
+      jobKind: "NEWS_METADATA",
+      source: "alpaca-news",
+      boundaryStart: newsJob.requestedRange.startInclusive,
+      boundaryEnd: newsJob.requestedRange.endExclusive,
+    }, async () => {
+      const value = await executeNewsAcquisition(newsJob, {
+        credentials, checkpoints: newsCheckpoints,
+        store: dependencies.newsStore?.(stateDb) ?? new D1NewsStore(stateDb),
+        retry: acquisitionConfig.providerRetry,
+        retryDelayMs: acquisitionConfig.gapRetryMinutes * 60_000,
+        now: () => now, fetchPage: dependencies.fetchNewsPage, budget: invocationBudget,
+      });
+      return {
+        value,
+        completion: {
+          status: value.outcome,
+          ...(value.errorCategory ? { failureCategory: value.errorCategory } : {}),
+          diagnostic: {
+            pages: value.pages, articlesObserved: value.articlesObserved,
+            newArticles: value.newArticles, duplicates: value.duplicates,
+            updates: value.updates, conflicts: value.conflicts,
+          },
+        },
+      };
+    });
+    newsSummaries.push(summary);
+  }
+  const news = {
+    mode: newsConfig.enabled ? "active" : "disabled",
+    cadenceMinutes: newsConfig.cadenceMinutes,
+    plannedJobs: newsPlanned.length,
+    selectedJobs: newsPlanned.length,
+    completedJobs: newsSummaries.filter((summary) => summary.outcome === "SUCCEEDED").length,
+    partialJobs: newsSummaries.filter((summary) => summary.outcome === "PARTIAL").length,
+    failedJobs: newsSummaries.filter((summary) => summary.outcome === "FAILED").length,
+    articlesObserved: newsSummaries.reduce((sum, summary) => sum + summary.articlesObserved, 0),
+    duplicates: newsSummaries.reduce((sum, summary) => sum + summary.duplicates, 0),
+    updates: newsSummaries.reduce((sum, summary) => sum + summary.updates, 0),
+    pages: newsSummaries.reduce((sum, summary) => sum + summary.pages, 0),
+    externalSubrequests: newsSummaries.reduce((sum, summary) => sum + summary.externalSubrequests, 0),
+    d1Queries: invocationBudget.snapshot().d1Queries - newsBefore,
+    nextCheckpoint: newsSummaries.at(-1)?.nextCheckpoint ?? newsStored?.completeThrough,
+  };
+  await runEvidence.finish(schedulerEvidenceRunStatus(summaries, newsSummaries), {
+    marketJobs: summaries.length,
+    newsJobs: newsSummaries.length,
+  });
+  // Digest persistence is a three-statement batch. Reserve it so the persisted
+  // payload's total includes its own writes without double charging the raw DB.
+  invocationBudget.consume("d1", 3);
+  const totalD1Queries = invocationBudget.snapshot().d1Queries;
+  const budget = {
+    marketExternalSubrequests,
+    newsExternalSubrequests: news.externalSubrequests,
+    totalExternalSubrequests: invocationBudget.snapshot().externalSubrequests,
+    marketD1Queries,
+    newsD1Queries: news.d1Queries,
+    totalD1Queries,
+    externalBudgetCeiling: EXTERNAL_SUBREQUEST_CEILING,
+    d1BudgetCeiling: D1_QUERY_CEILING,
+    withinBudget: totalD1Queries <= D1_QUERY_CEILING,
+    marketCheckpointBootstrapD1Queries: marketBootstrapD1Queries,
+  };
+  const persistedDigest = { ...digest, plannedJobs: jobs.length, jobPlans,
+    maxJobsPerTick: acquisitionConfig.maxJobsPerTick, retryPolicy: acquisitionConfig.retryPolicy,
+    gapRetryMinutes: acquisitionConfig.gapRetryMinutes,
+    deferredGapRetries: deferredGapRetries.length,
+    ...(deferredGapRetries.length > 0 ? {
+      nextGapRetryEligibleAt: deferredGapRetries
+        .map((retry) => retry.retryEligibleAt).sort()[0],
+    } : {}),
+    staleAttemptThresholdMinutes: acquisitionConfig.staleAttemptMinutes,
+    staleAttempts, supersededStaleAttempts,
+    runEvidence: {
+      mode: evidenceEnabled ? "active" : "disabled",
+      runId, schedulerRevision: SCHEDULER_EVIDENCE_REVISION, supersededStaleRunJobs,
+    },
+    summaries, news, budget, ...(predictionShadow ? { predictionShadow } : {}) };
+  await new D1LatestDigestStore(env.STATE_DB).put(LATEST_DIGEST_KEY, digest.generatedAt, persistedDigest);
+  console.log(JSON.stringify({ event: "scheduler_tick_live", ...persistedDigest }));
+}
+
+function logicalVariant(instrument: UniverseInstrument, feed: string): string {
+  return instrument.providerRoute === "alpaca_crypto_bars" ? "crypto:us" : `stock:${feed}:raw`;
+}
+
+export function createWorker(dependencies: ScheduledOrchestrationDependencies = productionDependencies) {
+  return {
+    async scheduled(controller: ScheduledController, env: RuntimeEnv, ctx: ExecutionContext): Promise<void> {
+      ctx.waitUntil(runScheduledTick(controller, env, dependencies));
+    },
+
+    async fetch(request: Request, env: RuntimeEnv): Promise<Response> {
+      const url = new URL(request.url);
+
+      if (url.pathname === "/control/pb08/reproducible-absence/ack") {
+        if (!pb08AbsenceAckEnabled(env)) return json({ error: "not_found" }, 404);
+        if (request.method !== "POST") return json({ error: "method_not_allowed" }, 405);
+        if (!await authorizeHistoricalRecovery(request, env)) return json({ error: "unauthorized" }, 401);
+        if (!("STATE_DB" in env) || !env.STATE_DB) return json({ error: "runtime_binding_unavailable" }, 503);
+        if (env.ALPACA_FEED !== "iex"
+          || env.UNIVERSE_PROFILE !== "canary-v0.1"
+          || env.WORKER_MODE !== "shadow"
+          || loadNewsAcquisitionRuntimeConfig(env).enabled
+          || historicalRecoveryEnabled(env)) {
+          return json({ error: "runtime_precondition_mismatch" }, 409);
+        }
+
+        const budget = new InvocationBudget();
+        const stateDb = budgetedD1(env.STATE_DB, budget);
+        const checkpoints = dependencies.checkpointPort?.(stateDb) ?? new D1CoverageCheckpointPort(stateDb);
+        const nvda = await checkpoints.get("NVDA|1Min|REGULAR|stock:iex:raw");
+        if (!nvda
+          || nvda.version !== 61
+          || nvda.completeThrough !== "2026-09-23T18:28:00.000Z"
+          || nvda.sourceObservedThrough !== "2026-09-23T18:28:00.000Z"
+          || nvda.state !== "COMPLETE"
+          || nvda.missingRanges.length !== 0
+          || nvda.blocker !== undefined
+          || nvda.retryNotBefore !== undefined) {
+          return json({ error: "nvda_entry_mismatch" }, 409);
+        }
+
+        const acknowledgedAt = new Date().toISOString();
+        const rows = await acknowledgePb08ReproducibleAbsencesD1(stateDb, acknowledgedAt);
+        if (rows.length !== 2) return json({ error: "absence_checkpoint_mismatch" }, 409);
+
+        const after = await checkpoints.getMany([
+          "AMD|1Min|REGULAR|stock:iex:raw",
+          "QQQ|1Min|REGULAR|stock:iex:raw",
+        ]);
+        const accepted = after.length === 2 && after.every((checkpoint) =>
+          checkpoint.state === "COMPLETE"
+          && checkpoint.missingRanges.length === 0
+          && checkpoint.blocker === undefined
+          && checkpoint.retryNotBefore === undefined
+          && checkpoint.completeThrough === checkpoint.sourceObservedThrough
+        );
+        return json({
+          accepted,
+          acknowledgedAt,
+          evidence: {
+            reason: "REPRODUCIBLE_PROVIDER_ABSENCE",
+            observations: 2,
+            AMD: "2026-09-24T14:49:00.000Z",
+            QQQ: "2026-09-24T14:32:00.000Z",
+          },
+          checkpoints: after.map((checkpoint) => ({
+            coverageKey: checkpoint.coverageKey,
+            version: checkpoint.version,
+            completeThrough: checkpoint.completeThrough,
+            state: checkpoint.state,
+            missingRanges: checkpoint.missingRanges,
+          })),
+          budget: budget.snapshot(),
+        }, accepted ? 200 : 409);
+      }
+
+      const localEvidenceRecoveryPath = url.pathname === "/control/historical-recovery/nvda/local-evidence-next-chunk";
+      if (localEvidenceRecoveryPath) {
+        if (!historicalRecoveryEnabled(env)) return json({ error: "not_found" }, 404);
+        if (request.method !== "POST") return json({ error: "method_not_allowed" }, 405);
+        if (!await authorizeHistoricalRecovery(request, env)) return json({ error: "unauthorized" }, 401);
+        if (!env.ALPACA_API_KEY || !env.ALPACA_API_SECRET || !("STATE_DB" in env) || !env.STATE_DB) {
+          return json({ error: "runtime_binding_unavailable" }, 503);
+        }
+        if (env.ALPACA_FEED !== "iex" || env.UNIVERSE_PROFILE !== "canary-v0.1"
+          || env.WORKER_MODE !== "shadow" || loadNewsAcquisitionRuntimeConfig(env).enabled) {
+          return json({ error: "runtime_precondition_mismatch" }, 409);
+        }
+
+        const expectedJobId = request.headers.get("x-orderscope-job-id");
+        const suppliedVersion = parseCheckpointVersion(request.headers.get("x-orderscope-checkpoint-version"));
+        const suppliedCompleteThrough = request.headers.get("x-orderscope-complete-through");
+        const recoveryId = request.headers.get("x-orderscope-recovery-id");
+        const suppliedEvidenceHash = request.headers.get("x-orderscope-evidence-sha256");
+        const localRecovery = NVDA_LOCAL_EVIDENCE_RECOVERIES.find((candidate) =>
+          candidate.recoveryId === recoveryId && candidate.evidenceSha256 === suppliedEvidenceHash);
+        const frozenChunk = localRecovery?.chunks.find((chunk) =>
+          chunk.jobId === expectedJobId
+          && chunk.checkpointVersion === suppliedVersion
+          && chunk.checkpointBefore === suppliedCompleteThrough);
+        if (!expectedJobId || suppliedVersion === undefined || suppliedCompleteThrough === null || !recoveryId
+          || !Number.isFinite(Date.parse(suppliedCompleteThrough))
+          || new Date(Date.parse(suppliedCompleteThrough)).toISOString() !== suppliedCompleteThrough
+          || !localRecovery
+          || !frozenChunk) {
+          return json({ error: "frozen_identity_mismatch" }, 409);
+        }
+
+        let parsedBody: unknown;
+        try {
+          parsedBody = await request.json();
+        } catch {
+          return json({ error: "invalid_local_evidence_json" }, 400);
+        }
+        if (typeof parsedBody !== "object" || parsedBody === null || !("sessionJson" in parsedBody)
+          || typeof parsedBody.sessionJson !== "string"
+          || !("calendarRevision" in parsedBody) || typeof parsedBody.calendarRevision !== "string") {
+          return json({ error: "invalid_local_evidence_payload" }, 400);
+        }
+
+        let loaded: Awaited<ReturnType<typeof parseLocalHistoryEvidence>>;
+        try {
+          loaded = await parseLocalHistoryEvidence(parsedBody.sessionJson);
+        } catch {
+          return json({ error: "local_evidence_validation_failed" }, 409);
+        }
+        const session = loaded.session;
+        if (session.coverageKey !== localRecovery!.coverageKey
+          || session.feed !== "iex"
+          || session.providerRevision !== localRecovery!.providerRevision
+          || session.contentSha256 !== localRecovery!.evidenceSha256
+          || session.plan.marketDate !== localRecovery!.marketDate
+          || session.plan.startInclusive !== localRecovery!.sessionOpen
+          || session.plan.endExclusive !== localRecovery!.sessionClose) {
+          return json({ error: "local_evidence_identity_mismatch" }, 409);
+        }
+
+        const budget = new InvocationBudget();
+        const stateDb = budgetedD1(env.STATE_DB, budget);
+        const checkpoints = dependencies.checkpointPort?.(stateDb) ?? new D1CoverageCheckpointPort(stateDb);
+        const checkpointBefore = await checkpoints.get(session.coverageKey);
+        if (!checkpointBefore
+          || checkpointBefore.symbol !== "NVDA"
+          || checkpointBefore.interval !== "1Min"
+          || checkpointBefore.sessionScope !== "REGULAR"
+          || checkpointBefore.logicalDataVariant !== "stock:iex:raw"
+          || checkpointBefore.state !== "COMPLETE"
+          || checkpointBefore.completeThrough !== suppliedCompleteThrough
+          || checkpointBefore.version !== suppliedVersion
+          || checkpointBefore.universeRevision !== localRecovery!.universeRevision
+          || checkpointBefore.missingRanges.length !== 0
+          || checkpointBefore.blocker !== undefined) {
+          return json({ error: "checkpoint_preflight_mismatch" }, 409);
+        }
+
+        const calendarRevision = parsedBody.calendarRevision;
+        if (calendarRevision !== localRecovery!.calendarRevision) {
+          return json({ error: "local_evidence_calendar_mismatch" }, 409);
+        }
+        const calendar = {
+          market: "US_EQUITIES" as const,
+          dateRange: {
+            startInclusive: session.plan.marketDate,
+            endExclusive: new Date(Date.parse(session.plan.marketDate + "T00:00:00.000Z") + 86_400_000)
+              .toISOString().slice(0, 10),
+          },
+          generatedAt: new Date().toISOString(),
+          revision: calendarRevision,
+          sessions: [{
+            marketDate: session.plan.marketDate,
+            sessionKind: "REGULAR" as const,
+            opensAt: session.plan.startInclusive,
+            closesAt: session.plan.endExclusive,
+            isShortened: false,
+            calendarRevision,
+          }],
+        };
+        const recoveryRequest: HistoricalRecoveryRequest = {
+          recoveryId,
+          providerRevision: session.providerRevision,
+          universeRevision: checkpointBefore.universeRevision,
+          calendarRevision,
+          instrument: { symbol: "NVDA", cadence: "1Min", providerRoute: "alpaca_stock_bars" },
+          coverageKey: session.coverageKey,
+          sessionScope: "REGULAR",
+          logicalDataVariant: "stock:iex:raw",
+          mode: "CATCH_UP",
+          recoveryRange: {
+            startInclusive: checkpointBefore.completeThrough!,
+            endExclusive: session.plan.endExclusive,
+          },
+          checkpointBefore,
+          maxBarsPerJob: 100,
+          createdAt: new Date().toISOString(),
+        };
+        const plannedJob = planNextHistoricalRecoveryChunk(recoveryRequest, calendar);
+        if (!plannedJob || plannedJob.jobId !== expectedJobId) {
+          return json({ error: "planned_job_mismatch" }, 409);
+        }
+        const chunkAbsences = coverageAbsencesForRange(
+          loaded.coverageAbsences,
+          plannedJob.requestedRange.startInclusive,
+          plannedJob.requestedRange.endExclusive,
+        );
+        const expectedGridBars = (Date.parse(plannedJob.requestedRange.endExclusive)
+          - Date.parse(plannedJob.requestedRange.startInclusive)) / 60_000;
+        const expectedProviderBars = expectedGridBars - chunkAbsences.length;
+
+        const leases = dependencies.leaseStore?.(stateDb) ?? new D1AcquisitionLeaseStore(stateDb);
+        const ownerId = expectedJobId + ":" + crypto.randomUUID();
+        const acquired = await leases.acquire(session.coverageKey, ownerId, new Date().toISOString(), 5 * 60_000);
+        if (!acquired) return json({ error: "recovery_locked" }, 409);
+        try {
+          const result = await runHistoricalRecoveryChunk(recoveryRequest, calendar, {
+            credentials: { keyId: "local-evidence", secretKey: "local-evidence" },
+            checkpoints,
+            bars: dependencies.barStore?.(stateDb) ?? new D1NormalizedBarStore(stateDb),
+            feed: "iex",
+            maxPages: 1,
+            maxBars: 100,
+            gapRetryDelayMs: loadAcquisitionRuntimeConfig(env).gapRetryMinutes * 60_000,
+            now: () => new Date(),
+            fetchPage: localHistoryFetchPage(session),
+            coverageAbsences: chunkAbsences,
+            budget,
+          });
+          const checkpointAfter = await checkpoints.get(session.coverageKey);
+          const accepted = result.outcome === "SUCCEEDED"
+            && result.summary.jobId === expectedJobId
+            && result.summary.inserted + result.summary.matched === expectedProviderBars
+            && (result.summary.acknowledgedAbsent ?? 0) === chunkAbsences.length
+            && result.summary.conflicts === 0
+            && result.summary.rejected === 0
+            && result.summary.missing === 0
+            && checkpointAfter?.completeThrough === frozenChunk.checkpointAfter
+            && plannedJob.requestedRange.endExclusive === frozenChunk.checkpointAfter
+            && checkpointAfter.state === "COMPLETE"
+            && checkpointAfter.missingRanges.length === 0
+            && checkpointAfter.blocker === undefined
+            && checkpointAfter.version === frozenChunk.checkpointAfterVersion;
+          return json({
+            accepted,
+            recoveryId,
+            expectedJobId,
+            evidenceHash: session.contentSha256,
+            checkpointBefore: { completeThrough: suppliedCompleteThrough, version: suppliedVersion },
+            requestedRange: plannedJob.requestedRange,
+            expectedGridBars,
+            expectedProviderBars,
+            acknowledgedAbsent: chunkAbsences.length,
+            result,
+            checkpointAfter: checkpointAfter ? {
+              completeThrough: checkpointAfter.completeThrough,
+              state: checkpointAfter.state,
+              missingRanges: checkpointAfter.missingRanges,
+              version: checkpointAfter.version,
+            } : null,
+            budget: budget.snapshot(),
+            stoppedAfterOneChunk: true,
+          }, accepted ? 200 : 409);
+        } catch {
+          return json({ error: "local_evidence_recovery_failed", recoveryId }, 409);
+        } finally {
+          await leases.release(session.coverageKey, ownerId);
+        }
+      }
+
+      const firstRecoveryPath = url.pathname === "/control/historical-recovery/nvda/first-chunk";
+      const continuationRecoveryPath = url.pathname === "/control/historical-recovery/nvda/next-chunk";
+      if (firstRecoveryPath || continuationRecoveryPath) {
+        if (!historicalRecoveryEnabled(env)) return json({ error: "not_found" }, 404);
+        if (request.method !== "POST") return json({ error: "method_not_allowed" }, 405);
+        if (!await authorizeHistoricalRecovery(request, env)) return json({ error: "unauthorized" }, 401);
+        const expectedJobId = request.headers.get("x-orderscope-job-id");
+        const suppliedVersion = request.headers.get("x-orderscope-checkpoint-version");
+        const suppliedCompleteThrough = request.headers.get("x-orderscope-complete-through");
+        const continuationVersion = parseCheckpointVersion(suppliedVersion);
+        const expectedVersion = firstRecoveryPath ? NVDA_RECOVERY.checkpointVersion : continuationVersion;
+        const expectedCompleteThrough = firstRecoveryPath ? NVDA_RECOVERY.checkpointBefore : suppliedCompleteThrough;
+        const continuationHeadersValid = expectedVersion !== undefined
+          && expectedVersion >= NVDA_RECOVERY.checkpointVersion + 1
+          && expectedCompleteThrough !== null
+          && Number.isFinite(Date.parse(expectedCompleteThrough))
+          && new Date(Date.parse(expectedCompleteThrough)).toISOString() === expectedCompleteThrough;
+        if (request.headers.get("x-orderscope-recovery-id") !== NVDA_RECOVERY.recoveryId
+          || !expectedJobId
+          || (firstRecoveryPath && expectedJobId !== NVDA_RECOVERY.expectedJobId)
+          || (continuationRecoveryPath && !continuationHeadersValid)) {
+          return json({ error: "frozen_identity_mismatch" }, 409);
+        }
+        if (!env.ALPACA_API_KEY || !env.ALPACA_API_SECRET || !("STATE_DB" in env) || !env.STATE_DB) {
+          return json({ error: "runtime_binding_unavailable" }, 503);
+        }
+        if (env.ALPACA_FEED !== "iex" || env.UNIVERSE_PROFILE !== "canary-v0.1"
+          || env.WORKER_MODE !== "shadow" || loadNewsAcquisitionRuntimeConfig(env).enabled) {
+          return json({ error: "runtime_precondition_mismatch" }, 409);
+        }
+
+        const credentials = { keyId: env.ALPACA_API_KEY, secretKey: env.ALPACA_API_SECRET };
+        const acquisitionConfig = loadAcquisitionRuntimeConfig(env);
+        if (acquisitionConfig.maxBarsPerJob !== NVDA_RECOVERY.maxBars
+          || acquisitionConfig.maxPagesPerJob !== 10) {
+          return json({ error: "execution_bound_mismatch" }, 409);
+        }
+        const budget = new InvocationBudget();
+        const stateDb = budgetedD1(env.STATE_DB, budget);
+        const checkpoints = dependencies.checkpointPort?.(stateDb) ?? new D1CoverageCheckpointPort(stateDb);
+        const checkpointBefore = await checkpoints.get(NVDA_RECOVERY.coverageKey);
+        if (expectedVersion === undefined || !checkpointBefore
+          || checkpointBefore.symbol !== "NVDA"
+          || checkpointBefore.interval !== "1Min"
+          || checkpointBefore.sessionScope !== "REGULAR"
+          || checkpointBefore.logicalDataVariant !== "stock:iex:raw"
+          || checkpointBefore.state !== "COMPLETE"
+          || checkpointBefore.completeThrough !== expectedCompleteThrough
+          || checkpointBefore.version !== expectedVersion
+          || checkpointBefore.universeRevision !== NVDA_RECOVERY.universeRevision
+          || checkpointBefore.missingRanges.length !== 0) {
+          return json({ error: "checkpoint_preflight_mismatch" }, 409);
+        }
+        const calendar = await dependencies.calendarProvider(credentials, {
+          includePremarket: false,
+          includeAfterHours: false,
+        }).getCalendar(NVDA_RECOVERY.calendarStart, NVDA_RECOVERY.calendarEnd);
+        if (calendar.revision !== NVDA_RECOVERY.calendarRevision) {
+          return json({ error: "calendar_preflight_mismatch" }, 409);
+        }
+
+        const recoveryRequest: HistoricalRecoveryRequest = {
+          recoveryId: NVDA_RECOVERY.recoveryId,
+          providerRevision: NVDA_RECOVERY.providerRevision,
+          universeRevision: NVDA_RECOVERY.universeRevision,
+          calendarRevision: NVDA_RECOVERY.calendarRevision,
+          instrument: { symbol: "NVDA", cadence: "1Min", providerRoute: "alpaca_stock_bars" },
+          coverageKey: NVDA_RECOVERY.coverageKey,
+          sessionScope: "REGULAR",
+          logicalDataVariant: "stock:iex:raw",
+          mode: "CATCH_UP",
+          recoveryRange: { startInclusive: NVDA_RECOVERY.recoveryStart, endExclusive: NVDA_RECOVERY.recoveryEnd },
+          checkpointBefore,
+          maxBarsPerJob: NVDA_RECOVERY.maxBars,
+          createdAt: new Date().toISOString(),
+        };
+        const plannedJob = planNextHistoricalRecoveryChunk(recoveryRequest, calendar);
+        if (!plannedJob) return json({ error: "recovery_complete" }, 409);
+        if (plannedJob.jobId !== expectedJobId) return json({ error: "planned_job_mismatch" }, 409);
+        const expectedBarCount = (Date.parse(plannedJob.requestedRange.endExclusive)
+          - Date.parse(plannedJob.requestedRange.startInclusive)) / 60_000;
+        const leases = dependencies.leaseStore?.(stateDb) ?? new D1AcquisitionLeaseStore(stateDb);
+        const ownerId = `${expectedJobId}:${crypto.randomUUID()}`;
+        const acquired = await leases.acquire(
+          NVDA_RECOVERY.coverageKey,
+          ownerId,
+          new Date().toISOString(),
+          5 * 60_000,
+        );
+        if (!acquired) return json({ error: "recovery_locked" }, 409);
+        try {
+          const result = await runHistoricalRecoveryChunk(recoveryRequest, calendar, {
+            credentials,
+            checkpoints,
+            bars: dependencies.barStore?.(stateDb) ?? new D1NormalizedBarStore(stateDb),
+            feed: "iex",
+            maxPages: acquisitionConfig.maxPagesPerJob,
+            maxBars: NVDA_RECOVERY.maxBars,
+            gapRetryDelayMs: acquisitionConfig.gapRetryMinutes * 60_000,
+            providerFetchOptions: { retry: acquisitionConfig.providerRetry },
+            now: () => new Date(),
+            fetchPage: dependencies.fetchPage,
+            budget,
+          });
+          const checkpointAfter = await checkpoints.get(NVDA_RECOVERY.coverageKey);
+          const accepted = result.outcome === "SUCCEEDED"
+            && result.summary.jobId === expectedJobId
+            && result.summary.inserted + result.summary.matched === expectedBarCount
+            && result.summary.conflicts === 0
+            && result.summary.rejected === 0
+            && result.summary.missing === 0
+            && checkpointAfter?.completeThrough === plannedJob.requestedRange.endExclusive
+            && checkpointAfter.state === "COMPLETE"
+            && checkpointAfter.missingRanges.length === 0
+            && checkpointAfter.version === expectedVersion + 1;
+          const evidence = {
+            recoveryId: NVDA_RECOVERY.recoveryId,
+            expectedJobId,
+            checkpointBefore: { completeThrough: expectedCompleteThrough, version: expectedVersion },
+            requestedRange: plannedJob.requestedRange,
+            expectedBarCount,
+            result,
+            checkpointAfter: checkpointAfter ? {
+              completeThrough: checkpointAfter.completeThrough,
+              state: checkpointAfter.state,
+              missingRanges: checkpointAfter.missingRanges,
+              version: checkpointAfter.version,
+            } : null,
+            budget: budget.snapshot(),
+            stoppedAfterOneChunk: true,
+          };
+          console.log(JSON.stringify({
+            event: firstRecoveryPath ? "historical_recovery_first_chunk" : "historical_recovery_next_chunk",
+            accepted,
+            ...evidence,
+          }));
+          return json({ accepted, ...evidence }, accepted ? 200 : 409);
+        } catch (error) {
+          console.error(JSON.stringify({
+            event: firstRecoveryPath
+              ? "historical_recovery_first_chunk_failed"
+              : "historical_recovery_next_chunk_failed",
+            recoveryId: NVDA_RECOVERY.recoveryId,
+            errorCategory: error instanceof Error ? "execution_error" : "unknown_error",
+          }));
+          return json({ error: "historical_recovery_failed", recoveryId: NVDA_RECOVERY.recoveryId }, 409);
+        } finally {
+          await leases.release(NVDA_RECOVERY.coverageKey, ownerId);
+        }
+      }
+
+      if (url.pathname === "/health") {
+        return json({ ok: true, ...currentDigest(env, new Date()) });
+      }
+
+      if (url.pathname === "/digest/latest") {
+        if ("STATE_DB" in env && env.STATE_DB) {
+          const stored = await new D1LatestDigestStore(env.STATE_DB).get(LATEST_DIGEST_KEY);
+          if (stored) return json(stored);
+        }
+        return json({ ...currentDigest(env, new Date()), persisted: false });
+      }
+
+      if (url.pathname === "/digest/history") {
+        if (!("STATE_DB" in env) || !env.STATE_DB) return json({ error: "state_unavailable" }, 503);
+        const rawLimit = url.searchParams.get("limit");
+        const limit = rawLimit === null ? DIGEST_HISTORY_DEFAULT_LIMIT : Number(rawLimit);
+        if (!Number.isInteger(limit) || limit < 1 || limit > DIGEST_HISTORY_MAX_LIMIT) {
+          return json({ error: "invalid_limit", min: 1, max: DIGEST_HISTORY_MAX_LIMIT }, 400);
+        }
+        const digests = await new D1LatestDigestStore(env.STATE_DB).list(LATEST_DIGEST_KEY, limit);
+        return json({ digestKey: LATEST_DIGEST_KEY, count: digests.length, digests });
+      }
+
+      return json({ error: "not_found" }, 404);
+    },
+  } satisfies ExportedHandler<RuntimeEnv>;
+}
+
+export default createWorker();

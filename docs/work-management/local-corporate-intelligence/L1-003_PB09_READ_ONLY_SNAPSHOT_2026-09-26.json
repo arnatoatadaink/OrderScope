@@ -1,0 +1,172 @@
+{
+  "observedNow": "2026-09-26T11:27:53.153Z",
+  "remoteMutation": false,
+  "release": "51fbd3d0c20b8d514d6035215c1bce6485f7dabe",
+  "worktree": "?? scripts/l1_003_pb09_packet.mjs\n?? scripts/l1_003_pb09_packet.test.mjs\n?? scripts/l1_003_pb09_prepare.ts\n?? scripts/l1_003_pb09_readonly_preparation.sh",
+  "configSha256": "ade008f2ab6970e39a8c7146987683738db38f29b11ca134a5f583c178435d0b",
+  "deploymentId": "e74e188d-3d35-4cc6-ad6b-c70177fb9c37",
+  "workerVersion": "844882b8-2525-48ab-a1a8-ccd7707b93af",
+  "lagMinutes": 1,
+  "health": {
+    "ok": true,
+    "generatedAt": "2026-09-26T11:24:53.136Z",
+    "mode": "shadow",
+    "status": "shadow",
+    "marketTimezone": "America/New_York",
+    "feed": "iex",
+    "predictionMode": "shadow",
+    "predictionTargetProfile": "semiconductor-canary-v0.1",
+    "news": {
+      "mode": "disabled",
+      "cadenceMinutes": 5,
+      "plannedJobs": 0,
+      "selectedJobs": 0,
+      "completedJobs": 0,
+      "partialJobs": 0,
+      "failedJobs": 0,
+      "articlesObserved": 0,
+      "duplicates": 0,
+      "updates": 0,
+      "pages": 0
+    },
+    "notes": [
+      "alpaca credentials configured",
+      "D1 state binding configured",
+      "R2 archive binding not configured",
+      "calendar-aware acquisition is intentionally not simulated from weekday/UTC rules"
+    ]
+  },
+  "calendar": {
+    "market": "US_EQUITIES",
+    "dateRange": {
+      "startInclusive": "2026-09-24",
+      "endExclusive": "2026-10-03"
+    },
+    "sessions": [
+      {
+        "marketDate": "2026-09-24",
+        "sessionKind": "REGULAR",
+        "opensAt": "2026-09-24T13:30:00.000Z",
+        "closesAt": "2026-09-24T20:00:00.000Z",
+        "isShortened": false,
+        "calendarRevision": "alpaca-calendar-v2:9b6adc26"
+      },
+      {
+        "marketDate": "2026-09-25",
+        "sessionKind": "REGULAR",
+        "opensAt": "2026-09-25T13:30:00.000Z",
+        "closesAt": "2026-09-25T20:00:00.000Z",
+        "isShortened": false,
+        "calendarRevision": "alpaca-calendar-v2:9b6adc26"
+      },
+      {
+        "marketDate": "2026-09-28",
+        "sessionKind": "REGULAR",
+        "opensAt": "2026-09-28T13:30:00.000Z",
+        "closesAt": "2026-09-28T20:00:00.000Z",
+        "isShortened": false,
+        "calendarRevision": "alpaca-calendar-v2:9b6adc26"
+      },
+      {
+        "marketDate": "2026-09-29",
+        "sessionKind": "REGULAR",
+        "opensAt": "2026-09-29T13:30:00.000Z",
+        "closesAt": "2026-09-29T20:00:00.000Z",
+        "isShortened": false,
+        "calendarRevision": "alpaca-calendar-v2:9b6adc26"
+      },
+      {
+        "marketDate": "2026-09-30",
+        "sessionKind": "REGULAR",
+        "opensAt": "2026-09-30T13:30:00.000Z",
+        "closesAt": "2026-09-30T20:00:00.000Z",
+        "isShortened": false,
+        "calendarRevision": "alpaca-calendar-v2:9b6adc26"
+      },
+      {
+        "marketDate": "2026-10-01",
+        "sessionKind": "REGULAR",
+        "opensAt": "2026-10-01T13:30:00.000Z",
+        "closesAt": "2026-10-01T20:00:00.000Z",
+        "isShortened": false,
+        "calendarRevision": "alpaca-calendar-v2:9b6adc26"
+      },
+      {
+        "marketDate": "2026-10-02",
+        "sessionKind": "REGULAR",
+        "opensAt": "2026-10-02T13:30:00.000Z",
+        "closesAt": "2026-10-02T20:00:00.000Z",
+        "isShortened": false,
+        "calendarRevision": "alpaca-calendar-v2:9b6adc26"
+      }
+    ],
+    "generatedAt": "2026-09-26T11:27:53.763Z",
+    "revision": "alpaca-calendar-v2:9b6adc26"
+  },
+  "checkpoints": [
+    {
+      "coverage_key": "AMD|1Min|REGULAR|stock:iex:raw",
+      "version": 48,
+      "complete_through": "2026-09-25T20:00:00.000Z",
+      "source_observed_through": "2026-09-25T20:00:00.000Z",
+      "state": "COMPLETE",
+      "missing_ranges_json": "[]",
+      "blocker_json": null,
+      "retry_not_before": null
+    },
+    {
+      "coverage_key": "BTCUSD|1Min|ALL_TRADING|crypto:us",
+      "version": 56,
+      "complete_through": "2026-09-25T19:07:00.000Z",
+      "source_observed_through": "2026-09-25T19:07:00.000Z",
+      "state": "COMPLETE",
+      "missing_ranges_json": "[]",
+      "blocker_json": null,
+      "retry_not_before": null
+    },
+    {
+      "coverage_key": "NVDA|1Min|REGULAR|stock:iex:raw",
+      "version": 65,
+      "complete_through": "2026-09-25T20:00:00.000Z",
+      "source_observed_through": "2026-09-25T20:00:00.000Z",
+      "state": "COMPLETE",
+      "missing_ranges_json": "[]",
+      "blocker_json": null,
+      "retry_not_before": null
+    },
+    {
+      "coverage_key": "QQQ|1Min|REGULAR|stock:iex:raw",
+      "version": 16,
+      "complete_through": "2026-09-25T20:00:00.000Z",
+      "source_observed_through": "2026-09-25T20:00:00.000Z",
+      "state": "COMPLETE",
+      "missing_ranges_json": "[]",
+      "blocker_json": null,
+      "retry_not_before": null
+    },
+    {
+      "coverage_key": "SPY|1Min|REGULAR|stock:iex:raw",
+      "version": 47,
+      "complete_through": "2026-09-25T18:28:00.000Z",
+      "source_observed_through": "2026-09-25T18:28:00.000Z",
+      "state": "COMPLETE",
+      "missing_ranges_json": "[]",
+      "blocker_json": null,
+      "retry_not_before": null
+    }
+  ],
+  "unresolvedAttempts": 0,
+  "assessment": {
+    "status": "WAITING_ACTIVE_MARKET_SESSION",
+    "nextSession": {
+      "marketDate": "2026-09-28",
+      "sessionKind": "REGULAR",
+      "opensAt": "2026-09-28T13:30:00.000Z",
+      "closesAt": "2026-09-28T20:00:00.000Z",
+      "isShortened": false,
+      "calendarRevision": "alpaca-calendar-v2:9b6adc26"
+    },
+    "candidate": null,
+    "remoteMutation": false
+  }
+}

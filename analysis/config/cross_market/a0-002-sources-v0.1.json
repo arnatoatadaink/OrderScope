@@ -1,0 +1,122 @@
+{
+  "schema_version": "a0-002-source-manifest-v0.1",
+  "validation_case": "CBRS_2026-09-01_2026-09-04",
+  "baseline_window": {
+    "start": "2026-08-26T00:00:00Z",
+    "end": "2026-09-01T00:00:00Z"
+  },
+  "primary_window": {
+    "start": "2026-09-01T00:00:00Z",
+    "end": "2026-09-05T00:00:00Z"
+  },
+  "series": [
+    {
+      "role": "CBRS",
+      "measure": "PRICE",
+      "series_id": "CBRS.close",
+      "source_ref": "alpaca:stocks:CBRS:1Day",
+      "unit": "usd",
+      "timezone": "America/New_York"
+    },
+    {
+      "role": "CBRS",
+      "measure": "VOLUME",
+      "series_id": "CBRS.volume",
+      "source_ref": "alpaca:stocks:CBRS:1Day",
+      "unit": "shares",
+      "timezone": "America/New_York"
+    },
+    {
+      "role": "NVDA",
+      "measure": "PRICE",
+      "series_id": "NVDA.close",
+      "source_ref": "alpaca:stocks:NVDA:1Day",
+      "unit": "usd",
+      "timezone": "America/New_York"
+    },
+    {
+      "role": "NVDA",
+      "measure": "VOLUME",
+      "series_id": "NVDA.volume",
+      "source_ref": "alpaca:stocks:NVDA:1Day",
+      "unit": "shares",
+      "timezone": "America/New_York"
+    },
+    {
+      "role": "US_MARKET",
+      "measure": "PRICE",
+      "series_id": "QQQ.close",
+      "source_ref": "alpaca:stocks:QQQ:1Day",
+      "unit": "usd",
+      "timezone": "America/New_York"
+    },
+    {
+      "role": "US_MARKET",
+      "measure": "VOLUME",
+      "series_id": "QQQ.volume",
+      "source_ref": "alpaca:stocks:QQQ:1Day",
+      "unit": "shares",
+      "timezone": "America/New_York"
+    },
+    {
+      "role": "AI_SEMICONDUCTOR_PROXY",
+      "measure": "PRICE",
+      "series_id": "SOXX.close",
+      "source_ref": "alpaca:stocks:SOXX:1Day",
+      "unit": "usd",
+      "timezone": "America/New_York"
+    },
+    {
+      "role": "AI_SEMICONDUCTOR_PROXY",
+      "measure": "VOLUME",
+      "series_id": "SOXX.volume",
+      "source_ref": "alpaca:stocks:SOXX:1Day",
+      "unit": "shares",
+      "timezone": "America/New_York"
+    },
+    {
+      "role": "UST_10Y",
+      "measure": "YIELD",
+      "series_id": "DGS10",
+      "source_ref": "fred:DGS10",
+      "unit": "percent",
+      "timezone": "America/New_York"
+    },
+    {
+      "role": "JGB_10Y",
+      "measure": "YIELD",
+      "series_id": "MOF.JGB.CONSTANT_MATURITY.10Y",
+      "source_ref": "mof:jgb:constant-maturity:10y",
+      "unit": "percent",
+      "timezone": "Asia/Tokyo"
+    },
+    {
+      "role": "USDJPY",
+      "measure": "FX_RATE",
+      "series_id": "BOJ.USDJPY.17H",
+      "source_ref": "boj:fxdaily:usdjpy:17h-mid",
+      "unit": "jpy_per_usd",
+      "timezone": "Asia/Tokyo"
+    },
+    {
+      "role": "BTC",
+      "measure": "PRICE",
+      "series_id": "BTC/USD.close",
+      "source_ref": "alpaca:crypto:us:BTC/USD:1Day",
+      "unit": "usd",
+      "timezone": "UTC"
+    }
+  ],
+  "optional_series": [
+    {
+      "role": "CBRS",
+      "measure": "CONSENSUS_TARGET",
+      "status": "provider_unresolved"
+    },
+    {
+      "role": "CBRS",
+      "measure": "SHORT_METRIC",
+      "status": "provider_unresolved"
+    }
+  ]
+}
