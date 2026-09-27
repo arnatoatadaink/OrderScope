@@ -132,8 +132,8 @@ State: **PARKED** until the applicable market-session execution window is intent
 ```text
 UWBS-080  Direct WTI / Brent Macro Instrument contract + provider survey   [ACCEPTED]
    |
-   +-> UWBS-081  structured commodity supply/fundamental acquisition      [NEXT]
-   +-> UWBS-082  commodity supply/shipping/geopolitical event taxonomy
+   +-> UWBS-081  structured commodity supply/fundamental acquisition      [ACCEPTED]
+   +-> UWBS-082  commodity supply/shipping/geopolitical event taxonomy     [LOCAL ACCEPTANCE REQUIRED]
    |
    v
 UWBS-083  oil-down-reason / inflation-growth-risk interpretation
@@ -155,39 +155,55 @@ Acceptance evidence:
 
 `UWBS-080_LOCAL_ACCEPTANCE_2026-09-27.md`
 
+### UWBS-081 current state
+
+Status: **ACCEPTED**
+
+Acceptance evidence:
+
+`UWBS-081_LOCAL_ACCEPTANCE_2026-09-27.md`
+
 Local acceptance result:
 
 ```text
-Python 3.13.15
-commodity focused tests: 7 passed
-fixture importer verification: 8 passed
-full Python regression: 709 passed
-compileall: PASS
-git diff --check: PASS
+commodity fundamental contract: 9 passed
+EIA petroleum normalizer:        7 passed
+full Python regression:          725 passed
+compileall:                      PASS
+git diff --check:                PASS
 ```
 
-Accepted boundary includes:
+Accepted boundary preserves raw source semantics for inventory, production, refinery/utilization, imports/exports and product supplied. Demand interpretation, disruption classification, four-week derived metrics and price causality remain downstream.
 
-- provider-neutral `CommodityPriceObservation` contract;
-- WTI / Brent canonical benchmark identities;
-- `spot_reference` vs `futures_contract` separation;
-- WTI Cushing / Brent Europe spot-location guards;
-- NYMEX WTI / ICE Futures Europe Brent venue guards;
-- listed contract code + delivery month requirements;
-- finite negative crude futures values remain representable;
-- USO stays a proxy outside canonical crude-price truth;
-- provider survey and activation/terms boundaries documented.
+### UWBS-082 current state
 
-No live provider or runtime mutation occurred.
+Status: **WEB IMPLEMENTATION READY — LOCAL ACCEPTANCE REQUIRED**
+
+Implemented remotely:
+
+- provider-neutral `CommoditySupplyEventObservation` contract;
+- event kinds for physical supply, refinery/pipeline, port/shipping, maritime security, sanctions/trade restrictions, strategic release, production policy, armed conflict and blockade/closure;
+- source lifecycle states (`reported`, `announced`, `active`, `resolved`, `cancelled`);
+- required asset/route/actor identity guards for event classes where identity is material;
+- source-precision effective interval support;
+- materialization to source-grounded Fact with required Evidence;
+- explicit exclusion of severity, price direction, barrels-at-risk and risk-regime classification.
+
+Design record:
+
+`UWBS-082_COMMODITY_SUPPLY_EVENT_TAXONOMY.md`
 
 ### Selected restart point
 
 ```text
-UWBS-081
-structured commodity supply/fundamental acquisition
+UWBS-082 local acceptance
+  -> focused commodity-event contract tests
+  -> full Python regression
+  -> compileall
+  -> git diff --check
 ```
 
-Primary objective: define provider-neutral structured facts for inventory, production, refinery/utilization and related supply fundamentals before binding any live source. `UWBS-082` remains a parallel sibling once this structured fact boundary is frozen.
+If accepted, proceed to `UWBS-083`.
 
 ## 9. Restart rule
 
@@ -200,4 +216,4 @@ After an interruption:
 5. for market-dependent work, refresh only time-dependent preflight inputs;
 6. for market-independent work, resume at the first incomplete canonical dependency.
 
-Current restart is `UWBS-081` unless the user explicitly selects another lane.
+Current restart is `UWBS-082 local acceptance` unless the user explicitly selects another lane.
