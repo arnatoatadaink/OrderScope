@@ -143,7 +143,7 @@ UWBS-083  oil-down-reason / inflation-growth-risk interpretation           [ACCE
 UWBS-085  cross-asset Risk-On / Crypto Risk-On regime                     [ACCEPTED]
    |
    v
-UWBS-086  historical Canary + Worker/D1 capacity acceptance               [SOFTWARE PREPARATION ACCEPTED / HISTORICAL-CAPACITY OPEN]
+UWBS-086  historical Canary + Worker/D1 capacity acceptance               [ACCEPTED — CURRENT CHECKED-IN SHADOW RUNTIME]
 ```
 
 ### UWBS-080 current state
@@ -223,85 +223,93 @@ Accepted boundary requires multiple independent signal classes and prevents a si
 
 ### UWBS-086 current state
 
-Status: **SOFTWARE PREPARATION ACCEPTED / FINAL HISTORICAL-CAPACITY ACCEPTANCE OPEN**
+Status: **ACCEPTED — CURRENT CHECKED-IN SHADOW RUNTIME ONLY**
 
-Base software acceptance evidence:
+Final acceptance evidence:
 
-`UWBS-086_SOFTWARE_BOUNDARY_ACCEPTANCE_2026-09-27.md`
-
-Historical-packet/capacity extension acceptance evidence:
-
-`UWBS-086_HISTORICAL_PACKET_CAPACITY_EXTENSION_LOCAL_ACCEPTANCE_2026-09-27.md`
+`UWBS-086_FINAL_SHADOW_CAPACITY_ACCEPTANCE_2026-09-27.md`
 
 Latest local verification:
 
 ```text
-cross-asset Canary contract:            8 passed
-replay/capacity evaluator:             11 passed
-historical replay packet completeness:  9 passed
-full Python regression:               790 passed
-compileall:                            PASS
-git diff --check:                      PASS
+shadow capacity bound focused tests:      10 passed
+D1 capacity evidence focused tests:       10 passed
+historical Canary evaluation tests:        7 passed
+full Python regression:                  835 passed
+compileall:                              PASS
+git diff --check:                        PASS
 ```
 
-Accepted software preparation now includes:
-
-- deterministic replay/capacity evaluator;
-- historical replay packet completeness contract;
-- one common replay window across the required cross-asset lanes;
-- repository-backed historical evidence requirement;
-- explicit rejection of synthetic data as historical calibration;
-- independent expected-label evidence separate from classifier inputs;
-- D1 rows-read, rows-written and storage-growth resources in capacity headroom;
-- external `CapacityEnvelope` rather than hard-coded Cloudflare quotas.
-
-Required historical packet lanes are:
+Accepted historical result:
 
 ```text
-oil_price
-commodity_fundamental
-commodity_event
-commodity_interpretation
-btc_spot_etf_flow
-traditional_risk
-crypto_market
-crypto_derivatives
-volatility
+expected_regime:      risk_off
+observed_regime:      risk_off
+expected_alert:       true
+observed_alert:       true
+false positives:      0
+false negatives:      0
+regime mismatches:    0
+historical clean:     true
 ```
 
-Current repository audit confirms genuine NVDA historical recovery evidence exists, but it covers only part of the required cross-asset packet and must not be treated as complete UWBS-086 historical calibration.
-
-Current repository-grounded capacity observations remain:
+Accepted checked-in runtime boundary:
 
 ```text
-checked-in cron:              every minute -> 1,440 invocations/day when enabled
-internal external ceiling:    40 subrequests/invocation
-internal D1 ceiling:          40 executions/invocation
-conservative D1 executions:   <= 57,600/day
+WORKER_MODE=shadow
+UNIVERSE_PROFILE=canary-v0.1
+ACQUISITION_MAX_JOBS_PER_TICK=2
+ACQUISITION_MAX_PAGES_PER_JOB=10
+ACQUISITION_MAX_BARS_PER_JOB=100
+NEWS_ACQUISITION_ENABLED=false
+cron=* * * * *
 ```
 
-The 57,600 number is statement execution count, **not** rows written/read. Final D1 capacity acceptance still requires measured or defensibly bounded billing rows and storage growth.
+Conservative shadow projection with 1.25x safety margin:
 
-Historical/capacity evidence audit:
+```text
+Worker requests/day:       1,440
+D1 rows read/day:        720,000
+D1 rows written/day:      14,400
+storage warm-up:        1,986,560 bytes
+```
 
-`UWBS-086_HISTORICAL_CAPACITY_EVIDENCE_GAP_2026-09-27.md`
+Planning-envelope headroom:
+
+```text
+Worker requests: 98.56%
+D1 rows read:    85.60%
+D1 rows written: 85.60%
+```
+
+Existing R0-007 custody billing evidence remains classified as a specific read-query observation only:
+
+```text
+rows_read:      3906
+rows_written:   0
+size_after:     4,796,416 bytes
+changed_db:     false
+returned rows:  1
+```
+
+It must not be multiplied by 1,440/day as though it represented one scheduled Worker tick.
+
+### UWBS-086 live-mode boundary
+
+`WORKER_MODE=live` is **NOT COVERED / NOT ACCEPTED** by the shadow capacity acceptance.
+
+Live acquisition introduces additional checkpoint, lease, attempt, normalized-bar, conflict, scheduler-evidence and digest D1 activity. Before live capacity acceptance, obtain measured or defensibly bounded billing rows for representative live/shadow-canary acquisition samples and rerun the same capacity assessment.
+
+No live provider activation, Worker/Cron mutation, D1 mutation, PB execution, paid procurement, or trading action is authorized by the UWBS-086 shadow acceptance.
 
 ### Selected restart point
 
 ```text
-UWBS-086 repository-backed historical replay packet construction
-  -> choose one bounded historical episode/window
-  -> inventory repository-backed evidence for all nine required lanes
-  -> acquire or prepare only missing historical inputs
-  -> define expected regime/alert labels independently of classifier inputs
-  -> replay canonical UWBS-080..085 pipeline
-  -> summarize false positives / false negatives / regime mismatches
-  -> measure or defensibly bound D1 rows read/written + storage growth
-  -> calculate Worker/D1 quota headroom
-  -> final ACCEPT / REVIEW / REJECT
+UWBS-086 current shadow boundary is CLOSED / ACCEPTED
+  -> preserve accepted evidence
+  -> future WORKER_MODE=live capacity is a separate pre-live gate
+  -> otherwise resume the next canonical market-independent task from WBS/CP
 ```
-
-UWBS-086 remains open until historical replay and capacity evidence satisfy the final acceptance prerequisites.
 
 ## 9. Restart rule
 
@@ -314,4 +322,4 @@ After an interruption:
 5. for market-dependent work, refresh only time-dependent preflight inputs;
 6. for market-independent work, resume at the first incomplete canonical dependency.
 
-Current restart is `UWBS-086 repository-backed historical replay packet construction` unless the user explicitly selects another lane.
+Current UWBS-086 shadow boundary is closed. Do not reopen it merely because a calendar day changed. Reopen capacity only if the accepted runtime boundary materially changes, especially `WORKER_MODE=live`, cron cadence, D1 schema/indexes, digest retention, news enablement, or acquisition limits.
