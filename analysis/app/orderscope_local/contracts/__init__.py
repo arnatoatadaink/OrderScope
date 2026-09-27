@@ -102,6 +102,12 @@ from .market_reaction import (
     MarketReactionConfidence,
     MarketReactionInterpretationType,
 )
+from .physical_saas_deployment import (
+    PhysicalSaasDeploymentMilestone,
+    PhysicalSaasDeploymentObservation,
+    PhysicalSaasDeploymentState,
+    PhysicalSaasQuantityBasis,
+)
 from .price_rediscovery_confirmation import PriceRediscoveryConfirmationAssessment
 from .repricing_state import (
     RepricingState,
@@ -228,6 +234,10 @@ __all__ = [
     "MarketRelationshipContext",
     "MarketRelationshipKind",
     "OpaqueCursor",
+    "PhysicalSaasDeploymentMilestone",
+    "PhysicalSaasDeploymentObservation",
+    "PhysicalSaasDeploymentState",
+    "PhysicalSaasQuantityBasis",
     "ProposedFlowDirection",
     "RepricingState",
     "RepricingStateAssessment",
