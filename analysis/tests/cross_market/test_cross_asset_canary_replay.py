@@ -25,6 +25,7 @@ def replay_result(**overrides) -> CrossAssetCanaryResult:
 def projected(**overrides) -> ProjectedCapacityUsage:
     values = dict(
         worker_requests_per_day=12_000,
+        d1_rows_read_per_day=250_000,
         d1_rows_written_per_day=8_000,
         d1_bytes_written_per_day=4_000_000,
         scheduled_invocations_per_day=1_440,
@@ -36,6 +37,7 @@ def projected(**overrides) -> ProjectedCapacityUsage:
 def envelope(**overrides) -> CapacityEnvelope:
     values = dict(
         worker_requests_per_day=100_000,
+        d1_rows_read_per_day=5_000_000,
         d1_rows_written_per_day=100_000,
         d1_bytes_available=500_000_000,
         scheduled_invocations_per_day=None,
@@ -47,6 +49,15 @@ def envelope(**overrides) -> CapacityEnvelope:
 def test_capacity_headroom_uses_most_constrained_resource() -> None:
     item = build_capacity_observation(projected=projected(), envelope=envelope())
     assert item.headroom_ratio == pytest.approx(0.88)
+
+
+def test_d1_read_rows_can_be_the_most_constrained_resource() -> None:
+    item = build_capacity_observation(
+        projected=projected(d1_rows_read_per_day=4_500_000),
+        envelope=envelope(),
+    )
+    assert item.headroom_ratio == pytest.approx(0.10)
+    assert item.d1_rows_read_per_day == 4_500_000
 
 
 def test_capacity_over_limit_has_zero_headroom() -> None:
@@ -133,3 +144,5 @@ def test_capacity_envelope_requires_positive_limits() -> None:
 def test_projected_usage_cannot_be_negative() -> None:
     with pytest.raises(ContractViolation, match="non-negative integer"):
         projected(d1_rows_written_per_day=-1)
+    with pytest.raises(ContractViolation, match="non-negative integer"):
+        projected(d1_rows_read_per_day=-1)
