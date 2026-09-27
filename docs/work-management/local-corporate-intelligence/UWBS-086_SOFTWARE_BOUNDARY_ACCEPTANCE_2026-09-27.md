@@ -7,12 +7,13 @@ Branch: `l1-003-local-market-recovery`
 
 ```text
 cross-asset Canary contract focused tests: 8 passed
-full Python regression:                  770 passed
-compileall:                              PASS
-git diff --check:                        PASS
+replay/capacity focused tests:             10 passed
+full Python regression:                   780 passed
+compileall:                               PASS
+git diff --check:                         PASS
 ```
 
-This accepts the deterministic contract/software boundary only.
+This accepts the deterministic contract/replay/capacity software boundary only.
 
 ## Accepted software semantics
 
@@ -22,16 +23,15 @@ This accepts the deterministic contract/software boundary only.
 - false positive -> REVIEW;
 - clean replay + sufficient headroom -> ACCEPT;
 - capacity limits remain external inputs rather than hard-coded provider quotas;
+- synthetic regression scenarios remain explicitly synthetic and cannot be reported as historical evidence;
 - no provider activation, Worker/Cron mutation, D1 mutation, PB authorization, or trading action occurred.
 
 ## Still required before final UWBS-086 acceptance
 
-1. deterministic replay evaluator verification;
-2. clearly labelled synthetic regression cases for classifier/decision mechanics;
-3. repository-grounded historical replay evidence, or an explicit historical-evidence-pending disposition if suitable data is not yet present;
-4. projected Worker/D1 usage measurement;
-5. fresh platform quota evidence and headroom calculation;
-6. false-positive / false-negative / regime-mismatch summary;
-7. final acceptance decision.
+1. repository-backed historical replay packet covering the canonical UWBS-080..085 inputs, or a separately approved reduced historical scope with explicit limitations;
+2. projected or measured Worker/D1 usage using billing-relevant rows read/written and storage growth rather than statement execution count alone;
+3. fresh platform quota evidence and headroom calculation;
+4. historical false-positive / false-negative / regime-mismatch summary;
+5. final ACCEPT / REVIEW / REJECT decision.
 
 Synthetic fixtures must never be presented as historical evidence.
