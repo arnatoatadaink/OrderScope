@@ -138,10 +138,10 @@ UWBS-080  Direct WTI / Brent Macro Instrument contract + provider survey   [ACCE
    v
 UWBS-083  oil-down-reason / inflation-growth-risk interpretation           [ACCEPTED]
    |
-   +-> UWBS-084  BTC spot ETF flow normalization                           [LOCAL ACCEPTANCE REQUIRED]
+   +-> UWBS-084  BTC spot ETF flow normalization                           [ACCEPTED]
    |
    v
-UWBS-085  cross-asset Risk-On / Crypto Risk-On regime
+UWBS-085  cross-asset Risk-On / Crypto Risk-On regime                     [LOCAL ACCEPTANCE REQUIRED]
    |
    v
 UWBS-086  historical Canary + Worker/D1 capacity acceptance
@@ -203,32 +203,51 @@ Accepted boundary keeps oil-down explanation as an Interpretation and requires i
 
 ### UWBS-084 current state
 
+Status: **ACCEPTED**
+
+Acceptance evidence: `UWBS-084_LOCAL_ACCEPTANCE_2026-09-27.md`
+
+Local acceptance result:
+
+```text
+BTC spot ETF flow contract:     7 passed
+BTC spot ETF flow normalizer:   6 passed
+full Python regression:       753 passed
+compileall:                    PASS
+git diff --check:              PASS
+```
+
+Accepted boundary keeps individual fund signed daily net flow as Fact, treats market-wide aggregate flow as a lineage-preserving Derived Metric, rejects missing-value zero imputation, and does not infer price direction or Risk-On from ETF flow alone.
+
+### UWBS-085 current state
+
 Status: **WEB IMPLEMENTATION READY — LOCAL ACCEPTANCE REQUIRED**
 
 Implemented remotely:
 
-- source-neutral `BtcSpotEtfFlowObservation` for one fund / one date / signed USD net flow;
-- explicit rejection of aggregate/total identities as fund-level Facts;
-- market-wide aggregate flow as a `DerivedMetric` from unique normalized fund Facts;
-- generic provider-row normalizer with canonical fund profiles;
-- signed outflow and zero-flow preservation;
-- rejection of missing markers instead of zero imputation;
-- explicit exclusion of BTC price direction, causality and Risk-On classification.
+- Interpretation-layer `CrossAssetRegimeAssessment` contract;
+- explicit `broad_risk_on`, `crypto_risk_on`, `risk_off`, and `divergent` regime types;
+- `SUPPORT`, `PARTIAL`, `CONTRADICT`, `UNKNOWN` assessment ratings;
+- independent traditional-risk, crypto-market, crypto-derivatives, ETF-flow, macro/commodity, volatility and contradicting signal classes;
+- `SUPPORT` requires at least three independent supporting classes; `PARTIAL` requires at least two;
+- broad Risk-On cannot be established without traditional risk-asset evidence;
+- Crypto Risk-On requires crypto market evidence plus ETF-flow or derivatives confirmation;
+- signal references cannot be reused across evidence classes;
+- a single BTC move, ETF-flow print, or commodity interpretation cannot establish the regime.
 
-Design record: `UWBS-084_BTC_SPOT_ETF_FLOW_NORMALIZATION.md`
+Design record: `UWBS-085_CROSS_ASSET_RISK_ON_REGIME.md`
 
 ### Selected restart point
 
 ```text
-UWBS-084 local acceptance
-  -> focused ETF-flow contract tests
-  -> focused ETF-flow normalizer tests
+UWBS-085 local acceptance
+  -> focused cross-asset regime tests
   -> full Python regression
   -> compileall
   -> git diff --check
 ```
 
-If accepted, proceed to `UWBS-085`.
+If accepted, add the shared contract export and proceed to `UWBS-086`.
 
 ## 9. Restart rule
 
@@ -241,4 +260,4 @@ After an interruption:
 5. for market-dependent work, refresh only time-dependent preflight inputs;
 6. for market-independent work, resume at the first incomplete canonical dependency.
 
-Current restart is `UWBS-084 local acceptance` unless the user explicitly selects another lane.
+Current restart is `UWBS-085 local acceptance` unless the user explicitly selects another lane.
