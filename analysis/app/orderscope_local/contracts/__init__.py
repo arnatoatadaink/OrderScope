@@ -20,6 +20,13 @@ from .catalyst_repricing_types import (
     CatalystRepricingInterpretationType,
     ReactionDirection,
 )
+from .commodity_fundamental import (
+    CommodityFundamentalCadence,
+    CommodityFundamentalMeasure,
+    CommodityFundamentalObservation,
+    CommodityGeography,
+    CommodityProduct,
+)
 from .commodity_market import (
     CommodityLocation,
     CommodityPriceForm,
@@ -138,6 +145,11 @@ __all__ = [
     "CatalystRepricingInterpretationType",
     "ReactionDirection",
     "PriceRediscoveryConfirmationAssessment",
+    "CommodityFundamentalCadence",
+    "CommodityFundamentalMeasure",
+    "CommodityFundamentalObservation",
+    "CommodityGeography",
+    "CommodityProduct",
     "CommodityLocation",
     "CommodityPriceForm",
     "CommodityPriceObservation",
