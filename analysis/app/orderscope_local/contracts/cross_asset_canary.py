@@ -50,6 +50,7 @@ class CrossAssetCanaryResult:
 @dataclass(frozen=True, kw_only=True)
 class CapacityObservation:
     worker_requests_per_day: int
+    d1_rows_read_per_day: int
     d1_rows_written_per_day: int
     d1_bytes_written_per_day: int
     scheduled_invocations_per_day: int
@@ -58,6 +59,7 @@ class CapacityObservation:
     def __post_init__(self) -> None:
         for value, field in (
             (self.worker_requests_per_day, "worker_requests_per_day"),
+            (self.d1_rows_read_per_day, "d1_rows_read_per_day"),
             (self.d1_rows_written_per_day, "d1_rows_written_per_day"),
             (self.d1_bytes_written_per_day, "d1_bytes_written_per_day"),
             (self.scheduled_invocations_per_day, "scheduled_invocations_per_day"),
