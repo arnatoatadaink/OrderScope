@@ -231,12 +231,13 @@ Software acceptance evidence:
 
 ```text
 cross-asset Canary focused tests: 8 passed
-full Python regression:         770 passed
-compileall:                     PASS
-git diff --check:               PASS
+replay/capacity focused tests:    10 passed
+full Python regression:          780 passed
+compileall:                      PASS
+git diff --check:                PASS
 ```
 
-Additional remote implementation now includes:
+Accepted software boundary now includes:
 
 - deterministic replay/capacity evaluator `cross_asset_canary_replay.py`;
 - external `CapacityEnvelope` rather than hard-coded Cloudflare quotas;
@@ -264,11 +265,12 @@ No repository-backed dataset has yet been established that supplies the complete
 ### Selected restart point
 
 ```text
-UWBS-086 replay/capacity local verification
-  -> verify 10 focused replay/capacity tests
-  -> full Python regression / compileall / diff check
-  -> then acquire/build repository-backed historical replay packet
-  -> measure/bound D1 rows read/written + storage growth
+UWBS-086 historical-capacity evidence
+  -> acquire/build repository-backed historical replay packet
+  -> replay canonical UWBS-080..085 inputs
+  -> summarize false positives / false negatives / regime mismatches
+  -> measure or defensibly bound D1 rows read/written + storage growth
+  -> calculate Worker/D1 quota headroom
   -> final ACCEPT / REVIEW / REJECT
 ```
 
@@ -285,4 +287,4 @@ After an interruption:
 5. for market-dependent work, refresh only time-dependent preflight inputs;
 6. for market-independent work, resume at the first incomplete canonical dependency.
 
-Current restart is `UWBS-086 replay/capacity local verification` unless the user explicitly selects another lane.
+Current restart is `UWBS-086 historical-capacity evidence` unless the user explicitly selects another lane.
