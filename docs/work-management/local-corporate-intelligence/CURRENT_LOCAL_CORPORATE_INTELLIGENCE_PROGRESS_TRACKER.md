@@ -133,12 +133,12 @@ State: **PARKED** until the applicable market-session execution window is intent
 UWBS-080  Direct WTI / Brent Macro Instrument contract + provider survey   [ACCEPTED]
    |
    +-> UWBS-081  structured commodity supply/fundamental acquisition      [ACCEPTED]
-   +-> UWBS-082  commodity supply/shipping/geopolitical event taxonomy     [LOCAL ACCEPTANCE REQUIRED]
+   +-> UWBS-082  commodity supply/shipping/geopolitical event taxonomy     [ACCEPTED]
    |
    v
-UWBS-083  oil-down-reason / inflation-growth-risk interpretation
+UWBS-083  oil-down-reason / inflation-growth-risk interpretation           [ACCEPTED]
    |
-   +-> UWBS-084  BTC spot ETF flow normalization
+   +-> UWBS-084  BTC spot ETF flow normalization                           [LOCAL ACCEPTANCE REQUIRED]
    |
    v
 UWBS-085  cross-asset Risk-On / Crypto Risk-On regime
@@ -151,17 +151,13 @@ UWBS-086  historical Canary + Worker/D1 capacity acceptance
 
 Status: **ACCEPTED**
 
-Acceptance evidence:
-
-`UWBS-080_LOCAL_ACCEPTANCE_2026-09-27.md`
+Acceptance evidence: `UWBS-080_LOCAL_ACCEPTANCE_2026-09-27.md`
 
 ### UWBS-081 current state
 
 Status: **ACCEPTED**
 
-Acceptance evidence:
-
-`UWBS-081_LOCAL_ACCEPTANCE_2026-09-27.md`
+Acceptance evidence: `UWBS-081_LOCAL_ACCEPTANCE_2026-09-27.md`
 
 Local acceptance result:
 
@@ -173,37 +169,66 @@ compileall:                      PASS
 git diff --check:                PASS
 ```
 
-Accepted boundary preserves raw source semantics for inventory, production, refinery/utilization, imports/exports and product supplied. Demand interpretation, disruption classification, four-week derived metrics and price causality remain downstream.
-
 ### UWBS-082 current state
+
+Status: **ACCEPTED**
+
+Acceptance evidence: `UWBS-082_LOCAL_ACCEPTANCE_2026-09-27.md`
+
+Local acceptance result:
+
+```text
+commodity event focused tests: 7 passed
+full Python regression:        732 passed
+compileall:                    PASS
+git diff --check:              PASS
+```
+
+### UWBS-083 current state
+
+Status: **ACCEPTED**
+
+Acceptance evidence: `UWBS-083_LOCAL_ACCEPTANCE_2026-09-27.md`
+
+Local acceptance result:
+
+```text
+commodity interpretation focused tests: 8 passed
+full Python regression:                 740 passed
+compileall:                             PASS
+git diff --check:                       PASS
+```
+
+Accepted boundary keeps oil-down explanation as an Interpretation and requires independent signal classes rather than a single-price causal assertion.
+
+### UWBS-084 current state
 
 Status: **WEB IMPLEMENTATION READY — LOCAL ACCEPTANCE REQUIRED**
 
 Implemented remotely:
 
-- provider-neutral `CommoditySupplyEventObservation` contract;
-- event kinds for physical supply, refinery/pipeline, port/shipping, maritime security, sanctions/trade restrictions, strategic release, production policy, armed conflict and blockade/closure;
-- source lifecycle states (`reported`, `announced`, `active`, `resolved`, `cancelled`);
-- required asset/route/actor identity guards for event classes where identity is material;
-- source-precision effective interval support;
-- materialization to source-grounded Fact with required Evidence;
-- explicit exclusion of severity, price direction, barrels-at-risk and risk-regime classification.
+- source-neutral `BtcSpotEtfFlowObservation` for one fund / one date / signed USD net flow;
+- explicit rejection of aggregate/total identities as fund-level Facts;
+- market-wide aggregate flow as a `DerivedMetric` from unique normalized fund Facts;
+- generic provider-row normalizer with canonical fund profiles;
+- signed outflow and zero-flow preservation;
+- rejection of missing markers instead of zero imputation;
+- explicit exclusion of BTC price direction, causality and Risk-On classification.
 
-Design record:
-
-`UWBS-082_COMMODITY_SUPPLY_EVENT_TAXONOMY.md`
+Design record: `UWBS-084_BTC_SPOT_ETF_FLOW_NORMALIZATION.md`
 
 ### Selected restart point
 
 ```text
-UWBS-082 local acceptance
-  -> focused commodity-event contract tests
+UWBS-084 local acceptance
+  -> focused ETF-flow contract tests
+  -> focused ETF-flow normalizer tests
   -> full Python regression
   -> compileall
   -> git diff --check
 ```
 
-If accepted, proceed to `UWBS-083`.
+If accepted, proceed to `UWBS-085`.
 
 ## 9. Restart rule
 
@@ -216,4 +241,4 @@ After an interruption:
 5. for market-dependent work, refresh only time-dependent preflight inputs;
 6. for market-independent work, resume at the first incomplete canonical dependency.
 
-Current restart is `UWBS-082 local acceptance` unless the user explicitly selects another lane.
+Current restart is `UWBS-084 local acceptance` unless the user explicitly selects another lane.
