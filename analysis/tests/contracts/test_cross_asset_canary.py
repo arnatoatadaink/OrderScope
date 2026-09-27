@@ -24,6 +24,7 @@ def result(**overrides) -> CrossAssetCanaryResult:
 def capacity(**overrides) -> CapacityObservation:
     values = dict(
         worker_requests_per_day=12000,
+        d1_rows_read_per_day=50000,
         d1_rows_written_per_day=5000,
         d1_bytes_written_per_day=2_000_000,
         scheduled_invocations_per_day=1440,
@@ -82,6 +83,8 @@ def test_duplicate_scenario_identity_is_rejected() -> None:
 def test_capacity_values_are_non_negative() -> None:
     with pytest.raises(ContractViolation, match="worker_requests_per_day"):
         capacity(worker_requests_per_day=-1)
+    with pytest.raises(ContractViolation, match="d1_rows_read_per_day"):
+        capacity(d1_rows_read_per_day=-1)
 
 
 def test_headroom_ratio_is_bounded() -> None:
