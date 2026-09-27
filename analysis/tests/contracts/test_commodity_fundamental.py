@@ -124,7 +124,10 @@ def test_product_supplied_is_preserved_as_proxy_not_demand_fact() -> None:
         value=9100.0,
         unit="thousand_barrels_per_day",
     )
-    fact = item.to_fact(record_id="fact.commodity.us.gasoline.supplied", evidence_record_ids=())
+    fact = item.to_fact(
+        record_id="fact.commodity.us.gasoline.supplied",
+        evidence_record_ids=("evidence.eia.product-supplied.gasoline",),
+    )
 
     assert fact.fact_type == "commodity_fundamental.product_supplied"
     assert "demand" not in fact.fact_type
@@ -152,7 +155,10 @@ def test_crude_product_supplied_remains_source_semantics_not_demand() -> None:
         value=50.0,
         unit="thousand_barrels_per_day",
     )
-    fact = item.to_fact(record_id="fact.commodity.us.crude.supplied", evidence_record_ids=())
+    fact = item.to_fact(
+        record_id="fact.commodity.us.crude.supplied",
+        evidence_record_ids=("evidence.eia.product-supplied.crude",),
+    )
 
     assert fact.fact_type == "commodity_fundamental.product_supplied"
     assert "demand" not in fact.fact_type
