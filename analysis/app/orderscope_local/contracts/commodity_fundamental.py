@@ -142,9 +142,6 @@ class CommodityFundamentalObservation:
         } and self.product is not CommodityProduct.CRUDE_OIL:
             raise ContractViolation(f"{self.measure.value} requires crude_oil product")
 
-        if self.measure is CommodityFundamentalMeasure.PRODUCT_SUPPLIED and self.product is CommodityProduct.CRUDE_OIL:
-            raise ContractViolation("crude-oil product supplied is not a final-demand proxy; use a refined product")
-
     def to_fact(self, *, record_id: str, evidence_record_ids: tuple[str, ...]) -> Fact:
         return Fact(
             record_id=record_id,
