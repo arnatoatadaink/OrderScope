@@ -143,14 +143,19 @@ def test_product_supplied_can_represent_negative_source_observation() -> None:
     assert item.value == -25.0
 
 
-def test_crude_product_supplied_is_not_accepted_as_final_demand_proxy() -> None:
-    with pytest.raises(ContractViolation, match="final-demand proxy"):
-        observation(
-            measure=CommodityFundamentalMeasure.PRODUCT_SUPPLIED,
-            product=CommodityProduct.CRUDE_OIL,
-            value=50.0,
-            unit="thousand_barrels_per_day",
-        )
+def test_crude_product_supplied_remains_source_semantics_not_demand() -> None:
+    item = observation(
+        subject_ref="commodity.us.crude.product_supplied",
+        measure=CommodityFundamentalMeasure.PRODUCT_SUPPLIED,
+        product=CommodityProduct.CRUDE_OIL,
+        series_id="fixture-crude-product-supplied",
+        value=50.0,
+        unit="thousand_barrels_per_day",
+    )
+    fact = item.to_fact(record_id="fact.commodity.us.crude.supplied", evidence_record_ids=())
+
+    assert fact.fact_type == "commodity_fundamental.product_supplied"
+    assert "demand" not in fact.fact_type
 
 
 def test_contract_contains_no_supply_disruption_or_oil_down_reason_classification() -> None:
