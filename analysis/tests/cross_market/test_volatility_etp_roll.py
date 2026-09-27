@@ -39,10 +39,20 @@ def test_contango_produces_negative_roll_pressure_measurement() -> None:
     assert result.roll_pressure is VolatilityEtpRollPressure.NEGATIVE
 
 
-def test_backwardation_produces_positive_roll_pressure_measurement() -> None:
+def test_backwardation_produces_positive_roll_pressure_measurement_and_tailwind_candidate() -> None:
     result = calculate_etp_roll_metrics(inputs(front_future_value=Decimal("24"), second_future_value=Decimal("21")))
     assert result.front_second_spread == Decimal("-3")
     assert result.roll_pressure is VolatilityEtpRollPressure.POSITIVE
+    interpretation = assess_etp_roll(
+        subject_ref="etp.vix.fixture",
+        observed_window_start=AS_OF,
+        observed_window_end=ACCEPTED,
+        roll_pressure=result.roll_pressure,
+        etp_return_metric_refs=("metric.etp.return",),
+        term_structure_metric_refs=("metric.vx.curve",),
+        generated_at=ACCEPTED,
+    )
+    assert interpretation.interpretation_type == "volatility.roll_tailwind_candidate"
 
 
 def test_flat_curve_produces_neutral_roll_pressure() -> None:
@@ -79,11 +89,13 @@ def test_roll_assessment_requires_both_etp_and_term_structure_evidence() -> None
         subject_ref="etp.vix.fixture",
         observed_window_start=AS_OF,
         observed_window_end=ACCEPTED,
+        roll_pressure=VolatilityEtpRollPressure.NEGATIVE,
         etp_return_metric_refs=("metric.etp.return",),
         term_structure_metric_refs=("metric.vx.curve",),
         generated_at=ACCEPTED,
     )
     assert interpretation.interpretation_type == "volatility.roll_headwind_candidate"
+    assert interpretation.statement["roll_pressure"] == "negative_roll_pressure"
 
 
 def test_contradicting_evidence_blocks_simple_roll_explanation() -> None:
@@ -91,6 +103,7 @@ def test_contradicting_evidence_blocks_simple_roll_explanation() -> None:
         subject_ref="etp.vix.fixture",
         observed_window_start=AS_OF,
         observed_window_end=ACCEPTED,
+        roll_pressure=VolatilityEtpRollPressure.NEGATIVE,
         etp_return_metric_refs=("metric.etp.return",),
         term_structure_metric_refs=("metric.vx.curve",),
         contradicting_evidence_refs=("metric.spot.shock",),
@@ -105,6 +118,7 @@ def test_roll_assessment_rejects_reused_evidence_and_bad_windows() -> None:
             subject_ref="etp.vix.fixture",
             observed_window_start=AS_OF,
             observed_window_end=ACCEPTED,
+            roll_pressure=VolatilityEtpRollPressure.NEGATIVE,
             etp_return_metric_refs=("metric.shared",),
             term_structure_metric_refs=("metric.shared",),
             generated_at=ACCEPTED,
@@ -114,6 +128,7 @@ def test_roll_assessment_rejects_reused_evidence_and_bad_windows() -> None:
             subject_ref="etp.vix.fixture",
             observed_window_start=ACCEPTED,
             observed_window_end=ACCEPTED,
+            roll_pressure=VolatilityEtpRollPressure.NEGATIVE,
             etp_return_metric_refs=("metric.etp.return",),
             term_structure_metric_refs=("metric.vx.curve",),
             generated_at=ACCEPTED,
