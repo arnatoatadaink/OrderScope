@@ -104,6 +104,20 @@ These IDs were already consumed by formal WBS packages and are therefore reserve
 | UWBS-060 | UWBS-092 | Add Physical-SaaS classifier and applicability guard |
 | UWBS-061 | UWBS-093 | Powerfleet deployment-lifecycle Canary and false-positive suite |
 
+### VIX / cross-asset volatility lane
+
+The following IDs are new canonical provisional IDs and do not remap historical aliases. Source planning extension: `WBS_UNREFLECTED_VIX_CROSS_ASSET_VOLATILITY_EXTENSION_2026-09-27.md`.
+
+| Canonical provisional ID | Task |
+|---|---|
+| UWBS-094 | Survey volatility data sources and define source-neutral volatility instrument contract |
+| UWBS-095 | Implement VIX spot + F1/F2 observation and term-structure metrics |
+| UWBS-096 | Define VIX level/change/curve interpretation contract |
+| UWBS-097 | Implement BTC 30-day implied-volatility acquisition and normalization |
+| UWBS-098 | Implement MSTR 30-day option-implied-volatility acquisition and normalization |
+| UWBS-099 | Define MSTR/BTC IV differential and cross-asset volatility interpretation |
+| UWBS-100 | Historical calibration, Canary/false-positive and Worker/D1 capacity acceptance |
+
 ## 4. Canonical dependency references
 
 All new dependency and CP references use canonical IDs.
@@ -135,6 +149,13 @@ UWBS-087 -> UWBS-090
 UWBS-088 -> UWBS-091
 UWBS-087 -> UWBS-092
 UWBS-089 + UWBS-090 + UWBS-091 + UWBS-092 -> UWBS-093
+
+VIX / cross-asset volatility
+UWBS-094 -> UWBS-095 -> UWBS-096
+UWBS-094 -> UWBS-097
+UWBS-094 -> UWBS-098
+UWBS-097 + UWBS-098 -> UWBS-099
+UWBS-096 + UWBS-099 -> UWBS-100
 ```
 
 ## 5. Discovery-reference normalization
@@ -149,12 +170,14 @@ DISC-010 -> UWBS-087..093
 
 The crypto lane sourced from the crypto macro-leader / derivatives reports is canonicalized as `UWBS-068..079`.
 
+The VIX / cross-asset volatility lane is registered directly through the dedicated 2026-09-27 WBS-unreflected extension as `UWBS-094..100`; no historical colliding Discovery alias is required.
+
 ## 6. Usage rule
 
 From this registry onward:
 
 1. never create a new task using a historical colliding alias;
-2. use canonical `UWBS-062..093` IDs for the remapped lanes;
+2. use canonical `UWBS-062..100` IDs for the remapped/new lanes;
 3. when quoting an older report, preserve the legacy alias but add `canonical: UWBS-xxx` when ambiguity matters;
 4. final WBS incorporation updates this registry with the final package/task ID;
 5. do not renumber already incorporated formal tasks merely to make historical numbering contiguous.
@@ -163,10 +186,12 @@ From this registry onward:
 
 This registry resolves the active-ID ambiguity identified by `CURRENT_CRITICAL_PATH_RECONCILIATION.md` while preserving append-only provenance.
 
-The next market-independent CP entry is canonical `UWBS-080`:
+The previously identified market-independent CP entry remains canonical `UWBS-080`:
 
 ```text
 UWBS-080 — Define direct WTI / Brent Macro Instrument contract and provider survey
 ```
+
+The VIX / cross-asset volatility lane is a separate **CP candidate only** until formal WBS/CP incorporation. Its common prerequisite is `UWBS-094`.
 
 No provider activation, Worker/Cron change, D1 mutation, PB authorization, paid procurement, or trading action is authorized by this registry.
