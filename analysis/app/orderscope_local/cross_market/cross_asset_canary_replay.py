@@ -1,6 +1,6 @@
 """UWBS-086 deterministic replay and capacity planning helpers.
 
-The evaluator is intentionally infrastructure-neutral.  Historical/synthetic
+The evaluator is intentionally infrastructure-neutral. Historical/synthetic
 scenario expectations are supplied by the caller and Cloudflare quota values are
 injected as planning inputs; no live service is queried or mutated here.
 """
@@ -23,6 +23,7 @@ class CapacityEnvelope:
     """External capacity limits used for one planning snapshot."""
 
     worker_requests_per_day: int
+    d1_rows_read_per_day: int
     d1_rows_written_per_day: int
     d1_bytes_available: int
     scheduled_invocations_per_day: int | None = None
@@ -30,6 +31,7 @@ class CapacityEnvelope:
     def __post_init__(self) -> None:
         for value, field in (
             (self.worker_requests_per_day, "worker_requests_per_day"),
+            (self.d1_rows_read_per_day, "d1_rows_read_per_day"),
             (self.d1_rows_written_per_day, "d1_rows_written_per_day"),
             (self.d1_bytes_available, "d1_bytes_available"),
         ):
@@ -46,6 +48,7 @@ class CapacityEnvelope:
 @dataclass(frozen=True, kw_only=True)
 class ProjectedCapacityUsage:
     worker_requests_per_day: int
+    d1_rows_read_per_day: int
     d1_rows_written_per_day: int
     d1_bytes_written_per_day: int
     scheduled_invocations_per_day: int
@@ -53,6 +56,7 @@ class ProjectedCapacityUsage:
     def __post_init__(self) -> None:
         for value, field in (
             (self.worker_requests_per_day, "worker_requests_per_day"),
+            (self.d1_rows_read_per_day, "d1_rows_read_per_day"),
             (self.d1_rows_written_per_day, "d1_rows_written_per_day"),
             (self.d1_bytes_written_per_day, "d1_bytes_written_per_day"),
             (self.scheduled_invocations_per_day, "scheduled_invocations_per_day"),
@@ -68,14 +72,15 @@ def build_capacity_observation(
 ) -> CapacityObservation:
     """Compute conservative headroom as the minimum remaining ratio.
 
-    D1 bytes are compared with caller-supplied remaining/available storage.  Cron
-    invocations are included only if the caller supplies an explicit invocation
-    envelope; the platform's Cron-trigger *count* limit is a separate deployment
-    constraint and must not be confused with daily invocations.
+    D1 read rows, write rows and bytes are evaluated independently. D1 bytes are
+    compared with caller-supplied remaining/available storage. Cron invocations
+    are included only if the caller supplies an explicit invocation envelope;
+    the platform's Cron-trigger count limit is a separate deployment constraint.
     """
 
     ratios = [
         _remaining_ratio(projected.worker_requests_per_day, envelope.worker_requests_per_day),
+        _remaining_ratio(projected.d1_rows_read_per_day, envelope.d1_rows_read_per_day),
         _remaining_ratio(projected.d1_rows_written_per_day, envelope.d1_rows_written_per_day),
         _remaining_ratio(projected.d1_bytes_written_per_day, envelope.d1_bytes_available),
     ]
@@ -89,6 +94,7 @@ def build_capacity_observation(
 
     return CapacityObservation(
         worker_requests_per_day=projected.worker_requests_per_day,
+        d1_rows_read_per_day=projected.d1_rows_read_per_day,
         d1_rows_written_per_day=projected.d1_rows_written_per_day,
         d1_bytes_written_per_day=projected.d1_bytes_written_per_day,
         scheduled_invocations_per_day=projected.scheduled_invocations_per_day,
