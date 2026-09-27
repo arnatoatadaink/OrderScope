@@ -100,9 +100,7 @@ UWBS-026 -> R0-009
 
 Status: **ACCEPTED FOR ACTIVE PLANNING**
 
-Canonical registry:
-
-`WBS_PROVISIONAL_ID_REGISTRY.md`
+Canonical registry: `WBS_PROVISIONAL_ID_REGISTRY.md`
 
 Canonical later ranges currently include:
 
@@ -112,6 +110,7 @@ UWBS-067       LVWR listing-compliance fixture
 UWBS-068..079  Crypto market-structure / derivatives lane
 UWBS-080..086  Oil / commodity / cross-asset lane
 UWBS-087..093  Physical-SaaS lane
+UWBS-094..100  VIX / cross-asset volatility lane
 ```
 
 All new CP, implementation and acceptance records must use canonical IDs from the registry.
@@ -141,10 +140,10 @@ UWBS-083  oil-down-reason / inflation-growth-risk interpretation           [ACCE
    +-> UWBS-084  BTC spot ETF flow normalization                           [ACCEPTED]
    |
    v
-UWBS-085  cross-asset Risk-On / Crypto Risk-On regime                     [LOCAL ACCEPTANCE REQUIRED]
+UWBS-085  cross-asset Risk-On / Crypto Risk-On regime                     [ACCEPTED]
    |
    v
-UWBS-086  historical Canary + Worker/D1 capacity acceptance
+UWBS-086  historical Canary + Worker/D1 capacity acceptance               [SOFTWARE ACCEPTED / HISTORICAL-CAPACITY OPEN]
 ```
 
 ### UWBS-080 current state
@@ -158,8 +157,6 @@ Acceptance evidence: `UWBS-080_LOCAL_ACCEPTANCE_2026-09-27.md`
 Status: **ACCEPTED**
 
 Acceptance evidence: `UWBS-081_LOCAL_ACCEPTANCE_2026-09-27.md`
-
-Local acceptance result:
 
 ```text
 commodity fundamental contract: 9 passed
@@ -175,8 +172,6 @@ Status: **ACCEPTED**
 
 Acceptance evidence: `UWBS-082_LOCAL_ACCEPTANCE_2026-09-27.md`
 
-Local acceptance result:
-
 ```text
 commodity event focused tests: 7 passed
 full Python regression:        732 passed
@@ -190,8 +185,6 @@ Status: **ACCEPTED**
 
 Acceptance evidence: `UWBS-083_LOCAL_ACCEPTANCE_2026-09-27.md`
 
-Local acceptance result:
-
 ```text
 commodity interpretation focused tests: 8 passed
 full Python regression:                 740 passed
@@ -199,15 +192,11 @@ compileall:                             PASS
 git diff --check:                       PASS
 ```
 
-Accepted boundary keeps oil-down explanation as an Interpretation and requires independent signal classes rather than a single-price causal assertion.
-
 ### UWBS-084 current state
 
 Status: **ACCEPTED**
 
 Acceptance evidence: `UWBS-084_LOCAL_ACCEPTANCE_2026-09-27.md`
-
-Local acceptance result:
 
 ```text
 BTC spot ETF flow contract:     7 passed
@@ -217,37 +206,73 @@ compileall:                    PASS
 git diff --check:              PASS
 ```
 
-Accepted boundary keeps individual fund signed daily net flow as Fact, treats market-wide aggregate flow as a lineage-preserving Derived Metric, rejects missing-value zero imputation, and does not infer price direction or Risk-On from ETF flow alone.
-
 ### UWBS-085 current state
 
-Status: **WEB IMPLEMENTATION READY — LOCAL ACCEPTANCE REQUIRED**
+Status: **ACCEPTED**
 
-Implemented remotely:
+Acceptance evidence: `UWBS-085_LOCAL_ACCEPTANCE_2026-09-27.md`
 
-- Interpretation-layer `CrossAssetRegimeAssessment` contract;
-- explicit `broad_risk_on`, `crypto_risk_on`, `risk_off`, and `divergent` regime types;
-- `SUPPORT`, `PARTIAL`, `CONTRADICT`, `UNKNOWN` assessment ratings;
-- independent traditional-risk, crypto-market, crypto-derivatives, ETF-flow, macro/commodity, volatility and contradicting signal classes;
-- `SUPPORT` requires at least three independent supporting classes; `PARTIAL` requires at least two;
-- broad Risk-On cannot be established without traditional risk-asset evidence;
-- Crypto Risk-On requires crypto market evidence plus ETF-flow or derivatives confirmation;
-- signal references cannot be reused across evidence classes;
-- a single BTC move, ETF-flow print, or commodity interpretation cannot establish the regime.
+```text
+cross-asset regime focused tests: 9 passed
+full Python regression:          762 passed
+compileall:                      PASS
+git diff --check:                PASS
+```
 
-Design record: `UWBS-085_CROSS_ASSET_RISK_ON_REGIME.md`
+Accepted boundary requires multiple independent signal classes and prevents a single BTC move, ETF-flow print or commodity interpretation from establishing a broad Risk-On regime.
+
+### UWBS-086 current state
+
+Status: **SOFTWARE BOUNDARY ACCEPTED / FINAL HISTORICAL-CAPACITY ACCEPTANCE OPEN**
+
+Software acceptance evidence:
+
+`UWBS-086_SOFTWARE_BOUNDARY_ACCEPTANCE_2026-09-27.md`
+
+```text
+cross-asset Canary focused tests: 8 passed
+full Python regression:         770 passed
+compileall:                     PASS
+git diff --check:               PASS
+```
+
+Additional remote implementation now includes:
+
+- deterministic replay/capacity evaluator `cross_asset_canary_replay.py`;
+- external `CapacityEnvelope` rather than hard-coded Cloudflare quotas;
+- synthetic regression scenarios explicitly labelled synthetic;
+- Worker/D1 headroom calculation using the most constrained supplied resource;
+- accepted UWBS-083..086 contracts exported through the shared contract namespace.
+
+Current repository-grounded capacity observations:
+
+```text
+checked-in cron:              every minute -> 1,440 invocations/day when enabled
+internal external ceiling:    40 subrequests/invocation
+internal D1 ceiling:          40 executions/invocation
+conservative D1 executions:   <= 57,600/day
+```
+
+The 57,600 number is statement execution count, **not** rows written/read. Final D1 capacity acceptance therefore still needs measured or defensibly bounded billing rows and storage growth.
+
+Historical evidence audit:
+
+`UWBS-086_HISTORICAL_CAPACITY_EVIDENCE_GAP_2026-09-27.md`
+
+No repository-backed dataset has yet been established that supplies the complete canonical UWBS-080..085 cross-asset inputs for an end-to-end historical regime replay. Synthetic scenarios must not be reported as historical calibration.
 
 ### Selected restart point
 
 ```text
-UWBS-085 local acceptance
-  -> focused cross-asset regime tests
-  -> full Python regression
-  -> compileall
-  -> git diff --check
+UWBS-086 replay/capacity local verification
+  -> verify 10 focused replay/capacity tests
+  -> full Python regression / compileall / diff check
+  -> then acquire/build repository-backed historical replay packet
+  -> measure/bound D1 rows read/written + storage growth
+  -> final ACCEPT / REVIEW / REJECT
 ```
 
-If accepted, add the shared contract export and proceed to `UWBS-086`.
+UWBS-086 remains open until historical replay and capacity evidence satisfy the final acceptance prerequisites.
 
 ## 9. Restart rule
 
@@ -260,4 +285,4 @@ After an interruption:
 5. for market-dependent work, refresh only time-dependent preflight inputs;
 6. for market-independent work, resume at the first incomplete canonical dependency.
 
-Current restart is `UWBS-085 local acceptance` unless the user explicitly selects another lane.
+Current restart is `UWBS-086 replay/capacity local verification` unless the user explicitly selects another lane.
