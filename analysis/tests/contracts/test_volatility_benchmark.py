@@ -23,7 +23,7 @@ def provenance() -> Provenance:
         retrieved_at=ACCEPTED,
         available_at=OBSERVED,
         accepted_at=ACCEPTED,
-        event_time=SourceTimestamp.instant_utc(OBSERVED),
+        event_time=SourceTimestamp.at(OBSERVED),
     )
 
 
