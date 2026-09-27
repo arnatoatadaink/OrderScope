@@ -104,9 +104,7 @@ Canonical registry:
 
 `WBS_PROVISIONAL_ID_REGISTRY.md`
 
-The historical append-only backlog contains collisions in later rows. Those rows are retained as provenance but are no longer active identifiers.
-
-Canonical later ranges are:
+Canonical later ranges currently include:
 
 ```text
 UWBS-062..066  AI theme lane
@@ -116,7 +114,7 @@ UWBS-080..086  Oil / commodity / cross-asset lane
 UWBS-087..093  Physical-SaaS lane
 ```
 
-All new CP, implementation and acceptance records must use these canonical IDs.
+All new CP, implementation and acceptance records must use canonical IDs from the registry.
 
 ## 7. Current market-dependent CP
 
@@ -132,9 +130,9 @@ State: **PARKED** until the applicable market-session execution window is intent
 ## 8. Current market-independent CP
 
 ```text
-UWBS-080  Direct WTI / Brent Macro Instrument contract + provider survey
+UWBS-080  Direct WTI / Brent Macro Instrument contract + provider survey   [ACCEPTED]
    |
-   +-> UWBS-081  structured commodity supply/fundamental acquisition
+   +-> UWBS-081  structured commodity supply/fundamental acquisition      [NEXT]
    +-> UWBS-082  commodity supply/shipping/geopolitical event taxonomy
    |
    v
@@ -151,37 +149,45 @@ UWBS-086  historical Canary + Worker/D1 capacity acceptance
 
 ### UWBS-080 current state
 
-Status: **WEB IMPLEMENTATION READY — LOCAL ACCEPTANCE REQUIRED**
+Status: **ACCEPTED**
 
-Implemented/reviewed remotely:
+Acceptance evidence:
+
+`UWBS-080_LOCAL_ACCEPTANCE_2026-09-27.md`
+
+Local acceptance result:
+
+```text
+Python 3.13.15
+commodity focused tests: 7 passed
+fixture importer verification: 8 passed
+full Python regression: 709 passed
+compileall: PASS
+git diff --check: PASS
+```
+
+Accepted boundary includes:
 
 - provider-neutral `CommodityPriceObservation` contract;
-- explicit WTI / Brent benchmark identities;
-- explicit `spot_reference` vs `futures_contract` separation;
+- WTI / Brent canonical benchmark identities;
+- `spot_reference` vs `futures_contract` separation;
 - WTI Cushing / Brent Europe spot-location guards;
 - NYMEX WTI / ICE Futures Europe Brent venue guards;
-- explicit listed contract code + delivery month requirement;
+- listed contract code + delivery month requirements;
 - finite negative crude futures values remain representable;
-- USO remains outside the canonical crude-price contract;
-- current provider survey and activation/terms boundaries documented.
+- USO stays a proxy outside canonical crude-price truth;
+- provider survey and activation/terms boundaries documented.
 
-Evidence/design document:
-
-`UWBS-080_DIRECT_WTI_BRENT_CONTRACT_PROVIDER_SURVEY.md`
-
-No live provider or remote runtime mutation occurred.
+No live provider or runtime mutation occurred.
 
 ### Selected restart point
 
 ```text
-UWBS-080 local acceptance
-  -> focused commodity contract tests
-  -> full Python regression
-  -> compileall
-  -> git diff --check
+UWBS-081
+structured commodity supply/fundamental acquisition
 ```
 
-If accepted, the next incomplete dependencies are `UWBS-081` and `UWBS-082`.
+Primary objective: define provider-neutral structured facts for inventory, production, refinery/utilization and related supply fundamentals before binding any live source. `UWBS-082` remains a parallel sibling once this structured fact boundary is frozen.
 
 ## 9. Restart rule
 
@@ -194,4 +200,4 @@ After an interruption:
 5. for market-dependent work, refresh only time-dependent preflight inputs;
 6. for market-independent work, resume at the first incomplete canonical dependency.
 
-Current restart is `UWBS-080 local acceptance` unless the user explicitly selects another lane.
+Current restart is `UWBS-081` unless the user explicitly selects another lane.
