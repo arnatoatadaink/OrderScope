@@ -131,8 +131,6 @@ State: **PARKED** until the applicable market-session execution window is intent
 
 ## 8. Current market-independent CP
 
-GOV-CP-01 is complete for active planning. The selected next lane is:
-
 ```text
 UWBS-080  Direct WTI / Brent Macro Instrument contract + provider survey
    |
@@ -151,14 +149,39 @@ UWBS-085  cross-asset Risk-On / Crypto Risk-On regime
 UWBS-086  historical Canary + Worker/D1 capacity acceptance
 ```
 
+### UWBS-080 current state
+
+Status: **WEB IMPLEMENTATION READY — LOCAL ACCEPTANCE REQUIRED**
+
+Implemented/reviewed remotely:
+
+- provider-neutral `CommodityPriceObservation` contract;
+- explicit WTI / Brent benchmark identities;
+- explicit `spot_reference` vs `futures_contract` separation;
+- WTI Cushing / Brent Europe spot-location guards;
+- NYMEX WTI / ICE Futures Europe Brent venue guards;
+- explicit listed contract code + delivery month requirement;
+- finite negative crude futures values remain representable;
+- USO remains outside the canonical crude-price contract;
+- current provider survey and activation/terms boundaries documented.
+
+Evidence/design document:
+
+`UWBS-080_DIRECT_WTI_BRENT_CONTRACT_PROVIDER_SURVEY.md`
+
+No live provider or remote runtime mutation occurred.
+
 ### Selected restart point
 
 ```text
-UWBS-080
-Define direct WTI / Brent Macro Instrument contract and provider survey
+UWBS-080 local acceptance
+  -> focused commodity contract tests
+  -> full Python regression
+  -> compileall
+  -> git diff --check
 ```
 
-This task is market-independent design/provider research. It must not activate a provider or mutate runtime state.
+If accepted, the next incomplete dependencies are `UWBS-081` and `UWBS-082`.
 
 ## 9. Restart rule
 
@@ -171,4 +194,4 @@ After an interruption:
 5. for market-dependent work, refresh only time-dependent preflight inputs;
 6. for market-independent work, resume at the first incomplete canonical dependency.
 
-Current restart is `UWBS-080` unless the user explicitly selects another lane.
+Current restart is `UWBS-080 local acceptance` unless the user explicitly selects another lane.
