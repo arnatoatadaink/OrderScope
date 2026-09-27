@@ -38,11 +38,11 @@ def _manifest(artifact: bytes, **overrides) -> D1ExportManifest:
     return D1ExportManifest(**values)
 
 
-def test_import_fixture_dump_persists_immutable_artifact_and_catalog(tmp_path: Path) -> None:
+def test_import_registers_hash_addressed_raw_fixture_and_catalog(tmp_path: Path) -> None:
     artifact = _artifact()
     manifest = _manifest(artifact)
-    raw_root = tmp_path / "raw"
     database = tmp_path / "catalog.sqlite3"
+    raw_root = tmp_path / "var" / "raw"
 
     result = import_fixture_dump(
         manifest=manifest,
@@ -52,86 +52,81 @@ def test_import_fixture_dump_persists_immutable_artifact_and_catalog(tmp_path: P
         registered_at=REGISTERED,
     )
 
-    assert result.row_count == 1
-    assert result.byte_size == len(artifact)
-    assert result.sha256 == manifest.sha256
-    assert result.raw_path.read_bytes() == artifact
-
+    assert result.status == "new"
+    target = raw_root / result.raw_relative_path
+    assert target.read_bytes() == artifact
+    assert target.name == f"{manifest.sha256}.sql"
     with closing(sqlite3.connect(database)) as connection:
         row = connection.execute(
-            "SELECT dataset_id, source_environment, source_revision, table_name, row_count, byte_size, sha256 FROM import_datasets"
+            "SELECT manifest_id, sha256, raw_relative_path FROM raw_imports"
         ).fetchone()
-        assert row == (
-            result.dataset_id,
-            "worker-shadow",
-            "fixture-rev-001",
-            "bars",
-            1,
-            len(artifact),
-            manifest.sha256,
-        )
-        raw = connection.execute(
-            "SELECT sha256, relative_path, byte_size FROM raw_imports"
-        ).fetchone()
-        assert raw == (
-            manifest.sha256,
-            str(result.raw_path.relative_to(raw_root)),
-            len(artifact),
-        )
+    assert row == (manifest.manifest_id, manifest.sha256, result.raw_relative_path)
 
 
-def test_import_fixture_dump_is_idempotent_for_same_manifest_and_artifact(tmp_path: Path) -> None:
+def test_reimport_same_manifest_and_hash_is_idempotent(tmp_path: Path) -> None:
     artifact = _artifact()
     manifest = _manifest(artifact)
-    raw_root = tmp_path / "raw"
-    database = tmp_path / "catalog.sqlite3"
-
-    first = import_fixture_dump(
+    kwargs = dict(
         manifest=manifest,
         artifact=artifact,
-        catalog_database=database,
-        raw_root=raw_root,
+        catalog_database=tmp_path / "catalog.sqlite3",
+        raw_root=tmp_path / "raw",
         registered_at=REGISTERED,
     )
-    second = import_fixture_dump(
-        manifest=manifest,
-        artifact=artifact,
-        catalog_database=database,
-        raw_root=raw_root,
-        registered_at=REGISTERED,
-    )
+    first = import_fixture_dump(**kwargs)
+    second = import_fixture_dump(**{**kwargs, "registered_at": REGISTERED + timedelta(hours=1)})
 
-    assert second == first
-    with closing(sqlite3.connect(database)) as connection:
-        assert connection.execute("SELECT count(*) FROM import_datasets").fetchone() == (1,)
+    assert first.status == "new"
+    assert second.status == "duplicate"
+    assert second.registered_at == first.registered_at
+    with closing(sqlite3.connect(kwargs["catalog_database"])) as connection:
         assert connection.execute("SELECT count(*) FROM raw_imports").fetchone() == (1,)
 
 
-def test_import_rejects_manifest_hash_mismatch(tmp_path: Path) -> None:
-    artifact = _artifact()
-    with pytest.raises(ContractViolation, match="sha256"):
-        import_fixture_dump(
-            manifest=_manifest(artifact, sha256="0" * 64),
-            artifact=artifact,
-            catalog_database=tmp_path / "catalog.sqlite3",
-            raw_root=tmp_path / "raw",
-            registered_at=REGISTERED,
-        )
-
-
-def test_import_rejects_manifest_byte_size_mismatch(tmp_path: Path) -> None:
+def test_manifest_size_or_hash_mismatch_is_rejected_before_storage(tmp_path: Path) -> None:
     artifact = _artifact()
     with pytest.raises(ContractViolation, match="byte_size"):
         import_fixture_dump(
             manifest=_manifest(artifact, byte_size=len(artifact) + 1),
             artifact=artifact,
-            catalog_database=tmp_path / "catalog.sqlite3",
-            raw_root=tmp_path / "raw",
+            catalog_database=tmp_path / "size.sqlite3",
+            raw_root=tmp_path / "raw-size",
+            registered_at=REGISTERED,
+        )
+    with pytest.raises(ContractViolation, match="sha256"):
+        import_fixture_dump(
+            manifest=_manifest(artifact, sha256="0" * 64),
+            artifact=artifact,
+            catalog_database=tmp_path / "hash.sqlite3",
+            raw_root=tmp_path / "raw-hash",
             registered_at=REGISTERED,
         )
 
 
-def test_import_rejects_existing_artifact_with_different_content(tmp_path: Path) -> None:
+def test_same_hash_under_different_manifest_metadata_is_conflict(tmp_path: Path) -> None:
+    artifact = _artifact()
+    database = tmp_path / "catalog.sqlite3"
+    raw_root = tmp_path / "raw"
+    first = _manifest(artifact)
+    second = _manifest(artifact, source_revision="fixture-rev-002")
+    import_fixture_dump(
+        manifest=first,
+        artifact=artifact,
+        catalog_database=database,
+        raw_root=raw_root,
+        registered_at=REGISTERED,
+    )
+    with pytest.raises(ContractViolation, match="different manifest metadata"):
+        import_fixture_dump(
+            manifest=second,
+            artifact=artifact,
+            catalog_database=database,
+            raw_root=raw_root,
+            registered_at=REGISTERED + timedelta(minutes=1),
+        )
+
+
+def test_existing_hash_path_with_different_bytes_is_rejected(tmp_path: Path) -> None:
     artifact = _artifact()
     manifest = _manifest(artifact)
     raw_root = tmp_path / "raw"
@@ -186,6 +181,6 @@ def test_import_result_exposes_metadata_not_raw_body(tmp_path: Path) -> None:
         raw_root=tmp_path / "raw",
         registered_at=REGISTERED,
     )
-
     assert not hasattr(result, "artifact")
-    assert not hasattr(result, "raw_body")
+    assert not hasattr(result, "rows")
+    assert result.raw_relative_path.startswith("d1/")
