@@ -1,6 +1,6 @@
 # UWBS-100 — Volatility Historical Calibration and Canary Evaluation
 
-Status: **IMPLEMENTED / LOCAL ACCEPTANCE PENDING**
+Status: **ACCEPTED**
 
 Date: 2026-09-28
 
@@ -95,19 +95,30 @@ UWBS-100 does **not**:
 - create a trading recommendation
 - alter PB-04..PB-10 state or authorization
 
-## Local acceptance target
+## Local acceptance evidence
 
-Run:
+Validated on 2026-09-28:
 
-```bash
+```text
 uv run pytest -q analysis/tests/cross_market/test_volatility_calibration.py
+13 passed in 2.60s
+
 uv run pytest -q analysis/tests
+986 passed in 42.82s
+
 uv run python -m compileall -q analysis/app
+PASS (no error output)
+
 git diff --check
+PASS (no error output)
 ```
 
-Acceptance requires all commands to succeed with no unreviewed diff/check errors.
+## Acceptance result
+
+`ACCEPTED`
+
+UWBS-100 satisfies the bounded local acceptance target. The implementation keeps production-rule activation and live infrastructure mutation outside this task.
 
 ## Closure rule
 
-After local acceptance evidence is recorded, UWBS-100 may be marked `ACCEPTED` and the UWBS-094..100 volatility series may be treated as closed for this iteration. PB work remains a separate lane and must be closed only through its own market-session validation and authorization gates.
+UWBS-094..100 are accepted for this iteration and the current UWBS volatility series is closed. PB work remains a separate lane and must be closed only through its own market-session validation and authorization gates.
