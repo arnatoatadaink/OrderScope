@@ -1,6 +1,6 @@
 # UWBS-099 — MSTR/BTC 30-day IV differential
 
-Status: **IMPLEMENTED / LOCAL ACCEPTANCE PENDING**
+Status: **ACCEPTED**
 
 ## Scope
 
@@ -34,6 +34,24 @@ negative differential = MSTR IV < BTC IV
 ```
 
 The sign is arithmetic only and is not a market-direction or regime signal.
+
+## Acceptance evidence
+
+Local acceptance completed on 2026-09-28 JST.
+
+```text
+uv run pytest -q analysis/tests/cross_market/test_mstr_btc_iv30.py
+9 passed
+
+uv run pytest -q analysis/tests
+973 passed
+
+uv run python -m compileall -q analysis/app
+no error output
+
+git diff --check
+no error output
+```
 
 ## Non-goals
 
