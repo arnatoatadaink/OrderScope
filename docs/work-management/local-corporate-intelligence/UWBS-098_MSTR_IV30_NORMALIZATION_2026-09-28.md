@@ -1,6 +1,6 @@
 # UWBS-098 — MSTR 30-day option-implied-volatility normalization
 
-Status: **IMPLEMENTED / LOCAL ACCEPTANCE PENDING**
+Status: **ACCEPTED**
 
 ## Scope
 
@@ -24,6 +24,24 @@ Supported methodology labels:
 - `atm_option_surface`
 - `delta_neutral_composite`
 - `provider_composite`
+
+## Acceptance evidence
+
+Local acceptance completed on 2026-09-28 JST.
+
+```text
+uv run pytest -q analysis/tests/cross_market/test_mstr_iv30.py
+10 passed
+
+uv run pytest -q analysis/tests
+964 passed
+
+uv run python -m compileall -q analysis/app
+no error output
+
+git diff --check
+no error output
+```
 
 ## Non-goals
 
