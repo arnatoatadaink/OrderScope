@@ -61,6 +61,11 @@ class CombinedWindowAcceptance(unittest.TestCase):
             PB10.main()
         command.assert_not_called()
 
+    def test_custody_is_required_before_remote_mutation(self):
+        with patch.dict(os.environ, {"ORDERSCOPE_PB09_CUSTODY_DIR": "/tmp/pb10-custody-absent"}):
+            with self.assertRaisesRegex(RuntimeError, "custody unavailable"):
+                PB10.verify_custody()
+
     def test_shadow_restore_retries_and_checks_health(self):
         with patch.object(PB10, "deploy", side_effect=[RuntimeError("transient"), None]) as deploy, \
              patch.object(PB10, "health") as health, \

@@ -63,6 +63,7 @@ Wrangler and Cloudflare credentials (replace the reference and log path):
 set -o pipefail
 export PATH=/home/y/.nvm/versions/node/v24.21.0/bin:$PATH
 export CLOUDFLARE_ENV=live-canary
+export ORDERSCOPE_PB09_CUSTODY_DIR=/path/to/accepted/l1-003-smoke-007-20260915
 PYTHONDONTWRITEBYTECODE=1 python3 scripts/l1_003_pb10_combined_window.py \
   --execute --authorization-id '<approved-reference>' \
   2>&1 | tee /tmp/orderscope-pb10-combined-<session>.log
@@ -72,6 +73,8 @@ Keep the generated read-only packet, export receipt directory and full run
 log. If the process stops, verify health and D1 state before a same-session
 continuation and decrement the remaining entry bound. Never reuse an old
 packet or expand the 16/16 aggregate limits.
+The driver checks the accepted local Phase A custody bytes and manifest before
+any deployment; this directory may be outside an isolated Git worktree.
 
 ## Local review
 

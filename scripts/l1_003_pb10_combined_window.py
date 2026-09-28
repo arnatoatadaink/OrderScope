@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """One bounded PB-09 entry acquisition + Phase B window. Never runs without --execute."""
 import argparse
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -22,6 +23,7 @@ KEYS = (
     "SPY|1Min|REGULAR|stock:iex:raw",
     "BTCUSD|1Min|ALL_TRADING|crypto:us",
 )
+CUSTODY_SHA = "de380ae35c1ab50f5e0364585e7f3224512085dc3bcd4abff8e37631938bed56"
 
 
 def utc():
@@ -111,6 +113,20 @@ def preparation():
     packet = json.loads((Path(match.group(1)) / "packet.json").read_text())
     print(f"packet={match.group(1)}/packet.json status={packet['assessment']['status']}", flush=True)
     return packet
+
+
+def verify_custody():
+    directory = Path(os.getenv("ORDERSCOPE_PB09_CUSTODY_DIR",
+        ROOT / "var/d1-custody/l1-003-smoke-007-20260915"))
+    try:
+        expected = (directory / "normalized_bar_20260901T160300Z_20260901T160400Z.ndjson").read_bytes()
+        manifest = json.loads((directory / "export-manifest.json").read_text())
+    except (OSError, ValueError) as error:
+        raise RuntimeError(f"accepted Phase A custody unavailable: {error}") from error
+    if len(expected) != 581 or hashlib.sha256(expected).hexdigest() != CUSTODY_SHA or \
+       manifest.get("sha256") != CUSTODY_SHA or manifest.get("row_count") != 1:
+        raise RuntimeError("accepted Phase A custody identity changed")
+    print(f"custody={directory} sha256={CUSTODY_SHA}", flush=True)
 
 
 def deploy(config=None):
@@ -248,6 +264,7 @@ def main():
     temp = ROOT / ".wrangler.pb10-combined-live-canary.jsonc"
     if temp.exists():
         raise RuntimeError("temporary config already exists")
+    verify_custody()
     packet = preparation()
     if packet["release"] != run("git", "rev-parse", "HEAD").strip() or packet["worktree"]:
         raise RuntimeError("release/worktree drift")
