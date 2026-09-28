@@ -126,13 +126,18 @@ def restore_shadow():
     for attempt in range(1, 4):
         try:
             deploy()
-            health("shadow")
-            controls_closed()
-            return
+            for probe in range(12):
+                try:
+                    health("shadow")
+                    controls_closed()
+                    return
+                except RuntimeError as error:
+                    last_error = error
+                    if probe < 11:
+                        time.sleep(2)
         except RuntimeError as error:
             last_error = error
-            print(f"shadow restore attempt {attempt}/3 failed: {error}", file=sys.stderr)
-            time.sleep(2)
+        print(f"shadow restore attempt {attempt}/3 failed: {last_error}", file=sys.stderr)
     raise RuntimeError(f"SHADOW RESTORE FAILED: {last_error}")
 
 
@@ -213,12 +218,16 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--execute", action="store_true")
     parser.add_argument("--authorization-id", help="single approval covering entry acquisition and Phase B")
+    parser.add_argument("--entry-opportunities-limit", type=int, default=16,
+                        help="remaining normal scheduler opportunities in the approved session (1-16)")
     args = parser.parse_args()
     if not args.execute:
         print("DRY RUN: no remote mutation. Use --execute --authorization-id after bounded approval.")
         return
     if not args.authorization_id:
         parser.error("--execute requires --authorization-id")
+    if not 1 <= args.entry_opportunities_limit <= 16:
+        parser.error("entry-opportunities-limit must be between 1 and 16")
     if os.getenv("CLOUDFLARE_ENV", "live-canary") != "live-canary":
         raise RuntimeError("wrong Cloudflare environment")
     os.environ["CLOUDFLARE_ENV"] = "live-canary"
@@ -259,32 +268,39 @@ def main():
         if unresolved or any(not healthy(c) for c in rows):
             raise RuntimeError("unsafe entry checkpoint competition")
         chosen = candidate(rows, session, utc())
-        if not chosen:
-            live_possible = True
-            deploy(temp)
-            health("live")
-            last = digest["generated_at"]
-            for opportunity in range(1, 17):
+        entry_used = 0
+        last = digest["generated_at"]
+        while True:
+            if not chosen:
+                if entry_used >= args.entry_opportunities_limit:
+                    raise RuntimeError("no current candidate within remaining approved entry opportunities")
+                if not live_possible:
+                    live_possible = True
+                    deploy(temp)
+                    health("live")
                 require_active(session, reserve_minutes=25)
                 last, rows, _ = next_live_digest(last)
                 require_active(session, reserve_minutes=25)
+                entry_used += 1
                 chosen = candidate(rows, session, utc())
-                print(f"entry opportunity={opportunity}/16 candidate={chosen and chosen['coverage_key']}", flush=True)
-                if chosen:
-                    break
-            if not chosen:
-                raise RuntimeError("no current candidate within 16 ordinary scheduler opportunities")
-            restore_shadow()
-            live_possible = False
-        health("shadow")
-        controls_closed()
-        require_active(session, reserve_minutes=25)
-        rows, unresolved, digest = snapshot()
-        pause_start = utc()
-        selected = candidate(rows, session, pause_start)
-        if unresolved or not selected or any(selected[k] != chosen[k] for k in
-            ("coverage_key", "version", "complete_through", "source_observed_through")):
-            raise RuntimeError("candidate no longer at finalized frontier after shadow deployment")
+                print(f"entry opportunity={entry_used}/{args.entry_opportunities_limit} candidate={chosen and chosen['coverage_key']}", flush=True)
+                continue
+            if live_possible:
+                restore_shadow()
+                live_possible = False
+            health("shadow")
+            controls_closed()
+            require_active(session, reserve_minutes=25)
+            rows, unresolved, digest = snapshot()
+            pause_start = utc()
+            selected = candidate(rows, session, pause_start)
+            if unresolved:
+                raise RuntimeError("unfinished canary attempt at pause entry")
+            if selected and all(selected[k] == chosen[k] for k in
+                ("coverage_key", "version", "complete_through", "source_observed_through")):
+                break
+            print("candidate drifted while shadow became effective; continuing within entry limit", flush=True)
+            chosen = None
         selected_key = selected["coverage_key"]
         print(f"pauseStart={pause_start} key={selected['coverage_key']} version={selected['version']}", flush=True)
         output = Path(tempfile.mkdtemp(prefix="orderscope-pb10-export-", dir="/tmp"))

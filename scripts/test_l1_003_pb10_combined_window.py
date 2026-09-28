@@ -71,6 +71,15 @@ class CombinedWindowAcceptance(unittest.TestCase):
         health.assert_called_once_with("shadow")
         controls.assert_called_once_with()
 
+    def test_shadow_restore_polls_propagation_before_redeploy(self):
+        with patch.object(PB10, "deploy") as deploy, \
+             patch.object(PB10, "health", side_effect=[RuntimeError("still live"), None]) as health, \
+             patch.object(PB10, "controls_closed"), \
+             patch.object(PB10.time, "sleep"):
+            PB10.restore_shadow()
+        deploy.assert_called_once_with()
+        self.assertEqual(health.call_count, 2)
+
 
 if __name__ == "__main__":
     unittest.main()

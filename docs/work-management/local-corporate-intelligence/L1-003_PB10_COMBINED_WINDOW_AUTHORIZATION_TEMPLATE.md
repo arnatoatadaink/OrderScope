@@ -31,6 +31,9 @@ template is not inferred from prior PB-08 or PB-09 preparation.
   and `--authorization-id`; without `--execute` it makes no remote calls.
   The authorization ID is an operator receipt, so execution must still be
   preceded by explicit user approval of this exact bounded scope.
+- A same-session continuation after a safe stop must use a fresh read-only
+  packet and `--entry-opportunities-limit` set to **16 minus already observed
+  entry opportunities**. A new market session is outside this authority.
 
 ## Fresh inputs to freeze before single approval
 
@@ -66,8 +69,9 @@ PYTHONDONTWRITEBYTECODE=1 python3 scripts/l1_003_pb10_combined_window.py \
 ```
 
 Keep the generated read-only packet, export receipt directory and full run
-log. If the process stops, verify health and D1 state before any retry; a
-repeated command is a new remote window and needs a fresh assessment.
+log. If the process stops, verify health and D1 state before a same-session
+continuation and decrement the remaining entry bound. Never reuse an old
+packet or expand the 16/16 aggregate limits.
 
 ## Local review
 
