@@ -1,6 +1,6 @@
 # L1-003 PB-09 / Phase B: 2026-09-28 closeout readiness
 
-Status: **PREPARATION ONLY — neither entry acquisition nor Phase B authorized**.
+Status: **PREPARATION ONLY — combined window not authorized**.
 This packet is for the Sep 28 REGULAR session; it cannot be carried into another
 session. The operator must replace the snapshot with fresh active-session evidence.
 
@@ -28,32 +28,23 @@ session. The operator must replace the snapshot with fresh active-session eviden
    clean PB branch. Keep its `packet.json` and check the exact release,
    deployment/version, config hash, calendar, health, five checkpoint rows,
    unresolved attempts, D1 identity and closed control routes.
-2. If status is `CURRENT_CHECKPOINT_REQUIRED`, freeze a **separate** entry
-   acquisition request from that packet. Limit it to the unchanged normal
-   scheduler, at most 16 observed opportunities, newly required current-session
-   coverage, and immediate checked-in shadow restoration. Do not use the Sep 25
-   absence gate, replay accepted PB work, or start this window without explicit
-   authorization. Repeat step 1 after a successful safe close.
-3. Proceed only if `ENTRY_EVIDENCE_READY_NOT_AUTHORIZED` names a current
-   equity 1Min REGULAR IEX checkpoint whose source and coverage equal the
-   finalized frontier, with healthy competition and zero unresolved attempts.
-   Freeze the exact candidate, checkpoint version/frontier and deployment
-   identity. Any change requires a new packet.
-4. Before asking for Phase B authorization, attach a concrete guarded
-   execution procedure or script with locally tested safe close to the
-   [Phase B authorization template](L1-003_PB09_PHASE_B_AUTHORIZATION_TEMPLATE.md).
-   Populate every `UNFROZEN` field, including release, current session,
-   candidate, pause bounds and export range. Entry acquisition authority does
-   not cover Phase B.
-5. Once Phase B is explicitly authorized, run the bounded in-session trial:
-   verify fresh entry; deploy the temporary live-canary configuration so the
-   checked-in shadow deployment pauses acquisition; establish pauseStart only
-   after shadow is observed; hold about three minutes and never over five;
-   perform the frozen one-row repeat-read; verify an unchanged checkpoint
-   before resume; derive the fresh gap using `freezePauseGap`; resume normal
-   scheduler for at most 16 observed opportunities; restore checked-in shadow
-   on success or any failure.
-6. Close only with receipts that explain every minute in the frozen gap from
+2. Fill the fresh fields in the
+   [combined authorization template](L1-003_PB10_COMBINED_WINDOW_AUTHORIZATION_TEMPLATE.md).
+   One approval can cover conditional entry acquisition and Phase B under the
+   fixed script bounds. It does not authorize another session or an expanded
+   retry. The approval is still pending.
+3. After that approval, run `scripts/l1_003_pb10_combined_window.py --execute
+   --authorization-id <approved-reference>` with stdout/stderr captured in an
+   operator log. The script creates a fresh read-only packet, checks the active
+   official session and safe baseline, then chooses an existing current
+   candidate or uses at most 16 observed normal scheduler opportunities to
+   catch up. It restores checked-in shadow before Phase B entry.
+4. The script rechecks candidate identity at the pause boundary. It holds
+   shadow for about three minutes (hard maximum five), performs the frozen
+   one-row repeat-read, verifies an unchanged checkpoint and derives the
+   pause-created gap using `freezePauseGap`. It resumes the unchanged scheduler
+   for at most 16 observed opportunities and restores shadow in `finally`.
+5. Close only with receipts that explain every minute in the frozen gap from
    accepted target attempts, separate overlap from fresh coverage, account for
    any additional current-session progression, show budgets within the shared
    40 external / 40 D1 limits, and verify final shadow / IEX / News disabled,
@@ -70,6 +61,7 @@ the Sep 25 campaign to regain a current candidate.
 
 The existing repeat-read helper is
 `scripts/l1_003_pb09_paused_export_readonly.sh`; the entry/gap guard is
-`scripts/l1_003_pb09_packet.mjs`. As of this preparation, a locally accepted
-PB-10 execution driver is still outstanding. This document does not authorize
-deployment, D1 writes or scheduler activation.
+`scripts/l1_003_pb09_packet.mjs`. The combined driver is
+`scripts/l1_003_pb10_combined_window.py`; its local acceptance and fresh
+market-session packet must be reviewed before the single approval. This
+document does not authorize deployment, D1 writes or scheduler activation.
