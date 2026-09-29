@@ -8,12 +8,31 @@
   "versions": {
     "v0.1.1": {
       "status": "ready_for_replay",
-      "scope": ["UWBS-001..004", "UWBS-016", "UWBS-023..026", "R0-001..009", "W1-001 non-live capability"],
+      "scope": [
+        "UWBS-001..004",
+        "UWBS-016",
+        "UWBS-023..026",
+        "R0-001..009",
+        "W1-001 non-live capability with required W1-002..006 runtime fixes and regressions"
+      ],
       "policy": "Replay capability, tests and local acceptance boundaries; keep live activation, remote mutation, rollback episodes and PB evidence only in immutable source history.",
       "source_commits": [
         "e8fc59b4dea4780cbd588d65ed760f1fd3004e3b",
         "a0b018971f8e23cb526ad9fb7453d679e1e1ed9b",
+        "9a5fa8b07eab46d7103f609b490ae7daeff13970",
+        "dff8252282ab99e0799fff190c9518547b705aab",
+        "0e72ed8e5d86b794bcff96041b76abee685e5275",
+        "ac8f9f1325b56e8a4faf00f51e25fdf267372331",
+        "2db03a6b80806d29a12ebb9c56dca6b774629b73",
+        "967ffb0aa3401bb443881c12f4b8edd301b0b49a",
+        "f5e070eb9856826587b5667dd78a175434ded037",
+        "b0b783932f0ee1fce2756e23201d760684999524",
+        "82cfabfe5c2212c958e803d38e25edec96a603f5",
+        "a82f1fd0f87b19d5efab6dc6ab2f9cec81d674bc",
         "a79c4aa99487380667f786e88f4e923ef9efb207",
+        "2a72e73fe132b563884a60578162b416d36322c4",
+        "f63e987cfbacf9f3b78e98c142311556fc07ded7",
+        "d475caee79232ea9e8dc98200796b110da6e3afb",
         "61cfa39717c681176b33ff01b1746fed35f1eb30",
         "91bbf3b33aaefb3797e59558ffae3789ec2c3551",
         "75079a681fdf0d548f160cec17aac09896a1a3e4",
@@ -26,8 +45,8 @@
         "a24258e20cb04fe6ad36d4dcc17b5a13676ae3d2",
         "a54da090083de20495687c8f217e3a5fd693aba1",
         "9fbef3dddd2fca8f7bb66d428bd4d1bf189c454d",
+        "1586d3e27c307c61cb885c7a9be26bce91569c57",
         "55866e5823fcf560fe35f99d9d130bad04e0b2c3",
-        "0f4ab39158f4bb88f0bc1631342b1263b3010fee",
         "8f1c83c3005b5c257f1d306fe43f87e01444651e",
         "ecd4e154a02e685fa63fc361b6e4f19fe3b9fe48",
         "3910abb7387bfe3508489fd07796a189c2261db1",
@@ -39,7 +58,6 @@
         "420849b42da1fdbbf68f9035625a8ab8ac211777",
         "b41cc881cdef8b4a3f15ed64e7b45cb9ceb545ad",
         "cff3119fd83b02d3f62cb05868cda72eb7023e17",
-        "b9e8811a175ab072c91a974bca65705108b6107a",
         "6ff5c756b5864eb69e6cc4e38c7d1ef952df575a",
         "b15f31a2aee2b3b8d07818dc4095ce213016dc20",
         "82e937b35c5eb1fd3efe3013a880376a896aebaa",
@@ -58,9 +76,10 @@
         "83bee6d37c662777777ac36d955e27b5137258eb",
         "3d3fedec65335f470cce02d82a4fb012722a13b5",
         "9cabb5fc17d6a3b7ef22da0490c8f2f693773962",
-        "77f37c7d5f0ea972da2a82d035145b98481e8363",
         "64013b0f0f9b68e7e1fa4e9269a64714f4340eea",
-        "2beda8bfd8e6caf17e1f418467746913379b5252"
+        "593e13c0e693e4eeb1c0833c6e9e324db4055d4d",
+        "2beda8bfd8e6caf17e1f418467746913379b5252",
+        "f6aa33f09f982b7079e497b8adddcab8a8a97665"
       ],
       "excluded_source_examples": [
         "c26ee4522ff3df7e09d83b6c8b869bdf819bf766 tracker-only acceptance for Packets B/C",
@@ -70,12 +89,25 @@
         "d0858f499b3d50fd7458b08783c1af00e236749a remote acknowledgement evidence",
         "996f19f566d63f228e8ea43aaf35fb17f1ef789d remote ACK acceptance evidence",
         "2136ea95b8ad70d3e47c79dea9d8380f1b350cc0 W1-001 live change-window runbook",
-        "24d1b766842062eca569406917f3c958e7006c04 W1-001 live rollback evidence"
+        "24d1b766842062eca569406917f3c958e7006c04 W1-001 live rollback evidence",
+        "0f4ab39158f4bb88f0bc1631342b1263b3010fee historical progress tracker acceptance; source evidence retained outside reconstructed snapshot",
+        "b9e8811a175ab072c91a974bca65705108b6107a historical progress tracker acceptance; source evidence retained outside reconstructed snapshot",
+        "77f37c7d5f0ea972da2a82d035145b98481e8363 fixes only a remote custody ACK evidence test excluded from capability replay"
+      ],
+      "manual_resolution_notes": [
+        "0e72ed8: retain market-checkpoint-load implementation and test; omit two superseded Stage B handoff documents absent from the base.",
+        "a82f1fd: retain News scheduler idempotency implementation and regressions; keep the release tracker side at the conflict.",
+        "310d536: retain local R0-001 acceptance evidence and formal WBS mapping in the scheduler registration review.",
+        "f6aa33f: replay only src/worker-orchestration.integration.test.ts; historical tracker/backlog evidence remains in immutable source history.",
+        "77f37c7: excluded because it changes only the remote first-custody ACK test, which is not in the capability replay."
       ]
     },
     "v0.1.2": {
       "status": "ready_for_replay",
-      "scope": ["UWBS-011..015", "A0-003..007"],
+      "scope": [
+        "UWBS-011..015",
+        "A0-003..007"
+      ],
       "source_commits": [
         "e25391fd3cd8bdd7e40d77853e8a0572489e42e5",
         "6bb603dbfe29fd66c95db16e588c00dcc3543c3f",
@@ -89,12 +121,23 @@
         "4747af279df1af3e358654b88a8f0da3eb9fb423",
         "eef6befc227d9641bc178c30ea191d845a777649",
         "b49090d02bcc3274840f467cdf6fb6b0d5171fef"
+      ],
+      "manual_resolution_notes": [
+        "a026d91: export MacroMarket names only from contracts/__init__.py; the historical parent also contained future v0.1.3 cross-market exports.",
+        "4ae322a: create a minimal cross_market/__init__.py exporting macro_metrics only; do not bring in future v0.1.3 package exports.",
+        "4747af2: export MacroStress names only from contracts/__init__.py; omit future v0.1.3 names until the next boundary."
       ]
     },
     "v0.1.3": {
       "status": "ready_for_replay",
-      "scope": ["UWBS-027..036", "A0-008..017"],
+      "scope": [
+        "UWBS-027..036",
+        "A0-008..017"
+      ],
       "source_commits": [
+        "6137248444d607498165bddf3f657a409ecd1c42",
+        "ad9239571662e3fb4daa3d2414c963f90d7cf2d3",
+        "27a6b13933c95a7dbf13b637c7511c0a16cc1358",
         "629d15c9ac57bd67ff94fba9345bd45820509cdd",
         "1fa402c676579ec1b7ab07852436c2f33fcbd871",
         "25e0eba51c4366094a3d73d1cc7c661282b9d0b0",
@@ -134,6 +177,15 @@
         "92996c3e008f03f94ec0804fed5e4c21ed6454b7",
         "d6fbf1f9e9b122b1fc3d0ea7e3d52dde296d5b54",
         "0a02add6777745fd65cc0800fd232f745401c583"
+      ],
+      "prerequisite_scope": "A0-002 shared validation.py types only; A0-002 provisional validation and operational evidence are excluded",
+      "manual_resolution_notes": [
+        "25e0eba: combine v0.1.2 Macro exports with MarketRelationship exports in contracts/__init__.py.",
+        "410ed70: combine v0.1.2 macro_metrics exports with RelativeRepricing exports in cross_market/__init__.py; omit A0-002 provisional package exports.",
+        "a834c6e and d932ef1: retain complete UWBS-027..031 and UWBS-032..036 local WBS extension documents when the source parent document is absent from the reconstructed tree.",
+        "1715712 and bbd6032: combine Market Reaction and Repricing State exports with prior Macro/Market Relationship exports; omit A0-002 provisional names.",
+        "8b2b4b9, 2edc772, daedf15, 2294ca7, b05d972 and d6fbf1f: add only the owned official macro, fallback and positioning exports to cross_market/__init__.py, retaining the v0.1.2 Macro exports.",
+        "CBRS Canary requires SeriesMeasure, SeriesObservation and SeriesRole re-exported from cross_market/__init__.py; these come from the selected A0-002 validation.py prerequisite only."
       ]
     }
   },

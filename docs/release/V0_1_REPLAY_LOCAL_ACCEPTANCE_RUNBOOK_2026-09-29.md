@@ -1,7 +1,12 @@
 # OrderScope v0.1 reconstructed release — local acceptance runbook
 
-Status: **PRE-APPLY / LOCAL REPLAY REVIEW REQUIRED**
+Status: **LOCAL REPLAY ACCEPTED; BOUNDARY PUSH PENDING**
 Date: 2026-09-29
+
+The accepted source inventory and manual conflict decisions are recorded in
+`V0_1_REPLAY_INVENTORY_AUDIT_2026-09-29.md`. The commands below document the
+replay procedure from a clean frozen base; the existing accepted worktree
+already contains the three synthetic commits. Do not reset it to rerun step 2.
 
 ## Purpose
 
@@ -40,7 +45,6 @@ Use a sibling path outside the canonical checkout:
 
 ```bash
 git branch -f release/reconstructed-v0.1 origin/release/reconstructed-v0.1
-rm -rf ../OrderScope-release-v0.1
 git worktree add ../OrderScope-release-v0.1 release/reconstructed-v0.1
 ```
 
@@ -71,7 +75,7 @@ Expected current behavior:
 - no duplicate source SHA is reported;
 - no PB-labelled source commit is accepted;
 - v0.1.1, v0.1.2 and v0.1.3 inventories are printed;
-- `--apply` remains blocked while manifest status is `ready_for_local_replay_review`.
+- the corrected inventory reports 63, 12, and 42 source commits and is eligible for `--apply`.
 
 Any SHA-resolution or PB-boundary failure is a hard rejection.
 
@@ -93,23 +97,12 @@ Review rules:
 6. v0.1.1 contains W1-001 non-live capability, including the actual implementation commit `a0b018971f8e23cb526ad9fb7453d679e1e1ed9b`;
 7. Packet B/C regression coverage and the R0-001 Node ESM test-import fix are included.
 
-## 5. Enable replay only after dry-run review
+## 5. Manifest review
 
-After the dry-run inventory is accepted, update only the manifest statuses:
-
-```text
-ready_for_local_replay_review -> ready_for_replay
-```
-
-for v0.1.1, v0.1.2 and v0.1.3.
-
-Do not otherwise reorder or add source commits at the same time as this status transition.
-
-Pull the status-only manifest commit locally, then rerun the dry-run command. It must end with:
-
-```text
-dry-run validated; manifest is eligible for --apply
-```
+The corrected manifest statuses are `ready_for_replay`. Review the complete
+inventory and `manual_resolution_notes` against the inventory audit before
+attempting a fresh replay. The script stops on semantic cherry-pick conflicts;
+the accepted checkpoints required the documented path-specific resolutions.
 
 ## 6. Apply reconstruction
 
@@ -172,9 +165,9 @@ After acceptance, record the new synthetic SHAs as:
 
 ```text
 v0.1.0 = 99b08a0b5fa1bec5921dc42e630c579a4e83c401
-v0.1.1 = <new synthetic SHA>
-v0.1.2 = <new synthetic SHA>
-v0.1.3 = <new synthetic SHA>
+v0.1.1 = bada5bff803321427eb3c8eb1f3d159460ba5dd1
+v0.1.2 = f69c52bf574212d1506df81abc7b15694abb7922
+v0.1.3 = b4df4e911597d9f17bfa0a50b2057c24159dee9f
 ```
 
 Do not replace the historical source SHAs in task-specific evidence. The new SHAs are release-boundary identities, not replacements for original implementation/acceptance evidence.

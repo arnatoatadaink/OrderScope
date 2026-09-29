@@ -1,6 +1,11 @@
 # OrderScope v0.1 Release Lineage Reconstruction Execution Plan — 2026-09-29
 
-Status: **RECONSTRUCTION BRANCH CREATED / DRY-RUN PLANNER CHECKED IN / APPLY NOT YET EXECUTED**
+Status: **LOCAL v0.1.1–v0.1.3 BOUNDARIES ACCEPTED**
+
+The corrected manifest and path-specific replay decisions are recorded in
+`V0_1_REPLAY_INVENTORY_AUDIT_2026-09-29.md`. The three cumulative synthetic
+commits are `bada5bff` (v0.1.1), `f69c52bf` (v0.1.2), and `b4df4e911597d9f17bfa0a50b2057c24159dee9f`
+(v0.1.3). Tags and main integration remain separate gates.
 
 ## 1. Goal
 
