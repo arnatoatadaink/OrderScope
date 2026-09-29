@@ -29,6 +29,12 @@ from .fact_store import (
     records_available_as_of,
     validate_fact_store,
 )
+from .macro_market import MacroMarketObservation, MacroMarketRegion, MacroMarketSeriesKind
+from .macro_stress import (
+    MacroStressAssessment,
+    MacroStressInterpretationType,
+    MacroStressRating,
+)
 from .earnings import (
     AccountingBasis,
     EarningsEvent,
@@ -96,6 +102,12 @@ __all__ = [
     "IdempotencyClassification",
     "Interpretation",
     "InterpretationAssertionKind",
+    "MacroMarketObservation",
+    "MacroMarketRegion",
+    "MacroMarketSeriesKind",
+    "MacroStressAssessment",
+    "MacroStressInterpretationType",
+    "MacroStressRating",
     "OpaqueCursor",
     "ScheduledReleaseWindow",
     "assert_page_contract",
