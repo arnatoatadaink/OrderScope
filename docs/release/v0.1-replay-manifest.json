@@ -7,7 +7,7 @@
   },
   "versions": {
     "v0.1.1": {
-      "status": "ready_for_local_replay_review",
+      "status": "ready_for_replay",
       "scope": ["UWBS-001..004", "UWBS-016", "UWBS-023..026", "R0-001..009", "W1-001 non-live capability"],
       "policy": "Replay capability, tests and local acceptance boundaries; keep live activation, remote mutation, rollback episodes and PB evidence only in immutable source history.",
       "source_commits": [
@@ -74,7 +74,7 @@
       ]
     },
     "v0.1.2": {
-      "status": "ready_for_local_replay_review",
+      "status": "ready_for_replay",
       "scope": ["UWBS-011..015", "A0-003..007"],
       "source_commits": [
         "e25391fd3cd8bdd7e40d77853e8a0572489e42e5",
@@ -92,7 +92,7 @@
       ]
     },
     "v0.1.3": {
-      "status": "ready_for_local_replay_review",
+      "status": "ready_for_replay",
       "scope": ["UWBS-027..036", "A0-008..017"],
       "source_commits": [
         "629d15c9ac57bd67ff94fba9345bd45820509cdd",
