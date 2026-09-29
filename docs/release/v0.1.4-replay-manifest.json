@@ -97,5 +97,6 @@
     ]
   },
   "progress_document": "docs/release/V0_1_4_AI_THEME_IMPLEMENTATION_PROGRESS_2026-09-30.md",
-  "unresolved_required_roles_semantics": "Accepted replay roles; the unaccepted development candidate does not close these gates."
+  "unresolved_required_roles_semantics": "Accepted replay roles; the unaccepted development candidate does not close these gates.",
+  "boundary_report": "docs/release/V0_1_4_AI_THEME_BOUNDARY_REPORT_2026-09-30.md"
 }
