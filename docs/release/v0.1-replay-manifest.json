@@ -13,6 +13,8 @@
       "source_commits": [
         "e8fc59b4dea4780cbd588d65ed760f1fd3004e3b",
         "a0b018971f8e23cb526ad9fb7453d679e1e1ed9b",
+        "a79c4aa99487380667f786e88f4e923ef9efb207",
+        "61cfa39717c681176b33ff01b1746fed35f1eb30",
         "91bbf3b33aaefb3797e59558ffae3789ec2c3551",
         "75079a681fdf0d548f160cec17aac09896a1a3e4",
         "f3f62807d409a0cbff060daaa5e27ad9d5fcde3f",
@@ -42,6 +44,7 @@
         "b15f31a2aee2b3b8d07818dc4095ce213016dc20",
         "82e937b35c5eb1fd3efe3013a880376a896aebaa",
         "a1dcbffd55f2ab6b950b5611f4fa90a9d200d437",
+        "bae1d943fc9f117a4be160f768b82aadef740acc",
         "310d536efb648a21b35779218d2bf3cf3e8915bb",
         "3fd327f4666d9684db3de9479e10237270f4eff1",
         "c64a34295c4434b23e3ba8c299ad7fe875346b5e",
@@ -60,6 +63,7 @@
         "2beda8bfd8e6caf17e1f418467746913379b5252"
       ],
       "excluded_source_examples": [
+        "c26ee4522ff3df7e09d83b6c8b869bdf819bf766 tracker-only acceptance for Packets B/C",
         "6796e34f21e37f12fb475c25f378e4a053983e4f remote custody transfer and its revert",
         "ba6768f59a2a70ee95d1a923a0e25a0b57bae436 revert episode",
         "40fc688a1365231a86b382808e9b71fcd84c540d remote custody acceptance evidence",
