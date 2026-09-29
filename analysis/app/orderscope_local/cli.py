@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import os
 from pathlib import Path
 
@@ -12,6 +12,12 @@ import uvicorn
 from orderscope_local.config import load_local_config
 from orderscope_local.contracts import ContractViolation
 from orderscope_local.integration import run_scheduler
+from orderscope_local.integration.operator import (
+    inspect_retention,
+    load_operator_snapshot,
+    plan_bounded_replay,
+    select_due_deletions,
+)
 from orderscope_local.local_api.health import LOCALHOST_BIND_HOST, LocalServerBinding
 from orderscope_local.local_api.read_api import LocalReadSnapshot, create_read_app
 from orderscope_local.news import (
@@ -28,9 +34,11 @@ app = typer.Typer(help="OrderScope local analysis CLI", no_args_is_help=True)
 import_app = typer.Typer(help="Local import operations", no_args_is_help=True)
 quality_app = typer.Typer(help="Local quality operations", no_args_is_help=True)
 schedule_app = typer.Typer(help="Local scheduler operations", no_args_is_help=True)
+operator_app = typer.Typer(help="Bounded operator retention/replay planning", no_args_is_help=True)
 app.add_typer(import_app, name="import")
 app.add_typer(quality_app, name="quality")
 app.add_typer(schedule_app, name="schedule")
+app.add_typer(operator_app, name="operator")
 
 
 @app.command()
@@ -164,6 +172,60 @@ def schedule_run(
     typer.echo(
         f"selected={len(result.selected)} completed={len(result.completed)} dry_run={str(result.dry_run).lower()}"
     )
+
+
+@operator_app.command("inspect")
+def operator_inspect(
+    snapshot: Path = typer.Option(..., exists=True, dir_okay=False, readable=True),
+    now: str | None = typer.Option(None, help="Inspection instant as ISO-8601 UTC; defaults to current UTC."),
+) -> None:
+    """Inspect bounded retention/retry metadata without reading raw bodies."""
+
+    loaded = load_operator_snapshot(snapshot)
+    instant = _utc_timestamp(now, "now") if now is not None else datetime.now(timezone.utc)
+    retention = inspect_retention(snapshot=loaded, now=instant)
+    retryable = sum(1 for item in loaded.replay if item.state.value in {"RETRYABLE", "FAILED"})
+    typer.echo(
+        f"retention_pending={retention.pending} due={retention.due} overdue={retention.overdue} "
+        f"retention_failed={retention.retryable_or_failed} replay_retryable={retryable} deleted={retention.deleted}"
+    )
+
+
+@operator_app.command("replay-plan")
+def operator_replay_plan(
+    snapshot: Path = typer.Option(..., exists=True, dir_okay=False, readable=True),
+    source: str = typer.Option(...),
+    start: str = typer.Option(..., help="Explicit replay window start, ISO-8601 UTC."),
+    end: str = typer.Option(..., help="Explicit replay window end, ISO-8601 UTC."),
+    max_items: int = typer.Option(10, min=1, max=100),
+) -> None:
+    """Dry-run one explicit bounded replay selection; this command never executes provider work."""
+
+    loaded = load_operator_snapshot(snapshot)
+    plan = plan_bounded_replay(
+        snapshot=loaded,
+        source=source,
+        start=_utc_timestamp(start, "start"),
+        end=_utc_timestamp(end, "end"),
+        max_items=max_items,
+        dry_run=True,
+    )
+    typer.echo(f"source={plan.source} selected={len(plan.work_ids)} dry_run=true work_ids={','.join(plan.work_ids)}")
+
+
+@operator_app.command("delete-plan")
+def operator_delete_plan(
+    snapshot: Path = typer.Option(..., exists=True, dir_okay=False, readable=True),
+    content_ref: list[str] = typer.Option(..., "--content-ref", help="Explicit due content ref; repeat option for multiple refs."),
+    now: str | None = typer.Option(None, help="Selection instant as ISO-8601 UTC; defaults to current UTC."),
+    max_items: int = typer.Option(10, min=1, max=100),
+) -> None:
+    """Dry-run explicitly selected due deletions; no storage mutation occurs."""
+
+    loaded = load_operator_snapshot(snapshot)
+    instant = _utc_timestamp(now, "now") if now is not None else datetime.now(timezone.utc)
+    selected = select_due_deletions(snapshot=loaded, now=instant, content_refs=content_ref, max_items=max_items)
+    typer.echo(f"selected={len(selected)} dry_run=true content_refs={','.join(item.content_ref for item in selected)}")
 
 
 def _utc_timestamp(value: str, field: str) -> datetime:

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { MarketCalendarSnapshot } from "./calendar.ts";
-import { coverageKeyFor, SchedulePolicy, type SchedulePolicyConfig } from "./schedule.ts";
+import { batchAcquisitionJobs, coverageKeyFor, SchedulePolicy, type SchedulePolicyConfig } from "./schedule.ts";
 import type { UniverseInstrument, UniverseSnapshot } from "./universe.ts";
 
 const config: SchedulePolicyConfig = {
@@ -259,4 +259,29 @@ test("ignores retention-expired gaps and resumes bounded forward coverage", () =
   assert.equal(jobs[0]?.requestedRange.startInclusive, config.retentionFloor);
   assert.equal(jobs[0]?.requestedRange.endExclusive, "2026-11-27T16:10:00.000Z");
   assert.equal(jobs[0]?.checkpointExpectations[0]?.expectedVersion, 7);
+});
+
+test("batches compatible symbols while preserving route and per-symbol checkpoint identity", () => {
+  const instruments: UniverseInstrument[] = [
+    { symbol: "SPY", cadence: "1Min", providerRoute: "alpaca_stock_bars" },
+    { symbol: "QQQ", cadence: "1Min", providerRoute: "alpaca_stock_bars" },
+    { symbol: "BTCUSD", cadence: "1Min", providerRoute: "alpaca_crypto_bars" },
+  ];
+  const planned = new SchedulePolicy(config).plan(universe(instruments), calendar(), [], new Date("2026-11-27T15:02:00Z"));
+  const batches = batchAcquisitionJobs(planned);
+  assert.equal(batches.length, 2);
+  const stocks = batches.find((job) => job.providerRoute === "alpaca_stock_bars")!;
+  assert.deepEqual(stocks.instruments.map((item) => item.symbol), ["QQQ", "SPY"]);
+  assert.deepEqual(stocks.checkpointExpectations.map((item) => item.coverageKey),
+    stocks.instruments.map((item) => coverageKeyFor(item, "REGULAR", "raw-iex")));
+  assert.equal(batches.find((job) => job.providerRoute === "alpaca_crypto_bars")!.instruments.length, 1);
+});
+
+test("never batches different ranges, modes, sessions, variants, or revisions", () => {
+  const instrument: UniverseInstrument = { symbol: "SPY", cadence: "1Min", providerRoute: "alpaca_stock_bars" };
+  const base = new SchedulePolicy(config).plan(universe([instrument]), calendar(), [], new Date("2026-11-27T15:02:00Z"))[0]!;
+  const variants = [base, { ...base, jobId: "range", requestedRange: { ...base.requestedRange, endExclusive: "2026-11-27T15:00:00.000Z" } },
+    { ...base, jobId: "mode", mode: "RECONCILE" as const }, { ...base, jobId: "scope", sessionScope: "PREMARKET" as const },
+    { ...base, jobId: "variant", logicalDataVariant: "stock:sip:raw" }, { ...base, jobId: "revision", calendarRevision: "other" }];
+  assert.equal(batchAcquisitionJobs(variants).length, variants.length);
 });

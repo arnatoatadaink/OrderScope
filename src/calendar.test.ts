@@ -98,6 +98,17 @@ test("keeps the default calendar Regular-only", async () => {
   assert.notEqual(regularOnly.revision, withPremarket.revision);
 });
 
+test("derives After-hours from the authoritative close through 20:00 New York", async () => {
+  const snapshot = await new AlpacaMarketCalendarProvider({
+    credentials: { keyId: "key", secretKey: "secret" }, includeAfterHours: true,
+    fetcher: async () => Response.json([{ date: "2026-07-06", open: "09:30", close: "16:00" }]),
+  }).getCalendar("2026-07-06", "2026-07-07");
+  assert.deepEqual(snapshot.sessions.map((session) => [session.sessionKind, session.opensAt, session.closesAt]), [
+    ["REGULAR", "2026-07-06T13:30:00.000Z", "2026-07-06T20:00:00.000Z"],
+    ["AFTER_HOURS", "2026-07-06T20:00:00.000Z", "2026-07-07T00:00:00.000Z"],
+  ]);
+});
+
 test("rejects malformed or out-of-range provider data", async () => {
   await assert.rejects(
     provider([{ date: "2026-08-03", open: "bad", close: "16:00" }]).getCalendar("2026-08-03", "2026-08-04"),

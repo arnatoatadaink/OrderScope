@@ -50,7 +50,7 @@ async function bundleWorker(entry = "import worker from './index.ts'; export def
 }
 
 async function migrateStateDb(db: D1Database): Promise<void> {
-  for (const migration of ["0001_state.sql", "0002_attempt_coverage_key.sql", "0003_normalized_bar.sql", "0004_acquisition_lease.sql", "0005_gap_retry_eligibility.sql", "0006_digest_history.sql"]) {
+  for (const migration of ["0001_state.sql", "0002_attempt_coverage_key.sql", "0003_normalized_bar.sql", "0004_acquisition_lease.sql", "0005_gap_retry_eligibility.sql", "0006_digest_history.sql", "0007_news_metadata.sql"]) {
     const sql = await readFile(new URL(`../migrations/${migration}`, import.meta.url), "utf8");
     for (const statement of unstable_splitSqlQuery(sql)) await db.prepare(statement).run();
   }
@@ -72,7 +72,7 @@ test("scheduled shadow tick persists a digest exposed by /digest/latest", async 
   const scheduledTime = new Date("2026-08-30T12:34:00.000Z");
   const worker = await mf.getWorker();
   const result = await worker.scheduled({ cron: "* * * * *", scheduledTime });
-  assert.equal(result.outcome, "ok");
+  assert.equal(result.outcome, "ok", JSON.stringify(result));
 
   const response = await mf.dispatchFetch("http://integration.test/digest/latest");
   assert.equal(response.status, 200);
@@ -92,6 +92,11 @@ test("scheduled shadow tick persists a digest exposed by /digest/latest", async 
         "R2 archive binding not configured",
         "calendar-aware acquisition is intentionally not simulated from weekday/UTC rules",
       ],
+      news: {
+        mode: "disabled", cadenceMinutes: 5, plannedJobs: 0, selectedJobs: 0,
+        completedJobs: 0, partialJobs: 0, failedJobs: 0, articlesObserved: 0,
+        duplicates: 0, updates: 0, pages: 0,
+      },
     },
   });
 
@@ -193,7 +198,7 @@ test("prediction shadow plans Premarket target coverage without executing or wri
   const result = await (await mf.getWorker()).scheduled({
     cron: "* * * * *", scheduledTime: new Date("2026-07-06T08:03:00.000Z"),
   });
-  assert.equal(result.outcome, "ok");
+  assert.equal(result.outcome, "ok", JSON.stringify(result));
   const envelope = await (await mf.dispatchFetch("http://integration.test/digest/latest")).json() as {
     payload: Record<string, unknown>;
   };
@@ -211,6 +216,8 @@ test("prediction shadow plans Premarket target coverage without executing or wri
     targetCount: 1,
     acquisitionInstrumentCount: 1,
     plannedPremarketJobs: 1,
+    checkpointKeys: 1,
+    checkpointBootstrapD1Queries: 1,
     deferredGapRetries: 0,
     jobPlans: undefined,
   });
@@ -254,6 +261,7 @@ test("scheduled live tick executes with injected providers and persists a saniti
         open: 100, high: 102, low: 99, close: 101, volume: 500, tradeCount: 7, vwap: 100.5,
         provider: "alpaca", dataVariant: "stock:iex:raw",
       }] }),
+      fetchNewsPage: async () => ({ articles: [] }),
     });
   `);
   const mf = new Miniflare({
@@ -261,7 +269,12 @@ test("scheduled live tick executes with injected providers and persists a saniti
     script,
     compatibilityDate: "2026-08-06",
     d1Databases: ["STATE_DB"],
-    bindings: LIVE_BINDINGS,
+    bindings: {
+      ...LIVE_BINDINGS,
+      NEWS_ACQUISITION_ENABLED: "true",
+      NEWS_ACQUISITION_CADENCE_MINUTES: "1",
+      NEWS_ACQUISITION_OVERLAP_MINUTES: "1",
+    },
   });
   t.after(() => mf.dispose());
 
@@ -299,6 +312,14 @@ test("scheduled live tick executes with injected providers and persists a saniti
   assert.equal(envelope.payload.retryPolicy, "NEXT_CRON");
   assert.equal(envelope.payload.staleAttemptThresholdMinutes, 15);
   assert.equal(envelope.payload.supersededStaleAttempts, 1);
+  const budget = envelope.payload.budget as Record<string, unknown>;
+  assert.equal(budget.marketCheckpointBootstrapD1Queries, 1);
+  assert.equal(budget.marketD1Queries, 16);
+  assert.equal(budget.newsD1Queries, 3);
+  assert.equal(budget.totalD1Queries, 22);
+  assert.equal(budget.withinBudget, true);
+  assert.ok((budget.totalD1Queries as number) <= 40);
+  assert.equal((envelope.payload.news as Record<string, unknown>).plannedJobs, 1);
   assert.deepEqual(envelope.payload.staleAttempts, {
     count: 1, oldestStartedAt: "2026-08-28T13:59:00.000Z",
   });
@@ -323,6 +344,115 @@ test("scheduled live tick executes with injected providers and persists a saniti
       reason: "STALE_ATTEMPT_REPLACED", replacementJobId: "market-bars:038e620d299135bb",
     }),
   }]);
+});
+
+test("repeated observations of one eligible News opportunity remain canonical and do not double-advance", async (t) => {
+  const script = await bundleWorker(`
+    import { createWorker } from "./worker.ts";
+    let newsProviderCalls = 0;
+    const calendar = {
+      market: "US_EQUITIES",
+      dateRange: { startInclusive: "2026-09-10", endExclusive: "2026-09-11" },
+      sessions: [{
+        marketDate: "2026-09-10", sessionKind: "REGULAR",
+        opensAt: "2026-09-10T13:30:00.000Z", closesAt: "2026-09-10T20:00:00.000Z",
+        isShortened: false, calendarRevision: "integration-calendar-v1",
+      }],
+      generatedAt: "2026-09-10T14:00:00.000Z", revision: "integration-calendar-v1",
+    };
+    const article = {
+      provider: "alpaca", providerArticleId: "same-opportunity-1", headline: "AMD and NVDA update",
+      publisher: "fixture", url: "https://example.test/same-opportunity-1",
+      providerPublishedAt: "2026-09-10T13:59:00.000Z", providerSymbols: ["AMD", "NVDA"],
+    };
+    const worker = createWorker({
+      calendarProvider: () => ({ getCalendar: async () => calendar }),
+      universe: () => ({
+        revision: "integration-universe-v1", generatedAt: calendar.generatedAt, instruments: [],
+      }),
+      fetchNewsPage: async () => { newsProviderCalls += 1; return { articles: [article] }; },
+    });
+    export default {
+      scheduled: worker.scheduled,
+      async fetch(request, env, ctx) {
+        if (new URL(request.url).pathname === "/control/news-provider-calls") {
+          return new Response(String(newsProviderCalls));
+        }
+        return worker.fetch(request, env, ctx);
+      },
+    };
+  `);
+  const mf = new Miniflare({
+    modules: true, script, compatibilityDate: "2026-08-06", d1Databases: ["STATE_DB"],
+    bindings: { ...LIVE_BINDINGS, NEWS_ACQUISITION_ENABLED: "true" },
+  });
+  t.after(() => mf.dispose());
+  const db = await mf.getD1Database("STATE_DB");
+  await migrateStateDb(db as unknown as D1Database);
+  const worker = await mf.getWorker();
+
+  assert.equal((await worker.scheduled({
+    cron: "* * * * *", scheduledTime: new Date("2026-09-10T14:00:00.000Z"),
+  })).outcome, "ok");
+  const first = await (await mf.dispatchFetch("http://integration.test/digest/latest")).json() as {
+    payload: { news: Record<string, unknown> };
+  };
+  assert.equal(first.payload.news.plannedJobs, 1);
+  assert.equal(first.payload.news.completedJobs, 1);
+  assert.equal(first.payload.news.articlesObserved, 2);
+  assert.equal(first.payload.news.duplicates, 1);
+
+  assert.equal((await worker.scheduled({
+    cron: "* * * * *", scheduledTime: new Date("2026-09-10T14:00:15.000Z"),
+  })).outcome, "ok");
+  const repeated = await (await mf.dispatchFetch("http://integration.test/digest/latest")).json() as {
+    payload: { news: Record<string, unknown> };
+  };
+  assert.equal(repeated.payload.news.plannedJobs, 0);
+  assert.equal(repeated.payload.news.completedJobs, 0);
+  assert.equal(await (await mf.dispatchFetch("http://integration.test/control/news-provider-calls")).text(), "2");
+  assert.deepEqual(await db.prepare(`SELECT
+    (SELECT COUNT(*) FROM news_article) AS articles,
+    (SELECT COUNT(*) FROM news_query_membership) AS memberships,
+    (SELECT version FROM news_checkpoint WHERE coverage_key = ?) AS checkpoint_version,
+    (SELECT complete_through FROM news_checkpoint WHERE coverage_key = ?) AS complete_through
+  `).bind("news|alpaca|AMD,NVDA|metadata-v0.1", "news|alpaca|AMD,NVDA|metadata-v0.1").first(), {
+    articles: 1, memberships: 2, checkpoint_version: 0,
+    complete_through: "2026-09-10T14:00:00.000Z",
+  });
+});
+
+test("shadow mode with News enabled performs no News provider or D1 mutation", async (t) => {
+  const script = await bundleWorker(`
+    import { createWorker } from "./worker.ts";
+    export default createWorker({
+      calendarProvider: () => { throw new Error("shadow mode must not acquire a calendar"); },
+      universe: () => { throw new Error("shadow mode must not load a universe"); },
+      fetchNewsPage: async () => { throw new Error("shadow mode must not call News"); },
+    });
+  `);
+  const mf = new Miniflare({
+    modules: true, script, compatibilityDate: "2026-08-06", d1Databases: ["STATE_DB"],
+    bindings: { ...SHADOW_BINDINGS, NEWS_ACQUISITION_ENABLED: "true" },
+  });
+  t.after(() => mf.dispose());
+  const db = await mf.getD1Database("STATE_DB");
+  await migrateStateDb(db as unknown as D1Database);
+
+  assert.equal((await (await mf.getWorker()).scheduled({
+    cron: "* * * * *", scheduledTime: new Date("2026-09-10T14:00:30.000Z"),
+  })).outcome, "ok");
+  const digest = await (await mf.dispatchFetch("http://integration.test/digest/latest")).json() as {
+    payload: { news: Record<string, unknown> };
+  };
+  assert.equal(digest.payload.news.mode, "shadow-plan");
+  assert.equal(digest.payload.news.plannedJobs, 0);
+  assert.equal(digest.payload.news.completedJobs, 0);
+  assert.deepEqual(await db.prepare(`SELECT
+    (SELECT COUNT(*) FROM news_article) AS articles,
+    (SELECT COUNT(*) FROM news_query_membership) AS memberships,
+    (SELECT COUNT(*) FROM news_checkpoint) AS checkpoints
+  `).first(), { articles: 0, memberships: 0, checkpoints: 0 });
 });
 
 test("holiday tick publishes an empty summary without acquisition state writes", async (t) => {
@@ -595,6 +725,7 @@ test("CAS conflict is sanitized publicly and replanned successfully on the next 
         const durable = new D1CoverageCheckpointPort(db);
         return {
           get: (key) => durable.get(key),
+          getMany: (keys) => durable.getMany(keys),
           listDue: (query) => durable.listDue(query),
           recordAttempt: (attempt) => durable.recordAttempt(attempt),
           summarizeStaleAttempts: (staleBefore) => durable.summarizeStaleAttempts(staleBefore),
@@ -918,7 +1049,8 @@ test("scheduled live tick keeps provider failure details out of the public diges
   }]);
   const serializedEnvelope = JSON.stringify(envelope);
   for (const sensitive of [
-    "integration-key", "integration-secret", "upstream-provider-body", "503",
+    "integration-key", "integration-secret", "upstream-provider-body",
+    "503 upstream-provider-body",
   ]) assert.equal(serializedEnvelope.includes(sensitive), false);
 
   const counts = await db.prepare(`SELECT
@@ -942,6 +1074,7 @@ test("overlapping scheduled ticks report lease contention without duplicate acqu
   const script = await bundleWorker(`
     import { createWorker } from "./worker.ts";
     let providerCalls = 0;
+    let providerReleased = false;
     const calendar = {
       market: "CRYPTO", dateRange: { startInclusive: "2026-08-29", endExclusive: "2026-08-31" },
       sessions: [], generatedAt: "2026-08-30T00:02:00.000Z", revision: "integration-crypto-v1",
@@ -954,7 +1087,9 @@ test("overlapping scheduled ticks report lease contention without duplicate acqu
       }),
       fetchPage: async (_credentials, request) => {
         providerCalls += 1;
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        while (!providerReleased) {
+          await new Promise((resolve) => setTimeout(resolve, 10));
+        }
         return { bars: [{
           symbol: request.instrument.symbol, timestamp: request.startInclusive,
           open: 100, high: 102, low: 99, close: 101, volume: 5, tradeCount: 7, vwap: 100.5,
@@ -967,6 +1102,10 @@ test("overlapping scheduled ticks report lease contention without duplicate acqu
       async fetch(request, env, ctx) {
         const path = new URL(request.url).pathname;
         if (path === "/control/provider-calls") return new Response(String(providerCalls));
+        if (path === "/control/release-provider") {
+          providerReleased = true;
+          return new Response("released");
+        }
         return worker.fetch(request, env, ctx);
       },
     };
@@ -999,6 +1138,11 @@ test("overlapping scheduled ticks report lease contention without duplicate acqu
     (SELECT COUNT(*) FROM acquisition_attempt) AS attempts,
     (SELECT COUNT(*) FROM bar_acceptance_receipt) AS receipts
   `).first(), { attempts: 1, receipts: 0 });
+
+  assert.equal(
+    await (await mf.dispatchFetch("http://integration.test/control/release-provider")).text(),
+    "released",
+  );
 
   assert.equal((await firstTick).outcome, "ok");
   assert.equal(await (await mf.dispatchFetch("http://integration.test/control/provider-calls")).text(), "1");

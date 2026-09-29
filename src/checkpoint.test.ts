@@ -102,6 +102,28 @@ test("maps due rows and uses bounded, prepared filters", async () => {
   assert.deepEqual(db.statements[0]?.values, ["2026-08-28T14:40:00.000Z", "1Min", "1Min", "REGULAR", "REGULAR", 25]);
 });
 
+test("bulk read is empty-safe, deduplicated, deterministic, and omits missing keys", async () => {
+  const db = new ScriptedD1();
+  const spy = checkpoint();
+  const amd = checkpoint({ coverageKey: "AMD|1Min|REGULAR|raw-iex", symbol: "AMD" });
+  db.allResults.push([row(amd), row(spy)]);
+  const port = new D1CoverageCheckpointPort(db);
+
+  assert.deepEqual(await port.getMany([]), []);
+  const stored = await port.getMany([spy.coverageKey, "MISSING", amd.coverageKey, spy.coverageKey]);
+
+  assert.deepEqual(stored.map((value) => value.coverageKey), [spy.coverageKey, amd.coverageKey]);
+  assert.equal(db.statements.length, 1);
+  assert.match(db.statements[0]?.sql ?? "", /json_each/);
+  assert.deepEqual(JSON.parse(String(db.statements[0]?.values[0])), [spy.coverageKey, "MISSING", amd.coverageKey]);
+});
+
+test("bulk read fails closed when any returned checkpoint row is corrupt", async () => {
+  const db = new ScriptedD1();
+  db.allResults.push([row(), { ...row(), coverage_key: "BAD", version: -1 }]);
+  await assert.rejects(new D1CoverageCheckpointPort(db).getMany([checkpoint().coverageKey, "BAD"]), /row is corrupt/);
+});
+
 test("round-trips a Premarket checkpoint as a distinct scope", async () => {
   const db = new ScriptedD1();
   const value = checkpoint({

@@ -34,6 +34,7 @@ export type AcquisitionJob = {
   sessionScope: SessionScope;
   mode: AcquisitionMode;
   providerRoute: ProviderRoute;
+  logicalDataVariant?: string;
   checkpointExpectations: readonly CheckpointExpectation[];
   attempt: 0;
   dueReason: "MISSING_RANGE" | "NO_CHECKPOINT" | "FORWARD_COVERAGE";
@@ -71,6 +72,47 @@ function stableHash(value: string): string {
     hash = BigInt.asUintN(64, hash * 0x100000001b3n);
   }
   return hash.toString(16).padStart(16, "0");
+}
+
+/** Collapse only jobs that have identical provider request and revision semantics.
+ * Checkpoint expectations stay aligned with instruments, preserving per-symbol CAS.
+ */
+export function batchAcquisitionJobs(
+  jobs: readonly AcquisitionJob[],
+  maxSymbolsPerBatch = 100,
+): AcquisitionJob[] {
+  if (!Number.isSafeInteger(maxSymbolsPerBatch) || maxSymbolsPerBatch < 1) {
+    throw new Error("maxSymbolsPerBatch must be a positive integer");
+  }
+  const groups = new Map<string, AcquisitionJob[]>();
+  for (const job of jobs) {
+    if (job.instruments.length !== 1 || job.checkpointExpectations.length !== 1) {
+      throw new Error("batching input must contain one instrument and checkpoint per job");
+    }
+    const variant = job.logicalDataVariant
+      ?? job.checkpointExpectations[0]!.coverageKey.split("|").slice(3).join("|");
+    const key = [job.providerRoute, job.interval, job.sessionScope, variant, job.mode, job.dueReason,
+      job.requestedRange.startInclusive, job.requestedRange.endExclusive,
+      job.calendarRevision, job.universeRevision].join("|");
+    const group = groups.get(key) ?? [];
+    group.push(job);
+    groups.set(key, group);
+  }
+  const result: AcquisitionJob[] = [];
+  for (const compatible of groups.values()) {
+    compatible.sort((a, b) => a.checkpointExpectations[0]!.coverageKey
+      .localeCompare(b.checkpointExpectations[0]!.coverageKey));
+    for (let offset = 0; offset < compatible.length; offset += maxSymbolsPerBatch) {
+      const chunk = compatible.slice(offset, offset + maxSymbolsPerBatch);
+      const first = chunk[0]!;
+      const instruments = chunk.map((job) => job.instruments[0]!);
+      const checkpointExpectations = chunk.map((job) => job.checkpointExpectations[0]!);
+      const identity = chunk.map((job) => job.jobId).join("|");
+      result.push({ ...first, jobId: chunk.length === 1 ? first.jobId : `market-bars-batch:${stableHash(identity)}`,
+        instruments, checkpointExpectations });
+    }
+  }
+  return result.sort((a, b) => a.jobId.localeCompare(b.jobId));
 }
 
 export function coverageKeyFor(
@@ -266,6 +308,7 @@ export class SchedulePolicy {
         sessionScope,
         mode,
         providerRoute: instrument.providerRoute,
+        logicalDataVariant: variant,
         checkpointExpectations: [{
           coverageKey,
           expectedVersion: checkpoint?.version,

@@ -32,6 +32,7 @@ export type AlpacaCalendarProviderOptions = {
   fetcher?: typeof fetch;
   now?: () => Date;
   includePremarket?: boolean;
+  includeAfterHours?: boolean;
 };
 
 type AlpacaCalendarDay = {
@@ -45,6 +46,7 @@ const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const TIME_PATTERN = /^(\d{2}):(\d{2})$/;
 const REGULAR_SESSION_MINUTES = 390;
 const PREMARKET_OPEN = "04:00";
+const AFTER_HOURS_CLOSE = "20:00";
 
 function assertDate(value: string, name: string): void {
   const parsed = new Date(`${value}T00:00:00Z`);
@@ -128,6 +130,7 @@ export class AlpacaMarketCalendarProvider implements MarketCalendarProvider {
   private readonly fetcher: typeof fetch;
   private readonly now: () => Date;
   private readonly includePremarket: boolean;
+  private readonly includeAfterHours: boolean;
 
   constructor(options: AlpacaCalendarProviderOptions) {
     this.credentials = options.credentials;
@@ -139,6 +142,7 @@ export class AlpacaMarketCalendarProvider implements MarketCalendarProvider {
     this.fetcher = (input, init) => fetcher(input, init);
     this.now = options.now ?? (() => new Date());
     this.includePremarket = options.includePremarket ?? false;
+    this.includeAfterHours = options.includeAfterHours ?? false;
   }
 
   async getCalendar(startDate: string, endDate: string): Promise<MarketCalendarSnapshot> {
@@ -179,19 +183,25 @@ export class AlpacaMarketCalendarProvider implements MarketCalendarProvider {
         isShortened: durationMinutes < REGULAR_SESSION_MINUTES,
         calendarRevision: "pending",
       };
-      if (!this.includePremarket) return [regular];
-      const premarketOpensAt = marketLocalInstant(day.date, PREMARKET_OPEN);
-      if (Date.parse(premarketOpensAt) >= Date.parse(opensAt)) {
-        throw new Error(`invalid Alpaca Premarket duration: ${day.date}`);
+      const sessions: NormalizedMarketSession[] = [];
+      if (this.includePremarket) {
+        const premarketOpensAt = marketLocalInstant(day.date, PREMARKET_OPEN);
+        if (Date.parse(premarketOpensAt) >= Date.parse(opensAt)) {
+          throw new Error(`invalid Alpaca Premarket duration: ${day.date}`);
+        }
+        sessions.push({ marketDate: day.date, sessionKind: "PREMARKET", opensAt: premarketOpensAt,
+          closesAt: opensAt, isShortened: false, calendarRevision: "pending" });
       }
-      return [{
-        marketDate: day.date,
-        sessionKind: "PREMARKET",
-        opensAt: premarketOpensAt,
-        closesAt: opensAt,
-        isShortened: false,
-        calendarRevision: "pending",
-      }, regular];
+      sessions.push(regular);
+      if (this.includeAfterHours) {
+        const afterHoursClosesAt = marketLocalInstant(day.date, AFTER_HOURS_CLOSE);
+        if (Date.parse(afterHoursClosesAt) <= Date.parse(closesAt)) {
+          throw new Error(`invalid Alpaca After-hours duration: ${day.date}`);
+        }
+        sessions.push({ marketDate: day.date, sessionKind: "AFTER_HOURS", opensAt: closesAt,
+          closesAt: afterHoursClosesAt, isShortened: false, calendarRevision: "pending" });
+      }
+      return sessions;
     });
     provisional.sort((left, right) => left.opensAt.localeCompare(right.opensAt)
       || left.sessionKind.localeCompare(right.sessionKind));

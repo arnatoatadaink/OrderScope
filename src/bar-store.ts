@@ -17,8 +17,14 @@ export type BarAcceptanceResult = {
   provenanceAppended: boolean;
 };
 
+export type BarAcceptanceInput = {
+  candidate: BarNormalizationResult;
+  provenance: BarProvenance;
+};
+
 export interface NormalizedBarStore {
   accept(candidate: BarNormalizationResult, provenance: BarProvenance): Promise<BarAcceptanceResult>;
+  acceptBatch?(inputs: readonly BarAcceptanceInput[]): Promise<readonly BarAcceptanceResult[]>;
 }
 
 type ReceiptRow = {
@@ -80,6 +86,136 @@ export class D1NormalizedBarStore implements NormalizedBarStore {
 
   constructor(db: D1Database) {
     this.db = db;
+  }
+
+  async acceptBatch(inputs: readonly BarAcceptanceInput[]): Promise<readonly BarAcceptanceResult[]> {
+    if (inputs.length === 0) return [];
+    const rows = await Promise.all(inputs.map(async ({ candidate, provenance }) => {
+      if (!provenance.idempotencyKey || !provenance.jobId) {
+        throw new Error("acceptance provenance identity fields must be non-empty");
+      }
+      const retrievedAt = parseInstant(provenance.retrievedAt, "retrievedAt");
+      const bar = candidate.outcome === "NORMALIZED" ? candidate.bar : undefined;
+      const identity = bar ? identityFor(bar) : null;
+      const fingerprint = candidate.outcome === "NORMALIZED"
+        ? await canonicalBarFingerprint(candidate.bar)
+        : await sha256(JSON.stringify([candidate.code, candidate.reason]));
+      return {
+        idempotencyKey: provenance.idempotencyKey, requestFingerprint: fingerprint, identity,
+        provider: bar?.provider ?? null, jobId: provenance.jobId,
+        sourceTimestamp: bar?.sourceTimestamp ?? null, retrievedAt,
+        rejectedReason: candidate.outcome === "NORMALIZED" ? null : `${candidate.code}: ${candidate.reason}`,
+        finalOutcome: undefined as BarAcceptanceOutcome | undefined,
+        ...(bar ? { bar, observedContent: JSON.stringify(semanticContent(bar)) } : {}),
+      };
+    }));
+    const payload = JSON.stringify(rows);
+    const inserted = await this.db.prepare(`
+      INSERT INTO bar_acceptance_receipt (
+        idempotency_key, request_fingerprint, identity_key, provider, job_id,
+        source_timestamp, retrieved_at
+      )
+      SELECT json_extract(value, '$.idempotencyKey'), json_extract(value, '$.requestFingerprint'),
+        json_extract(value, '$.identity'), json_extract(value, '$.provider'),
+        json_extract(value, '$.jobId'), json_extract(value, '$.sourceTimestamp'),
+        json_extract(value, '$.retrievedAt')
+      FROM json_each(?) WHERE true ON CONFLICT(idempotency_key) DO NOTHING
+      RETURNING idempotency_key
+    `).bind(payload).all<{ idempotency_key: string }>();
+    const appended = new Set(inserted.results.map((row) => row.idempotency_key));
+    const receipts = await this.db.prepare(`
+      SELECT r.idempotency_key, r.request_fingerprint, r.identity_key, r.outcome, r.reason, r.stored_version
+      FROM bar_acceptance_receipt r JOIN json_each(?) j
+        ON r.idempotency_key = json_extract(j.value, '$.idempotencyKey')
+    `).bind(payload).all<ReceiptRow>();
+    const receiptByKey = new Map(receipts.results.map((row) => [row.idempotency_key, row]));
+    for (const row of rows) {
+      const receipt = receiptByKey.get(row.idempotencyKey);
+      if (!receipt) throw new Error("acceptance receipt reservation failed");
+      if (receipt.request_fingerprint !== row.requestFingerprint || receipt.identity_key !== row.identity) {
+        throw new Error("idempotencyKey is already associated with a different bar observation");
+      }
+    }
+
+    const normalizedRows = rows.filter((row) => row.bar);
+    const normalizedPayload = JSON.stringify(normalizedRows);
+    const storedByIdentity = new Map<string, StoredRow>();
+    if (normalizedRows.length > 0) {
+      const canonicalInserted = await this.db.prepare(`
+        INSERT INTO normalized_bar (
+          identity_key, instrument_id, interval, bar_start_utc, bar_end_utc, market_date,
+          session_kind, is_shortened_session, logical_data_variant, open, high, low, close,
+          volume, trade_count, vwap, canonical_fingerprint, accepted_at
+        )
+        SELECT json_extract(value, '$.identity'), json_extract(value, '$.bar.instrumentId'),
+          json_extract(value, '$.bar.interval'), json_extract(value, '$.bar.barStartUtc'),
+          json_extract(value, '$.bar.barEndUtc'), json_extract(value, '$.bar.marketDate'),
+          json_extract(value, '$.bar.sessionKind'), json_extract(value, '$.bar.isShortenedSession'),
+          json_extract(value, '$.bar.logicalDataVariant'), json_extract(value, '$.bar.open'),
+          json_extract(value, '$.bar.high'), json_extract(value, '$.bar.low'),
+          json_extract(value, '$.bar.close'), json_extract(value, '$.bar.volume'),
+          json_extract(value, '$.bar.tradeCount'), json_extract(value, '$.bar.vwap'),
+          json_extract(value, '$.requestFingerprint'), json_extract(value, '$.retrievedAt')
+        FROM json_each(?) WHERE true ON CONFLICT(identity_key) DO NOTHING
+        RETURNING identity_key
+      `).bind(normalizedPayload).all<{ identity_key: string }>();
+      const insertedIdentities = new Set(canonicalInserted.results.map((row) => row.identity_key));
+      const stored = await this.db.prepare(`
+        SELECT b.identity_key, b.canonical_fingerprint, b.version FROM normalized_bar b
+        JOIN (SELECT DISTINCT json_extract(value, '$.identity') identity_key FROM json_each(?)) j
+          ON b.identity_key = j.identity_key
+      `).bind(normalizedPayload).all<StoredRow & { identity_key: string }>();
+      for (const row of stored.results) storedByIdentity.set(row.identity_key, row);
+      if (storedByIdentity.size !== new Set(normalizedRows.map((row) => row.identity)).size) {
+        throw new Error("canonical bar insert/read failed");
+      }
+      await this.db.prepare(`
+        INSERT INTO bar_conflict (idempotency_key, identity_key, stored_fingerprint,
+          observed_fingerprint, observed_content_json, detected_at)
+        SELECT json_extract(j.value, '$.idempotencyKey'), json_extract(j.value, '$.identity'),
+          b.canonical_fingerprint, json_extract(j.value, '$.requestFingerprint'),
+          json_extract(j.value, '$.observedContent'), json_extract(j.value, '$.retrievedAt')
+        FROM json_each(?) j JOIN normalized_bar b
+          ON b.identity_key = json_extract(j.value, '$.identity')
+        WHERE b.canonical_fingerprint <> json_extract(j.value, '$.requestFingerprint')
+        ON CONFLICT(idempotency_key) DO NOTHING
+      `).bind(normalizedPayload).run();
+      const firstInsertedReceipt = new Set<string>();
+      for (const row of normalizedRows) {
+        const stored = storedByIdentity.get(row.identity!);
+        if (!stored) throw new Error("canonical bar insert/read failed");
+        if (stored.canonical_fingerprint !== row.requestFingerprint) row.finalOutcome = "CONFLICT";
+        else if (insertedIdentities.has(row.identity!) && !firstInsertedReceipt.has(row.identity!)) {
+          row.finalOutcome = "INSERTED"; firstInsertedReceipt.add(row.identity!);
+        } else row.finalOutcome = "MATCHED";
+      }
+    }
+    for (const row of rows) if (row.rejectedReason !== null) row.finalOutcome = "REJECTED";
+    const completionPayload = JSON.stringify(rows);
+    await this.db.prepare(`
+      UPDATE bar_acceptance_receipt AS r SET
+        outcome = json_extract(j.value, '$.finalOutcome'),
+        stored_version = b.version,
+        reason = CASE WHEN json_extract(j.value, '$.rejectedReason') IS NOT NULL
+          THEN json_extract(j.value, '$.rejectedReason')
+          WHEN b.canonical_fingerprint <> r.request_fingerprint
+          THEN 'canonical identity already exists with different semantic content' ELSE NULL END,
+        completed_at = r.retrieved_at
+      FROM json_each(?) j LEFT JOIN normalized_bar b
+        ON b.identity_key = json_extract(j.value, '$.identity')
+      WHERE r.idempotency_key = json_extract(j.value, '$.idempotencyKey') AND r.outcome IS NULL
+    `).bind(completionPayload).run();
+    const completed = await this.db.prepare(`
+      SELECT r.idempotency_key, r.request_fingerprint, r.identity_key, r.outcome, r.reason, r.stored_version
+      FROM bar_acceptance_receipt r JOIN json_each(?) j
+        ON r.idempotency_key = json_extract(j.value, '$.idempotencyKey')
+    `).bind(payload).all<ReceiptRow>();
+    const completedByKey = new Map(completed.results.map((row) => [row.idempotency_key, row]));
+    return rows.map((input) => {
+      const row = completedByKey.get(input.idempotencyKey);
+      if (!row) throw new Error("acceptance receipt completion failed");
+      return completedResult(row, appended.has(input.idempotencyKey));
+    });
   }
 
   async accept(candidate: BarNormalizationResult, provenance: BarProvenance): Promise<BarAcceptanceResult> {
