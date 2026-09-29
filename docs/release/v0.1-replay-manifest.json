@@ -1,0 +1,85 @@
+{
+  "schema_version": "1.0",
+  "base": {
+    "version": "v0.1.0",
+    "sha": "99b08a0b5fa1bec5921dc42e630c579a4e83c401",
+    "meaning": "original WBS/CP baseline, PB excluded"
+  },
+  "versions": {
+    "v0.1.1": {
+      "status": "audit_required",
+      "scope": ["UWBS-001..004", "UWBS-016", "UWBS-023..026", "R0-001..009", "W1-001"],
+      "reason": "formal R0 IDs were assigned after part of the implementation history; commit-message discovery alone is insufficient",
+      "source_commits": []
+    },
+    "v0.1.2": {
+      "status": "ready_for_local_replay_review",
+      "scope": ["UWBS-011..015", "A0-003..007"],
+      "source_commits": [
+        "e25391fd3cd8bdd7e40d77853e8a0572489e42e5",
+        "6bb603dbfe29fd66c95db16e588c00dcc3543c3f",
+        "a026d9193b4ea00db77954689d2eaf232dca73ff",
+        "c777dea5f274dc2bbc3b065414090cca130c2669",
+        "16ef286e5d4231b2ee395e2400d3fa6452cefdc1",
+        "4ae322a799fda968985ac698a47645803587dee7",
+        "ac5473c123e44289433d237e455b7655f896b314",
+        "b9a205b0a3774e6c12636c99fbe63e63a991c6d0",
+        "c10658c0c53d0566634b5a9205c1cab838a4a240",
+        "4747af279df1af3e358654b88a8f0da3eb9fb423",
+        "eef6befc227d9641bc178c30ea191d845a777649",
+        "b49090d02bcc3274840f467cdf6fb6b0d5171fef"
+      ]
+    },
+    "v0.1.3": {
+      "status": "ready_for_local_replay_review",
+      "scope": ["UWBS-027..036", "A0-008..017"],
+      "source_commits": [
+        "629d15c9ac57bd67ff94fba9345bd45820509cdd",
+        "1fa402c676579ec1b7ab07852436c2f33fcbd871",
+        "25e0eba51c4366094a3d73d1cc7c661282b9d0b0",
+        "e47a4e7246077ffd093954240383daf19a251828",
+        "bc2e475a005393bc5dd3807fa6f85fdb6c52a875",
+        "410ed70db7eb93a8312d1a52c3416f2f0b4b9c07",
+        "a834c6e97e6c7b2875a7a13070ad987ec63077ad",
+        "3d8d6f00e317382732459926a30879a59f86bf9f",
+        "12a38e8d6afbfea6da4e6a6f5e34a4c491a507c7",
+        "171571262ccd26284f7f3a9c92aed583e34d865b",
+        "cdf5e7cc1d004fabb21e9bdf380c6399bd4f2a7b",
+        "6dbd6892f42443db25b50bef0668d4221c58782a",
+        "bbd6032a57ca1a338b2f33f887d4e3d829bb1913",
+        "cb12b8774e6664766163011fbcc81bfaeb74b71f",
+        "7c6ab856dcddb77f6992edf3f94da61333862de2",
+        "d53d353e19c40b34a501cb3b587c851ccfc0b740",
+        "fc6c92fd8f5e8b2bf483c96d8e8d2386565c6d8a",
+        "27dc36d2683bd8a461e824ca36e89376ab25da0b",
+        "8b2b4b94e4579060a4cf77ecaef23d47830f91b5",
+        "d932ef1f2f3119ed40ecfcf5b3eb42ce832ae4f8",
+        "ed677c9843cb9d1b47041fef0f45e8c0676fd965",
+        "ac89b1ef6bb872e06129d6b08a9a8f013691e4aa",
+        "2edc7725c8631a1894824eb1a8393749b61feae7",
+        "ee061c021d0c39c9ffe25ee731491af78e5f945a",
+        "c28328bd0d1c5c22e5e320bfe7223989a2d30450",
+        "ab37639695ebea322d05ab7d4c7d117ed69ad052",
+        "daedf157bdc2d254c9d67b0a21553cd2c397aa5c",
+        "c68a3b3360b0e3b8a15df4c1d3338b8a8dedb576",
+        "c78fd798cc26f6ac449ddf796eb9ea2a4ee6ebbe",
+        "52511f7c8bd18ece43531bb7aad57cb32f474628",
+        "2294ca7d757416e15b2a4df35e570ae5c6fc0109",
+        "58dfa24efaa988c414a4b12a82e57956d6034f21",
+        "3b9d568516ac6ec7c1da40b56bbb4eec2525c8b1",
+        "b05d972dc19e09cdf4333f5637e231904b9c655a",
+        "2092f88a1dac05d8fae3c4f960c7196ca889d899",
+        "6a0b736d3ea0b963f94a0dfc3bdc71b1031cf5b8",
+        "92996c3e008f03f94ec0804fed5e4c21ed6454b7",
+        "d6fbf1f9e9b122b1fc3d0ea7e3d52dde296d5b54",
+        "0a02add6777745fd65cc0800fd232f745401c583"
+      ]
+    }
+  },
+  "rules": {
+    "source_history_is_immutable": true,
+    "pb_commits_excluded_from_v0.1.0_to_v0.1.3": true,
+    "apply_must_fail_if_any_prior_version_is_not_ready": true,
+    "shared_acceptance_commit_is_listed_once": true
+  }
+}
