@@ -1,6 +1,6 @@
 # v0.1.4 AI Theme source inventory — 2026-09-29
 
-Status: **BLOCKED: canonical mapping proven; accepted implementation inventory absent**
+Status: **BLOCKED: accepted implementation inventory absent; new candidate in development**
 
 Parent boundary: `b4df4e911597d9f17bfa0a50b2057c24159dee9f` (reconstructed v0.1.3). No v0.1.4 synthetic commit or tag has been created.
 
@@ -39,3 +39,11 @@ Reconstructed v0.1.3 already contains market relationship, market reaction, rela
 ## Release decision
 
 `v0.1.4-replay-manifest.json` is fail closed: `apply_allowed` is false and all five canonical tasks have unresolved implementation, test, export and acceptance roles. Do not create an empty synthetic checkpoint or relabel v0.1.3 as v0.1.4. Re-audit when accepted UWBS-062..066 source commits and local acceptance evidence exist, then freeze an exact source allowlist and run the kickoff acceptance gates.
+
+## 2026-09-30 development update
+
+New candidate implementation is isolated on codex/uwbs-062-066-ai-theme at
+e018283549ccbb74ff5309fc4fe0b4addb91fa0d and c4f50c0878e001e8d6b031bf7f15ef188e3d4453. It provides the five task areas as code and synthetic contract tests,
+but is not accepted historical calibration evidence. See
+V0_1_4_AI_THEME_IMPLEMENTATION_PROGRESS_2026-09-30.md. The accepted replay
+allowlist remains empty and apply_allowed remains false.

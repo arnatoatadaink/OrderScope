@@ -5,7 +5,13 @@
   "parent_boundary": "b4df4e911597d9f17bfa0a50b2057c24159dee9f",
   "status": "blocked_missing_accepted_implementation",
   "apply_allowed": false,
-  "canonical_ids": ["UWBS-062", "UWBS-063", "UWBS-064", "UWBS-065", "UWBS-066"],
+  "canonical_ids": [
+    "UWBS-062",
+    "UWBS-063",
+    "UWBS-064",
+    "UWBS-065",
+    "UWBS-066"
+  ],
   "source_commits": [],
   "classified_candidates": [
     {
@@ -40,11 +46,56 @@
     }
   ],
   "unresolved_required_roles": {
-    "UWBS-062": ["MUST_REPLAY_IMPLEMENTATION", "MUST_REPLAY_TEST", "MUST_REPLAY_EXPORT", "MUST_REPLAY_ACCEPTANCE_CONTENT"],
-    "UWBS-063": ["MUST_REPLAY_IMPLEMENTATION", "MUST_REPLAY_TEST", "MUST_REPLAY_EXPORT", "MUST_REPLAY_ACCEPTANCE_CONTENT"],
-    "UWBS-064": ["MUST_REPLAY_IMPLEMENTATION", "MUST_REPLAY_TEST", "MUST_REPLAY_EXPORT", "MUST_REPLAY_ACCEPTANCE_CONTENT"],
-    "UWBS-065": ["MUST_REPLAY_IMPLEMENTATION", "MUST_REPLAY_TEST", "MUST_REPLAY_EXPORT", "MUST_REPLAY_ACCEPTANCE_CONTENT"],
-    "UWBS-066": ["MUST_REPLAY_IMPLEMENTATION", "MUST_REPLAY_TEST", "MUST_REPLAY_EXPORT", "MUST_REPLAY_ACCEPTANCE_CONTENT"]
+    "UWBS-062": [
+      "MUST_REPLAY_IMPLEMENTATION",
+      "MUST_REPLAY_TEST",
+      "MUST_REPLAY_EXPORT",
+      "MUST_REPLAY_ACCEPTANCE_CONTENT"
+    ],
+    "UWBS-063": [
+      "MUST_REPLAY_IMPLEMENTATION",
+      "MUST_REPLAY_TEST",
+      "MUST_REPLAY_EXPORT",
+      "MUST_REPLAY_ACCEPTANCE_CONTENT"
+    ],
+    "UWBS-064": [
+      "MUST_REPLAY_IMPLEMENTATION",
+      "MUST_REPLAY_TEST",
+      "MUST_REPLAY_EXPORT",
+      "MUST_REPLAY_ACCEPTANCE_CONTENT"
+    ],
+    "UWBS-065": [
+      "MUST_REPLAY_IMPLEMENTATION",
+      "MUST_REPLAY_TEST",
+      "MUST_REPLAY_EXPORT",
+      "MUST_REPLAY_ACCEPTANCE_CONTENT"
+    ],
+    "UWBS-066": [
+      "MUST_REPLAY_IMPLEMENTATION",
+      "MUST_REPLAY_TEST",
+      "MUST_REPLAY_EXPORT",
+      "MUST_REPLAY_ACCEPTANCE_CONTENT"
+    ]
   },
-  "audit_document": "docs/release/V0_1_4_AI_THEME_SOURCE_INVENTORY_2026-09-29.md"
+  "audit_document": "docs/release/V0_1_4_AI_THEME_SOURCE_INVENTORY_2026-09-29.md",
+  "development_candidate": {
+    "branch": "codex/uwbs-062-066-ai-theme",
+    "classification": "UNACCEPTED_NEW_IMPLEMENTATION",
+    "paths": [
+      "analysis/app/orderscope_local/theme/",
+      "analysis/tests/theme/test_theme.py"
+    ],
+    "local_validation": {
+      "focused_python_passed": 12,
+      "full_python_passed": 626,
+      "compileall": "passed"
+    },
+    "remaining_gate": "source-grounded historical calibration and acceptance",
+    "commits": [
+      "e018283549ccbb74ff5309fc4fe0b4addb91fa0d",
+      "c4f50c0878e001e8d6b031bf7f15ef188e3d4453"
+    ]
+  },
+  "progress_document": "docs/release/V0_1_4_AI_THEME_IMPLEMENTATION_PROGRESS_2026-09-30.md",
+  "unresolved_required_roles_semantics": "Accepted replay roles; the unaccepted development candidate does not close these gates."
 }
