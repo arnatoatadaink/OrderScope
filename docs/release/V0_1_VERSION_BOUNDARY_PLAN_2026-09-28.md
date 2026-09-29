@@ -71,12 +71,12 @@ Each synthetic checkpoint is a release identity. It does not replace the histori
 | Version | Functional boundary | Canonical work scope | Boundary state | Boundary / source reference |
 |---|---|---|---|---|
 | `v0.1.0` | Original WBS / CP baseline, PB excluded | W0/L0/L1/I0/S0/E0/N0/N1/O0/X0 original baseline | **Clean historical boundary found** | `99b08a0b5fa1bec5921dc42e630c579a4e83c401` |
-| `v0.1.1` | Operational / runtime extensions | UWBS-001..004, UWBS-016, UWBS-023..026; R0-001..009; W1 runtime capability | **Reconstruction blocked pending prerequisite audit** | source manifest under reconstruction |
-| `v0.1.2` | Macro / carry context | UWBS-011..015 -> A0-003..007 | **Frozen source inventory; reconstruct after v0.1.1** | replay manifest |
-| `v0.1.3` | Cross-market / competitor / official macro adapters | UWBS-027..036 -> A0-008..017 | **Frozen source inventory; reconstruct after v0.1.2** | final historical acceptance includes `0a02add6777745fd65cc0800fd232f745401c583` |
-| `v0.1.4` | AI theme lane | UWBS-062..066 | **Reserved** | do not tag until acceptance is proven |
-| `v0.1.5` | Listing-compliance lane | UWBS-067 | **Reserved** | do not tag until acceptance is proven |
-| `v0.1.6` | Crypto market-structure lane | UWBS-068..079 | **Reserved** | do not tag until acceptance is proven |
+| `v0.1.1` | Operational / runtime extensions | UWBS-001..004, UWBS-016, UWBS-023..026; R0-001..009; W1 runtime capability | **Reconstructed; local acceptance passed** | `bada5bff803321427eb3c8eb1f3d159460ba5dd1` |
+| `v0.1.2` | Macro / carry context | UWBS-011..015 -> A0-003..007 | **Reconstructed; local acceptance passed** | `f69c52bf574212d1506df81abc7b15694abb7922` |
+| `v0.1.3` | Cross-market / competitor / official macro adapters | UWBS-027..036 -> A0-008..017 | **Reconstructed; local acceptance passed** | `b4df4e911597d9f17bfa0a50b2057c24159dee9f` |
+| `v0.1.4` | AI theme lane | UWBS-062..066 | **Blocked: no accepted implementation inventory** | `V0_1_4_AI_THEME_SOURCE_INVENTORY_2026-09-29.md` |
+| `v0.1.5` | Listing-compliance lane | UWBS-067 | **Reserved: design/backlog only in reviewed history** | `V0_1_5_TO_V0_1_6_BOUNDARY_READINESS_2026-09-29.md` |
+| `v0.1.6` | Crypto market-structure lane | UWBS-068..079 | **Reserved: design/backlog only in reviewed history** | `V0_1_5_TO_V0_1_6_BOUNDARY_READINESS_2026-09-29.md` |
 | `v0.1.7` | Oil / commodity / cross-asset | UWBS-080..086 | **Accepted / taggable after integration validation** | `33ca0587d6105202f791f0c8c6c4e9cd6da3ac3d` |
 | `v0.1.8` | Physical-SaaS | UWBS-087..093 | **Accepted / taggable after integration validation** | `ae9f72b48a2b8e6a51bc2b2273969e7dc32d5325` |
 | `v0.1.9` | VIX / cross-asset volatility | UWBS-094..100 | **Accepted / taggable after integration validation** | `8151d1c2727fd22b0e9f0222f589cee666c99ffc` |
@@ -102,21 +102,19 @@ Interpretation:
 
 This SHA is the frozen starting point of `release/reconstructed-v0.1`.
 
-## 6. v0.1.1 boundary and current blocker
+## 6. v0.1.1 reconstructed boundary
 
-### Intended scope
+The dependency inventory was repaired and accepted. The cumulative synthetic
+boundary is `bada5bff803321427eb3c8eb1f3d159460ba5dd1`. The exact source
+allowlist and conflict decisions are in `v0.1-replay-manifest.json` and
+`V0_1_REPLAY_INVENTORY_AUDIT_2026-09-29.md`.
 
-```text
-UWBS-001..004
-UWBS-016
-UWBS-023..026
+### Historical first replay blocker (resolved)
 
-formal / runtime IDs include:
-R0-001..009
-W1-001 and required W1 runtime prerequisites
-```
+The following records the first replay attempt. Its proposed next steps were
+completed during reconstruction and no longer describe the current branch state.
 
-The reconstruction replay was attempted from the clean `v0.1.0` base. It stopped at:
+The first replay started from the clean `v0.1.0` base and stopped at:
 
 ```text
 a54da090083de20495687c8f217e3a5fd693aba1
@@ -144,7 +142,7 @@ At minimum, W1-002 implementation work has been identified as relevant prerequis
 Batch market persistence and repair Stage B budgets
 ```
 
-The next local reconstruction step is therefore:
+The remediation sequence at that time was:
 
 1. abort/reset the failed replay back to `99b08a0...`;
 2. audit W1-002..W1-007 implementation/test/fix commits;
@@ -152,8 +150,6 @@ The next local reconstruction step is therefore:
 4. exclude live activation/rollback episodes and unrelated operational evidence;
 5. regenerate/freeze the v0.1.1 source inventory;
 6. rerun dry-run and `--apply` from the clean base.
-
-Until this audit is complete, no synthetic `v0.1.1` SHA is authoritative.
 
 ## 7. v0.1.2 boundary
 
@@ -167,7 +163,7 @@ UWBS-014 -> A0-006
 UWBS-015 -> A0-007
 ```
 
-The source inventory is frozen in:
+The corrected source inventory is frozen in:
 
 ```text
 docs/release/v0.1-replay-manifest.json
@@ -175,19 +171,8 @@ docs/release/v0.1-replay-manifest.json
 
 The historical implementation cannot be tagged directly as a pure `v0.1.2` because part of the future `v0.1.3` lane was implemented first.
 
-Therefore:
-
-```text
-reconstructed v0.1.1
-        |
-        v
-replay only v0.1.2-owned source changes
-        |
-        v
-synthetic v0.1.2 checkpoint
-```
-
-is the required release construction model.
+The accepted cumulative boundary on reconstructed v0.1.1 is
+`f69c52bf574212d1506df81abc7b15694abb7922`.
 
 ## 8. v0.1.3 boundary
 
@@ -215,7 +200,8 @@ Accept UWBS-035 and UWBS-036 macro source adapters
 
 However the historical line is not a pure release boundary because UWBS-027..031 began before the v0.1.2 lane.
 
-Therefore v0.1.3 must be reconstructed on top of the synthetic v0.1.2 checkpoint.
+The accepted cumulative boundary on reconstructed v0.1.2 is
+`b4df4e911597d9f17bfa0a50b2057c24159dee9f`.
 
 ## 9. Reserved versions v0.1.4..v0.1.6
 
@@ -226,6 +212,11 @@ v0.1.4  UWBS-062..066  AI theme
 v0.1.5  UWBS-067       Listing compliance
 v0.1.6  UWBS-068..079  Crypto market structure
 ```
+
+The v0.1.4 source audit confirms the canonical ID mapping but finds no accepted
+implementation inventory. The v0.1.5–v0.1.6 readiness audit finds design/backlog
+source without a verified implementation closeout. No synthetic checkpoint has
+been added beyond v0.1.3.
 
 A registered UWBS ID or branch is not sufficient for a release tag.
 
