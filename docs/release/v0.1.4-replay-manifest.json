@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "version": "v0.1.4",
+  "lane": "AI Theme",
+  "parent_boundary": "b4df4e911597d9f17bfa0a50b2057c24159dee9f",
+  "status": "blocked_missing_accepted_implementation",
+  "apply_allowed": false,
+  "canonical_ids": ["UWBS-062", "UWBS-063", "UWBS-064", "UWBS-065", "UWBS-066"],
+  "source_commits": [],
+  "classified_candidates": [
+    {
+      "sha": "26212936cd2e0ac148e328f22bf58fe7ee59e6ce",
+      "role": "DESIGN_PROVENANCE_ONLY",
+      "decision": "exclude_from_release_replay"
+    },
+    {
+      "sha": "49523f52a50136d5d8301d30b1345cfcd9f88aea",
+      "role": "DESIGN_PROVENANCE_ONLY",
+      "decision": "exclude_from_release_replay"
+    },
+    {
+      "sha": "cfc850c94738820f3b12e783791c9030edd216dc",
+      "role": "DOC_ONLY_OPTIONAL",
+      "decision": "audit_provenance_only"
+    },
+    {
+      "sha": "b7fbd251c12bf3fb163284dc104aac8a37abdbbd",
+      "role": "OTHER_VERSION",
+      "decision": "exclude_UWBS_086"
+    },
+    {
+      "sha": "d82eae9939b0ca73ced03685226ef09f89f3b537",
+      "role": "OTHER_VERSION",
+      "decision": "exclude_UWBS_086"
+    },
+    {
+      "sha": "74183b4bf68892ef1b081e6dd84fd183ed7dcda0",
+      "role": "OTHER_VERSION",
+      "decision": "exclude_UWBS_093"
+    }
+  ],
+  "unresolved_required_roles": {
+    "UWBS-062": ["MUST_REPLAY_IMPLEMENTATION", "MUST_REPLAY_TEST", "MUST_REPLAY_EXPORT", "MUST_REPLAY_ACCEPTANCE_CONTENT"],
+    "UWBS-063": ["MUST_REPLAY_IMPLEMENTATION", "MUST_REPLAY_TEST", "MUST_REPLAY_EXPORT", "MUST_REPLAY_ACCEPTANCE_CONTENT"],
+    "UWBS-064": ["MUST_REPLAY_IMPLEMENTATION", "MUST_REPLAY_TEST", "MUST_REPLAY_EXPORT", "MUST_REPLAY_ACCEPTANCE_CONTENT"],
+    "UWBS-065": ["MUST_REPLAY_IMPLEMENTATION", "MUST_REPLAY_TEST", "MUST_REPLAY_EXPORT", "MUST_REPLAY_ACCEPTANCE_CONTENT"],
+    "UWBS-066": ["MUST_REPLAY_IMPLEMENTATION", "MUST_REPLAY_TEST", "MUST_REPLAY_EXPORT", "MUST_REPLAY_ACCEPTANCE_CONTENT"]
+  },
+  "audit_document": "docs/release/V0_1_4_AI_THEME_SOURCE_INVENTORY_2026-09-29.md"
+}
