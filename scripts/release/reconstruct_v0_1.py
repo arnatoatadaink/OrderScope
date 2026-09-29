@@ -7,37 +7,18 @@ import re
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-BASE_SHA = "99b08a0b5fa1bec5921dc42e630c579a4e83c401"
+MANIFEST_PATH = REPO_ROOT / "docs/release/v0.1-replay-manifest.json"
 RELEASE_BRANCH = "release/reconstructed-v0.1"
+READY_STATUS = "ready_for_replay"
+PB_PATTERNS = [r"\bPB-(?:0[0-9]|10)\b", r"L1-003_PB"]
 
-VERSION_PATTERNS = {
-    "v0.1.1": [
-        r"\bUWBS-00[1-4]\b",
-        r"\bUWBS-016\b",
-        r"\bUWBS-02[3-6]\b",
-        r"\bR0-00[1-9]\b",
-        r"\bW1-001\b",
-    ],
-    "v0.1.2": [r"\bUWBS-01[1-5]\b", r"\bA0-00[3-7]\b"],
-    "v0.1.3": [
-        r"\bUWBS-02[7-9]\b",
-        r"\bUWBS-03[0-6]\b",
-        r"\bA0-00[89]\b",
-        r"\bA0-01[0-7]\b",
-    ],
-}
-
-EXCLUDE_PATTERNS = [
-    r"\bPB-(?:0[0-9]|10)\b",
-    r"L1-003_PB",
-]
 
 @dataclass(frozen=True)
 class Commit:
     sha: str
-    parents: tuple[str, ...]
     subject: str
 
 
@@ -50,57 +31,46 @@ def git(*args: str, check: bool = True) -> str:
     return result.stdout
 
 
-def all_commits() -> list[Commit]:
-    raw = git(
-        "log",
-        "--all",
-        "--topo-order",
-        "--reverse",
-        "--format=%H%x09%P%x09%s",
-    )
-    commits: list[Commit] = []
-    for line in raw.splitlines():
-        sha, parents, subject = line.split("\t", 2)
-        commits.append(Commit(sha, tuple(parents.split()) if parents else (), subject))
-    return commits
+def load_manifest(path: Path) -> dict[str, Any]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if payload.get("schema_version") != "1.0":
+        raise SystemExit("unsupported replay manifest schema")
+    return payload
 
 
-def matches(subject: str, patterns: list[str]) -> bool:
-    return any(re.search(pattern, subject, re.IGNORECASE) for pattern in patterns)
+def commit_from_sha(sha: str) -> Commit:
+    canonical = git("rev-parse", f"{sha}^{{commit}}").strip()
+    subject = git("show", "-s", "--format=%s", canonical).strip()
+    return Commit(canonical, subject)
 
 
-def classify(commits: list[Commit]) -> dict[str, list[Commit]]:
-    result: dict[str, list[Commit]] = {version: [] for version in VERSION_PATTERNS}
-    for commit in commits:
-        if any(re.search(p, commit.subject, re.IGNORECASE) for p in EXCLUDE_PATTERNS):
-            continue
-        hits = [
-            version
-            for version, patterns in VERSION_PATTERNS.items()
-            if matches(commit.subject, patterns)
-        ]
-        if len(hits) > 1:
-            raise SystemExit(
-                f"ambiguous commit {commit.sha}: {commit.subject!r} -> {hits}"
-            )
-        if hits:
-            result[hits[0]].append(commit)
-    return result
+def contains_pb_label(text: str) -> bool:
+    return any(re.search(pattern, text, re.IGNORECASE) for pattern in PB_PATTERNS)
 
 
-def write_plan(groups: dict[str, list[Commit]], path: Path) -> None:
-    payload = {
-        "base_sha": BASE_SHA,
-        "release_branch": RELEASE_BRANCH,
-        "versions": {
-            version: [
-                {"sha": commit.sha, "subject": commit.subject}
-                for commit in commits
-            ]
-            for version, commits in groups.items()
-        },
-    }
-    path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+def validate_manifest(payload: dict[str, Any]) -> dict[str, list[Commit]]:
+    base_sha = payload["base"]["sha"]
+    canonical_base = git("rev-parse", f"{base_sha}^{{commit}}").strip()
+    if canonical_base != base_sha:
+        raise SystemExit(f"base SHA is not canonical: {base_sha} -> {canonical_base}")
+
+    seen: set[str] = set()
+    groups: dict[str, list[Commit]] = {}
+    for version, spec in payload["versions"].items():
+        selected: list[Commit] = []
+        for sha in spec.get("source_commits", []):
+            commit = commit_from_sha(sha)
+            if commit.sha in seen:
+                raise SystemExit(f"duplicate source commit in manifest: {commit.sha}")
+            if contains_pb_label(commit.subject):
+                raise SystemExit(
+                    f"PB-labelled commit is forbidden in {version}: "
+                    f"{commit.sha} {commit.subject}"
+                )
+            seen.add(commit.sha)
+            selected.append(commit)
+        groups[version] = selected
+    return groups
 
 
 def verify_clean() -> None:
@@ -108,58 +78,85 @@ def verify_clean() -> None:
         raise SystemExit("working tree is not clean")
 
 
-def apply(groups: dict[str, list[Commit]]) -> None:
+def verify_apply_gate(payload: dict[str, Any], groups: dict[str, list[Commit]]) -> None:
+    for version, spec in payload["versions"].items():
+        status = spec.get("status")
+        if status != READY_STATUS:
+            raise SystemExit(
+                f"apply blocked: {version} status is {status!r}; "
+                f"expected {READY_STATUS!r}"
+            )
+        if not groups[version]:
+            raise SystemExit(f"apply blocked: {version} has no frozen source commits")
+
+
+def apply(payload: dict[str, Any], groups: dict[str, list[Commit]]) -> None:
+    verify_apply_gate(payload, groups)
     verify_clean()
+
     current_branch = git("branch", "--show-current").strip()
     if current_branch != RELEASE_BRANCH:
         raise SystemExit(f"apply requires branch {RELEASE_BRANCH}, got {current_branch!r}")
+
+    base_sha = payload["base"]["sha"]
     head = git("rev-parse", "HEAD").strip()
-    if head != BASE_SHA:
+    if head != base_sha:
         raise SystemExit(
             "apply starts only from the frozen v0.1.0 base. "
-            f"expected {BASE_SHA}, got {head}"
+            f"expected {base_sha}, got {head}"
         )
 
     for version, commits in groups.items():
-        if not commits:
-            raise SystemExit(f"no source commits selected for {version}")
         for commit in commits:
-            # Reapply changes without preserving historical commit topology.
-            # Conflicts intentionally stop the reconstruction for manual review.
             subprocess.run(
                 ["git", "cherry-pick", "--no-commit", commit.sha],
                 cwd=REPO_ROOT,
                 check=True,
             )
-        git("commit", "-m", f"Reconstruct {version} from accepted source history")
+        git(
+            "commit",
+            "-m",
+            f"Reconstruct {version} from frozen source manifest",
+            "-m",
+            "Source-of-truth historical commits are preserved unchanged; "
+            "this checkpoint only creates the cumulative release lineage.",
+        )
         print(f"{version}: {git('rev-parse', 'HEAD').strip()}")
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--apply", action="store_true", help="apply replay to the release branch")
+    parser.add_argument("--apply", action="store_true")
     parser.add_argument(
-        "--plan",
-        default="var/release/v0.1-reconstruction-plan.json",
-        help="write the discovered source-commit plan here",
+        "--manifest",
+        default=str(MANIFEST_PATH.relative_to(REPO_ROOT)),
+        help="frozen replay manifest relative to repository root",
     )
     args = parser.parse_args()
 
-    commits = all_commits()
-    groups = classify(commits)
-    plan_path = REPO_ROOT / args.plan
-    plan_path.parent.mkdir(parents=True, exist_ok=True)
-    write_plan(groups, plan_path)
+    manifest_path = REPO_ROOT / args.manifest
+    payload = load_manifest(manifest_path)
+    groups = validate_manifest(payload)
 
-    for version, selected in groups.items():
-        print(f"[{version}] {len(selected)} source commits")
-        for commit in selected:
+    print(f"base {payload['base']['version']}: {payload['base']['sha']}")
+    for version, commits in groups.items():
+        status = payload["versions"][version]["status"]
+        print(f"[{version}] status={status} commits={len(commits)}")
+        for commit in commits:
             print(f"  {commit.sha}  {commit.subject}")
 
     if args.apply:
-        apply(groups)
+        apply(payload, groups)
     else:
-        print(f"dry-run only; plan written to {plan_path.relative_to(REPO_ROOT)}")
+        blocked = [
+            version
+            for version, spec in payload["versions"].items()
+            if spec.get("status") != READY_STATUS
+        ]
+        if blocked:
+            print("dry-run validated; apply remains blocked by: " + ", ".join(blocked))
+        else:
+            print("dry-run validated; manifest is eligible for --apply")
 
 
 if __name__ == "__main__":
