@@ -1,6 +1,6 @@
 # v0.1.6 UWBS-073 implementation progress — 2026-10-01
 
-Status: **WEB IMPLEMENTATION CANDIDATE CREATED; LOCAL VALIDATION PENDING**
+Status: **ACCEPTED**
 
 ## Dependency base
 
@@ -75,13 +75,27 @@ de1ed4da22b152f37abb0cc462bacc9fbcc32c8d  provider adapters
 d602de71a93b8ac8c8877c0d0114d66553046555  focused tests
 ```
 
+## Acceptance evidence
+
+Local validation completed successfully on 2026-10-01:
+
+```text
+focused adapters: 11 passed
+full Python:       684 passed, 1 warning
+compileall:        PASS
+diff check:        PASS
+TypeScript:        not required — Python-only diff
+```
+
+The single warning is the pre-existing Starlette/AnyIO `BlockingPortal` deprecation warning and is unrelated to UWBS-073.
+
 ## Diff audit
 
 Compared with accepted UWBS-072 source head, only the UWBS-073 adapter surface and focused tests are changed. No provider activation, Worker/Cron, D1, archive, liquidation stream, UWBS-084 BTC ETF flow, or TypeScript changes are present.
 
-## Focused test intent
+## Focused test coverage
 
-The committed suite covers:
+The accepted suite covers:
 
 1. Binance perpetual OI normalization;
 2. Binance dated future classification;
@@ -95,25 +109,8 @@ The committed suite covers:
 10. invalid numeric provider field rejection;
 11. adapter layer contains no network/credential contract.
 
-## Required local validation
+## Acceptance decision
 
-```bash
-git fetch origin codex/uwbs-073-multivenue-adapters
-git switch -C codex/uwbs-073-multivenue-adapters \
-  origin/codex/uwbs-073-multivenue-adapters
+**UWBS-073 is Accepted.**
 
-uv run pytest -q analysis/tests/crypto_derivatives/test_crypto_derivative_adapters.py
-uv run pytest -q analysis/tests
-uv run python -m compileall -q analysis/app
-
-git diff --check \
-  4ea346dfab96b1a2ba1e685bf6daba27341445a0..HEAD
-```
-
-TypeScript tests/typecheck are not required unless later work touches TypeScript/shared generated/build surfaces.
-
-## Acceptance limit
-
-UWBS-073 may be accepted when focused/full Python regression, compileall and diff check pass.
-
-Live fetch behavior and provider outage/rate-limit handling are deliberately deferred to operational integration after source contracts and archive semantics are stable.
+Live fetch behavior and provider outage/rate-limit handling remain deliberately deferred to later operational integration. The next canonical task is `UWBS-074 — durable derivatives snapshot archive and catch-up lifecycle`.
