@@ -1,6 +1,6 @@
 # v0.1.6 UWBS-069 implementation progress — 2026-09-30
 
-Status: **WEB IMPLEMENTATION CANDIDATE CREATED; LOCAL VALIDATION PENDING**
+Status: **ACCEPTED — LOCAL REGRESSION PASSED**
 
 ## Dependency base
 
@@ -46,7 +46,7 @@ Implemented contracts and metrics:
 
 No lagged-correlation estimator, regression beta, provider acquisition, weekend-window logic, institutional-flow source, liquidation cascade, or Canary fixture is included. Those remain later UWBS tasks / later validation.
 
-## Candidate source commits
+## Accepted source commits
 
 ```text
 a7f0d1dd0665128de6dad29b7f9f3ba3260e7b90  return/breadth contracts
@@ -60,37 +60,38 @@ adb2987e9119443841949dc4bccd7ef05c4689c2  public exports
 
 Compared with UWBS-068 source head, only the new crypto-context package and its tests are added. No UWBS-070+, UWBS-084, provider activation, Worker/Cron, D1 or TypeScript changes are present.
 
-## Focused test intent
+## Local acceptance result
 
-The committed suite covers:
-
-1. UTC/window validation;
-2. BTC and target must be distinct and aligned;
-3. BTC-adjusted residual calculation;
-4. same-direction breadth;
-5. zero-BTC-return breadth semantics;
-6. mean altcoin return;
-7. relative-strength interpretation without causal claim;
-8. low breadth -> insufficient evidence;
-9. invalid breadth rejection.
-
-## Required local validation
-
-```bash
-git fetch origin codex/uwbs-069-btc-relative-context
-git switch -C codex/uwbs-069-btc-relative-context \
-  origin/codex/uwbs-069-btc-relative-context
-
-uv run pytest -q analysis/tests/crypto_context
-uv run pytest -q analysis/tests
-uv run python -m compileall -q analysis/app
-
-git diff --check \
-  716644a679f8f353d409e48ec06351dc38c2060e..HEAD
+```text
+focused Python: 9 passed
+full Python: 653 passed, 1 warning
+compileall: PASS
+diff check: PASS
+TypeScript: not required — Python-only diff
 ```
 
-TypeScript tests/typecheck are not required unless a later change touches TypeScript/shared generated/build surfaces.
+The warning is the pre-existing Starlette `BlockingPortal` deprecation warning and is non-blocking for this lane.
 
-## Acceptance limit
+## Acceptance result
 
-UWBS-069 may be accepted when focused/full Python regression, compileall and diff check pass. Historical lag stability, BTC causality, empirical breadth thresholds and out-of-sample synchronization remain experimental and are not release blockers for the v0.1 development series, but must not be represented as Facts.
+UWBS-069 is accepted for the v0.1.6 development boundary.
+
+The following remain explicitly experimental / unvalidated:
+
+- historical lag stability;
+- BTC causality;
+- empirical breadth thresholds;
+- regression beta calibration;
+- out-of-sample synchronization quality.
+
+These limitations are not release blockers for the v0.1 development series, but none may be represented as source-grounded Facts.
+
+## Next dependency
+
+Proceed to:
+
+```text
+UWBS-070 — BTC institutional-flow / market-structure source survey
+```
+
+UWBS-070 should remain a source/terms/latency/history/cost survey and must not activate paid/live providers as a side effect of acceptance.
