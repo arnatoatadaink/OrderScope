@@ -23,7 +23,7 @@ def _dt(minute: int) -> datetime:
     return datetime(2026, 9, 20, 0, minute, tzinfo=UTC)
 
 
-def _obs(minute: int = 0, *, oi: float = 100.0, accepted_offset: int = 1, revision: str | None = None) -> CryptoDerivativeObservation:
+def _obs(minute: int = 0, *, oi: float = 100.0, accepted_offset: int = 10, revision: str | None = None) -> CryptoDerivativeObservation:
     return CryptoDerivativeObservation(
         observation_id=f"binance-near-{minute}-{oi}",
         venue="binance",
