@@ -1,68 +1,168 @@
 # v0.1.4 AI Theme boundary report — 2026-09-30
 
-Status: **IMPLEMENTATION CANDIDATE READY FOR REVIEW; RELEASE BOUNDARY NOT ACCEPTED**
+Status: **EXPERIMENTAL / UNCALIBRATED RELEASE ACCEPTED; SYNTHETIC BOUNDARY CREATION PENDING**
 
 ## Decision
 
-The accepted reconstructed release line still ends at v0.1.3,
-b4df4e911597d9f17bfa0a50b2057c24159dee9f. No v0.1.4 checkpoint,
-tag, or main integration has been created. The v0.1.4 manifest remains
-fail closed (apply_allowed=false; accepted source_commits=[]).
+v0.1.4 is accepted for release as an **experimental analytical capability**.
+Historical market calibration is explicitly not a release blocker for the v0.1 development series.
+
+The accepted reconstructed parent remains:
+
+```text
+v0.1.3 = b4df4e911597d9f17bfa0a50b2057c24159dee9f
+```
 
 The canonical v0.1.4 scope is UWBS-062..066. Commit
-cfc850c94738820f3b12e783791c9030edd216dc established the mapping from
+`cfc850c94738820f3b12e783791c9030edd216dc` established the mapping from
 historical AI-theme aliases UWBS-030..034. Those old IDs also identify the
-accepted v0.1.3 Cross-Market lane, so old-ID matching is unsafe.
+accepted v0.1.3 Cross-Market lane, so old-ID matching remains unsafe.
 
-## Candidate implementation
+## Release classification
 
-The new candidate is isolated on codex/uwbs-062-066-ai-theme, based directly
-on reconstructed v0.1.3:
+v0.1.4 must be interpreted as:
+
+```text
+AI Theme — Experimental / Uncalibrated
+```
+
+Accepted:
+
+- versioned AI / adjacent theme ontology;
+- evidence-backed many-to-many structural exposure;
+- categorical event × theme hypotheses;
+- cross-sectional relative-return / breadth / volume / persistence observation;
+- provisional activation / rotation / repricing states;
+- calibration-case representation and descriptive summaries;
+- regression-tested contract behavior and conservative failure modes.
+
+Not yet empirically validated:
+
+- historical confirmation thresholds;
+- false-positive rate;
+- persistence thresholds;
+- calibrated event × theme direction / strength matrix;
+- accepted company-theme registry population;
+- economic materiality interpretation;
+- revenue / gross-profit / operating-profit attribution to theme exposure.
+
+These limitations must remain visible in release notes and downstream interpretation.
+
+## Accepted candidate source
+
+The implementation candidate is isolated on `codex/uwbs-062-066-ai-theme`, based directly on reconstructed v0.1.3:
 
 | Source commit | Contribution |
 | --- | --- |
-| e018283549ccbb74ff5309fc4fe0b4addb91fa0d | Theme ontology/exposures, event hypotheses, cross-sectional observation, conservative state assessment, calibration summary and tests |
-| c4f50c0878e001e8d6b031bf7f15ef188e3d4453 | Include the source event evidence in theme-state Interpretation lineage |
+| `e018283549ccbb74ff5309fc4fe0b4addb91fa0d` | Theme ontology/exposures, event hypotheses, cross-sectional observation, conservative state assessment, calibration summary and tests |
+| `c4f50c0878e001e8d6b031bf7f15ef188e3d4453` | Include source event evidence in theme-state Interpretation lineage |
 
-| Task | Implemented candidate behavior | Acceptance limit |
+These two commits are accepted as the v0.1.4 experimental source allowlist.
+
+## Task boundary
+
+| Task | Accepted experimental behavior | Known limitation |
 | --- | --- | --- |
-| UWBS-062 | Versioned AI and adjacent theme identities; evidence-backed many-to-many structural exposure | No accepted company-theme registry population |
-| UWBS-063 | Categorical event × theme hypotheses, with evidence and rationale; no numeric coefficient | No historically calibrated direction/strength matrix |
-| UWBS-064 | Basket-relative return, breadth, volume coverage and persistence summaries as Derived Metric | Synthetic fixtures only; no accepted historical baskets |
-| UWBS-065 | Candidate/confirmed activation, rotation and repricing states as Interpretation | Confirmation requires externally reviewed calibration criteria |
-| UWBS-066 | Positive, negative, control and contradictory case classification and descriptive summary | No source-grounded reviewed historical case set or thresholds |
+| UWBS-062 | Versioned AI and adjacent theme identities; evidence-backed many-to-many structural exposure | Company-theme registry remains incomplete and requires later source-backed population |
+| UWBS-063 | Categorical event × theme hypotheses with evidence and rationale | No historically calibrated numeric coefficient matrix |
+| UWBS-064 | Basket-relative return, breadth, volume coverage and persistence summaries as Derived Metric | Historical basket validation incomplete |
+| UWBS-065 | Candidate/confirmed activation, rotation and repricing states as Interpretation | Confirmed states remain provisional until empirical criteria are calibrated |
+| UWBS-066 | Positive, negative, control and contradictory case classification and descriptive summary | Threshold calibration remains future work |
 
-The diff from v0.1.3 contains only analysis/app/orderscope_local/theme/ and
-analysis/tests/theme/test_theme.py. It imports accepted Fact Store contracts and
-contains no PB work, later-version implementation, live provider operations,
-or TypeScript changes.
+The v0.1.3→candidate diff contains only `analysis/app/orderscope_local/theme/` and
+`analysis/tests/theme/test_theme.py`. It imports accepted Fact Store contracts and contains no PB work, later-version implementation, live provider operations, or TypeScript changes.
 
 ## Verification
 
-- Focused AI Theme tests: 12 passed.
-- Full Python regression after the final code change: 626 passed, 2 warnings.
-- Python compileall: passed.
-- Diff check against v0.1.3: passed.
+- Focused AI Theme tests: **12 passed**.
+- Full Python regression after the final code change: **626 passed, 2 warnings**.
+- Python compileall: **PASS**.
+- Diff check against v0.1.3: **PASS**.
 - TypeScript regression was not rerun because this candidate changes no TypeScript source.
 
-The tests establish contract behavior, including many-to-many exposure,
-multi-theme reactions, single-name rejection, missing-volume restraint,
-event-evidence lineage and conservative uncalibrated states. Synthetic
-observations in tests do not establish historical market calibration.
+The verification establishes software-contract behavior, not historical-market accuracy.
 
-## Remaining boundary work
+## Experimental interpretation policy
 
-1. Freeze source-grounded positive, negative, control and contradictory
-   historical cases with event, member, benchmark, window, return, volume,
-   persistence and provenance references.
-2. Review those cases and publish versioned empirical criteria. Validate
-   false positives and mixed regimes, including single-name moves.
-3. Review the complete v0.1.3-to-v0.1.4 export and package diff and rerun the
-   kickoff acceptance gates on the final candidate.
-4. Only then place accepted source commits in the replay allowlist and create
-   one cumulative synthetic v0.1.4 boundary on release/reconstructed-v0.1.
+AI Theme must not collapse theme relevance, commercial evidence, persistence and profitability into one score.
 
-The earlier source audit and current fail-closed manifest are
-V0_1_4_AI_THEME_SOURCE_INVENTORY_2026-09-29.md and
-v0.1.4-replay-manifest.json. Detailed implementation notes remain in
-V0_1_4_AI_THEME_IMPLEMENTATION_PROGRESS_2026-09-30.md.
+Use four independent axes:
+
+```text
+Theme Exposure
+× Evidence Maturity
+× Economic Materiality
+× Persistence
+```
+
+A company can therefore be strongly AI-related while still having unverified economic benefit.
+
+Examples:
+
+```text
+AI_APPLICATION
+Evidence Maturity = NEWS_ONLY
+Economic Materiality = UNKNOWN
+Persistence = UNCONFIRMED
+```
+
+and
+
+```text
+AI_FOUNDATION
+Evidence Maturity = RECURRING_COMMERCIAL
+Economic Materiality = MATERIAL
+Persistence = CONFIRMED
+```
+
+must remain semantically distinct.
+
+## Evidence maturity extension
+
+The next analytical extension should model the progression:
+
+```text
+NEWS
+  -> NARRATIVE
+  -> COMMERCIAL_EVIDENCE
+  -> RECURRING_EVIDENCE
+  -> PROFIT_ATTRIBUTED
+```
+
+Suggested meaning:
+
+- **NEWS**: first announcement, partnership, startup support, PoC, MOU, planned deployment.
+- **NARRATIVE**: surrounding market narrative / policy / peer / thematic expectation without company-specific realized economics.
+- **COMMERCIAL_EVIDENCE**: explicit contract, order, recognized revenue, disclosed customer use, or other realized commercial evidence.
+- **RECURRING_EVIDENCE**: repeated evidence in a later period, such as a second earnings cycle, renewal, expanded order, or recurring revenue contribution.
+- **PROFIT_ATTRIBUTED**: the theme contribution can be linked to gross profit, operating profit or free cash flow with sufficiently explicit source evidence.
+
+Do not label promotional or weakly supported AI announcements as fraud or deception without evidence. Use observable classifications such as:
+
+```text
+PROMOTIONAL_ONLY
+UNVERIFIED_COMMERCIAL_CLAIM
+NO_REVENUE_EVIDENCE
+NO_REPEAT_EVIDENCE
+ECONOMIC_MATERIALITY_UNKNOWN
+```
+
+This preserves the Fact / Derived Metric / Interpretation boundary.
+
+## Deferred calibration work
+
+Historical calibration remains required for later confidence upgrades, but no longer blocks the v0.1.4 development release. Follow-up work should:
+
+1. freeze positive / negative / contradictory / control historical cases;
+2. derive versioned empirical thresholds;
+3. measure false positives and single-name misclassification;
+4. validate persistence and mixed-regime behavior;
+5. add economic-materiality and profit-attribution evidence contracts.
+
+Until that work is accepted, all empirically derived confirmation criteria must remain explicitly experimental or provisional.
+
+## Release action
+
+The replay manifest may now allow the two accepted source commits. The next release operation is to create exactly one cumulative synthetic v0.1.4 checkpoint on `release/reconstructed-v0.1`, using v0.1.3 as parent, then rerun the accepted regression / compile / diff checks.
+
+No tag or `main` integration is implied by this decision.
