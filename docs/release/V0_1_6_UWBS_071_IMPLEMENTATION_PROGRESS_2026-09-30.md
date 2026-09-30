@@ -1,6 +1,6 @@
 # v0.1.6 UWBS-071 implementation progress — 2026-09-30
 
-Status: **WEB IMPLEMENTATION CANDIDATE CREATED; LOCAL VALIDATION PENDING**
+Status: **ACCEPTED**
 
 ## Dependency base
 
@@ -17,8 +17,6 @@ Development branch:
 ```text
 codex/uwbs-071-crypto-time-windows
 ```
-
-The branch is 4 commits ahead / 0 behind the accepted UWBS-069 code head.
 
 ## Implemented scope
 
@@ -55,7 +53,7 @@ participant identity/geography -> not inferred
 
 Region-named windows are analysis labels only. They do not assert who traded during the interval.
 
-## Candidate source commits
+## Accepted source commits
 
 ```text
 2373fd48b38d96d291edc5f54143b182ad983555  time-window contracts
@@ -64,45 +62,27 @@ ed418ea0a44de65180ab73ed5dd5cfcfa1dfe20c  public exports
 1cbcb9b65bbbea3b1ac251d614201d8d2ca86d5f  focused tests
 ```
 
+## Local acceptance evidence
+
+Executed locally on the development branch:
+
+```text
+focused Python: 10 passed
+full Python: 663 passed, 1 warning
+compileall: PASS
+diff check: PASS
+TypeScript: not required — Python-only diff
+```
+
+The single warning is the existing Starlette/AnyIO deprecation warning and is unrelated to UWBS-071.
+
 ## Diff audit
 
 Compared with the accepted UWBS-069 source head, the branch changes only the new crypto-time package and its focused tests. No UWBS-072+, provider activation, Worker/Cron, D1, BTC spot ETF UWBS-084 or TypeScript changes are included.
 
-## Focused test intent
+## Acceptance conclusion
 
-The committed suite covers:
-
-1. UTC weekend classification;
-2. UTC weekday classification;
-3. overlapping analysis windows;
-4. U.S.-clock analysis window;
-5. a window crossing UTC midnight;
-6. explicit traditional-market boundary preservation;
-7. naive/non-UTC timestamp rejection;
-8. invalid `NONE` boundary rejection;
-9. invalid 24-hour analysis window rejection;
-10. absence of participant-region/nationality inference fields.
-
-## Required local validation
-
-```bash
-git fetch origin codex/uwbs-071-crypto-time-windows
-git switch -C codex/uwbs-071-crypto-time-windows \
-  origin/codex/uwbs-071-crypto-time-windows
-
-uv run pytest -q analysis/tests/crypto_time
-uv run pytest -q analysis/tests
-uv run python -m compileall -q analysis/app
-
-git diff --check \
-  56cd68aabd06326041acc8a37dc458f6cc3beb2f..HEAD
-```
-
-TypeScript tests/typecheck are not required unless later changes touch TypeScript/shared generated/build surfaces.
-
-## Acceptance limit
-
-UWBS-071 may be accepted when focused/full Python regression, compileall and diff check pass.
+UWBS-071 is accepted for the v0.1.6 development series.
 
 The following remain later work:
 
