@@ -1,6 +1,6 @@
 # v0.1.6 UWBS-072 implementation progress — 2026-09-30
 
-Status: **WEB IMPLEMENTATION CANDIDATE CREATED; LOCAL VALIDATION PENDING**
+Status: **ACCEPTED**
 
 ## Dependency base
 
@@ -75,44 +75,32 @@ c98458b26144158d08a74be1e57277c0d9fd641c  conservative evaluator
 4ea346dfab96b1a2ba1e685bf6daba27341445a0  focused tests
 ```
 
+## Acceptance evidence
+
+Local validation completed successfully:
+
+```text
+focused crypto_canary: 10 passed
+full Python regression: 673 passed, 1 warning
+compileall: PASS
+diff check: PASS
+TypeScript: not required — Python-only diff
+```
+
+The single warning is the existing Starlette / AnyIO deprecation warning from `starlette/testclient.py` and is not introduced by UWBS-072.
+
 ## Diff audit
 
 Compared with accepted UWBS-071 source head, only the new crypto-canary package and its focused tests are added. No UWBS-073+, provider activation, Worker/Cron, D1, UWBS-084 BTC ETF flow, or TypeScript changes are included.
 
-## Focused test intent
+## Acceptance effect
 
-The committed suite covers:
-
-1. multi-layer confirmation candidate;
-2. BTC-only false positive;
-3. NEAR-only / idiosyncratic case;
-4. liquidation-only amplification;
-5. weekend-only thin-liquidity case;
-6. contradictory evidence;
-7. missing core layers;
-8. support/missing layer lineage;
-9. naive timestamp rejection;
-10. no trader-identity/nationality inference fields.
-
-## Required local validation
-
-```bash
-git fetch origin codex/uwbs-072-near-btc-canary
-git switch -C codex/uwbs-072-near-btc-canary \
-  origin/codex/uwbs-072-near-btc-canary
-
-uv run pytest -q analysis/tests/crypto_canary
-uv run pytest -q analysis/tests
-uv run python -m compileall -q analysis/app
-
-git diff --check \
-  1cbcb9b65bbbea3b1ac251d614201d8d2ca86d5f..HEAD
-```
-
-TypeScript tests/typecheck are not required unless later work touches TypeScript/shared generated/build surfaces.
-
-## Acceptance limit
-
-UWBS-072 may be accepted when focused/full Python regression, compileall and diff check pass.
+UWBS-072 is accepted for the v0.1.6 development series.
 
 This task intentionally does not freeze thresholds from the September NEAR episode as universal constants. Historical real-data replay remains experimental and will be strengthened by UWBS-073..079 acquisition/archive/quality work.
+
+Next task:
+
+```text
+UWBS-073 — Implement multi-venue futures/perpetual acquisition adapters
+```
