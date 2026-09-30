@@ -21,6 +21,11 @@ def _text(value: str, field: str) -> None:
         raise CryptoArchiveError(f"{field} must be non-blank and bounded")
 
 
+def _payload(value: str) -> None:
+    if not isinstance(value, str) or not value.strip():
+        raise CryptoArchiveError("payload_json must be non-blank")
+
+
 class ArchiveDisposition(StrEnum):
     INSERTED = "inserted"
     DUPLICATE_IDENTICAL = "duplicate_identical"
@@ -46,8 +51,14 @@ class SnapshotEnvelope:
     payload_json: str
 
     def __post_init__(self) -> None:
-        for value, field in ((self.snapshot_key, "snapshot_key"), (self.venue, "venue"), (self.instrument_id, "instrument_id"), (self.payload_sha256, "payload_sha256"), (self.payload_json, "payload_json")):
+        for value, field in (
+            (self.snapshot_key, "snapshot_key"),
+            (self.venue, "venue"),
+            (self.instrument_id, "instrument_id"),
+            (self.payload_sha256, "payload_sha256"),
+        ):
             _text(value, field)
+        _payload(self.payload_json)
         _utc(self.observed_at, "observed_at")
         _utc(self.accepted_at, "accepted_at")
         if self.observed_at > self.accepted_at:
@@ -70,9 +81,18 @@ class CatchUpWindow:
     reason: str = "missing_snapshot_window"
 
     def __post_init__(self) -> None:
-        for value, field in ((self.catchup_id, "catchup_id"), (self.venue, "venue"), (self.instrument_id, "instrument_id"), (self.reason, "reason")):
+        for value, field in (
+            (self.catchup_id, "catchup_id"),
+            (self.venue, "venue"),
+            (self.instrument_id, "instrument_id"),
+            (self.reason, "reason"),
+        ):
             _text(value, field)
-        for value, field in ((self.start_at, "start_at"), (self.end_at, "end_at"), (self.detected_at, "detected_at")):
+        for value, field in (
+            (self.start_at, "start_at"),
+            (self.end_at, "end_at"),
+            (self.detected_at, "detected_at"),
+        ):
             _utc(value, field)
         if self.start_at >= self.end_at:
             raise CryptoArchiveError("start_at must be earlier than end_at")
