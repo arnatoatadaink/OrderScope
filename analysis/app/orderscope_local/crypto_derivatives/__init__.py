@@ -1,5 +1,12 @@
-"""UWBS-068 crypto derivatives contracts and deterministic metrics."""
+"""UWBS-068/073 crypto derivatives contracts, metrics, and adapters."""
 
+from .adapters import (
+    CryptoDerivativeAdapterError,
+    normalize_binance_coinm_open_interest,
+    normalize_bybit_ticker,
+    normalize_hyperliquid_asset_ctx,
+    normalize_okx_public_snapshot,
+)
 from .metrics import (
     CryptoDerivativeMetric,
     basis_bps,
@@ -17,6 +24,7 @@ from .models import (
 
 __all__ = [
     "ContractType",
+    "CryptoDerivativeAdapterError",
     "CryptoDerivativeContractError",
     "CryptoDerivativeMetric",
     "CryptoDerivativeObservation",
@@ -25,5 +33,9 @@ __all__ = [
     "basis_bps",
     "funding_delta",
     "liquidation_imbalance",
+    "normalize_binance_coinm_open_interest",
+    "normalize_bybit_ticker",
+    "normalize_hyperliquid_asset_ctx",
+    "normalize_okx_public_snapshot",
     "open_interest_delta_usd",
 ]
