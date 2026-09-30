@@ -1,6 +1,6 @@
 # v0.1.5 Listing Compliance implementation progress — 2026-09-30
 
-Status: **WEB IMPLEMENTATION CANDIDATE CREATED; LOCAL REGRESSION PENDING**
+Status: **EXPERIMENTAL ACCEPTED; SYNTHETIC RELEASE BOUNDARY PENDING**
 
 ## Parent and branch
 
@@ -16,7 +16,7 @@ Implementation branch:
 codex/uwbs-067-listing-compliance
 ```
 
-The branch is based directly on the accepted v0.1.4 boundary and is currently four commits ahead with no unrelated path changes.
+The branch is based directly on the accepted v0.1.4 boundary and contains only the UWBS-067 listing-compliance package and focused tests.
 
 ## Implemented scope
 
@@ -41,7 +41,7 @@ Implemented contracts:
 - no universal $1 threshold, rolling-window duration or venue-specific cure rule is hard-coded;
 - price recovery alone cannot clear an active listing deficiency.
 
-## Candidate source commits
+## Accepted source commits
 
 ```text
 5410f77247ba6ab774ba16a3add6e8ec15a4df48  contracts
@@ -50,47 +50,42 @@ Implemented contracts:
 44e7a2d31c6ef5ebebafb77fbe44ac307625b014  focused tests
 ```
 
-## Focused test coverage present
+## Local acceptance results
 
-Nine tests cover:
+Local validation on 2026-09-30:
 
-1. UTC and source-time ordering;
-2. deficiency -> cure -> regained progression;
-3. cure without deficiency rejection;
-4. regained compliance without prior deficiency rejection;
-5. temporary price recovery not clearing listing risk;
-6. explicit compliance restoration without market/company evidence remaining listing-overhang removal only;
-7. listing, earnings/company and market metric evidence remaining separate in interpretation lineage;
-8. reuse of one record across evidence classes rejected;
-9. explicit effective delisting state.
+- Focused UWBS-067 tests: **9 passed** in 2.28s.
+- Full Python regression: **635 passed, 1 warning** in 54.15s.
+- Python compileall: **PASS** (no output / exit success).
+- Diff check against v0.1.4: **PASS** (no output / exit success).
+- TypeScript: **not required**, because the accepted diff changes only Python package/test paths and no TypeScript/shared-generated/build surface.
 
-These tests have been committed but have not yet been executed by the web GitHub connector. They require local/CI execution before release-boundary acceptance.
+The single warning is an upstream Starlette/AnyIO deprecation warning and is not introduced by UWBS-067.
 
-## Diff audit
+## Acceptance classification
 
-Compared with v0.1.4, the branch changes only the new listing-compliance package and its tests. No TypeScript, PB, v0.1.6 Crypto, provider activation, remote mutation or existing runtime path is changed.
+UWBS-067 is accepted for the v0.1 development series as:
 
-## Required local acceptance
-
-Run from a checkout of `codex/uwbs-067-listing-compliance`:
-
-```bash
-uv run pytest -q analysis/tests/listing_compliance
-uv run pytest -q analysis/tests
-uv run python -m compileall -q analysis/app
-git diff --check a798622f839b836f8b60f52dd700b8fd87147991..HEAD
+```text
+Experimental Accepted
 ```
 
-TypeScript tests/typecheck are not required unless later changes touch TypeScript/shared generated/build surfaces. Record the omission explicitly.
+The implementation contract and repository regression are accepted. Empirical market calibration remains intentionally non-blocking for v0.1.x.
 
-## Release posture
+## Experimental limitations
 
-v0.1.5 may be accepted as an experimental development release once contract tests and full regression pass. The following remain intentionally uncalibrated/non-goals:
+The release does not claim:
 
-- universal delisting probability;
+- a universal delisting probability;
 - venue-independent minimum-price thresholds;
-- causal claim that compliance restoration caused a price move;
-- empirical repricing thresholds;
+- causal attribution that compliance restoration caused a price move;
+- empirically calibrated repricing thresholds;
 - automatic exchange-rule inference from price alone.
 
-After local PASS, freeze the four source commits in `v0.1.5-replay-manifest.json`, create the boundary report, and construct one cumulative synthetic v0.1.5 checkpoint on `release/reconstructed-v0.1`.
+## Remaining release work
+
+1. Freeze the four accepted source commits in `v0.1.5-replay-manifest.json`.
+2. Publish `V0_1_5_LISTING_COMPLIANCE_BOUNDARY_REPORT_2026-09-30.md`.
+3. Construct one cumulative synthetic v0.1.5 checkpoint on top of `a798622f839b836f8b60f52dd700b8fd87147991`.
+4. Push the resulting boundary to `release/reconstructed-v0.1` and record its SHA.
+5. Do not create a tag or integrate main as a side effect unless separately approved.
