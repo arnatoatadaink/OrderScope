@@ -1,6 +1,6 @@
 # v0.1.6 UWBS-074 implementation progress — 2026-10-01
 
-Status: **LOCAL VALIDATION FAILED; FIX CANDIDATE PUSHED; RETEST REQUIRED**
+Status: **ACCEPTED**
 
 ## Dependency base
 
@@ -14,6 +14,12 @@ Development branch:
 
 ```text
 codex/uwbs-074-derivatives-archive
+```
+
+Accepted source head:
+
+```text
+709db5b94e2d7adcea8ce5566da8e3028dd420ee
 ```
 
 ## Implemented scope
@@ -40,7 +46,7 @@ Implemented archive semantics:
 - explicit catch-up lifecycle: `PENDING -> RUNNING -> COMPLETE` or `UNRECOVERABLE`;
 - terminal catch-up states cannot be reopened silently.
 
-## First local validation result
+## Validation history
 
 The first local validation attempt failed:
 
@@ -49,7 +55,7 @@ focused: 7 failed, 3 passed
 full:    7 failed, 687 passed, 1 warning
 ```
 
-Two independent defects were identified.
+Two independent defects were identified and corrected.
 
 ### Defect 1 — invalid test fixture chronology
 
@@ -61,13 +67,13 @@ available_at = t + 5s
 accepted_at  = t + 1s
 ```
 
-This violates the already-accepted UWBS-068 contract:
+This violated the already-accepted UWBS-068 contract:
 
 ```text
 observed_at <= available_at <= accepted_at
 ```
 
-The default `accepted_offset` was corrected to `10` seconds. This is a test-fixture defect, not a relaxation of the UWBS-068 contract.
+The default `accepted_offset` was corrected to `10` seconds. This was a test-fixture defect, not a relaxation of the UWBS-068 contract.
 
 Fix commit:
 
@@ -92,6 +98,21 @@ Fix commit:
 709db5b94e2d7adcea8ce5566da8e3028dd420ee  Fix UWBS-074 payload validation
 ```
 
+## Final local validation
+
+The fixed branch passed all required acceptance checks:
+
+```text
+focused crypto_archive: 10 passed in 1.36s
+full Python:             694 passed, 1 warning in 38.39s
+compileall:              PASS (no output)
+diff --check:            PASS (no output)
+```
+
+The remaining warning is the existing Starlette / anyio `BlockingPortal` deprecation warning and is unrelated to UWBS-074.
+
+TypeScript tests/typecheck were not required because the UWBS-074 diff is Python-only.
+
 ## Semantic boundary
 
 UWBS-074 defines lifecycle semantics only. It does not choose D1/R2/filesystem persistence or activate provider fetching.
@@ -110,7 +131,7 @@ catch-up lifecycle
 
 Provider history limits remain source facts from UWBS-070/073 and must be handled operationally. If a historical window is beyond recoverable provider history it may be marked `UNRECOVERABLE`; the archive must not fabricate data.
 
-## Candidate source commits
+## Source commits
 
 Initial implementation:
 
@@ -130,42 +151,10 @@ bda9950841403f948d386b0d005c4de03bb22f70  fixture chronology fix
 
 ## Diff audit
 
-Compared with accepted UWBS-073 source head, changes remain limited to the new crypto-archive package and its focused tests. No D1 migration, Worker/Cron, network fetch, provider credential, liquidation acquisition, Position Map, or TypeScript changes are included.
+Compared with accepted UWBS-073 source head, changes remain limited to the new crypto-archive package and its focused tests. No D1 migration, Worker/Cron, network fetch, provider credential, liquidation acquisition, Position Map, UWBS-084 BTC ETF flow, or TypeScript changes are included.
 
-## Focused test intent
+## Acceptance decision
 
-The committed suite covers:
+UWBS-074 is **Accepted**.
 
-1. deterministic/stable envelope hash;
-2. stable snapshot-key scope;
-3. insert + identical replay idempotency;
-4. newer revision replacement;
-5. older revision rejection;
-6. coalesced missing-window detection;
-7. no-gap behavior;
-8. pending -> running -> complete lifecycle;
-9. terminal unrecoverable state cannot reopen;
-10. invalid cadence rejection.
-
-## Required local revalidation
-
-```bash
-git fetch origin codex/uwbs-074-derivatives-archive
-git switch -C codex/uwbs-074-derivatives-archive \
-  origin/codex/uwbs-074-derivatives-archive
-
-uv run pytest -q analysis/tests/crypto_archive
-uv run pytest -q analysis/tests
-uv run python -m compileall -q analysis/app
-
-git diff --check \
-  d602de71a93b8ac8c8877c0d0114d66553046555..HEAD
-```
-
-TypeScript tests/typecheck are not required unless later work touches TypeScript/shared generated/build surfaces.
-
-## Acceptance limit
-
-UWBS-074 is **not accepted yet**. It may be accepted only after the focused/full Python regression, compileall and diff check pass on the fixed branch.
-
-Physical persistence backend selection and scheduled catch-up execution remain operational integration work; UWBS-074 establishes the deterministic lifecycle contract needed before those decisions.
+Physical persistence backend selection and scheduled catch-up execution remain operational integration work; UWBS-074 establishes the deterministic lifecycle contract required by later liquidation, position-map, and cross-venue quality work.
