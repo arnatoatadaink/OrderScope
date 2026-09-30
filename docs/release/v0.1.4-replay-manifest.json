@@ -3,8 +3,9 @@
   "version": "v0.1.4",
   "lane": "AI Theme",
   "parent_boundary": "b4df4e911597d9f17bfa0a50b2057c24159dee9f",
-  "status": "blocked_missing_accepted_implementation",
-  "apply_allowed": false,
+  "status": "experimental_uncalibrated_accepted",
+  "apply_allowed": true,
+  "release_classification": "experimental_uncalibrated",
   "canonical_ids": [
     "UWBS-062",
     "UWBS-063",
@@ -12,7 +13,10 @@
     "UWBS-065",
     "UWBS-066"
   ],
-  "source_commits": [],
+  "source_commits": [
+    "e018283549ccbb74ff5309fc4fe0b4addb91fa0d",
+    "c4f50c0878e001e8d6b031bf7f15ef188e3d4453"
+  ],
   "classified_candidates": [
     {
       "sha": "26212936cd2e0ac148e328f22bf58fe7ee59e6ce",
@@ -45,58 +49,47 @@
       "decision": "exclude_UWBS_093"
     }
   ],
-  "unresolved_required_roles": {
-    "UWBS-062": [
-      "MUST_REPLAY_IMPLEMENTATION",
-      "MUST_REPLAY_TEST",
-      "MUST_REPLAY_EXPORT",
-      "MUST_REPLAY_ACCEPTANCE_CONTENT"
+  "accepted_with_known_limitations": {
+    "historical_market_calibration": false,
+    "false_positive_rate_validated": false,
+    "persistence_thresholds_validated": false,
+    "numeric_event_theme_coefficients_validated": false,
+    "economic_materiality_validated": false,
+    "profit_attribution_validated": false
+  },
+  "interpretation_policy": {
+    "independent_axes": [
+      "theme_exposure",
+      "evidence_maturity",
+      "economic_materiality",
+      "persistence"
     ],
-    "UWBS-063": [
-      "MUST_REPLAY_IMPLEMENTATION",
-      "MUST_REPLAY_TEST",
-      "MUST_REPLAY_EXPORT",
-      "MUST_REPLAY_ACCEPTANCE_CONTENT"
+    "evidence_maturity_target_model": [
+      "NEWS",
+      "NARRATIVE",
+      "COMMERCIAL_EVIDENCE",
+      "RECURRING_EVIDENCE",
+      "PROFIT_ATTRIBUTED"
     ],
-    "UWBS-064": [
-      "MUST_REPLAY_IMPLEMENTATION",
-      "MUST_REPLAY_TEST",
-      "MUST_REPLAY_EXPORT",
-      "MUST_REPLAY_ACCEPTANCE_CONTENT"
-    ],
-    "UWBS-065": [
-      "MUST_REPLAY_IMPLEMENTATION",
-      "MUST_REPLAY_TEST",
-      "MUST_REPLAY_EXPORT",
-      "MUST_REPLAY_ACCEPTANCE_CONTENT"
-    ],
-    "UWBS-066": [
-      "MUST_REPLAY_IMPLEMENTATION",
-      "MUST_REPLAY_TEST",
-      "MUST_REPLAY_EXPORT",
-      "MUST_REPLAY_ACCEPTANCE_CONTENT"
-    ]
+    "prohibited_shortcut": "Do not equate theme relevance with realized revenue, recurring economics, profitability, or causal market impact."
+  },
+  "validation": {
+    "focused_python_passed": 12,
+    "full_python_passed": 626,
+    "full_python_warnings": 2,
+    "compileall": "passed",
+    "diff_check_vs_parent": "passed",
+    "typescript_source_changed": false
   },
   "audit_document": "docs/release/V0_1_4_AI_THEME_SOURCE_INVENTORY_2026-09-29.md",
-  "development_candidate": {
-    "branch": "codex/uwbs-062-066-ai-theme",
-    "classification": "UNACCEPTED_NEW_IMPLEMENTATION",
-    "paths": [
-      "analysis/app/orderscope_local/theme/",
-      "analysis/tests/theme/test_theme.py"
-    ],
-    "local_validation": {
-      "focused_python_passed": 12,
-      "full_python_passed": 626,
-      "compileall": "passed"
-    },
-    "remaining_gate": "source-grounded historical calibration and acceptance",
-    "commits": [
-      "e018283549ccbb74ff5309fc4fe0b4addb91fa0d",
-      "c4f50c0878e001e8d6b031bf7f15ef188e3d4453"
-    ]
-  },
   "progress_document": "docs/release/V0_1_4_AI_THEME_IMPLEMENTATION_PROGRESS_2026-09-30.md",
-  "unresolved_required_roles_semantics": "Accepted replay roles; the unaccepted development candidate does not close these gates.",
-  "boundary_report": "docs/release/V0_1_4_AI_THEME_BOUNDARY_REPORT_2026-09-30.md"
+  "boundary_report": "docs/release/V0_1_4_AI_THEME_BOUNDARY_REPORT_2026-09-30.md",
+  "remaining_nonblocking_work": [
+    "source-grounded positive/negative/contradictory/control historical cases",
+    "empirical confirmation thresholds",
+    "false-positive and mixed-regime validation",
+    "evidence maturity implementation",
+    "economic materiality and profit attribution contracts"
+  ],
+  "next_action": "Create one cumulative synthetic v0.1.4 checkpoint on release/reconstructed-v0.1 from the accepted v0.1.3 parent, then rerun regression, compile and diff checks."
 }
