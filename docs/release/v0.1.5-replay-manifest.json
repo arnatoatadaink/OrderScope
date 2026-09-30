@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "version": "v0.1.5",
+  "lane": "Listing Compliance / Earnings Repricing Canary",
+  "parent_boundary": "a798622f839b836f8b60f52dd700b8fd87147991",
+  "canonical_ids": ["UWBS-067"],
+  "status": "implementation_candidate_local_validation_pending",
+  "apply_allowed": false,
+  "source_commits": [],
+  "candidate_source_commits": [
+    "5410f77247ba6ab774ba16a3add6e8ec15a4df48",
+    "e6fc865cb917c32669cf9fe8e5ffa5c47ef87229",
+    "0cfb1102a26e4cdb94300656c22d802bb97fb392",
+    "44e7a2d31c6ef5ebebafb77fbe44ac307625b014"
+  ],
+  "candidate_branch": "codex/uwbs-067-listing-compliance",
+  "candidate_paths": [
+    "analysis/app/orderscope_local/listing_compliance/",
+    "analysis/tests/listing_compliance/test_listing_compliance.py"
+  ],
+  "acceptance_required": {
+    "focused_python": "pending",
+    "full_python": "pending",
+    "compileall": "pending",
+    "diff_check": "pending",
+    "typescript": "not_required_unless_surface_changes"
+  },
+  "historical_design_provenance": [
+    "1d158642f98ae57c2cd38ce76059b34b29426abb",
+    "d7eaffec4371a3594fcbc561cc1f2df5d136b059",
+    "cfc850c94738820f3b12e783791c9030edd216dc"
+  ],
+  "experimental_limitations": [
+    "no universal delisting probability model",
+    "no universal minimum-price or cure-duration threshold",
+    "no causal repricing attribution from price movement alone",
+    "no empirically calibrated repricing threshold"
+  ],
+  "progress_document": "docs/release/V0_1_5_LISTING_COMPLIANCE_IMPLEMENTATION_PROGRESS_2026-09-30.md",
+  "kickoff_document": "docs/release/V0_1_5_LISTING_COMPLIANCE_KICKOFF_2026-09-30.md"
+}
