@@ -1,6 +1,6 @@
 # v0.1.4 AI Theme boundary report — 2026-09-30
 
-Status: **EXPERIMENTAL / UNCALIBRATED RELEASE ACCEPTED; SYNTHETIC BOUNDARY CREATION PENDING**
+Status: **EXPERIMENTAL / UNCALIBRATED ACCEPTED; SYNTHETIC BOUNDARY PUSHED**
 
 ## Decision
 
@@ -11,6 +11,7 @@ The accepted reconstructed parent remains:
 
 ```text
 v0.1.3 = b4df4e911597d9f17bfa0a50b2057c24159dee9f
+v0.1.4 = a798622f839b836f8b60f52dd700b8fd87147991
 ```
 
 The canonical v0.1.4 scope is UWBS-062..066. Commit
@@ -163,6 +164,8 @@ Until that work is accepted, all empirically derived confirmation criteria must 
 
 ## Release action
 
-The replay manifest may now allow the two accepted source commits. The next release operation is to create exactly one cumulative synthetic v0.1.4 checkpoint on `release/reconstructed-v0.1`, using v0.1.3 as parent, then rerun the accepted regression / compile / diff checks.
+The two accepted source commits were replayed into one cumulative synthetic v0.1.4 checkpoint, `a798622f839b836f8b60f52dd700b8fd87147991`, on `release/reconstructed-v0.1` and pushed to origin. Its parent is exactly `b4df4e911597d9f17bfa0a50b2057c24159dee9f`. Local acceptance passed: 12 focused tests, 626 full Python tests with 2 warnings, compileall and diff check. No TypeScript source changed.
+
+Historical empirical confirmation thresholds are not validated. False-positive rate is not validated on accepted historical samples. Persistence criteria are provisional. Economic materiality is not validated. Profit attribution is not implemented as an accepted validation layer.
 
 No tag or `main` integration is implied by this decision.

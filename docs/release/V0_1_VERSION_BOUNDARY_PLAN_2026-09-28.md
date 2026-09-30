@@ -74,7 +74,7 @@ Each synthetic checkpoint is a release identity. It does not replace the histori
 | `v0.1.1` | Operational / runtime extensions | UWBS-001..004, UWBS-016, UWBS-023..026; R0-001..009; W1 runtime capability | **Reconstructed; local acceptance passed** | `bada5bff803321427eb3c8eb1f3d159460ba5dd1` |
 | `v0.1.2` | Macro / carry context | UWBS-011..015 -> A0-003..007 | **Reconstructed; local acceptance passed** | `f69c52bf574212d1506df81abc7b15694abb7922` |
 | `v0.1.3` | Cross-market / competitor / official macro adapters | UWBS-027..036 -> A0-008..017 | **Reconstructed; local acceptance passed** | `b4df4e911597d9f17bfa0a50b2057c24159dee9f` |
-| `v0.1.4` | AI theme lane | UWBS-062..066 | **Blocked: no accepted implementation inventory** | `V0_1_4_AI_THEME_SOURCE_INVENTORY_2026-09-29.md` |
+| `v0.1.4` | AI theme lane | UWBS-062..066 | **Experimental / uncalibrated accepted; local acceptance passed** | `a798622f839b836f8b60f52dd700b8fd87147991` |
 | `v0.1.5` | Listing-compliance lane | UWBS-067 | **Reserved: design/backlog only in reviewed history** | `V0_1_5_TO_V0_1_6_BOUNDARY_READINESS_2026-09-29.md` |
 | `v0.1.6` | Crypto market-structure lane | UWBS-068..079 | **Reserved: design/backlog only in reviewed history** | `V0_1_5_TO_V0_1_6_BOUNDARY_READINESS_2026-09-29.md` |
 | `v0.1.7` | Oil / commodity / cross-asset | UWBS-080..086 | **Accepted / taggable after integration validation** | `33ca0587d6105202f791f0c8c6c4e9cd6da3ac3d` |
@@ -203,9 +203,9 @@ However the historical line is not a pure release boundary because UWBS-027..031
 The accepted cumulative boundary on reconstructed v0.1.2 is
 `b4df4e911597d9f17bfa0a50b2057c24159dee9f`.
 
-## 9. Reserved versions v0.1.4..v0.1.6
+## 9. v0.1.4 acceptance and reserved v0.1.5..v0.1.6
 
-These numbers remain intentionally reserved:
+The current states are:
 
 ```text
 v0.1.4  UWBS-062..066  AI theme
@@ -213,10 +213,14 @@ v0.1.5  UWBS-067       Listing compliance
 v0.1.6  UWBS-068..079  Crypto market structure
 ```
 
-The v0.1.4 source audit confirms the canonical ID mapping but finds no accepted
-implementation inventory. The v0.1.5–v0.1.6 readiness audit finds design/backlog
-source without a verified implementation closeout. No synthetic checkpoint has
-been added beyond v0.1.3.
+v0.1.4 is accepted as an experimental / uncalibrated development release at
+`a798622f839b836f8b60f52dd700b8fd87147991`, with parent
+`b4df4e911597d9f17bfa0a50b2057c24159dee9f`. Historical empirical confirmation
+thresholds and false-positive rate on accepted historical samples are not validated.
+Persistence criteria are provisional. Economic materiality is not validated, and
+profit attribution is not implemented as an accepted validation layer. The
+v0.1.5–v0.1.6 readiness audit finds design/backlog source without a verified
+implementation closeout.
 
 A registered UWBS ID or branch is not sufficient for a release tag.
 
