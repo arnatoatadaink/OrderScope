@@ -1,6 +1,6 @@
 # v0.1.6 UWBS-068 implementation progress — 2026-09-30
 
-Status: **WEB IMPLEMENTATION CANDIDATE CREATED; LOCAL VALIDATION PENDING**
+Status: **ACCEPTED FOR v0.1.6 DEVELOPMENT LINE**
 
 ## Parent boundary
 
@@ -16,9 +16,18 @@ codex/uwbs-068-crypto-derivatives-contract
 
 The branch is based directly on the accepted v0.1.5 synthetic boundary.
 
+## Accepted source commits
+
+```text
+d8a549101ceda885e7dc67628dc8985654543891  contracts
+06687d3f48d58329538d1cbfa6dda1c802438442  deterministic metrics
+1061c291ef084013f7f77793f81f0631fdebb1f5  public exports
+716644a679f8f353d409e48ec06351dc38c2060e  focused tests
+```
+
 ## Implemented scope
 
-UWBS-068 now has a compact source-neutral Python contract:
+UWBS-068 provides a compact source-neutral Python contract:
 
 ```text
 analysis/app/orderscope_local/crypto_derivatives/
@@ -56,14 +65,21 @@ Implemented deterministic metrics:
 
 No metric asserts trader identity, long-only capital inflow, institutional participation, or causality.
 
-## Candidate source commits
+## Acceptance evidence
+
+Local validation reported on 2026-09-30:
 
 ```text
-d8a549101ceda885e7dc67628dc8985654543891  contracts
-06687d3f48d58329538d1cbfa6dda1c802438442  deterministic metrics
-1061c291ef084013f7f77793f81f0631fdebb1f5  public exports
-716644a679f8f353d409e48ec06351dc38c2060e  focused tests
+focused Python: 9 passed
+full Python:    644 passed, 1 warning
+compileall:     PASS
+diff check:     PASS
+TypeScript:     not required — Python-only diff
 ```
+
+`compileall` and `git diff --check` produced no error output and are recorded as PASS.
+
+The warning is the pre-existing Starlette/AnyIO deprecation warning and is not specific to UWBS-068.
 
 ## Diff audit
 
@@ -78,45 +94,9 @@ analysis/tests/crypto_derivatives/test_crypto_derivatives.py
 
 No UWBS-069+ implementation, UWBS-084 BTC spot ETF code, provider activation, Worker/Cron change, D1 mutation, or TypeScript change is included.
 
-## Focused test intent
+## Acceptance limits
 
-The committed test suite covers:
-
-1. partial/missing provider fields remain explicit;
-2. UTC and observed/available/accepted ordering;
-3. negative unsigned measures rejected;
-4. empty observations rejected;
-5. OI delta lineage and deterministic calculation;
-6. venue/instrument series mixing rejected;
-7. funding delta and basis calculation;
-8. long/short liquidation values kept separate;
-9. zero-liquidation bucket semantics;
-10. invalid liquidation bucket/time/amount rejection.
-
-The web connector cannot execute these tests. Local validation is required before acceptance.
-
-## Local validation
-
-```bash
-git fetch origin codex/uwbs-068-crypto-derivatives-contract
-git switch -C codex/uwbs-068-crypto-derivatives-contract \
-  origin/codex/uwbs-068-crypto-derivatives-contract
-
-uv run pytest -q analysis/tests/crypto_derivatives
-uv run pytest -q analysis/tests
-uv run python -m compileall -q analysis/app
-
-git diff --check \
-  415de1f1dd42f70bd66992961cb43be7edba6ade..HEAD
-```
-
-TypeScript tests/typecheck are not required unless later work changes TypeScript/shared generated/build surfaces.
-
-## Acceptance limit
-
-UWBS-068 may be accepted when focused/full Python regression, compileall and diff check pass.
-
-The following remain outside UWBS-068 and must not be pulled forward:
+The following remain outside UWBS-068 and must not be pulled backward into this accepted unit:
 
 - BTC leader/altcoin-relative interpretation (`UWBS-069`);
 - institutional-flow/provider survey (`UWBS-070`);
@@ -129,3 +109,7 @@ The following remain outside UWBS-068 and must not be pulled forward:
 - divergence/quality guards (`UWBS-077`);
 - Canaries (`UWBS-078..079`);
 - BTC spot ETF flow implementation (`UWBS-084`).
+
+## Next action
+
+Proceed to `UWBS-069` using the accepted UWBS-068 branch as the development prerequisite. Do not create the cumulative v0.1.6 synthetic boundary until UWBS-068..079 acceptance is complete.
