@@ -1,4 +1,4 @@
-"""UWBS-068/073/075 crypto derivatives contracts, metrics, adapters, and liquidation normalization."""
+"""UWBS-068/073/075/076 crypto derivatives contracts, metrics, adapters, liquidation normalization, and Position Map estimates."""
 
 from .adapters import (
     CryptoDerivativeAdapterError,
@@ -34,6 +34,7 @@ from .models import (
     LiquidationObservation,
     MarginType,
 )
+from .position_map import PositionBandEstimate, estimate_position_band
 
 __all__ = [
     "ContractType",
@@ -45,8 +46,10 @@ __all__ = [
     "LiquidationObservation",
     "LiquidationSide",
     "MarginType",
+    "PositionBandEstimate",
     "aggregate_liquidation_bucket",
     "basis_bps",
+    "estimate_position_band",
     "funding_delta",
     "liquidation_acceleration_usd",
     "liquidation_directional_share",
