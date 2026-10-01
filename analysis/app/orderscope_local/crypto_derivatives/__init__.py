@@ -1,4 +1,4 @@
-"""UWBS-068/073/075/076 crypto derivatives contracts, metrics, adapters, liquidation normalization, and Position Map estimates."""
+"""UWBS-068/073/075/076/077 crypto derivatives contracts, metrics, adapters, Position Map estimates, and cross-venue QA."""
 
 from .adapters import (
     CryptoDerivativeAdapterError,
@@ -6,6 +6,13 @@ from .adapters import (
     normalize_bybit_ticker,
     normalize_hyperliquid_asset_ctx,
     normalize_okx_public_snapshot,
+)
+from .cross_venue_qa import (
+    CrossVenueDiagnostic,
+    comparable_snapshot_group,
+    diagnose_funding_rate,
+    diagnose_mark_price,
+    diagnose_open_interest_usd,
 )
 from .liquidation_metrics import (
     liquidation_acceleration_usd,
@@ -38,6 +45,7 @@ from .position_map import PositionBandEstimate, estimate_position_band
 
 __all__ = [
     "ContractType",
+    "CrossVenueDiagnostic",
     "CryptoDerivativeAdapterError",
     "CryptoDerivativeContractError",
     "CryptoDerivativeMetric",
@@ -49,6 +57,10 @@ __all__ = [
     "PositionBandEstimate",
     "aggregate_liquidation_bucket",
     "basis_bps",
+    "comparable_snapshot_group",
+    "diagnose_funding_rate",
+    "diagnose_mark_price",
+    "diagnose_open_interest_usd",
     "estimate_position_band",
     "funding_delta",
     "liquidation_acceleration_usd",
