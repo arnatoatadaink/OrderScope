@@ -1,4 +1,4 @@
-"""UWBS-068/073 crypto derivatives contracts, metrics, and adapters."""
+"""UWBS-068/073/075 crypto derivatives contracts, metrics, adapters, and liquidation normalization."""
 
 from .adapters import (
     CryptoDerivativeAdapterError,
@@ -6,6 +6,19 @@ from .adapters import (
     normalize_bybit_ticker,
     normalize_hyperliquid_asset_ctx,
     normalize_okx_public_snapshot,
+)
+from .liquidation_metrics import (
+    liquidation_acceleration_usd,
+    liquidation_directional_share,
+    liquidation_event_rate,
+    liquidation_multiplier,
+    liquidation_total_usd,
+)
+from .liquidations import (
+    LiquidationEvent,
+    LiquidationSide,
+    aggregate_liquidation_bucket,
+    liquidation_event,
 )
 from .metrics import (
     CryptoDerivativeMetric,
@@ -28,11 +41,20 @@ __all__ = [
     "CryptoDerivativeContractError",
     "CryptoDerivativeMetric",
     "CryptoDerivativeObservation",
+    "LiquidationEvent",
     "LiquidationObservation",
+    "LiquidationSide",
     "MarginType",
+    "aggregate_liquidation_bucket",
     "basis_bps",
     "funding_delta",
+    "liquidation_acceleration_usd",
+    "liquidation_directional_share",
+    "liquidation_event",
+    "liquidation_event_rate",
     "liquidation_imbalance",
+    "liquidation_multiplier",
+    "liquidation_total_usd",
     "normalize_binance_coinm_open_interest",
     "normalize_bybit_ticker",
     "normalize_hyperliquid_asset_ctx",
