@@ -1,4 +1,4 @@
-"""UWBS-068/073/075/076/077 crypto derivatives contracts, metrics, adapters, Position Map estimates, and cross-venue QA."""
+"""UWBS-068/073/075/076/077/078 crypto derivatives contracts, metrics, adapters, Position Map estimates, cross-venue QA, and NEAR futures Canary."""
 
 from .adapters import (
     CryptoDerivativeAdapterError,
@@ -41,6 +41,7 @@ from .models import (
     LiquidationObservation,
     MarginType,
 )
+from .near_futures_canary import NearFuturesPositionCanary, build_near_futures_position_canary
 from .position_map import PositionBandEstimate, estimate_position_band
 
 __all__ = [
@@ -54,9 +55,11 @@ __all__ = [
     "LiquidationObservation",
     "LiquidationSide",
     "MarginType",
+    "NearFuturesPositionCanary",
     "PositionBandEstimate",
     "aggregate_liquidation_bucket",
     "basis_bps",
+    "build_near_futures_position_canary",
     "comparable_snapshot_group",
     "diagnose_funding_rate",
     "diagnose_mark_price",
