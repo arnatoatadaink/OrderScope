@@ -2,7 +2,7 @@
 
 Status: **CURRENT CANONICAL PROVISIONAL-ID REGISTRY**
 Scope: Local Corporate Intelligence / WBS-unreflected backlog governance
-Branch: `l1-003-local-market-recovery`
+Branch: `docs/v0-1-10-release-cp`
 
 ## 1. Purpose
 
@@ -118,6 +118,17 @@ The following IDs are new canonical provisional IDs and do not remap historical 
 | UWBS-099 | Define MSTR/BTC IV differential and cross-asset volatility interpretation |
 | UWBS-100 | Historical calibration, Canary/false-positive and Worker/D1 capacity acceptance |
 
+### Crypto on-chain event-intelligence lane — v0.1.10
+
+The following IDs are new canonical provisional IDs and do not remap historical aliases. Source planning record: `WBS_UNREFLECTED_CRYPTO_ONCHAIN_SECURITY_EXTENSION_2026-10-02.md`. They are incorporated into the active release/feature CP for `v0.1.10`.
+
+| Canonical provisional ID | Task |
+|---|---|
+| UWBS-101 | Define cross-chain protocol wallet/component registry and confirmed on-chain transfer Fact contract |
+| UWBS-102 | Implement abnormal on-chain flow Derived Metrics and candidate-state machine |
+| UWBS-103 | Join on-chain anomaly candidates with price/OI/funding/liquidation market confirmation |
+| UWBS-104 | Build historical crypto exploit price-impact dataset and NEAR Intents replay fixture |
+
 ## 4. Canonical dependency references
 
 All new dependency and CP references use canonical IDs.
@@ -128,7 +139,7 @@ UWBS-062 -> UWBS-063 -> UWBS-064 -> UWBS-065 -> UWBS-066
 UWBS-020 -> UWBS-064 / UWBS-066
 UWBS-021 -> UWBS-065 / UWBS-066
 
-Crypto
+Crypto market structure
 UWBS-068 -> UWBS-069
 UWBS-068 -> UWBS-073 -> UWBS-074 -> UWBS-075
 UWBS-074 + UWBS-075 -> UWBS-076
@@ -156,6 +167,11 @@ UWBS-094 -> UWBS-097
 UWBS-094 -> UWBS-098
 UWBS-097 + UWBS-098 -> UWBS-099
 UWBS-096 + UWBS-099 -> UWBS-100
+
+Crypto on-chain event intelligence / v0.1.10
+UWBS-101 -> UWBS-102 -> UWBS-103 -> UWBS-104
+UWBS-068..079 + UWBS-102 -> UWBS-103
+UWBS-068..079 + UWBS-101..103 -> UWBS-104
 ```
 
 ## 5. Discovery-reference normalization
@@ -168,30 +184,37 @@ DISC-009 -> UWBS-080..086
 DISC-010 -> UWBS-087..093
 ```
 
-The crypto lane sourced from the crypto macro-leader / derivatives reports is canonicalized as `UWBS-068..079`.
+The crypto market-structure lane sourced from the crypto macro-leader / derivatives reports is canonicalized as `UWBS-068..079`.
 
 The VIX / cross-asset volatility lane is registered directly through the dedicated 2026-09-27 WBS-unreflected extension as `UWBS-094..100`; no historical colliding Discovery alias is required.
+
+The crypto on-chain event-intelligence lane is registered through the 2026-10-02 extension as `UWBS-101..104` and assigned to `v0.1.10` in the active release CP.
 
 ## 6. Usage rule
 
 From this registry onward:
 
 1. never create a new task using a historical colliding alias;
-2. use canonical `UWBS-062..100` IDs for the remapped/new lanes;
+2. use canonical `UWBS-062..104` IDs for the remapped/new lanes;
 3. when quoting an older report, preserve the legacy alias but add `canonical: UWBS-xxx` when ambiguity matters;
 4. final WBS incorporation updates this registry with the final package/task ID;
-5. do not renumber already incorporated formal tasks merely to make historical numbering contiguous.
+5. do not renumber already incorporated formal tasks merely to make historical numbering contiguous;
+6. release numbering does not alter canonical UWBS identifiers.
 
-## 7. GOV-CP-01 acceptance effect
+## 7. Current CP effect
 
-This registry resolves the active-ID ambiguity identified by `CURRENT_CRITICAL_PATH_RECONCILIATION.md` while preserving append-only provenance.
+The previous market-independent restart at `UWBS-080` is superseded by accepted later evidence. Current release/feature sequencing is defined by:
 
-The previously identified market-independent CP entry remains canonical `UWBS-080`:
+`docs/release/V0_1_7_TO_V0_1_10_RELEASE_CP_2026-10-02.md`
+
+Current selected sequence:
 
 ```text
-UWBS-080 — Define direct WTI / Brent Macro Instrument contract and provider survey
+REL-07 v0.1.7 boundary confirmation
+  -> REL-08 v0.1.8 boundary confirmation
+  -> REL-09 v0.1.9 boundary confirmation
+  -> UWBS-101 -> UWBS-102 -> UWBS-103 -> UWBS-104
+  -> REL-10C v0.1.10 cumulative acceptance
 ```
 
-The VIX / cross-asset volatility lane is a separate **CP candidate only** until formal WBS/CP incorporation. Its common prerequisite is `UWBS-094`.
-
-No provider activation, Worker/Cron change, D1 mutation, PB authorization, paid procurement, or trading action is authorized by this registry.
+No provider activation, Worker/Cron change, D1 mutation, PB authorization, paid procurement, automated trading action, or security-incident assertion is authorized by this registry.
