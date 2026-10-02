@@ -1,6 +1,7 @@
 """Verify two bounded read results against accepted Phase A custody; no writes."""
 import hashlib
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -11,7 +12,8 @@ def require(condition, message):
         raise SystemExit(message)
 
 root = Path(__file__).resolve().parent.parent
-custody = root / "var/d1-custody/l1-003-smoke-007-20260915"
+custody = Path(os.environ.get("ORDERSCOPE_PB09_CUSTODY_DIR",
+    root / "var/d1-custody/l1-003-smoke-007-20260915"))
 expected = (custody / "normalized_bar_20260901T160300Z_20260901T160400Z.ndjson").read_bytes()
 manifest = json.loads((custody / "export-manifest.json").read_text())
 require(len(expected) == 581 and hashlib.sha256(expected).hexdigest() == manifest["sha256"] == "de380ae35c1ab50f5e0364585e7f3224512085dc3bcd4abff8e37631938bed56", "accepted custody bytes changed")

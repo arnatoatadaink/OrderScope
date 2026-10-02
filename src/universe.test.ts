@@ -1,11 +1,20 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  CANARY_EQUITY_V01_UNIVERSE_REVISION,
   CANARY_V01_UNIVERSE_REVISION,
   V01_UNIVERSE,
   V01_UNIVERSE_REVISION,
   loadUniverseSnapshot,
 } from "./universe.ts";
+
+test("temporary equity canary profile preserves the four reviewed stock routes", () => {
+  const snapshot = loadUniverseSnapshot("canary-equity-v0.1", "2026-09-28T15:00:00.000Z");
+  assert.equal(snapshot.revision, CANARY_EQUITY_V01_UNIVERSE_REVISION);
+  assert.deepEqual(snapshot.instruments, ["SPY", "QQQ", "NVDA", "AMD"].map((symbol) => ({
+    symbol, cadence: "1Min", providerRoute: "alpaca_stock_bars",
+  })));
+});
 
 test("canary profile contains only the reviewed instruments and routes", () => {
   const snapshot = loadUniverseSnapshot("canary-v0.1", "2026-08-30T00:00:00.000Z");
