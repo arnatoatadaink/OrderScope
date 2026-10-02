@@ -1,0 +1,45 @@
+name: REL-08 v0.1.8 validation
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout reconstructed v0.1.8 candidate
+        uses: actions/checkout@v4
+        with:
+          ref: 5069f81af63a554d0f2412f0309cc2244f95434e
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install Python dependencies
+        run: uv sync
+      - name: Install Node dependencies
+        run: npm ci
+      - name: Physical-SaaS focused tests
+        run: |
+          uv run pytest -q analysis/tests/contracts/test_physical_saas_deployment.py analysis/tests/contracts/test_physical_saas_financial_quality.py analysis/tests/physical_saas
+      - name: Full Python regression
+        run: uv run pytest -q analysis/tests
+      - name: Python compileall
+        run: uv run python -m compileall -q analysis/app
+      - name: Worker tests
+        run: npm test
+      - name: Worker typecheck
+        run: npm run typecheck
+      - name: Diff check
+        run: git diff --check
