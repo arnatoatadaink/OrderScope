@@ -212,6 +212,82 @@ def test_merge_shape_and_unknown_edge_refs_are_rejected() -> None:
         SegmentIdentityHistory(versions=(version,), edges=(edge,))
 
 
+def test_history_edge_cannot_cross_issuers() -> None:
+    provenance = _provenance("https://www.sec.gov/example/cross", "1" * 64)
+    amd = SegmentIdentityVersion(
+        segment_id="amd:segment:a",
+        instrument_id="AMD",
+        classification_role=SegmentClassificationRole.REPORTABLE_SEGMENT,
+        issuer_label="A",
+        valid_from=date(2025, 1, 1),
+        valid_to=None,
+        as_reported_at=date(2025, 2, 1),
+        filing_accession="0000002488-25-000001",
+        provenance=provenance,
+    )
+    nvda = SegmentIdentityVersion(
+        segment_id="nvda:segment:b",
+        instrument_id="NVDA",
+        classification_role=SegmentClassificationRole.REPORTABLE_SEGMENT,
+        issuer_label="B",
+        valid_from=date(2025, 1, 1),
+        valid_to=None,
+        as_reported_at=date(2025, 2, 1),
+        filing_accession="0001045810-25-000001",
+        provenance=provenance,
+    )
+    edge = SegmentHistoryEdge(
+        change=SegmentHistoryChange.RENAMED,
+        from_segment_ids=(amd.segment_id,),
+        to_segment_ids=(nvda.segment_id,),
+        effective_on=date(2025, 1, 1),
+        as_reported_at=date(2025, 2, 1),
+        filing_accession="0000002488-25-000001",
+        provenance=provenance,
+    )
+    with pytest.raises(ContractViolation, match="cross instruments"):
+        SegmentIdentityHistory(versions=(amd, nvda), edges=(edge,))
+
+
+def test_recast_must_preserve_stable_identity() -> None:
+    provenance = _provenance("https://www.sec.gov/example/recast-shape", "2" * 64)
+    versions = (
+        SegmentIdentityVersion(
+            segment_id="amd:segment:a",
+            instrument_id="AMD",
+            classification_role=SegmentClassificationRole.REPORTABLE_SEGMENT,
+            issuer_label="A",
+            valid_from=date(2024, 1, 1),
+            valid_to=None,
+            as_reported_at=date(2025, 2, 1),
+            filing_accession="0000002488-25-000001",
+            provenance=provenance,
+        ),
+        SegmentIdentityVersion(
+            segment_id="amd:segment:b",
+            instrument_id="AMD",
+            classification_role=SegmentClassificationRole.REPORTABLE_SEGMENT,
+            issuer_label="B",
+            valid_from=date(2024, 1, 1),
+            valid_to=None,
+            as_reported_at=date(2025, 2, 1),
+            filing_accession="0000002488-25-000001",
+            provenance=provenance,
+        ),
+    )
+    edge = SegmentHistoryEdge(
+        change=SegmentHistoryChange.RECAST,
+        from_segment_ids=("amd:segment:a",),
+        to_segment_ids=("amd:segment:b",),
+        effective_on=date(2025, 1, 1),
+        as_reported_at=date(2025, 2, 1),
+        filing_accession="0000002488-25-000001",
+        provenance=provenance,
+    )
+    with pytest.raises(ContractViolation, match="preserve one stable segment identity"):
+        SegmentIdentityHistory(versions=versions, edges=(edge,))
+
+
 def test_resolution_never_uses_issuer_label_as_identity() -> None:
     provenance = _provenance("https://www.sec.gov/nvda/graphics", "f" * 64)
     history = SegmentIdentityHistory(

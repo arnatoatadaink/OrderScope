@@ -122,6 +122,13 @@ class SegmentIdentityHistory:
             refs = set(edge.from_segment_ids) | set(edge.to_segment_ids)
             if not refs.issubset(known):
                 raise ContractViolation("segment history edge references unknown segment id")
+            instruments = {
+                version.instrument_id
+                for segment_id in refs
+                for version in by_id[segment_id]
+            }
+            if len(instruments) != 1:
+                raise ContractViolation("segment history edge cannot cross instruments")
             if edge.change is SegmentHistoryChange.RENAMED:
                 if len(edge.from_segment_ids) != 1 or len(edge.to_segment_ids) != 1:
                     raise ContractViolation("rename must be one-to-one")
@@ -131,6 +138,18 @@ class SegmentIdentityHistory:
             if edge.change is SegmentHistoryChange.SPLIT:
                 if len(edge.from_segment_ids) != 1 or len(edge.to_segment_ids) < 2:
                     raise ContractViolation("split must be one-to-many")
+            if edge.change is SegmentHistoryChange.RECAST:
+                if (
+                    len(edge.from_segment_ids) != 1
+                    or edge.from_segment_ids != edge.to_segment_ids
+                ):
+                    raise ContractViolation("recast must preserve one stable segment identity")
+            if edge.change is SegmentHistoryChange.INTRODUCED:
+                if edge.from_segment_ids or len(edge.to_segment_ids) != 1:
+                    raise ContractViolation("introduced must create exactly one segment identity")
+            if edge.change is SegmentHistoryChange.RETIRED:
+                if len(edge.from_segment_ids) != 1 or edge.to_segment_ids:
+                    raise ContractViolation("retired must close exactly one segment identity")
 
 
 def resolve_segment_version(

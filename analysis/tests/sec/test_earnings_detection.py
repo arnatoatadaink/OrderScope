@@ -76,6 +76,17 @@ def test_8k_item_202_is_an_explicit_candidate() -> None:
     assert candidate.attachment_refs == ()
 
 
+def test_8k_amendment_with_item_202_remains_an_explicit_candidate() -> None:
+    candidate = detect_sec_earnings_candidate(
+        filing(form="8-K/A", accession="0000002488-26-000122"),
+        item_numbers=("2.02",),
+    )
+
+    assert candidate is not None
+    assert candidate.filing.form == "8-K/A"
+    assert candidate.reasons == (SecEarningsDetectionReason.CURRENT_REPORT_ITEM_202,)
+
+
 def test_8k_earnings_attachment_is_candidate_and_preserves_ref() -> None:
     record = filing(form="8-K")
     hint = attachment(record, description="Quarterly Financial Results")

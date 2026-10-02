@@ -30,9 +30,10 @@ def _prov(ref: str, digest: str = "a" * 64) -> Provenance:
     )
 
 
-def _fact(*, dimensions=(), value="88299000000", ref="https://www.sec.gov/xbrl/nvda") -> XbrlFact:
+def _fact(*, dimensions=(), value="88299000000", ref="https://www.sec.gov/xbrl/nvda",
+          concept="us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax") -> XbrlFact:
     return XbrlFact(
-        concept="us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax",
+        concept=concept,
         value=Decimal(value),
         unit="USD",
         period=XbrlPeriod(START, END),
@@ -158,6 +159,43 @@ def test_quarter_and_ytd_are_not_interchangeable() -> None:
     )
     assert result.observation is None
     assert result.attempts[1].failure_reason is SegmentRevenueFailureReason.CONTEXT_MEMBER_UNRESOLVED
+
+
+def test_non_revenue_concept_is_not_selected_as_segment_revenue() -> None:
+    wrong = _fact(concept="us-gaap:NetIncomeLoss")
+    result = resolve_segment_revenue(
+        instrument_id="NVDA",
+        raw_label="Compute & Networking",
+        classification_role="reportable_segment",
+        period_start=START,
+        period_end=END,
+        source_accession=ACC,
+        company_facts=(wrong,),
+        company_facts_provenance=_prov(wrong.source_ref),
+        company_facts_failure=SegmentRevenueFailureReason.CONCEPT_NOT_FOUND,
+    )
+
+    assert result.observation is None
+    assert result.attempts[0].failure_reason is SegmentRevenueFailureReason.CONCEPT_NOT_FOUND
+
+
+def test_explicit_custom_revenue_concept_can_be_accepted() -> None:
+    dims = (XbrlDimension("us-gaap:OperatingSegmentsAxis", "nvda:ComputeNetworkingMember"),)
+    custom = _fact(dimensions=dims, concept="nvda:SegmentRevenue")
+    result = resolve_segment_revenue(
+        instrument_id="NVDA",
+        raw_label="Compute & Networking",
+        classification_role="reportable_segment",
+        period_start=START,
+        period_end=END,
+        source_accession=ACC,
+        dimension_facts=(custom,),
+        dimension_provenance=_prov(custom.source_ref),
+        revenue_concepts=("nvda:SegmentRevenue",),
+    )
+
+    assert result.observation is not None
+    assert result.observation.concept_qname == "nvda:SegmentRevenue"
 
 
 def test_successful_xbrl_requires_real_matching_provenance() -> None:

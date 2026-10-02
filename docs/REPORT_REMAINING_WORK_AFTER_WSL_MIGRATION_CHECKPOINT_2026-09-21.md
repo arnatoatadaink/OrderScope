@@ -220,8 +220,8 @@ I0-002 provenance / timestamp共通型
 | DEV-S0-003 | FilingRecord persistence | **完了 / Accepted** | migration追加・fixture修正後、21件PASS・diffなしを確認。`REPORT_DEV_S0_003_FILING_RECORD_PERSISTENCE_ACCEPTANCE_2026-09-23.md`参照 |
 | DEV-S0-004 | strict SEC form filter | 完了 | 追加作業なし |
 | DEV-S0-005 | filing-document acquisition | **完了 / Accepted** | fixture強化後、18件PASS・diffなしを確認。`REPORT_DEV_S0_005_FILING_DOCUMENT_ACQUISITION_ACCEPTANCE_2026-09-23.md`参照 |
-| DEV-S0-006 | Company Facts/XBRL adapter | **次の本流** | S0-005 Accepted。既存先行実装・unit/period/dimension/source境界を再レビュー |
-| DEV-S0-007 | SEC統合受入 | 部分完了 | S0-002/003/005/006待ち |
+| DEV-S0-006 | Company Facts/XBRL adapter | **完了 / Accepted** | bounded retry修正後、指定受入テスト27件PASSを確認。`REPORT_DEV_S0_006_COMPANY_FACTS_XBRL_ACCEPTANCE_2026-09-23.md`参照 |
+| DEV-S0-007 | SEC統合受入 | **完了 / Accepted** | S0 SEC統合受入94件PASSを確認。`REPORT_DEV_S0_007_FILING_DETECTION_ACCEPTANCE_2026-09-23.md`参照 |
 
 ## 5. Web調査側の保留タスク
 
@@ -229,13 +229,13 @@ I0-002 provenance / timestamp共通型
 
 | Web ID | 状態 | 解放条件 |
 |---|---|---|
-| WEB-010 | 保留（依存） | E0-004〜006のfield / identity形状確定 |
+| WEB-010 | **着手可能** | E0-004〜006のfield / identity形状確定により依存解除 |
 | WEB-013 | 保留（依存） | WEB-007とI0-005のcontract方針確定 |
 | WEB-014 | 保留（依存） | WEB-008、WEB-010、local評価形状 |
 | WEB-019 | 保留（依存） | local official adapter / Relationship形状確定 |
 | WEB-020 | 保留（依存） | local official feed実装・試験証跡 |
 
-これらはlocal実装が進んだ時点で再評価する。現時点で追加Web調査を先行させない。
+E0-001〜007完了によりWeb保留タスクを再評価する。少なくともWEB-010は依存解除済み。WEB-014はWEB-010完了後に再評価し、N1/O0/X0の次経路へ反映する。
 
 ## 6. 移行とは分離する後続保守
 
@@ -267,4 +267,12 @@ I0-002 provenance / timestamp共通型
 
 ## 9. 区切り時点の判定
 
-2026-09-22時点で、Windows側source + WSL runtimeへの移行は **完了**。MIG-09E正式受入、MIG-09F Git最終確認、CodexDesktop側検収合格を通過した。通常開発へ復帰し、`DEV-I0-002`〜`DEV-I0-007` は正式受入まで完了した。現在の本流は `DEV-S0-003 FilingRecord persistence` である。
+2026-09-23時点で、Windows側source + WSL runtimeへの移行は **完了**。`DEV-I0-002`〜`DEV-I0-007`、`DEV-S0-002`〜`DEV-S0-007`、`DEV-E0-001`〜`DEV-E0-007` は正式受入まで完了した。現在の本流は、E0完了により依存解除された `WEB-010` の再開である。
+
+| DEV-E0-001 | earnings event/result contract | **完了 / Accepted** | 指定受入テスト17件PASSを確認。`REPORT_DEV_E0_001_EARNINGS_EVENT_RESULT_CONTRACT_ACCEPTANCE_2026-09-23.md`参照 |
+| DEV-E0-002 | SEC earnings detection | **完了 / Accepted** | 指定受入テスト21件PASSを確認。`REPORT_DEV_E0_002_SEC_EARNINGS_DETECTION_ACCEPTANCE_2026-09-23.md`参照 |
+| DEV-E0-003 | company-IR fallback | **完了 / Accepted** | 指定受入テスト27件PASSを確認。`REPORT_DEV_E0_003_COMPANY_IR_FALLBACK_ACCEPTANCE_2026-09-23.md`参照 |
+| DEV-E0-004 | basic earnings Facts | **完了 / Accepted** | 指定受入テスト18件PASSを確認。`REPORT_DEV_E0_004_BASIC_EARNINGS_FACTS_ACCEPTANCE_2026-09-23.md`参照 |
+| DEV-E0-005 | segment-revenue fallback | **完了 / Accepted** | 指定受入テスト26件PASSを確認。`REPORT_DEV_E0_005_SEGMENT_REVENUE_FALLBACK_ACCEPTANCE_2026-09-23.md`参照 |
+| DEV-E0-006 | SegmentIdentityHistory | **完了 / Accepted** | 指定受入テスト17件PASSを確認。`REPORT_DEV_E0_006_SEGMENT_IDENTITY_HISTORY_ACCEPTANCE_2026-09-23.md`参照 |
+| DEV-E0-007 | earnings Canary quality report | **完了 / Accepted** | 指定受入テスト32件PASSを確認。これによりE0-001〜007完了。`REPORT_DEV_E0_007_EARNINGS_CANARY_QUALITY_ACCEPTANCE_2026-09-23.md`参照 |

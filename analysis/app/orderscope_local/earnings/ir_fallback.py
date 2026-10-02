@@ -9,7 +9,7 @@ evidence rather than replacing or duplicating the SEC event.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime, timedelta
 from enum import IntEnum, StrEnum
 from urllib.parse import urlparse
 
@@ -25,6 +25,12 @@ class IrReleaseSource(StrEnum):
 class EarningsSourcePriority(IntEnum):
     SEC = 0
     ISSUER_IR = 1
+
+
+class IrFetchStatus(StrEnum):
+    COMPLETE = "complete"
+    PARTIAL = "partial"
+    ERROR = "error"
 
 
 _ALLOWED_HOSTS = {
@@ -70,6 +76,41 @@ class IrReleaseRecord:
             raise ContractViolation("IR period_end must be a date")
         if self.published_at is not None and not isinstance(self.published_at, SourceTimestamp):
             raise ContractViolation("IR published_at must be a SourceTimestamp")
+
+
+@dataclass(frozen=True, slots=True)
+class IrFallbackPage:
+    source: IrReleaseSource
+    discovery_url: str
+    releases: tuple[IrReleaseRecord, ...]
+    status: IrFetchStatus
+    retrieved_at: datetime
+    error_category: str | None = None
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.source, IrReleaseSource):
+            raise ContractViolation("IR fallback source is invalid")
+        _require_https_host(self.discovery_url, self.source, "discovery_url")
+        if not isinstance(self.releases, tuple) or any(
+            not isinstance(item, IrReleaseRecord) for item in self.releases
+        ):
+            raise ContractViolation("IR fallback page contains invalid releases")
+        if any(item.source is not self.source for item in self.releases):
+            raise ContractViolation("IR fallback page contains cross-source release")
+        if any(item.discovery_url != self.discovery_url for item in self.releases):
+            raise ContractViolation("IR fallback page release discovery_url does not match page")
+        if not isinstance(self.status, IrFetchStatus):
+            raise ContractViolation("IR fallback status is invalid")
+        if self.retrieved_at.tzinfo is None or self.retrieved_at.utcoffset() != timedelta(0):
+            raise ContractViolation("IR fallback retrieved_at must be normalized to UTC")
+        if self.status is IrFetchStatus.COMPLETE:
+            if self.error_category is not None:
+                raise ContractViolation("complete IR fallback page cannot carry error_category")
+        else:
+            if not isinstance(self.error_category, str) or not self.error_category.strip():
+                raise ContractViolation("partial/error IR fallback page requires error_category")
+        if self.status is IrFetchStatus.ERROR and self.releases:
+            raise ContractViolation("error IR fallback page cannot carry successful releases")
 
 
 @dataclass(frozen=True, slots=True)

@@ -8,6 +8,8 @@ from .basic_facts import (
 from .ir_fallback import (
     EarningsEvidenceBundle,
     EarningsSourcePriority,
+    IrFallbackPage,
+    IrFetchStatus,
     IrReleaseRecord,
     IrReleaseSource,
     reconcile_sec_ir_evidence,
@@ -48,6 +50,8 @@ __all__ = [
     "extract_basic_earnings_records",
     "EarningsEvidenceBundle",
     "EarningsSourcePriority",
+    "IrFallbackPage",
+    "IrFetchStatus",
     "IrReleaseRecord",
     "IrReleaseSource",
     "reconcile_sec_ir_evidence",

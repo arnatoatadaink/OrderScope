@@ -38,7 +38,8 @@ def _prov(url: str, digest: str) -> Provenance:
     )
 
 
-def _fact(*, instrument: str, fy: str, fq: str, end: date, amount: str, source: EarningsQualitySource, digest: str = "a") -> EarningsFactEvidence:
+def _fact(*, instrument: str, fy: str, fq: str, end: date, amount: str, source: EarningsQualitySource,
+          digest: str = "a", currency: str = "USD") -> EarningsFactEvidence:
     if source is EarningsQualitySource.SEC:
         url = f"https://www.sec.gov/Archives/edgar/data/1/{instrument.lower()}-{end}.htm"
     elif instrument == "AMD":
@@ -52,7 +53,7 @@ def _fact(*, instrument: str, fy: str, fq: str, end: date, amount: str, source: 
         period_end=end,
         metric_type=BasicEarningsMetricType.REVENUE,
         value=Decimal(amount),
-        currency="USD",
+        currency=currency,
         accounting_basis=AccountingBasis.GAAP,
         assertion_kind=FactAssertionKind.OBSERVATION,
         provenance=_prov(url, digest * 64),
@@ -130,6 +131,62 @@ def test_segment_quality_reports_success_method_and_complete_failure_path() -> N
         "xbrl_dimension:context_member_unresolved",
         "filing_table:table_layout_unresolved",
     )
+
+
+def test_same_amount_with_different_currency_is_conflict() -> None:
+    facts = (
+        _fact(
+            instrument="AMD",
+            fy="FY2026",
+            fq="Q2",
+            end=date(2026, 6, 27),
+            amount="11536",
+            source=EarningsQualitySource.SEC,
+            digest="a",
+            currency="USD",
+        ),
+        _fact(
+            instrument="AMD",
+            fy="FY2026",
+            fq="Q2",
+            end=date(2026, 6, 27),
+            amount="11536",
+            source=EarningsQualitySource.ISSUER_IR,
+            digest="b",
+            currency="JPY",
+        ),
+    )
+    report = build_earnings_canary_quality_report(earnings_facts=facts, segment_checks=())
+
+    assert report.metric_conflicts == 1
+    row = report.metric_rows[0]
+    assert dict(row.currencies_by_source) == {"issuer_ir": "JPY", "sec": "USD"}
+
+
+def test_quality_source_requires_exact_official_hostname() -> None:
+    observation = ObservedEarningsMetric(
+        instrument_id="AMD",
+        fiscal_year_label="FY2026",
+        fiscal_quarter="Q2",
+        period_end=date(2026, 6, 27),
+        metric_type=BasicEarningsMetricType.REVENUE,
+        value=Decimal("1"),
+        currency="USD",
+        accounting_basis=AccountingBasis.GAAP,
+        assertion_kind=FactAssertionKind.OBSERVATION,
+        provenance=_prov("https://evilsec.gov.example/amd", "9" * 64),
+    )
+    fact = next(
+        record
+        for record in extract_basic_earnings_records((observation,))
+        if isinstance(record, Fact)
+    )
+
+    import pytest
+    from orderscope_local.contracts import ContractViolation
+
+    with pytest.raises(ContractViolation, match="SEC provenance"):
+        EarningsFactEvidence(EarningsQualitySource.SEC, fact)
 
 
 def test_markdown_is_deterministic_and_surfaces_conflicts() -> None:

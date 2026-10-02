@@ -13,6 +13,7 @@ from datetime import date
 from enum import StrEnum
 from types import MappingProxyType
 from typing import Mapping
+from urllib.parse import urlparse
 
 from orderscope_local.contracts import ContractViolation, Fact
 
@@ -46,11 +47,14 @@ class EarningsFactEvidence:
         if not isinstance(self.fact, Fact) or not self.fact.fact_type.startswith("earnings."):
             raise ContractViolation("earnings quality evidence requires an earnings Fact")
         source_ref = self.fact.provenance.source_ref.value
-        if self.source is EarningsQualitySource.SEC and "sec.gov" not in source_ref:
+        host = urlparse(source_ref).hostname
+        if self.source is EarningsQualitySource.SEC and host not in {"www.sec.gov", "data.sec.gov"}:
             raise ContractViolation("SEC quality evidence must use SEC provenance")
-        if self.source is EarningsQualitySource.ISSUER_IR and not any(
-            host in source_ref for host in ("ir.amd.com", "investor.nvidia.com", "nvidianews.nvidia.com")
-        ):
+        if self.source is EarningsQualitySource.ISSUER_IR and host not in {
+            "ir.amd.com",
+            "investor.nvidia.com",
+            "nvidianews.nvidia.com",
+        }:
             raise ContractViolation("issuer IR quality evidence must use configured issuer provenance")
 
 
@@ -64,6 +68,8 @@ class EarningsMetricQuality:
     accounting_basis: str
     status: MetricReconciliationStatus
     values_by_source: Mapping[str, str]
+    units_by_source: Mapping[str, str]
+    currencies_by_source: Mapping[str, str]
     fact_record_ids: tuple[str, ...]
 
     def __post_init__(self) -> None:
@@ -74,6 +80,10 @@ class EarningsMetricQuality:
         if not isinstance(self.values_by_source, Mapping) or not self.values_by_source:
             raise ContractViolation("metric quality row requires source values")
         object.__setattr__(self, "values_by_source", MappingProxyType(dict(self.values_by_source)))
+        object.__setattr__(self, "units_by_source", MappingProxyType(dict(self.units_by_source)))
+        object.__setattr__(self, "currencies_by_source", MappingProxyType(dict(self.currencies_by_source)))
+        if set(self.values_by_source) != set(self.units_by_source) or set(self.values_by_source) != set(self.currencies_by_source):
+            raise ContractViolation("metric quality source semantics must have matching source keys")
         if len(self.fact_record_ids) != len(set(self.fact_record_ids)) or not self.fact_record_ids:
             raise ContractViolation("metric quality Fact references must be unique and non-empty")
 
@@ -186,17 +196,26 @@ def build_earnings_canary_quality_report(
     for key in sorted(grouped, key=lambda item: (item[0], item[3], item[4], item[5], item[1], item[2])):
         items = grouped[key]
         by_source: dict[str, str] = {}
+        units_by_source: dict[str, str] = {}
+        currencies_by_source: dict[str, str] = {}
+        semantic_by_source: dict[str, tuple[str, str, str]] = {}
         record_ids: list[str] = []
         for evidence in sorted(items, key=lambda item: (item.source.value, item.fact.record_id)):
             amount = str(evidence.fact.value["amount"])
-            previous = by_source.get(evidence.source.value)
-            if previous is not None and previous != amount:
+            currency = str(evidence.fact.value.get("currency", ""))
+            unit = evidence.fact.unit or ""
+            semantics = (amount, currency, unit)
+            previous = semantic_by_source.get(evidence.source.value)
+            if previous is not None and previous != semantics:
                 raise ContractViolation("same source has conflicting basic earnings Facts for one quality key")
+            semantic_by_source[evidence.source.value] = semantics
             by_source[evidence.source.value] = amount
+            currencies_by_source[evidence.source.value] = currency
+            units_by_source[evidence.source.value] = unit
             record_ids.append(evidence.fact.record_id)
         if len(by_source) == 1:
             status = MetricReconciliationStatus.SINGLE_SOURCE
-        elif len(set(by_source.values())) == 1:
+        elif len(set(semantic_by_source.values())) == 1:
             status = MetricReconciliationStatus.AGREEMENT
         else:
             status = MetricReconciliationStatus.CONFLICT
@@ -210,6 +229,8 @@ def build_earnings_canary_quality_report(
                 accounting_basis=key[5],
                 status=status,
                 values_by_source=by_source,
+                units_by_source=units_by_source,
+                currencies_by_source=currencies_by_source,
                 fact_record_ids=tuple(record_ids),
             )
         )
