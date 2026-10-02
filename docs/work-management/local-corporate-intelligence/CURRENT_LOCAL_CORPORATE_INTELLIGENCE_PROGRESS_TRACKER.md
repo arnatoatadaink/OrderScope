@@ -128,6 +128,8 @@ State: **PARKED** until the applicable market-session execution window is intent
 
 ## 8. Current market-independent CP
 
+### Oil / commodity / cross-asset lane
+
 ```text
 UWBS-080  Direct WTI / Brent Macro Instrument contract + provider survey   [ACCEPTED]
    |
@@ -146,80 +148,52 @@ UWBS-085  cross-asset Risk-On / Crypto Risk-On regime                     [ACCEP
 UWBS-086  historical Canary + Worker/D1 capacity acceptance               [ACCEPTED — CURRENT CHECKED-IN SHADOW RUNTIME]
 ```
 
-### UWBS-080 current state
-
-Status: **ACCEPTED**
-
-Acceptance evidence: `UWBS-080_LOCAL_ACCEPTANCE_2026-09-27.md`
-
-### UWBS-081 current state
-
-Status: **ACCEPTED**
-
-Acceptance evidence: `UWBS-081_LOCAL_ACCEPTANCE_2026-09-27.md`
+### Physical-SaaS lane
 
 ```text
-commodity fundamental contract: 9 passed
-EIA petroleum normalizer:        7 passed
-full Python regression:          725 passed
-compileall:                      PASS
-git diff --check:                PASS
+UWBS-087  Physical-SaaS deployment lifecycle Fact contract                [ACCEPTED]
+   |
+   v
+UWBS-088  operational-milestone extraction and reconciliation             [IMPLEMENTED / LOCAL ACCEPTANCE PENDING]
+   |
+   v
+UWBS-089  deployment-funnel Derived Metrics and slippage interpretation    [PENDING]
+
+UWBS-087 -> UWBS-090  recurring-revenue quality/cash conversion model      [PENDING]
+UWBS-088 -> UWBS-091  M&A integration / legacy-system evidence overlay     [PENDING]
+UWBS-087 -> UWBS-092  Physical-SaaS classifier/applicability guard         [PENDING]
+UWBS-089 + UWBS-090 + UWBS-091 + UWBS-092 -> UWBS-093 Canary              [PENDING]
 ```
 
-### UWBS-082 current state
+### UWBS-087 current state
 
 Status: **ACCEPTED**
 
-Acceptance evidence: `UWBS-082_LOCAL_ACCEPTANCE_2026-09-27.md`
+Acceptance evidence: `UWBS-087_LOCAL_ACCEPTANCE_2026-09-27.md`
 
 ```text
-commodity event focused tests: 7 passed
-full Python regression:        732 passed
-compileall:                    PASS
-git diff --check:              PASS
+Physical-SaaS deployment focused tests: 10 passed in 1.95s
+full Python regression:                845 passed in 47.84s
+compileall:                            PASS
+git diff --check:                     PASS
 ```
 
-### UWBS-083 current state
+Accepted boundary keeps source-observed physical deployment lifecycle Facts separate from backlog, bookings, connected-base totals, billing, ARR and recognized revenue.
 
-Status: **ACCEPTED**
+### UWBS-088 current state
 
-Acceptance evidence: `UWBS-083_LOCAL_ACCEPTANCE_2026-09-27.md`
+Status: **IMPLEMENTED / LOCAL ACCEPTANCE PENDING**
+
+Design evidence: `UWBS-088_OPERATIONAL_MILESTONE_RECONCILIATION_2026-09-27.md`
+
+Implementation:
 
 ```text
-commodity interpretation focused tests: 8 passed
-full Python regression:                 740 passed
-compileall:                             PASS
-git diff --check:                       PASS
+analysis/app/orderscope_local/physical_saas/milestone_reconciliation.py
+analysis/tests/physical_saas/test_milestone_reconciliation.py
 ```
 
-### UWBS-084 current state
-
-Status: **ACCEPTED**
-
-Acceptance evidence: `UWBS-084_LOCAL_ACCEPTANCE_2026-09-27.md`
-
-```text
-BTC spot ETF flow contract:     7 passed
-BTC spot ETF flow normalizer:   6 passed
-full Python regression:       753 passed
-compileall:                    PASS
-git diff --check:              PASS
-```
-
-### UWBS-085 current state
-
-Status: **ACCEPTED**
-
-Acceptance evidence: `UWBS-085_LOCAL_ACCEPTANCE_2026-09-27.md`
-
-```text
-cross-asset regime focused tests: 9 passed
-full Python regression:          762 passed
-compileall:                      PASS
-git diff --check:                PASS
-```
-
-Accepted boundary requires multiple independent signal classes and prevents a single BTC move, ETF-flow print or commodity interpretation from establishing a broad Risk-On regime.
+Reconciliation keeps duplicate, consistent, conflict and insufficient-identity outcomes explicit. It does not silently choose a preferred source or convert commercial guidance into deployment evidence.
 
 ### UWBS-086 current state
 
@@ -305,10 +279,10 @@ No live provider activation, Worker/Cron mutation, D1 mutation, PB execution, pa
 ### Selected restart point
 
 ```text
-UWBS-086 current shadow boundary is CLOSED / ACCEPTED
-  -> preserve accepted evidence
-  -> future WORKER_MODE=live capacity is a separate pre-live gate
-  -> otherwise resume the next canonical market-independent task from WBS/CP
+PB lane remains PARKED
+UWBS-087 is ACCEPTED
+  -> verify UWBS-088 locally
+  -> if accepted, advance to UWBS-089
 ```
 
 ## 9. Restart rule
@@ -322,4 +296,4 @@ After an interruption:
 5. for market-dependent work, refresh only time-dependent preflight inputs;
 6. for market-independent work, resume at the first incomplete canonical dependency.
 
-Current UWBS-086 shadow boundary is closed. Do not reopen it merely because a calendar day changed. Reopen capacity only if the accepted runtime boundary materially changes, especially `WORKER_MODE=live`, cron cadence, D1 schema/indexes, digest retention, news enablement, or acquisition limits.
+Do not reopen accepted boundaries merely because a calendar day changed. Reopen capacity only if the accepted runtime boundary materially changes, especially `WORKER_MODE=live`, cron cadence, D1 schema/indexes, digest retention, news enablement, or acquisition limits.
