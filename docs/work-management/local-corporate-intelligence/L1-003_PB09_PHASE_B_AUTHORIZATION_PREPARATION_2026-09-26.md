@@ -1,5 +1,12 @@
 # L1-003 PB-09 Phase B authorization preparation
 
+Sep 28 update: the earlier two-approval sequence below is superseded for the
+Sep 28 same-session attempt by the
+[PB-10 combined-window template](L1-003_PB10_COMBINED_WINDOW_AUTHORIZATION_TEMPLATE.md)
+and its guarded driver. A single explicit approval can cover both bounded
+stages after fresh session evidence is supplied. This historical preparation
+remains the source of the Phase B entry and acceptance rules.
+
 Status: **PREPARATION COMPLETE / ACTIVE-SESSION ENTRY FREEZE PENDING / NOT AUTHORIZED**
 Date: 2026-09-26 JST
 Branch: l1-003-local-market-recovery

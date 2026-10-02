@@ -1,5 +1,9 @@
 # L1-003 / SMOKE-007 Phase B — market-session authorization template
 
+Sep 28 update: for the combined checkpoint catch-up and Phase B window, use
+[the PB-10 combined authorization template](L1-003_PB10_COMBINED_WINDOW_AUTHORIZATION_TEMPLATE.md).
+The separate-authority wording below documents the earlier proposal.
+
 Status: **TEMPLATE / NOT AUTHORIZED / DO NOT EXECUTE**
 
 Complete the variable fields from fresh evidence. A blank or stale field means
