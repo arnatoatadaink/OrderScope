@@ -1,0 +1,56 @@
+name: REL-07 v0.1.7 validation
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout reconstructed v0.1.7 candidate
+        uses: actions/checkout@v4
+        with:
+          ref: 4ec40a8279e5650f2faebb0cbf30aac0ddc77383
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install Python dependencies
+        run: uv sync
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Crypto focused tests
+        run: |
+          uv run pytest -q analysis/tests/crypto_archive analysis/tests/crypto_canary analysis/tests/crypto_context analysis/tests/crypto_derivatives analysis/tests/crypto_time
+
+      - name: Full Python regression
+        run: uv run pytest -q analysis/tests
+
+      - name: Python compileall
+        run: uv run python -m compileall -q analysis/app
+
+      - name: Worker tests
+        run: npm test
+
+      - name: Worker typecheck
+        run: npm run typecheck
+
+      - name: Diff check
+        run: git diff --check
