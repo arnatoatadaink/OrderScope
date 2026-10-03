@@ -29,42 +29,44 @@ If context is insufficient, retain the reference as `AMBIGUOUS`; never guess a m
 
 ## 3. Canonical post-100 backlog disposition
 
-| Canonical UWBS | Task | Previous state | Final WBS ID | Disposition |
-|---|---|---|---|---|
-| UWBS-105 | Macro Release Surprise / Yen Carry Flow Observability | Ready for WBS design | A0-018 | **Incorporated** |
-| UWBS-106 | Cross-chain project/wallet/contract registry + confirmed-transfer Fact | Ready for WBS design | C0-001 | **Incorporated** |
-| UWBS-107 | Abnormal on-chain flow Derived Metrics + candidate-state machine | Ready for WBS design | C0-002 | **Incorporated** |
-| UWBS-108 | On-chain anomaly × price/OI/funding/liquidation context join | Ready for WBS design | C0-003 | **Incorporated** |
-| UWBS-109 | Historical exploit price-impact dataset + NEAR Intents replay | Ready for WBS design | C0-004 | **Incorporated** |
+| Canonical UWBS | Task | Historical planning state | Final WBS ID | Disposition | Release |
+|---|---|---|---|---|---|
+| UWBS-105 | Macro Release Surprise / Yen Carry Flow Observability | Ready for WBS design | A0-018 | **Incorporated / implementation pending** | **v0.1.12** |
+| UWBS-106 | Cross-chain project/wallet/contract registry + confirmed-transfer Fact | Ready for WBS design | C0-001 | **Incorporated / implementation pending** | **v0.1.11 REL-11A** |
+| UWBS-107 | Abnormal on-chain flow Derived Metrics + candidate-state machine | Ready for WBS design | C0-002 | **Incorporated / implementation pending** | **v0.1.11 REL-11B** |
+| UWBS-108 | On-chain anomaly × price/OI/funding/liquidation context join | Ready for WBS design | C0-003 | **Incorporated / implementation pending** | **v0.1.11 REL-11C** |
+| UWBS-109 | Historical exploit price-impact dataset + NEAR Intents replay | Ready for WBS design | C0-004 | **Incorporated / implementation pending** | **v0.1.11 REL-11D** |
 
 Formal WBS authorities:
 
 - `docs/WORK_BREAKDOWN_ANALYST_CROSS_MARKET_POST100_2026-10-03.md`
 - `docs/WORK_BREAKDOWN_CRYPTO_ONCHAIN_EVENT_INTELLIGENCE_2026-10-03.md`
 
-## 4. Canonical dependency chain
+Release authority:
 
-Macro:
+- `docs/release/V0_1_11_V0_1_12_RELEASE_PLAN_2026-10-03.md`
+
+## 4. Canonical dependency chains
+
+Macro / v0.1.12:
 
 ```text
-UWBS-011 / A0-003
-   +
-UWBS-012 / A0-004
+A0-003 + A0-004 + A0-013..016
    |
    v
-UWBS-105 / A0-018
+A0-018 / UWBS-105
    |
    v
-UWBS-013 / A0-005 existing carry-unwind path
+A0-005 existing carry-unwind / deleveraging path
 ```
 
-Crypto:
+Crypto / v0.1.11:
 
 ```text
-UWBS-106 / C0-001
-   -> UWBS-107 / C0-002
-   -> UWBS-108 / C0-003
-   -> UWBS-109 / C0-004
+C0-001 / UWBS-106
+   -> C0-002 / UWBS-107
+   -> C0-003 / UWBS-108
+   -> C0-004 / UWBS-109
    -> REL-11X
 
 UWBS-068..079
@@ -79,22 +81,26 @@ For current planning:
 1. UWBS-105..109 are no longer merely WBS-unreflected proposals; they have formal WBS destinations.
 2. Their implementation status remains pending until task-specific acceptance evidence exists.
 3. Incorporation does not imply implementation acceptance.
-4. Historical source reports remain immutable provenance.
-5. New documents use final WBS IDs when discussing formal execution and may include canonical UWBS source IDs for traceability.
+4. Historical source reports remain planning provenance and may retain their original filenames.
+5. New documents use final WBS IDs for formal execution and may include canonical UWBS source IDs for traceability.
 6. New documents never use UWBS-101..104 as active IDs.
 
 ## 6. Release effect
 
-`v0.1.11` is the Crypto On-chain Event Intelligence release lane and formally comprises:
-
 ```text
-C0-001 / UWBS-106
-C0-002 / UWBS-107
-C0-003 / UWBS-108
-C0-004 / UWBS-109
+v0.1.11 = C0-001..004 / UWBS-106..109
+v0.1.12 = A0-018 / UWBS-105
 ```
 
-UWBS-105 / A0-018 is a separate Macro/Carry lane and is not included in v0.1.11 by default.
+Planned order:
+
+```text
+v0.1.11 REL-11A -> REL-11B -> REL-11C -> REL-11D -> REL-11X
+   then
+v0.1.12 REL-12A -> REL-12B -> REL-12C -> A0-005 path -> REL-12D -> REL-12X
+```
+
+A0-018 is not technically dependent on C0-001..004; the ordering is release governance.
 
 ## 7. Authorization boundary
 
