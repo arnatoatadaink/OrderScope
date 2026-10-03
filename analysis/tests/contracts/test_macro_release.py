@@ -2,6 +2,11 @@ from datetime import datetime, timezone
 
 import pytest
 
+from orderscope_local.contracts import (
+    MacroReleaseFamily as ExportedMacroReleaseFamily,
+    MacroReleaseObservation as ExportedMacroReleaseObservation,
+    MacroReleaseValueRole as ExportedMacroReleaseValueRole,
+)
 from orderscope_local.contracts.errors import ContractViolation
 from orderscope_local.contracts.macro_release import (
     MacroReleaseFamily,
@@ -47,6 +52,12 @@ def observation(**overrides: object) -> MacroReleaseObservation:
     }
     values.update(overrides)
     return MacroReleaseObservation(**values)  # type: ignore[arg-type]
+
+
+def test_public_contract_exports_match_implementation_types() -> None:
+    assert ExportedMacroReleaseFamily is MacroReleaseFamily
+    assert ExportedMacroReleaseObservation is MacroReleaseObservation
+    assert ExportedMacroReleaseValueRole is MacroReleaseValueRole
 
 
 def test_actual_release_materializes_as_observation_fact() -> None:
