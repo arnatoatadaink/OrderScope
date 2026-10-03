@@ -1,6 +1,6 @@
 # OrderScope — Current Critical Path Reconciliation
 
-Status: **CURRENT DATE-INDEPENDENT OPERATING INDEX**
+Status: **CURRENT DATE-INDEPENDENT OPERATING INDEX / MANAGEMENT INTEGRATED**
 Updated: 2026-10-03
 Scope: release management + canonical WBS / CP restart authority
 
@@ -21,9 +21,23 @@ Companion authorities are:
 - `docs/release/V0_1_0_TO_V0_1_10_FINAL_TAG_LEDGER_2026-10-03.md`
 - `docs/release/V0_1_11_V0_1_12_RELEASE_PLAN_2026-10-03.md`
 
-Historical dated CP documents remain evidence. They do not override the authorities above.
+Historical dated CP documents and the integration pre-review remain evidence. They do not override the authorities above.
 
-## 2. Accepted release state
+## 2. Management integration state
+
+The management refresh branch was squash-merged into `main` on 2026-10-03.
+
+```text
+main integration commit:
+f9dc1270db8d3b167a163edd8a0475747e2a404b
+
+commit message:
+docs: reconcile management authorities and plan v0.1.11-v0.1.12
+```
+
+The squash commit uses the same final tree as the reviewed management branch head. The branch may appear diverged after squash because it retains the original review commits; this is expected and does not indicate content drift at the merge boundary.
+
+## 3. Accepted release state
 
 ```text
 v0.1.0..v0.1.10  ACCEPTED / TAG READY
@@ -37,7 +51,7 @@ The former PB-09/PB-10 pending state is historical. The reconstructed PB closeou
 
 Any future live-market execution is a new operational action and still requires fresh authorization.
 
-## 3. Canonical namespace
+## 4. Canonical namespace
 
 ```text
 UWBS-101..104  FROZEN / CONFLICT / LEGACY-ONLY
@@ -50,7 +64,7 @@ UWBS-109       C0-004  historical exploit / replay
 
 Historical references to `UWBS-101..104` may be retained as provenance, but they must not be used as active implementation IDs. Context-insufficient historical references remain `AMBIGUOUS`.
 
-## 4. Current release CP
+## 5. Current release CP
 
 ### v0.1.11 — Crypto On-chain Event Intelligence
 
@@ -77,11 +91,11 @@ REL-12A  A0-018 macro release Fact / consensus / revision
 
 A0-018 extends the accepted macro/carry foundation; it does not duplicate `CARRY_UNWIND_CANDIDATE` or `DELEVERAGING_REGIME`.
 
-## 5. Selected restart point
+## 6. Selected restart point
 
-Management refresh MFR-01..06 is complete on the management branch. Current work is integration pre-review.
+Management refresh MFR-01..06 and its integration review are complete.
 
-After integration review, the selected feature restart is:
+The selected feature restart is now:
 
 ```text
 v0.1.11 REL-11A
@@ -97,7 +111,7 @@ v0.1.12 REL-12A
 
 The release order is a planning decision; A0-018 has no technical dependency on C0-001..004.
 
-## 6. Restart rule
+## 7. Restart rule
 
 After an interruption:
 
@@ -108,6 +122,7 @@ After an interruption:
 5. use the final tag ledger for v0.1.0..v0.1.10 boundaries;
 6. use the v0.1.11/v0.1.12 release plan for planned release work;
 7. never restart accepted UWBS-080..100 or PB-00..PB-10 work;
-8. never start new work under frozen UWBS-101..104.
+8. never start new work under frozen UWBS-101..104;
+9. resume current feature work from `v0.1.11 REL-11A / C0-001 / UWBS-106` until evidence advances the CP.
 
 No provider activation, Worker/Cron mutation, D1 mutation, paid procurement, live PB execution, automated trading, tag creation, history rewrite, or force push is authorized by this index.
