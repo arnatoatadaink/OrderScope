@@ -9,19 +9,20 @@ MFR-06 closes the management-file refresh work package that converts the reconci
 
 ## 2. Completed incorporation
 
-| Canonical source | Formal WBS ID | Capability | State after MFR-06 |
-|---|---|---|---|
-| UWBS-105 | A0-018 | Macro Release Surprise / Yen Carry Flow Observability | Formally incorporated; implementation pending |
-| UWBS-106 | C0-001 | Project/wallet/contract registry + confirmed-transfer Fact | Formally incorporated; implementation pending |
-| UWBS-107 | C0-002 | Abnormal on-chain flow metrics/state | Formally incorporated; implementation pending |
-| UWBS-108 | C0-003 | On-chain anomaly × market-context join | Formally incorporated; implementation pending |
-| UWBS-109 | C0-004 | Historical exploit/replay dataset | Formally incorporated; implementation pending |
+| Canonical source | Formal WBS ID | Capability | Release | State after MFR-06 |
+|---|---|---|---|---|
+| UWBS-105 | A0-018 | Macro Release Surprise / Yen Carry Flow Observability | **v0.1.12** | Formally incorporated; implementation pending |
+| UWBS-106 | C0-001 | Project/wallet/contract registry + confirmed-transfer Fact | **v0.1.11 REL-11A** | Formally incorporated; implementation pending |
+| UWBS-107 | C0-002 | Abnormal on-chain flow metrics/state | **v0.1.11 REL-11B** | Formally incorporated; implementation pending |
+| UWBS-108 | C0-003 | On-chain anomaly × market-context join | **v0.1.11 REL-11C** | Formally incorporated; implementation pending |
+| UWBS-109 | C0-004 | Historical exploit/replay dataset | **v0.1.11 REL-11D** | Formally incorporated; implementation pending |
 
-Formal authorities created:
+Formal authorities:
 
 - `docs/WORK_BREAKDOWN_ANALYST_CROSS_MARKET_POST100_2026-10-03.md`
 - `docs/WORK_BREAKDOWN_CRYPTO_ONCHAIN_EVENT_INTELLIGENCE_2026-10-03.md`
 - `docs/work-management/local-corporate-intelligence/WBS_UNREFLECTED_TASK_BACKLOG_CANONICAL_APPEND_2026-10-03.md`
+- `docs/release/V0_1_11_V0_1_12_RELEASE_PLAN_2026-10-03.md`
 
 ## 3. Namespace closure
 
@@ -30,24 +31,26 @@ Formal authorities created:
 Canonical interpretation:
 
 ```text
-old Macro UWBS-101 -> UWBS-105 -> A0-018
-old Crypto UWBS-101 -> UWBS-106 -> C0-001
-old Crypto UWBS-102 -> UWBS-107 -> C0-002
-old Crypto UWBS-103 -> UWBS-108 -> C0-003
-old Crypto UWBS-104 -> UWBS-109 -> C0-004
+old Macro UWBS-101  -> UWBS-105 -> A0-018 -> v0.1.12
+old Crypto UWBS-101 -> UWBS-106 -> C0-001 -> v0.1.11 REL-11A
+old Crypto UWBS-102 -> UWBS-107 -> C0-002 -> v0.1.11 REL-11B
+old Crypto UWBS-103 -> UWBS-108 -> C0-003 -> v0.1.11 REL-11C
+old Crypto UWBS-104 -> UWBS-109 -> C0-004 -> v0.1.11 REL-11D
 ```
 
 No context-insufficient reference is auto-remapped.
 
 ## 4. Critical-path effect
 
-Macro lane:
+Macro / v0.1.12:
 
 ```text
-A0-003 + A0-004 -> A0-018 -> A0-005 existing carry-unwind path
+A0-003 + A0-004 + A0-013..016
+  -> A0-018
+  -> A0-005 existing carry-unwind / deleveraging path
 ```
 
-Crypto / v0.1.11 lane:
+Crypto / v0.1.11:
 
 ```text
 C0-001 -> C0-002 -> C0-003 -> C0-004 -> REL-11X
@@ -65,11 +68,11 @@ It does not claim that A0-018 or C0-001..004 are implemented or accepted. It doe
 
 ```text
 MFR-01 Namespace reconciliation       COMPLETE
-MFR-02 Release/TAG READY reconcile    COMPLETE for current planning authority
+MFR-02 Release/TAG READY reconcile    COMPLETE
 MFR-03 CURRENT CP                     COMPLETE
 MFR-04 CURRENT UWBS                   COMPLETE
 MFR-05 Overall tracker                COMPLETE
 MFR-06 Formal WBS/backlog             COMPLETE
 ```
 
-The remaining repository-management action is integration review of this branch against `main`; merge/tag actions remain separate and require the normal authorization boundary.
+The remaining repository-management action is integration pre-review / merge-readiness review of this branch against `main`. Merge and tag actions remain separate authorization boundaries.
