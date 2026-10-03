@@ -1,6 +1,6 @@
 # OrderScope — Current Critical Path Reconciliation
 
-Status: **CURRENT DATE-INDEPENDENT OPERATING INDEX / v0.1.11 ACCEPTED**
+Status: **CURRENT DATE-INDEPENDENT OPERATING INDEX / v0.1.11 ACCEPTED / SESSION CLOSED**
 Updated: 2026-10-03
 Scope: release management + canonical WBS / CP restart authority
 
@@ -19,16 +19,17 @@ Companion authorities are:
 - `WBS_PROVISIONAL_ID_REGISTRY.md`
 - `UWBS_101_104_NAMESPACE_RECONCILIATION_2026-10-03.md`
 - `docs/release/V0_1_0_TO_V0_1_10_FINAL_TAG_LEDGER_2026-10-03.md`
+- `docs/release/V0_1_0_TO_V0_1_11_TAG_READY_STATUS_2026-10-03.md`
 - `docs/release/V0_1_11_V0_1_12_RELEASE_PLAN_2026-10-03.md`
 - `REL_11X_V0_1_11_ACCEPTANCE_2026-10-03.md`
 
 Historical dated CP documents and the integration pre-review remain evidence. They do not override the authorities above.
 
-## 2. Accepted release state
+## 2. Accepted release / tag state
 
 ```text
-v0.1.0..v0.1.10  ACCEPTED / TAG READY
-v0.1.11            ACCEPTED / TAG READY
+v0.1.0..v0.1.10  ACCEPTED / TAG READY / TAG NOT CREATED
+v0.1.11            ACCEPTED / TAG READY / TAG NOT CREATED
 ```
 
 Frozen validated target for `v0.1.11`:
@@ -37,7 +38,7 @@ Frozen validated target for `v0.1.11`:
 fce9a3a2e56783206d63dbcac0d8a65e50008c10
 ```
 
-`TAG READY` is evidence only. This file does not authorize creation or push of Git tags.
+Repository tag inspection on 2026-10-03 found no Git tag namespace. `TAG READY` is evidence only and does not mean a Git tag exists.
 
 ## 3. Canonical namespace
 
@@ -71,7 +72,7 @@ compileall                   PASS
 git diff --check             PASS
 ```
 
-## 5. Current release CP — v0.1.12
+## 5. Next release CP — v0.1.12
 
 ```text
 REL-12A
@@ -82,7 +83,6 @@ Macro release Fact / consensus / prior / revision contract
         v
 REL-12B
 Deterministic surprise + bounded event-window transmission
-(30m / 2h / 1d; US2Y / JP2Y / spread / USDJPY)
         |
         v
 REL-12C
@@ -103,11 +103,13 @@ Cumulative v0.1.12 acceptance / TAG READY decision
 
 A0-018 extends accepted A0-003/A0-004/A0-013..016 and feeds the existing A0-005 carry-unwind path. It must not claim observed capital flow without a direct eligible flow source.
 
-## 6. Selected restart point
+## 6. Session closeout / next restart
+
+This session intentionally stops after v0.1.11 acceptance. REL-12A is deferred to a separate session.
 
 ```text
-NEXT RELEASE: v0.1.12
-  -> REL-12A / A0-018 / UWBS-105
+NEXT SESSION START:
+v0.1.12 REL-12A / A0-018 / UWBS-105
 ```
 
 ## 7. Restart rule
@@ -118,9 +120,8 @@ After interruption:
 2. read `CURRENT_CRITICAL_PATH_RECONCILIATION_2026-10-03.md`;
 3. read `CURRENT_UWBS_PROGRESS_TRACKER.md`;
 4. use `WBS_PROVISIONAL_ID_REGISTRY.md` for identifier authority;
-5. use the final tag ledger for v0.1.0..v0.1.10;
-6. use `REL_11X_V0_1_11_ACCEPTANCE_2026-10-03.md` for the v0.1.11 frozen target;
-7. never restart accepted C0-001..004 work;
-8. resume from `v0.1.12 REL-12A / A0-018 / UWBS-105`.
+5. use `docs/release/V0_1_0_TO_V0_1_11_TAG_READY_STATUS_2026-10-03.md` for release/tag state;
+6. never restart accepted C0-001..004 work;
+7. resume from `v0.1.12 REL-12A / A0-018 / UWBS-105` in the next session.
 
 No provider activation, Worker/Cron mutation, D1 mutation, paid procurement, live PB execution, automated trading, tag creation, history rewrite, or force push is authorized by this index.
