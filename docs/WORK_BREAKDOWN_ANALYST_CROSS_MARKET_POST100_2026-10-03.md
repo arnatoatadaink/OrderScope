@@ -24,9 +24,11 @@ v0.1.12 -> A0-018 / UWBS-105
 
 ## 2. Formal incorporation
 
-| Final WBS ID | Canonical source | Release | Task | Completion condition | Dependency | State |
-|---|---|---|---|---|---|---|
-| A0-018 | UWBS-105 | v0.1.12 | Implement Macro Release Surprise / Yen Carry Flow Observability | Represent PCE and Durable Goods official-release observations with actual/consensus/prior/revision and release/reference timestamps; compute deterministic surprise and bounded no-lookahead event-window rate/FX deltas; expose `CARRY_BUILD`, `CARRY_STABLE`, and `CARRY_COOLING` as Interpretation around the existing carry-unwind path; preserve contradictory/missing evidence and never claim observed capital flow without an eligible direct flow source | A0-003 / A0-004 / A0-005 / A0-007; existing official/fallback macro adapters A0-013..016 | Incorporated / v0.1.12 implementation pending |
+| Final WBS ID | Canonical source | Release | Task | Completion condition | Upstream dependency | Downstream integration | State |
+|---|---|---|---|---|---|---|---|
+| A0-018 | UWBS-105 | v0.1.12 | Implement Macro Release Surprise / Yen Carry Flow Observability | Represent PCE and Durable Goods official-release observations with actual/consensus/prior/revision and release/reference timestamps; compute deterministic surprise and bounded no-lookahead event-window rate/FX deltas; expose `CARRY_BUILD`, `CARRY_STABLE`, and `CARRY_COOLING` as Interpretation around the existing carry-unwind path; preserve contradictory/missing evidence and never claim observed capital flow without an eligible direct flow source | A0-003 / A0-004 / A0-007; existing official/fallback macro adapters A0-013..016 | Existing A0-005 carry-unwind / deleveraging interpretation path | Incorporated / v0.1.12 implementation pending |
+
+A0-005 is intentionally **downstream** of A0-018 for this extension. It is not a prerequisite for implementing the release/surprise/event-window layer.
 
 ## 3. Release implementation decomposition
 
@@ -113,6 +115,8 @@ A0-018 / v0.1.12 is Accepted only when:
 A0-003 Macro-Market Fact
    +
 A0-004 rate/cross-country Derived Metrics
+   +
+A0-007 source-selection contract
    +
 A0-013..016 official/fallback source adapters
    |
