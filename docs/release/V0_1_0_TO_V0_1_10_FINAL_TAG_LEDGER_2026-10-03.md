@@ -50,21 +50,26 @@ Worker tests            228 passed / 0 failed
 TypeScript typecheck    PASS
 ```
 
-## Post-ledger namespace correction
+## Forward release / namespace note
 
 The original release-planning branch used `UWBS-101..104` for the next Crypto On-chain lane. Those IDs are now frozen as conflict/legacy identifiers by the 2026-10-03 namespace reconciliation.
 
-The next planned semantic release remains `v0.1.11`, but its canonical feature scope is now:
+Current forward release allocation is:
 
 ```text
-v0.1.11  Crypto On-chain Event Intelligence  UWBS-106..109
+v0.1.11  Crypto On-chain Event Intelligence
+         C0-001..004 / UWBS-106..109
+
+v0.1.12  Macro Release / Yen Carry Observability
+         A0-018 / UWBS-105
 ```
 
-`UWBS-105` is separately assigned to Macro Release Surprise / Yen Carry Flow Observability.
+This forward allocation does **not** change any frozen v0.1.0..v0.1.10 tag target in this ledger.
 
 See:
 - `docs/work-management/local-corporate-intelligence/UWBS_101_104_NAMESPACE_RECONCILIATION_2026-10-03.md`
 - `docs/release/V0_1_11_UWBS_NAMESPACE_CORRECTION_2026-10-03.md`
+- `docs/release/V0_1_11_V0_1_12_RELEASE_PLAN_2026-10-03.md`
 
 ## Annotated tag command set
 
