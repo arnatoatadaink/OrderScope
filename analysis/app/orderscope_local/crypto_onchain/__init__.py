@@ -1,4 +1,4 @@
-"""Crypto on-chain Fact, Derived-Metric and market-context contracts for v0.1.11."""
+"""Crypto on-chain Fact, Derived-Metric, market-context and replay contracts for v0.1.11."""
 
 from .flow_metrics import (
     AbnormalFlowAssessment,
@@ -9,6 +9,14 @@ from .flow_metrics import (
     FlowThresholds,
     WindowFlowMetrics,
     assess_abnormal_flow,
+)
+from .historical_replay import (
+    HistoricalEventTimestamps,
+    HistoricalReplay,
+    HistoricalWindowResult,
+    ReplayAnchorKind,
+    ReplayWindow,
+    build_historical_replay,
 )
 from .market_context import (
     CausalityStatus,
@@ -42,6 +50,9 @@ __all__ = [
     "CryptoOnchainRegistry",
     "DestinationClass",
     "FlowThresholds",
+    "HistoricalEventTimestamps",
+    "HistoricalReplay",
+    "HistoricalWindowResult",
     "MarketStructureInterpretation",
     "OnchainMarketContext",
     "ProjectIdentity",
@@ -49,8 +60,11 @@ __all__ = [
     "RegistryConflictError",
     "RelationshipRole",
     "RelationshipStatus",
+    "ReplayAnchorKind",
+    "ReplayWindow",
     "WalletContractComponent",
     "WindowFlowMetrics",
     "assess_abnormal_flow",
+    "build_historical_replay",
     "join_onchain_market_context",
 ]
