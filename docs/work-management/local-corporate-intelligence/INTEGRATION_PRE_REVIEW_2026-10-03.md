@@ -1,6 +1,6 @@
 # OrderScope — Management Integration Pre-Review — 2026-10-03
 
-Status: **READY FOR MERGE REVIEW — NOT MERGED / TAGS NOT AUTHORIZED**
+Status: **READY FOR MERGE REVIEW — SQUASH MERGE RECOMMENDED — NOT MERGED / TAGS NOT AUTHORIZED**
 Branch: `docs/management-file-refresh-plan-2026-10-03`
 Base branch: `main`
 Base / merge-base at review: `9e9d4ce183f327c0e14c6480a389f2cef74aedd9`
@@ -8,7 +8,7 @@ Scope: management / WBS / CP / release / namespace documentation only
 
 ## 1. Review purpose
 
-Verify that the management refresh branch can be reviewed for integration without leaving competing current authorities, stale restart points, namespace ambiguity, contradictory release allocations, or contradictory dependency edges.
+Verify that the management refresh branch can be reviewed for integration without leaving competing current authorities, stale restart points, namespace ambiguity, contradictory release allocations, contradictory dependency edges, or an unnecessarily noisy main-branch history.
 
 This review does not merge the branch, create/push tags, activate providers, mutate Worker/Cron/D1, execute PB/live-market work, or modify trading behavior.
 
@@ -235,7 +235,71 @@ The branch diff against `main` contains management/release/WBS documentation onl
 
 The branch remains a documentation/governance integration branch.
 
-## 10. Known non-blocking incomplete audit
+## 10. Git-history / merge-method review
+
+Result: **PASS — SQUASH MERGE RECOMMENDED**
+
+Reviewed branch topology:
+
+```text
+main / merge-base
+9e9d4ce183f327c0e14c6480a389f2cef74aedd9
+        |
+        +-- 36 linear documentation/governance commits
+        |
+        v
+reviewed head before this review-note update
+828f3349f58d5fce637a784e94325439d22bbb24
+```
+
+Observations:
+
+1. the branch is linear and had no merge commit in the reviewed 36-commit management-refresh segment;
+2. many commits intentionally represent iterative reconciliation: initial authority creation, later namespace/release synchronization, then review-driven wording/dependency corrections;
+3. those intermediate correction steps are valuable branch provenance but add limited value to the permanent `main` history;
+4. the final tree, rather than each intermediate management-document state, is the intended integrated artifact;
+5. the branch remains zero-behind the reviewed `main` merge-base at the last ancestry check;
+6. GitHub combined commit status for head `828f3349...` returned no registered statuses. Record this as **CI/status not registered**, not as CI PASS.
+
+Recommended integration method:
+
+```text
+SQUASH MERGE
+```
+
+Rationale:
+
+- preserve one coherent management-authority transition on `main`;
+- avoid carrying dozens of superseded intermediate wording/status corrections into permanent main history;
+- retain the source branch itself as detailed provenance if desired;
+- avoid rewriting `main` or the existing accepted/release histories.
+
+Regular fast-forward/merge remains technically possible because the branch is linear and zero-behind, but is not recommended for history clarity.
+
+Suggested squash commit title:
+
+```text
+docs: reconcile management authorities and plan v0.1.11-v0.1.12
+```
+
+Suggested squash commit body:
+
+```text
+- freeze legacy UWBS-101..104 as conflict/legacy-only
+- formalize UWBS-105 as A0-018 for v0.1.12 Macro Release / Yen Carry Observability
+- formalize UWBS-106..109 as C0-001..004 for v0.1.11 Crypto On-chain Event Intelligence
+- reconcile CURRENT CP/UWBS/overall trackers and formal WBS dependencies
+- preserve v0.1.0..v0.1.10 accepted TAG READY targets unchanged
+- mark superseded planning files as historical evidence while retaining provenance
+- record MFR-01..06 completion and integration review state
+
+No release tag creation, provider activation, Worker/Cron/D1 mutation,
+PB/live-market execution, trading change, history rewrite or force push.
+```
+
+No squash, merge, branch-ref movement, or tag action is performed by this recommendation.
+
+## 11. Known non-blocking incomplete audit
 
 Status: **OPEN / NON-BLOCKING FOR THIS MANAGEMENT MERGE REVIEW**
 
@@ -251,30 +315,32 @@ This does not currently block integration of the reconciled management authoriti
 
 A future audit may complete the all-branch inventory without changing the current namespace decision unless contradictory current authority is actually discovered.
 
-## 11. Merge-readiness classification
+## 12. Merge-readiness classification
 
 Current classification:
 
-**READY FOR MERGE REVIEW**
+**READY FOR MERGE REVIEW / SQUASH MERGE RECOMMENDED**
 
 Meaning:
 
 - no known active management-authority conflict remains in the reviewed files;
 - current namespace, formal WBS, CP and release allocation agree;
-- formal dependency direction now agrees with the CP in both A0 and C0 additions;
+- formal dependency direction agrees with the CP in both A0 and C0 additions;
 - accepted v0.1.0..10 targets are unchanged;
 - next feature restart is unambiguous;
 - all 19 changed files have explicit authority/evidence roles;
 - historical files are distinguishable from current authorities;
+- the branch history is linear but intentionally review-heavy, so squash is preferable for `main` history;
+- CI/status is not registered for the reviewed docs-only head;
 - branch integration itself has not yet been performed.
 
 Before any merge action, re-check branch ancestry against `main` and confirm it remains zero-behind or otherwise reconcile new `main` commits normally.
 
-## 12. Authorization boundary
+## 13. Authorization boundary
 
 This review does **not** authorize:
 
-- merging the branch;
+- merging or squash-merging the branch;
 - creating or pushing Git tags;
 - force-moving tag or branch refs;
 - provider activation;
