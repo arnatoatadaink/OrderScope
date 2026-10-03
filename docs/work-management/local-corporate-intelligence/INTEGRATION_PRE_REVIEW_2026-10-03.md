@@ -1,0 +1,235 @@
+# OrderScope — Management Integration Pre-Review — 2026-10-03
+
+Status: **READY FOR MERGE REVIEW — NOT MERGED / TAGS NOT AUTHORIZED**
+Branch: `docs/management-file-refresh-plan-2026-10-03`
+Base branch: `main`
+Base / merge-base at review: `9e9d4ce183f327c0e14c6480a389f2cef74aedd9`
+Scope: management / WBS / CP / release / namespace documentation only
+
+## 1. Review purpose
+
+Verify that the management refresh branch can be reviewed for integration without leaving competing current authorities, stale restart points, namespace ambiguity, or contradictory release allocations.
+
+This review does not merge the branch, create/push tags, activate providers, mutate Worker/Cron/D1, execute PB/live-market work, or modify trading behavior.
+
+## 2. Canonical result
+
+The current post-100 identity is unambiguous:
+
+```text
+UWBS-101..104  FROZEN / CONFLICT / LEGACY-ONLY
+
+UWBS-105 -> A0-018 -> v0.1.12
+UWBS-106 -> C0-001 -> v0.1.11 REL-11A
+UWBS-107 -> C0-002 -> v0.1.11 REL-11B
+UWBS-108 -> C0-003 -> v0.1.11 REL-11C
+UWBS-109 -> C0-004 -> v0.1.11 REL-11D
+```
+
+Context-insufficient historical `UWBS-101..104` references remain `AMBIGUOUS`; they are never guessed.
+
+## 3. Release consistency review
+
+### v0.1.0..v0.1.10
+
+Result: **PASS**
+
+Exact accepted cumulative targets remain unchanged:
+
+```text
+v0.1.0  99b08a0b5fa1bec5921dc42e630c579a4e83c401
+v0.1.1  bada5bff803321427eb3c8eb1f3d159460ba5dd1
+v0.1.2  f69c52bf574212d1506df81abc7b15694abb7922
+v0.1.3  b4df4e911597d9f17bfa0a50b2057c24159dee9f
+v0.1.4  a798622f839b836f8b60f52dd700b8fd87147991
+v0.1.5  415de1f1dd42f70bd66992961cb43be7edba6ade
+v0.1.6  bfaf89c68daa656b7d75317f086458257cc94da9
+v0.1.7  423929ae1ff3fd7431260ffdab09810dc7105aa0
+v0.1.8  d34d471b20d4f5be865b0414a42240ec7f3061d9
+v0.1.9  fcfba651dbead9d035019e330f61986f5a1a60f7
+v0.1.10 c1e27d8367c490543e1d207f62d77f3bb5e8bc4e
+```
+
+All remain `ACCEPTED / TAG READY`. No tag creation/push is authorized.
+
+### v0.1.11 / v0.1.12
+
+Result: **PASS**
+
+```text
+v0.1.11  Crypto On-chain Event Intelligence
+         C0-001..004 / UWBS-106..109
+         REL-11A -> REL-11B -> REL-11C -> REL-11D -> REL-11X
+
+v0.1.12  Macro Release / Yen Carry Observability
+         A0-018 / UWBS-105
+         REL-12A -> REL-12B -> REL-12C -> existing A0-005 -> REL-12D -> REL-12X
+```
+
+A0-018 does not technically depend on C0-001..004. The order is release governance.
+
+## 4. Current-authority review
+
+Result: **PASS after refresh fixes**
+
+Current entry / detail sources now agree:
+
+- `CURRENT_CRITICAL_PATH_RECONCILIATION.md`
+- `CURRENT_CRITICAL_PATH_RECONCILIATION_2026-10-03.md`
+- `CURRENT_UWBS_PROGRESS_TRACKER.md`
+- `CURRENT_LOCAL_CORPORATE_INTELLIGENCE_PROGRESS_TRACKER.md`
+- `WBS_PROVISIONAL_ID_REGISTRY.md`
+- `UWBS_101_104_NAMESPACE_RECONCILIATION_2026-10-03.md`
+- `MANAGEMENT_FILE_REFRESH_PLAN_2026-10-03.md`
+
+Selected management state:
+
+```text
+MFR-01..MFR-06 COMPLETE
+CURRENT = integration pre-review / merge-readiness review
+```
+
+Selected feature restart after successful management integration:
+
+```text
+v0.1.11 REL-11A / C0-001 / UWBS-106
+```
+
+## 5. Stale-authority defects found and corrected during review
+
+### A. Date-independent CURRENT CP
+
+Previous defect: still pointed to historical PB-09/PB-10 and UWBS-080 restart state.
+
+Correction: converted to current date-independent restart index and linked the detailed 2026-10-03 CP.
+
+### B. Management refresh plan
+
+Previous defect: still described MFR-01 as the first future step after MFR-01..06 had already been completed.
+
+Correction: changed to `MFR-01..06 COMPLETE / INTEGRATION PRE-REVIEW` and recorded the completed authority set.
+
+### C. 2026-09-28 version boundary plan
+
+Previous defect: historical `PB CLOSE REQUIRED`, reserved v0.1.4..6 states and early candidate boundaries could be mistaken for current release authority.
+
+Correction: explicitly marked the document `HISTORICAL / SUPERSEDED FOR CURRENT RELEASE PLANNING` and linked current ledgers/plans.
+
+### D. Provisional-ID registry
+
+Previous defect: post-100 IDs had formal WBS destinations but were not recorded in the incorporated-ID table.
+
+Correction: registered `UWBS-105 -> A0-018` and `UWBS-106..109 -> C0-001..004` with current release allocations.
+
+### E. Overall CURRENT tracker
+
+Previous defect: still described UWBS-105 as WBS-unreflected and MFR-06 as next work.
+
+Correction: records formal incorporation, MFR-01..06 completion and integration pre-review state.
+
+### F. WBS_UNREFLECTED Macro / Crypto source files
+
+Previous defect: filenames are historical but status text still presented them as active unincorporated planning sources.
+
+Correction: retained filenames/provenance but marked them `INCORPORATED / HISTORICAL PLANNING SOURCE — SUPERSEDED FOR EXECUTION` and linked formal WBS/release authorities.
+
+### G. Canonical backlog append / MFR-06 closeout / namespace decision
+
+Previous defect: formal mappings existed but v0.1.12 allocation was not consistently explicit in every current incorporation/namespace document.
+
+Correction: synchronized `A0-018 / UWBS-105 = v0.1.12` and C0 release-unit mappings.
+
+### H. Detailed CURRENT CP status
+
+Previous defect: header still called the current detailed CP a `CANDIDATE` after MFR completion.
+
+Correction: status is now `CURRENT OPERATING CP AUTHORITY / INTEGRATION PRE-REVIEW`.
+
+### I. Final tag ledger forward note
+
+Previous defect: exact frozen tag targets were correct, but the forward note stopped at a generic UWBS-105 assignment.
+
+Correction: forward note now records v0.1.11 and v0.1.12 while preserving all v0.1.0..10 target SHAs unchanged.
+
+## 6. Formal WBS review
+
+Result: **PASS**
+
+Formal post-100 WBS files:
+
+- `docs/WORK_BREAKDOWN_CRYPTO_ONCHAIN_EVENT_INTELLIGENCE_2026-10-03.md`
+  - `C0-001..004`
+  - `UWBS-106..109`
+  - release target `v0.1.11`
+
+- `docs/WORK_BREAKDOWN_ANALYST_CROSS_MARKET_POST100_2026-10-03.md`
+  - `A0-018`
+  - `UWBS-105`
+  - release target `v0.1.12`
+
+Formal incorporation and implementation acceptance remain separate. A0-018 and C0-001..004 are incorporated but not yet implemented/accepted.
+
+## 7. Historical-evidence handling
+
+Result: **PASS**
+
+- Historical aliases are preserved rather than erased.
+- The 2026-09-28 release plan remains available as provenance but is visibly superseded.
+- WBS-unreflected source filenames remain for traceability but no longer claim current execution authority.
+- Audit/evidence documents are not rewritten merely because their recorded next actions were later completed.
+
+## 8. Change-scope review
+
+Result: **PASS**
+
+The branch diff against `main` contains management/release/WBS documentation only. No accepted implementation source, runtime configuration, provider secret, Worker code, D1 migration, or trading logic is intentionally changed by this management refresh.
+
+The branch remains a documentation/governance integration branch.
+
+## 9. Known non-blocking incomplete audit
+
+Status: **OPEN / NON-BLOCKING FOR THIS MANAGEMENT MERGE REVIEW**
+
+The 2026-10-03 UWBS-101 remote/library audit established the collision and checked the relevant active branches/files, and the recent ChatGPT Library text scan found zero exact literal `UWBS-101` matches across the scanned recent text files.
+
+However, an exhaustive content scan of every changed file on all 50 remote branches after the cutoff was **not completed**. Do not represent that audit as exhaustive.
+
+This does not currently block integration of the reconciled management authorities because:
+
+1. current canonical authority is explicit and collision-free;
+2. historical branch references cannot override current WBS/registry/CP;
+3. any later-discovered old branch reference is governed by the same legacy-to-canonical mapping and ambiguity rule.
+
+A future audit may complete the all-branch inventory without changing the current namespace decision unless contradictory current authority is actually discovered.
+
+## 10. Merge-readiness classification
+
+Current classification:
+
+**READY FOR MERGE REVIEW**
+
+Meaning:
+
+- no known active management-authority conflict remains in the reviewed files;
+- current namespace, WBS, CP and release allocation agree;
+- accepted v0.1.0..10 targets are unchanged;
+- next feature restart is unambiguous;
+- historical files are distinguishable from current authorities;
+- branch integration itself has not yet been performed.
+
+Before any merge action, re-check branch ancestry against `main` and confirm it remains zero-behind or otherwise reconcile new `main` commits normally.
+
+## 11. Authorization boundary
+
+This review does **not** authorize:
+
+- merging the branch;
+- creating or pushing Git tags;
+- force-moving tag or branch refs;
+- provider activation;
+- Worker/Cron mutation;
+- remote D1 mutation;
+- PB/live-market execution;
+- paid procurement;
+- automated trading;
+- history rewrite or force push.
