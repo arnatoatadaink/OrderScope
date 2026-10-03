@@ -44,9 +44,15 @@ def _return(instrument: str, window: ReplayWindow, value: float, source_id: str)
     )
 
 
-def _phase(context_at: datetime, interpretation: MarketStructureInterpretation, oi_delta: float) -> OnchainMarketContext:
+def _phase(
+    context_at: datetime,
+    interpretation: MarketStructureInterpretation,
+    oi_delta: float,
+    *,
+    event_time: datetime = ANCHOR,
+) -> OnchainMarketContext:
     return OnchainMarketContext(
-        event_time=ANCHOR,
+        event_time=event_time,
         context_as_of=context_at,
         onchain_state=AbnormalFlowState.ABNORMAL_FLOW_CANDIDATE,
         token_return_decimal=-0.04,
@@ -170,6 +176,7 @@ def test_market_phase_before_selected_anchor_is_rejected() -> None:
         ANCHOR - timedelta(minutes=1),
         MarketStructureInterpretation.DELEVERAGING_CANDIDATE,
         -1.0,
+        event_time=ANCHOR - timedelta(minutes=2),
     )
     with pytest.raises(CryptoOnchainContractError, match="cannot precede"):
         build_historical_replay(
