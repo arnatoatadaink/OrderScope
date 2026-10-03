@@ -4,7 +4,7 @@ Status: **ACCEPTED / INTEGRATED**
 Release: `v0.1.11`
 Formal WBS: `C0-003`
 Canonical source: `UWBS-108`
-Integrated commit: `fd5c84daa0a155acfa0362697db9769f179ecd87`
+Integrated commit: `a3223f09fec1c7efe7dba70a8a1cd14ddc76fc60`
 Implementation branch: `feat/rel-11c-c0-003-market-context`
 
 ## Acceptance evidence
