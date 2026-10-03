@@ -1,7 +1,7 @@
 # OrderScope — UWBS-101..104 Namespace Reconciliation
 
 Date: 2026-10-03
-Status: **CANONICAL NAMESPACE DECISION**
+Status: **CANONICAL NAMESPACE DECISION / FORMAL MAPPING CURRENT**
 Scope: provisional UWBS identifiers above the accepted `UWBS-100` boundary
 
 ## 1. Decision
@@ -10,15 +10,20 @@ Scope: provisional UWBS identifiers above the accepted `UWBS-100` boundary
 
 They must not be assigned to any new task and must not appear as canonical identifiers in new WBS/CP, implementation handoff, acceptance, release, or tracker documents.
 
-Canonical replacement allocation:
+Canonical replacement and formal allocation:
 
 ```text
-UWBS-105  Macro Release Surprise / Yen Carry Flow Observability
+UWBS-105 -> A0-018 -> v0.1.12
+  Macro Release Surprise / Yen Carry Flow Observability
 
-UWBS-106  Crypto On-chain: project/chain/wallet/contract registry + confirmed transfer Fact
-UWBS-107  Crypto On-chain: abnormal-flow Derived Metrics + candidate state machine
-UWBS-108  Crypto On-chain: market-context join with price/OI/funding/liquidation
-UWBS-109  Crypto On-chain: historical exploit dataset + NEAR Intents replay
+UWBS-106 -> C0-001 -> v0.1.11 REL-11A
+  project/chain/wallet/contract registry + confirmed transfer Fact
+UWBS-107 -> C0-002 -> v0.1.11 REL-11B
+  abnormal-flow Derived Metrics + candidate state machine
+UWBS-108 -> C0-003 -> v0.1.11 REL-11C
+  market-context join with price/OI/funding/liquidation
+UWBS-109 -> C0-004 -> v0.1.11 REL-11D
+  historical exploit dataset + NEAR Intents replay
 ```
 
 ## 2. Collision provenance
@@ -31,6 +36,8 @@ Branch: `docs/uwbs-101-macro-carry-observability`
 Historical file: `WBS_UNREFLECTED_TASK_BACKLOG_APPEND_UWBS-101_2026-10-01.md`
 Historical alias: `UWBS-101`
 Canonical replacement: `UWBS-105`
+Formal WBS: `A0-018`
+Release allocation: `v0.1.12`
 
 The task covers PCE / Durable Goods official-release Facts, release surprise, U.S.-Japan 2Y spread and USDJPY transmission, plus carry BUILD / STABLE / COOLING interpretation before the existing carry-unwind states.
 
@@ -39,18 +46,20 @@ The task covers PCE / Durable Goods official-release Facts, release surprise, U.
 Historical file: `WBS_UNREFLECTED_CRYPTO_ONCHAIN_SECURITY_EXTENSION_2026-10-02.md`
 Historical aliases: `UWBS-101..104`
 Canonical replacements: `UWBS-106..109`
+Formal WBS: `C0-001..004`
+Release allocation: `v0.1.11`
 
 The lane covers confirmed on-chain transfer facts, abnormal-flow detection, derivatives/market confirmation, and historical exploit replay.
 
 ## 3. Legacy-to-canonical table
 
-| Frozen legacy ID | Context discriminator | Canonical ID | Canonical task |
-|---|---|---|---|
-| UWBS-101 | PCE / Durable Goods / official macro surprise / U.S.-Japan 2Y / USDJPY / yen carry | UWBS-105 | Macro Release Surprise / Yen Carry Flow Observability |
-| UWBS-101 | wallet / contract / chain / confirmed transfer / on-chain registry | UWBS-106 | On-chain registry + transfer Fact |
-| UWBS-102 | abnormal outflow / balance ratio / burst / candidate state | UWBS-107 | Abnormal-flow metrics + candidate state |
-| UWBS-103 | price / OI / funding / liquidation / market confirmation | UWBS-108 | On-chain anomaly × market-context join |
-| UWBS-104 | exploit history / incident replay / NEAR Intents | UWBS-109 | Historical exploit dataset + replay |
+| Frozen legacy ID | Context discriminator | Canonical ID | Formal WBS | Canonical task |
+|---|---|---|---|---|
+| UWBS-101 | PCE / Durable Goods / official macro surprise / U.S.-Japan 2Y / USDJPY / yen carry | UWBS-105 | A0-018 | Macro Release Surprise / Yen Carry Flow Observability |
+| UWBS-101 | wallet / contract / chain / confirmed transfer / on-chain registry | UWBS-106 | C0-001 | On-chain registry + transfer Fact |
+| UWBS-102 | abnormal outflow / balance ratio / burst / candidate state | UWBS-107 | C0-002 | Abnormal-flow metrics + candidate state |
+| UWBS-103 | price / OI / funding / liquidation / market confirmation | UWBS-108 | C0-003 | On-chain anomaly × market-context join |
+| UWBS-104 | exploit history / incident replay / NEAR Intents | UWBS-109 | C0-004 | Historical exploit dataset + replay |
 
 ## 4. Reference-normalization rule
 
@@ -64,33 +73,40 @@ When an existing document references `UWBS-101..104`:
 
 ## 5. Release planning effect
 
-The planned Crypto On-chain Event Intelligence release remains `v0.1.11`, but its canonical UWBS scope is now:
+Current semantic allocation:
 
 ```text
-v0.1.11  Crypto On-chain Event Intelligence  UWBS-106..109
+v0.1.11  Crypto On-chain Event Intelligence
+         C0-001..004 / UWBS-106..109
+
+v0.1.12  Macro Release / Yen Carry Observability
+         A0-018 / UWBS-105
 ```
 
-Any prior `v0.1.11 = UWBS-101..104` statement is a historical pre-reconciliation allocation and is superseded for current planning purposes.
+Any prior `v0.1.11 = UWBS-101..104` statement is historical pre-reconciliation allocation and is superseded for current planning.
 
-`UWBS-105` remains a separate Macro / Carry planning item and is not implicitly included in v0.1.11 by this namespace decision.
+The detailed forward release authority is `docs/release/V0_1_11_V0_1_12_RELEASE_PLAN_2026-10-03.md`.
 
 ## 6. Dependency effect
 
 Canonical dependencies:
 
 ```text
-Macro / Carry
-UWBS-011 + UWBS-012
-        -> UWBS-105
-        -> existing UWBS-013 carry-unwind interpretation path
+Macro / Carry / v0.1.12
+A0-003 + A0-004 + A0-013..016
+        -> A0-018 / UWBS-105
+        -> existing A0-005 carry-unwind interpretation path
 
-Crypto On-chain
-UWBS-106 -> UWBS-107 -> UWBS-108 -> UWBS-109
-UWBS-068..079 -> UWBS-108 / UWBS-109
+Crypto On-chain / v0.1.11
+C0-001 / UWBS-106
+        -> C0-002 / UWBS-107
+        -> C0-003 / UWBS-108
+        -> C0-004 / UWBS-109
+UWBS-068..079 -> C0-003 / C0-004
 ```
 
 ## 7. Frozen range rule
 
 `UWBS-101..104` remain permanently unavailable for future canonical allocation. Their only permitted use is as quoted historical aliases accompanied by either a canonical replacement or an explicit ambiguity marker.
 
-No implementation, provider activation, deployment, D1 mutation, secret change, automated trading action, or Git history rewrite is authorized by this document.
+No implementation, provider activation, deployment, D1 mutation, secret change, automated trading action, Git tag creation, history rewrite, or force push is authorized by this document.
