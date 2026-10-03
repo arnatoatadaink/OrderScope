@@ -30,7 +30,12 @@ The management refresh branch was squash-merged into `main` on 2026-10-03.
 ```text
 main integration commit:
 f9dc1270db8d3b167a163edd8a0475747e2a404b
+
+commit message:
+docs: reconcile management authorities and plan v0.1.11-v0.1.12
 ```
+
+The squash commit uses the same final tree as the reviewed management branch head. The branch may appear diverged after squash because it retains the original review commits; this is expected and does not indicate content drift at the merge boundary.
 
 ## 3. Accepted release state
 
@@ -38,7 +43,13 @@ f9dc1270db8d3b167a163edd8a0475747e2a404b
 v0.1.0..v0.1.10  ACCEPTED / TAG READY
 ```
 
-The exact cumulative targets remain frozen in the final tag ledger. `TAG READY` does not authorize tag creation or push.
+The exact v0.1.0..v0.1.10 cumulative targets are frozen in the final tag ledger.
+
+`TAG READY` is evidence of release readiness only. This file does not authorize creation or push of Git tags.
+
+The former PB-09/PB-10 pending state is historical. The reconstructed PB closeout boundary is accepted as `v0.1.10`.
+
+Any future live-market execution is a new operational action and still requires fresh authorization.
 
 ## 4. Canonical namespace
 
@@ -51,6 +62,8 @@ UWBS-108       C0-003  on-chain anomaly × market context
 UWBS-109       C0-004  historical exploit / replay
 ```
 
+Historical references to `UWBS-101..104` may be retained as provenance, but they must not be used as active implementation IDs. Context-insufficient historical references remain `AMBIGUOUS`.
+
 ## 5. Current release CP
 
 ### v0.1.11 — Crypto On-chain Event Intelligence
@@ -58,8 +71,8 @@ UWBS-109       C0-004  historical exploit / replay
 ```text
 REL-11A  C0-001 / UWBS-106  ACCEPTED / INTEGRATED
    -> REL-11B  C0-002 / UWBS-107  ACCEPTED / INTEGRATED
-   -> REL-11C  C0-003 / UWBS-108  NEXT
-   -> REL-11D  C0-004 / UWBS-109
+   -> REL-11C  C0-003 / UWBS-108  ACCEPTED / INTEGRATED
+   -> REL-11D  C0-004 / UWBS-109  NEXT
    -> REL-11X  cumulative acceptance / TAG READY decision
 ```
 
@@ -76,23 +89,27 @@ REL-12A  A0-018 macro release Fact / consensus / revision
    -> REL-12X  cumulative acceptance / TAG READY decision
 ```
 
+A0-018 extends the accepted macro/carry foundation; it does not duplicate `CARRY_UNWIND_CANDIDATE` or `DELEVERAGING_REGIME`.
+
 ## 6. Selected restart point
 
-Current accepted v0.1.11 evidence:
-
-```text
-REL-11A / C0-001 / UWBS-106  ACCEPTED / INTEGRATED
-REL-11B / C0-002 / UWBS-107  ACCEPTED / INTEGRATED
-```
+Management refresh MFR-01..06 and its integration review are complete.
 
 The selected feature restart is now:
 
 ```text
-v0.1.11 REL-11C
-  -> C0-003 / UWBS-108
+v0.1.11 REL-11D
+  -> C0-004 / UWBS-109
 ```
 
-After v0.1.11 acceptance, the planned next release begins at `v0.1.12 REL-12A / A0-018 / UWBS-105`.
+After v0.1.11 acceptance, the planned next release begins at:
+
+```text
+v0.1.12 REL-12A
+  -> A0-018 / UWBS-105
+```
+
+The release order is a planning decision; A0-018 has no technical dependency on C0-001..004.
 
 ## 7. Restart rule
 
@@ -103,9 +120,9 @@ After an interruption:
 3. read `CURRENT_UWBS_PROGRESS_TRACKER.md` for task state;
 4. use `WBS_PROVISIONAL_ID_REGISTRY.md` for identifier authority;
 5. use the final tag ledger for v0.1.0..v0.1.10 boundaries;
-6. never restart accepted UWBS-080..100 or PB-00..PB-10 work;
-7. never start new work under frozen UWBS-101..104;
-8. do not repeat REL-11A or REL-11B;
-9. resume current feature work from `v0.1.11 REL-11C / C0-003 / UWBS-108` until evidence advances the CP.
+6. use the v0.1.11/v0.1.12 release plan for planned release work;
+7. never restart accepted UWBS-080..100 or PB-00..PB-10 work;
+8. never start new work under frozen UWBS-101..104;
+9. resume current feature work from `v0.1.11 REL-11D / C0-004 / UWBS-109` until evidence advances the CP.
 
 No provider activation, Worker/Cron mutation, D1 mutation, paid procurement, live PB execution, automated trading, tag creation, history rewrite, or force push is authorized by this index.
