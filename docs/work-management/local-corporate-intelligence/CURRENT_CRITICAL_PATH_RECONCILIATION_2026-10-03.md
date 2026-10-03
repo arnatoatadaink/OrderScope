@@ -1,6 +1,6 @@
 # OrderScope — Current Critical Path Reconciliation — 2026-10-03
 
-Status: **CURRENT OPERATING CP AUTHORITY / v0.1.11 ACCEPTED**
+Status: **CURRENT OPERATING CP AUTHORITY / v0.1.11 ACCEPTED / SESSION CLOSED**
 Scope: Release management + market-independent feature governance
 
 ## 1. Current accepted feature state
@@ -17,11 +17,11 @@ UWBS-108       C0-003 / REL-11C  ACCEPTED / INTEGRATED
 UWBS-109       C0-004 / REL-11D  ACCEPTED / INTEGRATED
 ```
 
-## 2. Release state
+## 2. Release / tag state
 
 ```text
-v0.1.0..v0.1.10  ACCEPTED / TAG READY
-v0.1.11            ACCEPTED / TAG READY
+v0.1.0..v0.1.10  ACCEPTED / TAG READY / TAG NOT CREATED
+v0.1.11            ACCEPTED / TAG READY / TAG NOT CREATED
 ```
 
 Validated v0.1.11 target:
@@ -30,7 +30,7 @@ Validated v0.1.11 target:
 fce9a3a2e56783206d63dbcac0d8a65e50008c10
 ```
 
-No tag creation or push is authorized by this status.
+Repository tag inspection on 2026-10-03 found no Git tag namespace. Current tag status authority: `docs/release/V0_1_0_TO_V0_1_11_TAG_READY_STATUS_2026-10-03.md`.
 
 ## 3. Namespace freeze
 
@@ -80,7 +80,6 @@ Macro release Fact / consensus / prior / revision contract
         v
 REL-12B
 Deterministic release surprise + no-lookahead transmission
-(30m / 2h / 1d; US2Y / JP2Y / spread / USDJPY)
         |
         v
 REL-12C
@@ -101,12 +100,15 @@ Cumulative v0.1.12 acceptance / TAG READY decision
 
 Existing foundations reused: `A0-003`, `A0-004`, `A0-007`, `A0-013..016`; downstream unwind/deleveraging remains the existing `A0-005` path.
 
-## 6. Selected restart point
+## 6. Session closeout
+
+REL-12A is intentionally deferred to a separate session.
 
 ```text
-NEXT: v0.1.12 REL-12A / A0-018 / UWBS-105
+NEXT SESSION START:
+v0.1.12 REL-12A / A0-018 / UWBS-105
 ```
 
 ## 7. Restart rule
 
-After interruption, read the date-independent CURRENT CP, this detailed CP, CURRENT UWBS tracker, release plan, and provisional-ID registry. Never repeat accepted REL-11A..REL-11X; resume at `REL-12A / A0-018 / UWBS-105`.
+After interruption, read the date-independent CURRENT CP, this detailed CP, CURRENT UWBS tracker, release plan, provisional-ID registry, and `V0_1_0_TO_V0_1_11_TAG_READY_STATUS_2026-10-03.md`. Never repeat accepted REL-11A..REL-11X; resume at `REL-12A / A0-018 / UWBS-105` in the next session.
