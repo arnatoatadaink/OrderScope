@@ -1,62 +1,56 @@
 # OrderScope — Current Local Corporate Intelligence Progress Tracker
 
 Status: **CURRENT INTEGRATED OPERATING TRACKER**
-Scope: Local Corporate Intelligence / runtime + market-independent planning
-Branch: `l1-003-local-market-recovery`
+Updated: 2026-10-03
+Scope: Local Corporate Intelligence / runtime + release + market-independent planning
 
 ## 1. Authority and history rule
 
-This file is the date-independent current operating overlay for the older dated integrated tracker:
+This file is the date-independent current operating overlay for older dated trackers and intermediate CP documents.
 
-`LOCAL_CORPORATE_INTELLIGENCE_PROGRESS_TRACKER_2026-09-05.md`
+Historical acceptance evidence is not rewritten merely because later work advanced. When an older tracker conflicts with this file, use this tracker together with:
 
-The dated tracker remains historical acceptance evidence and is not rewritten merely because later runtime work advanced. When current status conflicts with an older dated status line, use this tracker together with the latest task-specific acceptance/closeout evidence.
+- `CURRENT_UWBS_PROGRESS_TRACKER.md`;
+- `CURRENT_CRITICAL_PATH_RECONCILIATION_2026-10-03.md`;
+- `WBS_PROVISIONAL_ID_REGISTRY.md`;
+- `UWBS_101_104_NAMESPACE_RECONCILIATION_2026-10-03.md`;
+- `docs/release/V0_1_0_TO_V0_1_10_FINAL_TAG_LEDGER_2026-10-03.md`.
 
-No status in this tracker by itself authorizes live provider activation, Worker/Cron mutation, D1 mutation, PB execution, paid procurement, or trading action.
+No status in this tracker authorizes future live provider activation, Worker/Cron mutation, D1 mutation, paid procurement, automated trading, or a new PB/live-market execution without separate approval.
 
-## 2. Current L0 / L1 state
+## 2. Original L0 / L1 and runtime foundation
 
-| Task | Current status | Restart / evidence boundary |
+| Task / package | Current status | Current interpretation |
 |---|---|---|
 | L0-001..006 | Accepted | Preserve accepted local foundation evidence |
-| L1-001 | Accepted | No repeat required |
-| L1-002 | Accepted | No repeat required |
-| L1-003 | PB-08 ACCEPTED / PB-09 PREPARED / PB-10 NOT AUTHORIZED | Market-dependent lane parked; resume only from fresh active-session packet and explicit PB authorization |
-| L1-004 | Accepted — fixture path | Preserve accepted evidence |
-| L1-005 | Accepted — fixture path | Preserve accepted evidence |
-| L1-006 | Accepted — fixture path | Preserve accepted evidence |
+| L1-001..002 | Accepted | No repeat required |
+| L1-003 / PB lane | **Accepted closeout boundary in v0.1.10** | Older PB-09/PB-10 pending/not-authorized lines are historical intermediate states |
+| L1-004..006 | Accepted — fixture path | Preserve accepted evidence |
+| X0-001..006 | Accepted | fixture-path integration boundary |
+| N1-006 | Accepted | real-data benchmark accepted |
+| W1-001 | Accepted | confirmation / closeout safe baseline |
+| W1-007 | Accepted locally / reviewed | control-path diagnostic |
+| CS0-001..003 | Accepted locally | preserve evidence |
+| MR0-001..003 | Accepted locally | preserve evidence |
 
-### L1-003 controlling PB state
+### PB current state
+
+Final reconstructed release authority records:
 
 ```text
-PB-00..PB-03       accepted preparation/history
-PB-04 / PB-05      COMPLETE / ACCEPTED
-PB-06              ACCEPTED
-PB-07              ACCEPTED
-PB-08              ACCEPTED; safe closed
-PB-09 preparation  COMPLETE
-PB-09 execution    fresh active-session entry packet + explicit authorization required
-PB-10              NOT AUTHORIZED / NOT EXECUTED
+PB-00..PB-10 closeout boundary
+  -> v0.1.10
+  -> ACCEPTED / TAG READY
+  -> target c1e27d8367c490543e1d207f62d77f3bb5e8bc4e
 ```
 
-Do not repeat PB-04..PB-08 because a calendar day changed. Use `L1-003_PB08_MOVING_RETENTION_REFREEZE_RUNBOOK.md` and the latest PB closeouts when runtime work resumes.
+This supersedes older CURRENT lines that stopped at PB-08 accepted / PB-09 prepared / PB-10 not authorized.
 
-## 3. Accepted runtime / integration foundation
+The accepted historical closeout does **not** create standing authorization for future live PB execution. Any new active-session run remains a new operational action requiring fresh authorization.
 
-| Package | Current status |
-|---|---|
-| X0-001..006 | Accepted for fixture-path integration boundary |
-| N1-006 | Real-data benchmark Accepted |
-| W1-001 confirmation / closeout | Accepted; checked-in safe baseline restored |
-| W1-007 control-path diagnostic | Accepted locally / reviewed |
-| CS0-001..003 | Accepted locally |
-| MR0-001..003 | Accepted locally |
+## 3. Formal Analyst / Cross-Market WBS state
 
-Historical measurements and detailed evidence remain in the dated tracker and task-specific handoffs.
-
-## 4. Analyst / Cross-Market formal WBS state
-
-The formal Analyst/Cross-Market WBS has already incorporated these provisional IDs:
+Already incorporated mappings remain reserved:
 
 ```text
 UWBS-011 -> A0-003
@@ -76,9 +70,7 @@ UWBS-035 -> A0-016
 UWBS-036 -> A0-017
 ```
 
-The formal mappings above are reserved and must not be reinterpreted by later backlog rows.
-
-## 5. Operational WBS incorporation state
+## 4. Operational WBS incorporation state
 
 Known incorporated mappings:
 
@@ -94,206 +86,148 @@ UWBS-025 -> R0-008
 UWBS-026 -> R0-009
 ```
 
-`UWBS-005..010` and `UWBS-017..022` remain valid non-colliding backlog IDs until separately incorporated/remapped.
+`UWBS-005..010` and `UWBS-017..022` remain valid non-colliding legacy backlog IDs until separately incorporated/remapped.
 
-## 6. GOV-CP-01 — identifier normalization
+## 5. Canonical UWBS feature state
 
-Status: **ACCEPTED FOR ACTIVE PLANNING**
+| Range | Capability lane | Current status |
+|---|---|---|
+| UWBS-062..066 | AI Theme | **Accepted / Integrated** |
+| UWBS-067 | Listing Compliance | **Accepted / Integrated** |
+| UWBS-068..078 | Crypto Market Structure | **Accepted / Integrated** |
+| UWBS-079 Stage A | Weekend re-risk validation | **Accepted / Integrated** |
+| UWBS-079 Stage B | Longitudinal empirical validation | **Pending / Experimental / Non-blocking** |
+| UWBS-080..086 | Oil / Commodity / Cross-Asset | **Accepted / Integrated / v0.1.7 TAG READY** |
+| UWBS-087..093 | Physical-SaaS | **Accepted / Integrated / v0.1.8 TAG READY** |
+| UWBS-094..100 | VIX / Cross-Asset Volatility | **Accepted / Integrated / v0.1.9 TAG READY** |
+| UWBS-101..104 | collision namespace | **FROZEN / LEGACY-ONLY** |
+| UWBS-105 | Macro Release Surprise / Yen Carry Flow Observability | **Planned / WBS-unreflected** |
+| UWBS-106..109 | Crypto On-chain Event Intelligence | **Planned / v0.1.11** |
 
-Canonical registry: `WBS_PROVISIONAL_ID_REGISTRY.md`
+Older lines describing UWBS-088 as local-acceptance pending or UWBS-089..093 as pending are obsolete; the cumulative v0.1.8 boundary has been accepted.
 
-Canonical later ranges currently include:
+## 6. Accepted release reconstruction state
 
-```text
-UWBS-062..066  AI theme lane
-UWBS-067       LVWR listing-compliance fixture
-UWBS-068..079  Crypto market-structure / derivatives lane
-UWBS-080..086  Oil / commodity / cross-asset lane
-UWBS-087..093  Physical-SaaS lane
-UWBS-094..100  VIX / cross-asset volatility lane
-```
+Exact final tag targets:
 
-All new CP, implementation and acceptance records must use canonical IDs from the registry.
+| Version | Scope | Target | State |
+|---|---|---|---|
+| v0.1.0 | Original WBS/CP baseline | `99b08a0b5fa1bec5921dc42e630c579a4e83c401` | Accepted / TAG READY |
+| v0.1.1 | Operational/runtime | `bada5bff803321427eb3c8eb1f3d159460ba5dd1` | Accepted / TAG READY |
+| v0.1.2 | Macro/Carry | `f69c52bf574212d1506df81abc7b15694abb7922` | Accepted / TAG READY |
+| v0.1.3 | Cross-market / official macro adapters | `b4df4e911597d9f17bfa0a50b2057c24159dee9f` | Accepted / TAG READY |
+| v0.1.4 | AI Theme | `a798622f839b836f8b60f52dd700b8fd87147991` | Accepted / TAG READY |
+| v0.1.5 | Listing Compliance | `415de1f1dd42f70bd66992961cb43be7edba6ade` | Accepted / TAG READY |
+| v0.1.6 | Crypto Market Structure | `bfaf89c68daa656b7d75317f086458257cc94da9` | Accepted / TAG READY |
+| v0.1.7 | Oil / Commodity / Cross-Asset | `423929ae1ff3fd7431260ffdab09810dc7105aa0` | Accepted / TAG READY |
+| v0.1.8 | Physical-SaaS | `d34d471b20d4f5be865b0414a42240ec7f3061d9` | Accepted / TAG READY |
+| v0.1.9 | VIX / Cross-Asset Volatility | `fcfba651dbead9d035019e330f61986f5a1a60f7` | Accepted / TAG READY |
+| v0.1.10 | PB / active-market validation closeout | `c1e27d8367c490543e1d207f62d77f3bb5e8bc4e` | Accepted / TAG READY |
 
-## 7. Current market-dependent CP
+No annotated tags are created by this tracker.
 
-```text
-PB-08 ACCEPTED
-  -> fresh active-session PB-09 entry packet
-  -> explicit PB-09 authorization
-  -> PB-10 bounded execution / safe close
-```
+## 7. UWBS-101..104 namespace correction
 
-State: **PARKED** until the applicable market-session execution window is intentionally reopened.
-
-## 8. Current market-independent CP
-
-### Oil / commodity / cross-asset lane
-
-```text
-UWBS-080  Direct WTI / Brent Macro Instrument contract + provider survey   [ACCEPTED]
-   |
-   +-> UWBS-081  structured commodity supply/fundamental acquisition      [ACCEPTED]
-   +-> UWBS-082  commodity supply/shipping/geopolitical event taxonomy     [ACCEPTED]
-   |
-   v
-UWBS-083  oil-down-reason / inflation-growth-risk interpretation           [ACCEPTED]
-   |
-   +-> UWBS-084  BTC spot ETF flow normalization                           [ACCEPTED]
-   |
-   v
-UWBS-085  cross-asset Risk-On / Crypto Risk-On regime                     [ACCEPTED]
-   |
-   v
-UWBS-086  historical Canary + Worker/D1 capacity acceptance               [ACCEPTED — CURRENT CHECKED-IN SHADOW RUNTIME]
-```
-
-### Physical-SaaS lane
+The following IDs are permanently unavailable for new task allocation:
 
 ```text
-UWBS-087  Physical-SaaS deployment lifecycle Fact contract                [ACCEPTED]
-   |
-   v
-UWBS-088  operational-milestone extraction and reconciliation             [IMPLEMENTED / LOCAL ACCEPTANCE PENDING]
-   |
-   v
-UWBS-089  deployment-funnel Derived Metrics and slippage interpretation    [PENDING]
-
-UWBS-087 -> UWBS-090  recurring-revenue quality/cash conversion model      [PENDING]
-UWBS-088 -> UWBS-091  M&A integration / legacy-system evidence overlay     [PENDING]
-UWBS-087 -> UWBS-092  Physical-SaaS classifier/applicability guard         [PENDING]
-UWBS-089 + UWBS-090 + UWBS-091 + UWBS-092 -> UWBS-093 Canary              [PENDING]
+UWBS-101..104 = FROZEN CONFLICT / LEGACY-ONLY
 ```
 
-### UWBS-087 current state
-
-Status: **ACCEPTED**
-
-Acceptance evidence: `UWBS-087_LOCAL_ACCEPTANCE_2026-09-27.md`
+Canonical mapping is context-dependent:
 
 ```text
-Physical-SaaS deployment focused tests: 10 passed in 1.95s
-full Python regression:                845 passed in 47.84s
-compileall:                            PASS
-git diff --check:                     PASS
+Macro legacy UWBS-101 -> UWBS-105
+
+Crypto legacy UWBS-101 -> UWBS-106
+Crypto legacy UWBS-102 -> UWBS-107
+Crypto legacy UWBS-103 -> UWBS-108
+Crypto legacy UWBS-104 -> UWBS-109
 ```
 
-Accepted boundary keeps source-observed physical deployment lifecycle Facts separate from backlog, bookings, connected-base totals, billing, ARR and recognized revenue.
+Context rules:
 
-### UWBS-088 current state
+- PCE / Durable Goods / US-Japan 2Y / USDJPY / carry -> `UWBS-105`;
+- wallet / chain / contract / confirmed transfer -> `UWBS-106`;
+- abnormal on-chain flow -> `UWBS-107`;
+- price / OI / funding / liquidation join -> `UWBS-108`;
+- exploit / replay / NEAR Intents -> `UWBS-109`;
+- insufficient context -> `AMBIGUOUS`.
 
-Status: **IMPLEMENTED / LOCAL ACCEPTANCE PENDING**
+Historical documents may retain their old identifier as provenance. Active planning and implementation must use canonical IDs.
 
-Design evidence: `UWBS-088_OPERATIONAL_MILESTONE_RECONCILIATION_2026-09-27.md`
+## 8. Current market-independent planning
 
-Implementation:
+### Macro / Carry
 
 ```text
-analysis/app/orderscope_local/physical_saas/milestone_reconciliation.py
-analysis/tests/physical_saas/test_milestone_reconciliation.py
+UWBS-011 + UWBS-012
+        -> UWBS-105 Macro Release Surprise / Yen Carry Flow Observability
+        -> existing UWBS-013 carry-unwind / deleveraging interpretation
 ```
 
-Reconciliation keeps duplicate, consistent, conflict and insufficient-identity outcomes explicit. It does not silently choose a preferred source or convert commercial guidance into deployment evidence.
+Current status: **Planned / WBS-unreflected**.
 
-### UWBS-086 current state
-
-Status: **ACCEPTED — CURRENT CHECKED-IN SHADOW RUNTIME ONLY**
-
-Final acceptance evidence:
-
-`UWBS-086_FINAL_SHADOW_CAPACITY_ACCEPTANCE_2026-09-27.md`
-
-Latest local verification:
+### Crypto On-chain Event Intelligence / v0.1.11
 
 ```text
-shadow capacity bound focused tests:      10 passed
-D1 capacity evidence focused tests:       10 passed
-historical Canary evaluation tests:        7 passed
-full Python regression:                  835 passed
-compileall:                              PASS
-git diff --check:                        PASS
+UWBS-106
+  -> UWBS-107
+  -> UWBS-108
+  -> UWBS-109
+  -> REL-11X cumulative v0.1.11 acceptance
 ```
 
-Accepted historical result:
+Accepted upstream dependencies:
 
 ```text
-expected_regime:      risk_off
-observed_regime:      risk_off
-expected_alert:       true
-observed_alert:       true
-false positives:      0
-false negatives:      0
-regime mismatches:    0
-historical clean:     true
+UWBS-068..079 -> UWBS-108
+UWBS-068..079 -> UWBS-109
 ```
 
-Accepted checked-in runtime boundary:
+Current status: **Planned / not implemented**.
+
+## 9. Current management critical path
+
+The current work is management-authority synchronization, not feature implementation.
 
 ```text
-WORKER_MODE=shadow
-UNIVERSE_PROFILE=canary-v0.1
-ACQUISITION_MAX_JOBS_PER_TICK=2
-ACQUISITION_MAX_PAGES_PER_JOB=10
-ACQUISITION_MAX_BARS_PER_JOB=100
-NEWS_ACQUISITION_ENABLED=false
-cron=* * * * *
+MFR-01  UWBS namespace reconciliation            [DONE on management branch]
+  -> MFR-02 release/TAG READY reconciliation      [DONE for final ledger; remaining authority sync]
+  -> MFR-03 CURRENT Critical Path                 [DONE on management branch]
+  -> MFR-04 CURRENT UWBS tracker                  [DONE on management branch]
+  -> MFR-05 overall integrated tracker            [THIS FILE refreshed]
+  -> MFR-06 formal WBS/backlog incorporation      [NEXT]
 ```
 
-Conservative shadow projection with 1.25x safety margin:
+## 10. Selected restart point
 
 ```text
-Worker requests/day:       1,440
-D1 rows read/day:        720,000
-D1 rows written/day:      14,400
-storage warm-up:        1,986,560 bytes
+CURRENT: finish management-file authority synchronization
+NEXT:    formal WBS/backlog incorporation of UWBS-105 and UWBS-106..109
 ```
 
-Planning-envelope headroom:
+Feature implementation should not restart from UWBS-101..104.
+
+When implementation is authorized after management reconciliation:
 
 ```text
-Worker requests: 98.56%
-D1 rows read:    85.60%
-D1 rows written: 85.60%
+Macro candidate:  UWBS-105
+Crypto candidate: UWBS-106 -> UWBS-107 -> UWBS-108 -> UWBS-109
 ```
 
-Existing R0-007 custody billing evidence remains classified as a specific read-query observation only:
+The relative priority of Macro vs Crypto is a separate planning decision.
 
-```text
-rows_read:      3906
-rows_written:   0
-size_after:     4,796,416 bytes
-changed_db:     false
-returned rows:  1
-```
-
-It must not be multiplied by 1,440/day as though it represented one scheduled Worker tick.
-
-### UWBS-086 live-mode boundary
-
-`WORKER_MODE=live` is **NOT COVERED / NOT ACCEPTED** by the shadow capacity acceptance.
-
-Live acquisition introduces additional checkpoint, lease, attempt, normalized-bar, conflict, scheduler-evidence and digest D1 activity. Before live capacity acceptance, obtain measured or defensibly bounded billing rows for representative live/shadow-canary acquisition samples and rerun the same capacity assessment.
-
-No live provider activation, Worker/Cron mutation, D1 mutation, PB execution, paid procurement, or trading action is authorized by the UWBS-086 shadow acceptance.
-
-### Selected restart point
-
-```text
-PB lane remains PARKED
-UWBS-087 is ACCEPTED
-  -> verify UWBS-088 locally
-  -> if accepted, advance to UWBS-089
-```
-
-## 9. Restart rule
+## 11. Restart rule
 
 After an interruption:
 
 1. read this tracker;
-2. read `CURRENT_CRITICAL_PATH_RECONCILIATION.md`;
-3. use `WBS_PROVISIONAL_ID_REGISTRY.md` for all provisional IDs;
-4. preserve accepted runtime evidence;
-5. for market-dependent work, refresh only time-dependent preflight inputs;
-6. for market-independent work, resume at the first incomplete canonical dependency.
-
-Do not reopen accepted boundaries merely because a calendar day changed. Reopen capacity only if the accepted runtime boundary materially changes, especially `WORKER_MODE=live`, cron cadence, D1 schema/indexes, digest retention, news enablement, or acquisition limits.
+2. read `CURRENT_CRITICAL_PATH_RECONCILIATION_2026-10-03.md`;
+3. read `CURRENT_UWBS_PROGRESS_TRACKER.md`;
+4. use `WBS_PROVISIONAL_ID_REGISTRY.md` for provisional IDs;
+5. use the final tag ledger for release boundaries;
+6. preserve accepted runtime and release evidence;
+7. never repeat accepted UWBS-080..100 or PB-00..PB-10 closeout;
+8. never begin new work under frozen UWBS-101..104;
+9. complete management synchronization before formal post-100 implementation planning.
