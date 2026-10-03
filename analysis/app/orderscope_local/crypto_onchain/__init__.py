@@ -1,4 +1,4 @@
-"""Crypto on-chain Fact and Derived-Metric contracts for v0.1.11."""
+"""Crypto on-chain Fact, Derived-Metric and market-context contracts for v0.1.11."""
 
 from .flow_metrics import (
     AbnormalFlowAssessment,
@@ -9,6 +9,12 @@ from .flow_metrics import (
     FlowThresholds,
     WindowFlowMetrics,
     assess_abnormal_flow,
+)
+from .market_context import (
+    CausalityStatus,
+    MarketStructureInterpretation,
+    OnchainMarketContext,
+    join_onchain_market_context,
 )
 from .models import (
     ChainIdentity,
@@ -28,6 +34,7 @@ __all__ = [
     "AbnormalFlowState",
     "AlternativeExplanation",
     "BaselineStats",
+    "CausalityStatus",
     "ChainIdentity",
     "ComponentKind",
     "ConfirmedTransferFact",
@@ -35,6 +42,8 @@ __all__ = [
     "CryptoOnchainRegistry",
     "DestinationClass",
     "FlowThresholds",
+    "MarketStructureInterpretation",
+    "OnchainMarketContext",
     "ProjectIdentity",
     "ProjectRelationship",
     "RegistryConflictError",
@@ -43,4 +52,5 @@ __all__ = [
     "WalletContractComponent",
     "WindowFlowMetrics",
     "assess_abnormal_flow",
+    "join_onchain_market_context",
 ]
