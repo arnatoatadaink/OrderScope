@@ -1,6 +1,6 @@
 # OrderScope — Current Local Corporate Intelligence Progress Tracker
 
-Status: **CURRENT INTEGRATED OPERATING TRACKER / INTEGRATION PRE-REVIEW**
+Status: **CURRENT INTEGRATED OPERATING TRACKER / MANAGEMENT INTEGRATED**
 Updated: 2026-10-03
 Scope: Local Corporate Intelligence / runtime + release + market-independent planning
 
@@ -22,7 +22,21 @@ Historical acceptance and planning files remain evidence. When a historical line
 
 No status in this tracker authorizes live provider activation, Worker/Cron mutation, D1 mutation, paid procurement, automated trading, new PB execution, tag creation, history rewrite, or force push.
 
-## 2. Original runtime foundation
+## 2. Management integration result
+
+The completed MFR-01..06 management refresh was squash-merged into `main` on 2026-10-03.
+
+```text
+integration commit:
+f9dc1270db8d3b167a163edd8a0475747e2a404b
+
+commit message:
+docs: reconcile management authorities and plan v0.1.11-v0.1.12
+```
+
+The management branch retains its detailed review history. Its final reviewed tree and the squash commit tree were identical at the integration boundary.
+
+## 3. Original runtime foundation
 
 | Task / package | Current status | Current interpretation |
 |---|---|---|
@@ -36,7 +50,7 @@ No status in this tracker authorizes live provider activation, Worker/Cron mutat
 
 Future live-market work requires fresh authorization despite the accepted historical PB closeout.
 
-## 3. Formal WBS mappings relevant to current work
+## 4. Formal WBS mappings relevant to current work
 
 Existing Analyst / Cross-Market foundation:
 
@@ -59,9 +73,9 @@ UWBS-108 -> C0-003
 UWBS-109 -> C0-004
 ```
 
-`UWBS-105..109` are therefore **formally incorporated but implementation pending**, not WBS-unreflected.
+`UWBS-105..109` are **formally incorporated but implementation pending**, not WBS-unreflected.
 
-## 4. Canonical UWBS feature state
+## 5. Canonical UWBS feature state
 
 | Range | Capability lane | Current status |
 |---|---|---|
@@ -76,7 +90,7 @@ UWBS-109 -> C0-004
 | UWBS-105 / A0-018 | Macro Release / Yen Carry Observability | **Incorporated / implementation pending / v0.1.12** |
 | UWBS-106..109 / C0-001..004 | Crypto On-chain Event Intelligence | **Incorporated / implementation pending / v0.1.11** |
 
-## 5. Release state
+## 6. Release state
 
 Exact cumulative targets through `v0.1.10` are frozen in the final tag ledger:
 
@@ -103,7 +117,7 @@ v0.1.11  C0-001..004 / UWBS-106..109  PLANNED / IMPLEMENTATION PENDING
 v0.1.12  A0-018 / UWBS-105             PLANNED / IMPLEMENTATION PENDING
 ```
 
-## 6. Namespace correction
+## 7. Namespace correction
 
 ```text
 UWBS-101..104 = FROZEN CONFLICT / LEGACY-ONLY
@@ -121,7 +135,7 @@ Crypto old UWBS-104 -> UWBS-109 -> C0-004
 
 Insufficient context remains `AMBIGUOUS`; it is never guessed.
 
-## 7. Current release CP
+## 8. Current release CP
 
 ### v0.1.11
 
@@ -148,7 +162,7 @@ REL-12A  A0-018 release Fact / consensus / revision
 
 A0-018 is technically independent of C0-001..004; v0.1.11 then v0.1.12 is the selected release order.
 
-## 8. Management refresh state
+## 9. Management refresh state
 
 ```text
 MFR-01  namespace reconciliation                    COMPLETE
@@ -157,24 +171,19 @@ MFR-03  CURRENT CP reconciliation                   COMPLETE
 MFR-04  CURRENT UWBS reconciliation                 COMPLETE
 MFR-05  overall tracker reconciliation              COMPLETE
 MFR-06  formal WBS / backlog incorporation          COMPLETE
+Integration pre-review                              COMPLETE
+Squash integration to main                          COMPLETE
 ```
 
 Current management phase:
 
 ```text
-INTEGRATION PRE-REVIEW / AUTHORITY-DRIFT CHECK
+CLOSED — feature implementation may resume from the selected CP
 ```
 
-## 9. Selected restart point
+## 10. Selected restart point
 
-Current work:
-
-```text
-review all current authorities for stale/conflicting references
-  -> decide management-branch merge readiness
-```
-
-Next feature restart after successful management integration:
+Current feature work:
 
 ```text
 v0.1.11 REL-11A / C0-001 / UWBS-106
@@ -186,7 +195,7 @@ Planned next release after v0.1.11 acceptance:
 v0.1.12 REL-12A / A0-018 / UWBS-105
 ```
 
-## 10. Restart rule
+## 11. Restart rule
 
 After interruption:
 
@@ -198,4 +207,5 @@ After interruption:
 6. use the v0.1.11/v0.1.12 release plan for future implementation;
 7. preserve accepted evidence;
 8. never restart accepted UWBS-080..100 or PB-00..10;
-9. never start new work under frozen UWBS-101..104.
+9. never start new work under frozen UWBS-101..104;
+10. resume at `v0.1.11 REL-11A / C0-001 / UWBS-106` unless newer accepted evidence advances the CP.
