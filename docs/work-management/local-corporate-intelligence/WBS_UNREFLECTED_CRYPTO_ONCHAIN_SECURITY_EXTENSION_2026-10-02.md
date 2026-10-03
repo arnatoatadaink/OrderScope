@@ -1,45 +1,84 @@
 # OrderScope — WBS-Unreflected Crypto On-chain Security Extension
 
 Date: 2026-10-02
-Status: Active planning extension — not yet incorporated into normative WBS/CP
+Updated: 2026-10-03 formal incorporation reconciliation
+Status: **INCORPORATED / HISTORICAL PLANNING SOURCE — SUPERSEDED FOR EXECUTION**
 Source report: `docs/work-management/local-corporate-intelligence/REPORT_CRYPTO_ONCHAIN_SECURITY_FLOW_AND_HACK_PRICE_IMPACT_2026-10-02.md`
+Formal WBS: `docs/WORK_BREAKDOWN_CRYPTO_ONCHAIN_EVENT_INTELLIGENCE_2026-10-03.md`
+Release allocation: `v0.1.11`
 
-This extension follows the append-only WBS-unreflected planning model. It reserves provisional IDs after the currently observed UWBS-100 boundary. The IDs below are tracking IDs only until formal WBS/CP incorporation.
+> This file preserves the original WBS-unreflected planning scope and namespace-remap provenance. Current implementation authority is the formal C0 WBS, the v0.1.11/v0.1.12 release plan, and the CURRENT CP.
 
-| UWBS ID | Proposed task | Proposed package | Completion condition summary | Dependencies / related work | Status | Disposition |
-|---|---|---|---|---|---|---|
-| UWBS-101 | Define cross-chain protocol wallet/component registry and on-chain transfer Fact contract | Crypto On-chain / I0 / Registry | Represent project-to-chain-to-wallet/contract relationships with evidence-backed roles; ingest confirmed transfers with event/accepted timestamps, tx hash, asset, amount, USD notional and provenance; allow unresolved relationships; do not infer hack intent from transfer facts | Existing I0 provenance/idempotency boundaries; crypto market-structure work UWBS-068..079 | Ready for WBS design | Pending |
-| UWBS-102 | Implement abnormal on-chain flow Derived Metrics and candidate-state machine | Crypto On-chain Derived Metrics / Interpretation | Compute bounded 5m/15m/60m outflow, balance ratio, baseline ratio/z-score, burst/destination metrics; emit `ONCHAIN_ABNORMAL_FLOW_CANDIDATE/CONFIRMED` and alternative treasury/bridge-rebalance/unknown states without auto-promoting to confirmed security incident | UWBS-101; historical chain data; provider/terms review | Ready for WBS design | Pending |
-| UWBS-103 | Join on-chain anomaly candidates with price/OI/funding/liquidation market confirmation | Crypto Market Structure / Event Intelligence | Correlate exact on-chain event timestamps with token return, BTC-relative return, OI delta, funding, liquidation and available CVD/volume; distinguish price-down+OI-down deleveraging candidate from price-down+OI-up new-short candidate; preserve correlation vs causation boundary | UWBS-102; existing crypto derivatives/market structure observations UWBS-068..079 | Ready for WBS design | Pending |
-| UWBS-104 | Build historical crypto exploit price-impact dataset and NEAR Intents replay fixture | Crypto Historical Research / QA | Create reproducible incident records containing first malicious/on-chain-detectable/public/official timestamps, loss/TVL/market-cap ratios, patch/compensation/recovery state, +15m/+1h/+6h/+24h/+48h/+5d/+30d token and BTC-relative returns, OI/funding/liquidation, and recovery duration; replay NEAR Intents 2026-10-01 including ~17:00 JST price↓+OI↓ and ~22:00 JST price↓+OI↑ phases | UWBS-101..103; historical news/security reports; accepted crypto market history | Ready for WBS design | Pending |
+The original draft used `UWBS-101..104`. Those identifiers are now **CONFLICT / FROZEN / LEGACY-ONLY**. Current canonical/formal mappings are:
 
-## Proposed CP candidate
+| Historical alias | Canonical UWBS | Formal WBS | Task | Current disposition |
+|---|---|---|---|---|
+| UWBS-101 | UWBS-106 | C0-001 | Cross-chain project/wallet/contract registry + confirmed-transfer Fact | **Incorporated / implementation pending / REL-11A** |
+| UWBS-102 | UWBS-107 | C0-002 | Abnormal on-chain flow Derived Metrics + candidate-state machine | **Incorporated / implementation pending / REL-11B** |
+| UWBS-103 | UWBS-108 | C0-003 | On-chain anomaly × price/OI/funding/liquidation market-context join | **Incorporated / implementation pending / REL-11C** |
+| UWBS-104 | UWBS-109 | C0-004 | Historical exploit price-impact dataset + NEAR Intents replay | **Incorporated / implementation pending / REL-11D** |
+
+## Historical scope retained
+
+### C0-001 / UWBS-106
+
+Represent project-to-chain-to-wallet/contract relationships with evidence-backed roles; ingest confirmed transfers with event/accepted timestamps, tx hash, asset, amount, USD notional and provenance; retain unresolved relationships; never infer malicious intent from a transfer Fact.
+
+Dependencies: common I0 provenance/idempotency boundaries and accepted crypto market-structure evidence.
+
+### C0-002 / UWBS-107
+
+Compute bounded 5m/15m/60m outflow, balance/baseline ratio or z-score where valid, burst/destination metrics, and bounded abnormal-flow candidate states. Preserve treasury movement, bridge rebalance and unknown alternatives rather than auto-promoting to a confirmed incident.
+
+Dependency: C0-001 plus historical chain data/provider review.
+
+### C0-003 / UWBS-108
+
+Join exact on-chain event timing to token return, BTC-relative return, OI delta, funding, liquidation and available volume/CVD; distinguish price-down+OI-down deleveraging candidates from price-down+OI-up new-short candidates; preserve correlation vs causation.
+
+Dependencies: C0-002 and accepted `UWBS-068..079` crypto market-structure observations.
+
+### C0-004 / UWBS-109
+
+Build reproducible incident/replay records with distinct first on-chain-detectable/public/official timestamps, consistent event-window returns, derivatives context, recovery state and false-positive handling. The NEAR Intents 2026-10-01 reference replay retains the ~17:00 JST price↓+OI↓ and ~22:00 JST price↓+OI↑ phases as the reference scenario to reproduce from accepted data.
+
+Dependencies: C0-001..003, historical security/news evidence and accepted market history.
+
+## Current release CP
 
 ```text
-UWBS-101
-  -> UWBS-102
-  -> UWBS-103
-  -> UWBS-104
-
-existing crypto market structure UWBS-068..079
-  +-> UWBS-103
-  +-> UWBS-104
+REL-11A  C0-001 / UWBS-106
+  -> REL-11B  C0-002 / UWBS-107
+  -> REL-11C  C0-003 / UWBS-108
+  -> REL-11D  C0-004 / UWBS-109
+  -> REL-11X  cumulative v0.1.11 acceptance / TAG READY decision
 ```
+
+Accepted `UWBS-068..079` evidence feeds C0-003 and C0-004.
+
+## Frozen legacy identifiers
+
+`UWBS-101..104` must not be allocated to new work. Contextual historical mapping remains:
+
+- wallet / chain / transfer context -> UWBS-106 / C0-001;
+- abnormal-flow context -> UWBS-107 / C0-002;
+- price/OI/funding/liquidation context -> UWBS-108 / C0-003;
+- exploit/replay/NEAR Intents context -> UWBS-109 / C0-004;
+- PCE / Durable Goods / US-Japan rates / USDJPY / carry context -> UWBS-105 / A0-018;
+- insufficient context -> `AMBIGUOUS`.
 
 ## Research/data-source rule
 
-Existing news is sufficient for incident discovery and qualitative labels, but is not sufficient as the quantitative price-impact source of truth.
+Existing news is sufficient for incident discovery and qualitative labels but is not the quantitative price-impact source of truth. Preserve three evidence classes:
 
-Use three source classes:
+1. Security/news disclosure — incident identity, loss estimate, patch, compensation, recovery statements.
+2. On-chain — transfer path, block-confirmed timing and wallet/component facts.
+3. Market — price, BTC-relative return, OI, funding, liquidations and volume/CVD where available.
 
-1. Security/news disclosure layer — incident identity, loss estimate, patch, compensation, recovery statements.
-2. On-chain layer — first malicious transaction, transfer path, block-confirmed timing and wallet/component facts.
-3. Market layer — price, BTC-relative return, OI, funding, liquidations and volume/CVD where available.
-
-The historical model must not use article-reported percentage declines as a substitute for consistently computed event-window returns.
+Article-reported percentage declines do not replace consistently computed event-window returns.
 
 ## Stage-B deferred extension
 
-Mempool/pre-confirmation monitoring is intentionally deferred until confirmed-transaction replay has acceptable false-positive behavior and provider/cost constraints are measured.
+Mempool/pre-confirmation monitoring remains deferred until confirmed-transaction replay has acceptable false-positive behavior and provider/cost constraints are measured.
 
-No live-provider activation, remote mutation, automated trading action, or security-incident assertion is authorized by this planning extension.
+No live-provider activation, remote mutation, automated trading action, confirmed security-incident assertion, tag creation, history rewrite, or force push is authorized by this historical planning file.
