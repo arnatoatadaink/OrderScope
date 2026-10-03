@@ -8,6 +8,7 @@ This tracker is the current UWBS-specific overlay for canonical task progress. I
 Canonical ID meanings are governed by `WBS_PROVISIONAL_ID_REGISTRY.md`.
 Namespace collision handling is governed by `UWBS_101_104_NAMESPACE_RECONCILIATION_2026-10-03.md`.
 Release boundaries through `v0.1.10` are governed by `docs/release/V0_1_0_TO_V0_1_10_FINAL_TAG_LEDGER_2026-10-03.md`.
+Planned release work for `v0.1.11` and `v0.1.12` is governed by `docs/release/V0_1_11_V0_1_12_RELEASE_PLAN_2026-10-03.md`.
 
 ## 1. Status rule
 
@@ -16,7 +17,7 @@ A UWBS item is not downgraded merely because its original branch is old or diver
 1. accepted task/local-validation evidence;
 2. reconciliation / selective-replay evidence;
 3. cumulative release acceptance / tag-ready evidence;
-4. current namespace and WBS authority.
+4. current namespace, formal WBS and release authority.
 
 Historical evidence remains immutable. Current planning references must use canonical IDs.
 
@@ -24,7 +25,7 @@ Historical evidence remains immutable. Current planning references must use cano
 
 | UWBS range | Current status | Current evidence boundary |
 |---|---|---|
-| UWBS-062..067 | **Accepted / Integrated** | post-v0.1.6 REC-03 reconciliation; `v0.1.4` / `v0.1.5` accepted release boundaries |
+| UWBS-062..067 | **Accepted / Integrated** | post-v0.1.6 REC-03 reconciliation; accepted release boundaries |
 | UWBS-068..078 | **Accepted / Integrated** | v0.1.6 CP-16X + REC-01 replay/reconciliation |
 | UWBS-079 Stage A | **Accepted / Integrated** | v0.1.6 accepted boundary |
 | UWBS-079 Stage B | **Pending / Experimental / Non-blocking** | longitudinal empirical-validation track; excluded from release blocker state |
@@ -61,32 +62,17 @@ Historical evidence remains immutable. Current planning references must use cano
 ### UWBS-080..086 — Oil / Commodity / Cross-Asset
 
 Status: **Accepted / Integrated / v0.1.7 TAG READY**
-
-Final cumulative release target:
-
-```text
-423929ae1ff3fd7431260ffdab09810dc7105aa0
-```
+Final cumulative target: `423929ae1ff3fd7431260ffdab09810dc7105aa0`
 
 ### UWBS-087..093 — Physical-SaaS
 
 Status: **Accepted / Integrated / v0.1.8 TAG READY**
-
-Final cumulative release target:
-
-```text
-d34d471b20d4f5be865b0414a42240ec7f3061d9
-```
+Final cumulative target: `d34d471b20d4f5be865b0414a42240ec7f3061d9`
 
 ### UWBS-094..100 — VIX / Cross-Asset Volatility
 
 Status: **Accepted / Integrated / v0.1.9 TAG READY**
-
-Final cumulative release target:
-
-```text
-fcfba651dbead9d035019e330f61986f5a1a60f7
-```
+Final cumulative target: `fcfba651dbead9d035019e330f61986f5a1a60f7`
 
 These accepted lanes must not be reopened merely because older CURRENT trackers still show intermediate states.
 
@@ -101,11 +87,7 @@ UWBS-103
 UWBS-104
 ```
 
-Reason: two post-100 planning streams reused the same namespace before a canonical registry update.
-
 Historical references are retained as provenance. They do not define active current task identity.
-
-Contextual historical mapping:
 
 | Legacy reference | Historical meaning | Current canonical ID |
 |---|---|---|
@@ -117,46 +99,72 @@ Contextual historical mapping:
 
 If context is insufficient, mark the reference `AMBIGUOUS`; do not guess.
 
-## 6. Current post-100 planned work
+## 6. Current post-100 formal work
 
-| UWBS | Task | Current status | Release allocation |
-|---|---|---|---|
-| UWBS-105 | Macro Release Surprise / Yen Carry Flow Observability | **Planned / WBS-unreflected** | Separate Macro/Carry planning item; not included in v0.1.11 by default |
-| UWBS-106 | Cross-chain protocol wallet/component registry + confirmed-transfer Fact | **Planned / Not implemented** | v0.1.11 Crypto On-chain Event Intelligence |
-| UWBS-107 | Abnormal on-chain flow Derived Metrics + candidate-state machine | **Planned / Not implemented** | v0.1.11 |
-| UWBS-108 | Join on-chain anomaly with price/OI/funding/liquidation context | **Planned / Not implemented** | v0.1.11 |
-| UWBS-109 | Historical exploit price-impact dataset + NEAR Intents replay | **Planned / Not implemented** | v0.1.11 |
+| UWBS | Formal WBS | Task | Current status | Release allocation |
+|---|---|---|---|---|
+| UWBS-105 | A0-018 | Macro Release Surprise / Yen Carry Flow Observability | **Incorporated / implementation pending** | **v0.1.12** |
+| UWBS-106 | C0-001 | Cross-chain project/wallet/contract registry + confirmed-transfer Fact | **Incorporated / implementation pending** | **v0.1.11 REL-11A** |
+| UWBS-107 | C0-002 | Abnormal on-chain flow Derived Metrics + candidate-state machine | **Incorporated / implementation pending** | **v0.1.11 REL-11B** |
+| UWBS-108 | C0-003 | Join on-chain anomaly with price/OI/funding/liquidation context | **Incorporated / implementation pending** | **v0.1.11 REL-11C** |
+| UWBS-109 | C0-004 | Historical exploit price-impact dataset + NEAR Intents replay | **Incorporated / implementation pending** | **v0.1.11 REL-11D** |
 
 Canonical dependencies:
 
 ```text
-Macro:
-UWBS-011 + UWBS-012
-        -> UWBS-105
-        -> existing UWBS-013 carry-unwind path
+Macro / v0.1.12:
+A0-003 + A0-004 + A0-013..016
+        -> A0-018 / UWBS-105
+        -> existing A0-005 carry-unwind path
 
-Crypto:
-UWBS-106 -> UWBS-107 -> UWBS-108 -> UWBS-109
-UWBS-068..079 -> UWBS-108
-UWBS-068..079 -> UWBS-109
+Crypto / v0.1.11:
+C0-001 / UWBS-106
+ -> C0-002 / UWBS-107
+ -> C0-003 / UWBS-108
+ -> C0-004 / UWBS-109
+UWBS-068..079 -> C0-003 / C0-004
 ```
 
-## 7. Release-state note
+## 7. Planned release CP
 
-The reconstructed accepted release ledger currently fixes:
+### v0.1.11
 
 ```text
-v0.1.6  UWBS-068..079 Stage-A boundary      ACCEPTED / TAG READY
-v0.1.7  UWBS-080..086                       ACCEPTED / TAG READY
-v0.1.8  UWBS-087..093                       ACCEPTED / TAG READY
-v0.1.9  UWBS-094..100                       ACCEPTED / TAG READY
-v0.1.10 PB-00..PB-10 closeout               ACCEPTED / TAG READY
-v0.1.11 UWBS-106..109                       PLANNED
+REL-11A  C0-001 / UWBS-106 registry + transfer Fact
+   -> REL-11B  C0-002 / UWBS-107 abnormal-flow metrics/state
+   -> REL-11C  C0-003 / UWBS-108 market-context join
+   -> REL-11D  C0-004 / UWBS-109 historical replay
+   -> REL-11X  cumulative acceptance / TAG READY decision
 ```
 
-`TAG READY` does not mean that the annotated Git tag has been created or pushed.
+### v0.1.12
 
-## 8. Validation evidence retained
+```text
+REL-12A  A0-018 macro release Fact / consensus / revision
+   -> REL-12B  surprise + event-window transmission
+   -> REL-12C  CARRY_BUILD / STABLE / COOLING integration
+   -> existing A0-005 carry-unwind interpretation
+   -> REL-12D  historical / revision / false-positive validation
+   -> REL-12X  cumulative acceptance / TAG READY decision
+```
+
+A0-018 remains one formal WBS task; REL-12A..D are implementation/acceptance decomposition units, not new UWBS IDs.
+
+## 8. Release-state note
+
+```text
+v0.1.6  UWBS-068..079 Stage-A boundary       ACCEPTED / TAG READY
+v0.1.7  UWBS-080..086                        ACCEPTED / TAG READY
+v0.1.8  UWBS-087..093                        ACCEPTED / TAG READY
+v0.1.9  UWBS-094..100                        ACCEPTED / TAG READY
+v0.1.10 PB-00..PB-10 closeout                ACCEPTED / TAG READY
+v0.1.11 C0-001..004 / UWBS-106..109          PLANNED / IMPLEMENTATION PENDING
+v0.1.12 A0-018 / UWBS-105                    PLANNED / IMPLEMENTATION PENDING
+```
+
+`TAG READY` does not mean the annotated Git tag has been created or pushed.
+
+## 9. Validation evidence retained
 
 v0.1.6 CP-16X:
 
@@ -198,7 +206,7 @@ Worker typecheck    PASS
 git diff --check    PASS
 ```
 
-## 9. Current interpretation
+## 10. Current interpretation
 
 ```text
 UWBS-062..067        ACCEPTED / INTEGRATED
@@ -207,8 +215,8 @@ UWBS-079 Stage A     ACCEPTED / INTEGRATED
 UWBS-079 Stage B     PENDING / EXPERIMENTAL / NON-BLOCKING
 UWBS-080..100        ACCEPTED / INTEGRATED
 UWBS-101..104        FROZEN CONFLICT / LEGACY-ONLY
-UWBS-105             PLANNED — MACRO/CARRY
-UWBS-106..109        PLANNED — v0.1.11 CRYPTO ON-CHAIN EVENT INTELLIGENCE
+UWBS-105             A0-018 — v0.1.12 PLANNED
+UWBS-106..109        C0-001..004 — v0.1.11 PLANNED
 ```
 
-Future UWBS progress updates should record canonical ID, branch/commit provenance, acceptance evidence, release allocation, and current integration state.
+Next feature restart point is `v0.1.11 REL-11A / C0-001 / UWBS-106`. After v0.1.11 acceptance, the planned next release starts at `v0.1.12 REL-12A / A0-018 / UWBS-105`.
