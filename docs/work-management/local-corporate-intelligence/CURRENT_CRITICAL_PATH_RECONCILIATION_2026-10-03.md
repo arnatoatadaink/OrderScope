@@ -1,12 +1,18 @@
 # OrderScope — Current Critical Path Reconciliation — 2026-10-03
 
-Status: **CURRENT OPERATING CP AUTHORITY / INTEGRATION PRE-REVIEW**
+Status: **CURRENT OPERATING CP AUTHORITY / MANAGEMENT INTEGRATED**
 Scope: Release management + market-independent feature governance
 
 ## 1. Authority rule
 
-This document supersedes the 2026-10-02 critical-path candidate for current planning purposes.
+This document is the detailed current CP authority after the 2026-10-03 management refresh was squash-merged into `main`.
 Historical acceptance and release evidence remain immutable.
+
+Management integration commit:
+
+```text
+f9dc1270db8d3b167a163edd8a0475747e2a404b
+```
 
 Companion current authorities:
 
@@ -88,10 +94,10 @@ If surrounding text does not identify the intended lane, classify the reference 
 v0.1.10  PB / active-market validation closeout    ACCEPTED / TAG READY
    |
    v
-v0.1.11  Crypto On-chain Event Intelligence        PLANNED
+v0.1.11  Crypto On-chain Event Intelligence        PLANNED / IMPLEMENTATION PENDING
    |
    v
-v0.1.12  Macro Release / Yen Carry Observability   PLANNED
+v0.1.12  Macro Release / Yen Carry Observability   PLANNED / IMPLEMENTATION PENDING
 ```
 
 The ordering of v0.1.11 before v0.1.12 is a release-management decision. A0-018 does not technically depend on C0-001..004.
@@ -243,10 +249,9 @@ Any new live market execution is a new operational action and still requires fre
 
 ## 9. Selected restart point
 
-Management-file reconciliation through MFR-06 is complete on the management branch.
-Current repository-management phase is integration pre-review / authority-drift checking.
+Management-file reconciliation through MFR-06, authority-drift review, and squash integration are complete.
 
-For new feature implementation after successful management integration:
+Current feature restart:
 
 ```text
 NEXT RELEASE: v0.1.11
