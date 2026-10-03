@@ -2,7 +2,7 @@
 
 Status: **CURRENT CANONICAL PROVISIONAL-ID REGISTRY**
 Scope: Local Corporate Intelligence / WBS-unreflected backlog governance
-Branch: `l1-003-local-market-recovery`
+Updated: 2026-10-03
 
 ## 1. Purpose
 
@@ -118,6 +118,22 @@ The following IDs are new canonical provisional IDs and do not remap historical 
 | UWBS-099 | Define MSTR/BTC IV differential and cross-asset volatility interpretation |
 | UWBS-100 | Historical calibration, Canary/false-positive and Worker/D1 capacity acceptance |
 
+### Post-100 namespace collision and canonical allocation
+
+`UWBS-101..104` are permanently frozen as **CONFLICT / LEGACY-ONLY** identifiers by `UWBS_101_104_NAMESPACE_RECONCILIATION_2026-10-03.md`.
+
+They must not be used as canonical IDs in new planning or implementation work.
+
+| Frozen legacy ID | Historical context | Canonical provisional ID | Task |
+|---|---|---|---|
+| UWBS-101 | Macro Release / Yen Carry context | UWBS-105 | Macro Release Surprise / Yen Carry Flow Observability |
+| UWBS-101 | Crypto wallet / chain / transfer context | UWBS-106 | Cross-chain project/wallet/contract registry and confirmed transfer Fact |
+| UWBS-102 | Crypto abnormal-flow context | UWBS-107 | Abnormal on-chain flow Derived Metrics and candidate-state machine |
+| UWBS-103 | Crypto price/OI/funding/liquidation context | UWBS-108 | On-chain anomaly × market-context join |
+| UWBS-104 | Crypto exploit/replay/NEAR Intents context | UWBS-109 | Historical exploit price-impact dataset and replay fixture |
+
+If an old `UWBS-101..104` reference lacks enough context to choose one of these mappings, it remains `AMBIGUOUS` and must not be guessed.
+
 ## 4. Canonical dependency references
 
 All new dependency and CP references use canonical IDs.
@@ -128,7 +144,7 @@ UWBS-062 -> UWBS-063 -> UWBS-064 -> UWBS-065 -> UWBS-066
 UWBS-020 -> UWBS-064 / UWBS-066
 UWBS-021 -> UWBS-065 / UWBS-066
 
-Crypto
+Crypto market structure
 UWBS-068 -> UWBS-069
 UWBS-068 -> UWBS-073 -> UWBS-074 -> UWBS-075
 UWBS-074 + UWBS-075 -> UWBS-076
@@ -156,6 +172,13 @@ UWBS-094 -> UWBS-097
 UWBS-094 -> UWBS-098
 UWBS-097 + UWBS-098 -> UWBS-099
 UWBS-096 + UWBS-099 -> UWBS-100
+
+Macro / Carry post-100
+UWBS-011 + UWBS-012 -> UWBS-105 -> UWBS-013 carry-unwind interpretation path
+
+Crypto On-chain Event Intelligence
+UWBS-106 -> UWBS-107 -> UWBS-108 -> UWBS-109
+UWBS-068..079 -> UWBS-108 / UWBS-109
 ```
 
 ## 5. Discovery-reference normalization
@@ -168,23 +191,26 @@ DISC-009 -> UWBS-080..086
 DISC-010 -> UWBS-087..093
 ```
 
-The crypto lane sourced from the crypto macro-leader / derivatives reports is canonicalized as `UWBS-068..079`.
-
-The VIX / cross-asset volatility lane is registered directly through the dedicated 2026-09-27 WBS-unreflected extension as `UWBS-094..100`; no historical colliding Discovery alias is required.
+The crypto market-structure lane is canonicalized as `UWBS-068..079`.
+The VIX / cross-asset volatility lane is canonicalized as `UWBS-094..100`.
+The Macro Release / Yen Carry extension is canonical `UWBS-105`.
+The Crypto On-chain Event Intelligence lane is canonical `UWBS-106..109`.
 
 ## 6. Usage rule
 
 From this registry onward:
 
 1. never create a new task using a historical colliding alias;
-2. use canonical `UWBS-062..100` IDs for the remapped/new lanes;
-3. when quoting an older report, preserve the legacy alias but add `canonical: UWBS-xxx` when ambiguity matters;
-4. final WBS incorporation updates this registry with the final package/task ID;
-5. do not renumber already incorporated formal tasks merely to make historical numbering contiguous.
+2. use canonical `UWBS-062..100` for the established remapped/new lanes and `UWBS-105..109` for the reconciled post-100 lanes;
+3. `UWBS-101..104` are frozen and may appear only as quoted historical aliases;
+4. when quoting an older report, preserve the legacy alias and add the canonical ID when context is sufficient;
+5. if a legacy `UWBS-101..104` reference is context-insufficient, mark it `AMBIGUOUS` rather than guessing;
+6. final WBS incorporation updates this registry with the final package/task ID;
+7. do not renumber already incorporated formal tasks merely to make historical numbering contiguous.
 
 ## 7. GOV-CP-01 acceptance effect
 
-This registry resolves the active-ID ambiguity identified by `CURRENT_CRITICAL_PATH_RECONCILIATION.md` while preserving append-only provenance.
+This registry resolves active-ID ambiguity while preserving append-only provenance.
 
 The previously identified market-independent CP entry remains canonical `UWBS-080`:
 
@@ -192,6 +218,13 @@ The previously identified market-independent CP entry remains canonical `UWBS-08
 UWBS-080 — Define direct WTI / Brent Macro Instrument contract and provider survey
 ```
 
-The VIX / cross-asset volatility lane is a separate **CP candidate only** until formal WBS/CP incorporation. Its common prerequisite is `UWBS-094`.
+The VIX / cross-asset volatility lane remains governed by its accepted/reconciled state in the current trackers.
 
-No provider activation, Worker/Cron change, D1 mutation, PB authorization, paid procurement, or trading action is authorized by this registry.
+The new post-100 planning entries are:
+
+```text
+UWBS-105      Macro Release Surprise / Yen Carry Flow Observability
+UWBS-106..109 Crypto On-chain Event Intelligence
+```
+
+No provider activation, Worker/Cron change, D1 mutation, PB authorization, paid procurement, trading action, history rewrite, or force push is authorized by this registry.
