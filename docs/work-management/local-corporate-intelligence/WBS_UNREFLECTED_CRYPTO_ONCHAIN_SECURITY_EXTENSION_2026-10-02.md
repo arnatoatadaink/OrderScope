@@ -1,30 +1,44 @@
 # OrderScope — WBS-Unreflected Crypto On-chain Security Extension
 
 Date: 2026-10-02
+Updated: 2026-10-03 namespace reconciliation
 Status: Active planning extension — not yet incorporated into normative WBS/CP
 Source report: `docs/work-management/local-corporate-intelligence/REPORT_CRYPTO_ONCHAIN_SECURITY_FLOW_AND_HACK_PRICE_IMPACT_2026-10-02.md`
 
-This extension follows the append-only WBS-unreflected planning model. It reserves provisional IDs after the currently observed UWBS-100 boundary. The IDs below are tracking IDs only until formal WBS/CP incorporation.
+This extension follows the append-only WBS-unreflected planning model. The original draft used `UWBS-101..104`. Those identifiers are now **CONFLICT / FROZEN** because `UWBS-101` was also used by an independent Macro Release / Yen Carry planning lane before canonical registry incorporation.
 
-| UWBS ID | Proposed task | Proposed package | Completion condition summary | Dependencies / related work | Status | Disposition |
-|---|---|---|---|---|---|---|
-| UWBS-101 | Define cross-chain protocol wallet/component registry and on-chain transfer Fact contract | Crypto On-chain / I0 / Registry | Represent project-to-chain-to-wallet/contract relationships with evidence-backed roles; ingest confirmed transfers with event/accepted timestamps, tx hash, asset, amount, USD notional and provenance; allow unresolved relationships; do not infer hack intent from transfer facts | Existing I0 provenance/idempotency boundaries; crypto market-structure work UWBS-068..079 | Ready for WBS design | Pending |
-| UWBS-102 | Implement abnormal on-chain flow Derived Metrics and candidate-state machine | Crypto On-chain Derived Metrics / Interpretation | Compute bounded 5m/15m/60m outflow, balance ratio, baseline ratio/z-score, burst/destination metrics; emit `ONCHAIN_ABNORMAL_FLOW_CANDIDATE/CONFIRMED` and alternative treasury/bridge-rebalance/unknown states without auto-promoting to confirmed security incident | UWBS-101; historical chain data; provider/terms review | Ready for WBS design | Pending |
-| UWBS-103 | Join on-chain anomaly candidates with price/OI/funding/liquidation market confirmation | Crypto Market Structure / Event Intelligence | Correlate exact on-chain event timestamps with token return, BTC-relative return, OI delta, funding, liquidation and available CVD/volume; distinguish price-down+OI-down deleveraging candidate from price-down+OI-up new-short candidate; preserve correlation vs causation boundary | UWBS-102; existing crypto derivatives/market structure observations UWBS-068..079 | Ready for WBS design | Pending |
-| UWBS-104 | Build historical crypto exploit price-impact dataset and NEAR Intents replay fixture | Crypto Historical Research / QA | Create reproducible incident records containing first malicious/on-chain-detectable/public/official timestamps, loss/TVL/market-cap ratios, patch/compensation/recovery state, +15m/+1h/+6h/+24h/+48h/+5d/+30d token and BTC-relative returns, OI/funding/liquidation, and recovery duration; replay NEAR Intents 2026-10-01 including ~17:00 JST price↓+OI↓ and ~22:00 JST price↓+OI↑ phases | UWBS-101..103; historical news/security reports; accepted crypto market history | Ready for WBS design | Pending |
+For all new planning, WBS/CP references, implementation handoffs and acceptance records, this Crypto On-chain lane uses the canonical remap below. Historical references to `UWBS-101..104` remain provenance only.
+
+| Historical alias | Canonical UWBS ID | Proposed task | Proposed package | Completion condition summary | Dependencies / related work | Status | Disposition |
+|---|---|---|---|---|---|---|---|
+| UWBS-101 | UWBS-106 | Define cross-chain protocol wallet/component registry and on-chain transfer Fact contract | Crypto On-chain / I0 / Registry | Represent project-to-chain-to-wallet/contract relationships with evidence-backed roles; ingest confirmed transfers with event/accepted timestamps, tx hash, asset, amount, USD notional and provenance; allow unresolved relationships; do not infer hack intent from transfer facts | Existing I0 provenance/idempotency boundaries; crypto market-structure work UWBS-068..079 | Ready for WBS design | Pending / Canonical remap |
+| UWBS-102 | UWBS-107 | Implement abnormal on-chain flow Derived Metrics and candidate-state machine | Crypto On-chain Derived Metrics / Interpretation | Compute bounded 5m/15m/60m outflow, balance ratio, baseline ratio/z-score, burst/destination metrics; emit `ONCHAIN_ABNORMAL_FLOW_CANDIDATE/CONFIRMED` and alternative treasury/bridge-rebalance/unknown states without auto-promoting to confirmed security incident | UWBS-106; historical chain data; provider/terms review | Ready for WBS design | Pending / Canonical remap |
+| UWBS-103 | UWBS-108 | Join on-chain anomaly candidates with price/OI/funding/liquidation market confirmation | Crypto Market Structure / Event Intelligence | Correlate exact on-chain event timestamps with token return, BTC-relative return, OI delta, funding, liquidation and available CVD/volume; distinguish price-down+OI-down deleveraging candidate from price-down+OI-up new-short candidate; preserve correlation vs causation boundary | UWBS-107; existing crypto derivatives/market structure observations UWBS-068..079 | Ready for WBS design | Pending / Canonical remap |
+| UWBS-104 | UWBS-109 | Build historical crypto exploit price-impact dataset and NEAR Intents replay fixture | Crypto Historical Research / QA | Create reproducible incident records containing first malicious/on-chain-detectable/public/official timestamps, loss/TVL/market-cap ratios, patch/compensation/recovery state, +15m/+1h/+6h/+24h/+48h/+5d/+30d token and BTC-relative returns, OI/funding/liquidation, and recovery duration; replay NEAR Intents 2026-10-01 including ~17:00 JST price↓+OI↓ and ~22:00 JST price↓+OI↑ phases | UWBS-106..108; historical news/security reports; accepted crypto market history | Ready for WBS design | Pending / Canonical remap |
 
 ## Proposed CP candidate
 
 ```text
-UWBS-101
-  -> UWBS-102
-  -> UWBS-103
-  -> UWBS-104
+UWBS-106
+  -> UWBS-107
+  -> UWBS-108
+  -> UWBS-109
 
 existing crypto market structure UWBS-068..079
-  +-> UWBS-103
-  +-> UWBS-104
+  +-> UWBS-108
+  +-> UWBS-109
 ```
+
+## Frozen legacy identifiers
+
+`UWBS-101`, `UWBS-102`, `UWBS-103`, and `UWBS-104` must not be allocated to any new task. They are preserved only to resolve historical references created before the 2026-10-03 namespace reconciliation.
+
+Context rule for old references:
+
+- wallet / chain / transfer / abnormal-flow / OI / funding / liquidation / exploit / NEAR Intents context => Crypto On-chain lane => canonical `UWBS-106..109` as shown above;
+- PCE / Durable Goods / U.S.-Japan 2Y spread / USDJPY / carry build-cooling-unwind context => Macro Release / Yen Carry lane => canonical `UWBS-105`.
+
+If context is insufficient, the old identifier remains `AMBIGUOUS` and must not be auto-remapped.
 
 ## Research/data-source rule
 
