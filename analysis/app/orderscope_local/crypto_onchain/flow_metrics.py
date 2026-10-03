@@ -1,7 +1,7 @@
 """Deterministic abnormal-flow metrics for REL-11B / C0-002.
 
 The module consumes accepted C0-001 confirmed-transfer Facts and produces
-bounded Derived Metrics / candidate interpretations.  It never promotes an
+bounded Derived Metrics / candidate interpretations. It never promotes an
 abnormal transfer pattern to an exploit, theft, malicious action or confirmed
 security incident.
 """
@@ -170,6 +170,7 @@ def _window_metrics(
         if transfer.from_address == monitored_address
         and start < transfer.confirmed_at <= as_of
         and transfer.available_at <= as_of
+        and transfer.accepted_at <= as_of
     ]
     usd_values = [transfer.usd_notional for transfer in selected if transfer.usd_notional is not None]
     complete = len(usd_values) == len(selected)
