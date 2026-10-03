@@ -1,6 +1,6 @@
 # OrderScope — Current Critical Path Reconciliation — 2026-10-03
 
-Status: **CURRENT OPERATING INDEX CANDIDATE**
+Status: **CURRENT OPERATING CP AUTHORITY / INTEGRATION PRE-REVIEW**
 Scope: Release management + market-independent feature governance
 
 ## 1. Authority rule
@@ -10,6 +10,7 @@ Historical acceptance and release evidence remain immutable.
 
 Companion current authorities:
 
+- `CURRENT_CRITICAL_PATH_RECONCILIATION.md`
 - `CURRENT_UWBS_PROGRESS_TRACKER.md`
 - `CURRENT_LOCAL_CORPORATE_INTELLIGENCE_PROGRESS_TRACKER.md`
 - `WBS_PROVISIONAL_ID_REGISTRY.md`
@@ -72,11 +73,11 @@ They are historical collision aliases only.
 Contextual mapping:
 
 ```text
-Macro legacy UWBS-101 -> UWBS-105
-Crypto legacy UWBS-101 -> UWBS-106
-Crypto legacy UWBS-102 -> UWBS-107
-Crypto legacy UWBS-103 -> UWBS-108
-Crypto legacy UWBS-104 -> UWBS-109
+Macro legacy UWBS-101 -> UWBS-105 -> A0-018
+Crypto legacy UWBS-101 -> UWBS-106 -> C0-001
+Crypto legacy UWBS-102 -> UWBS-107 -> C0-002
+Crypto legacy UWBS-103 -> UWBS-108 -> C0-003
+Crypto legacy UWBS-104 -> UWBS-109 -> C0-004
 ```
 
 If surrounding text does not identify the intended lane, classify the reference as `AMBIGUOUS` rather than assigning a number.
@@ -243,8 +244,9 @@ Any new live market execution is a new operational action and still requires fre
 ## 9. Selected restart point
 
 Management-file reconciliation through MFR-06 is complete on the management branch.
+Current repository-management phase is integration pre-review / authority-drift checking.
 
-For new feature implementation:
+For new feature implementation after successful management integration:
 
 ```text
 NEXT RELEASE: v0.1.11
@@ -260,12 +262,13 @@ A0-018 may technically be developed independently, but current release sequencin
 
 After interruption:
 
-1. read this file;
-2. read `CURRENT_UWBS_PROGRESS_TRACKER.md`;
-3. read `docs/release/V0_1_11_V0_1_12_RELEASE_PLAN_2026-10-03.md`;
-4. use `WBS_PROVISIONAL_ID_REGISTRY.md` for provisional IDs;
-5. use the final tag ledger for accepted release boundaries through v0.1.10;
-6. never restart work from legacy UWBS-101..104;
-7. never repeat accepted UWBS-080..100 or PB-00..PB-10 closeout;
-8. resume v0.1.11 from the first incomplete REL-11 unit;
-9. after v0.1.11 acceptance, resume v0.1.12 from the first incomplete REL-12 unit.
+1. read `CURRENT_CRITICAL_PATH_RECONCILIATION.md` as the date-independent entry point;
+2. read this file for detailed CP;
+3. read `CURRENT_UWBS_PROGRESS_TRACKER.md`;
+4. read `docs/release/V0_1_11_V0_1_12_RELEASE_PLAN_2026-10-03.md`;
+5. use `WBS_PROVISIONAL_ID_REGISTRY.md` for provisional IDs;
+6. use the final tag ledger for accepted release boundaries through v0.1.10;
+7. never restart work from legacy UWBS-101..104;
+8. never repeat accepted UWBS-080..100 or PB-00..PB-10 closeout;
+9. resume v0.1.11 from the first incomplete REL-11 unit;
+10. after v0.1.11 acceptance, resume v0.1.12 from the first incomplete REL-12 unit.
