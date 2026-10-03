@@ -1,6 +1,6 @@
 # OrderScope — Current Critical Path Reconciliation
 
-Status: **CURRENT DATE-INDEPENDENT OPERATING INDEX / MANAGEMENT INTEGRATED**
+Status: **CURRENT DATE-INDEPENDENT OPERATING INDEX / v0.1.11 ACCEPTED**
 Updated: 2026-10-03
 Scope: release management + canonical WBS / CP restart authority
 
@@ -20,38 +20,26 @@ Companion authorities are:
 - `UWBS_101_104_NAMESPACE_RECONCILIATION_2026-10-03.md`
 - `docs/release/V0_1_0_TO_V0_1_10_FINAL_TAG_LEDGER_2026-10-03.md`
 - `docs/release/V0_1_11_V0_1_12_RELEASE_PLAN_2026-10-03.md`
+- `REL_11X_V0_1_11_ACCEPTANCE_2026-10-03.md`
 
 Historical dated CP documents and the integration pre-review remain evidence. They do not override the authorities above.
 
-## 2. Management integration state
-
-The management refresh branch was squash-merged into `main` on 2026-10-03.
-
-```text
-main integration commit:
-f9dc1270db8d3b167a163edd8a0475747e2a404b
-
-commit message:
-docs: reconcile management authorities and plan v0.1.11-v0.1.12
-```
-
-The squash commit uses the same final tree as the reviewed management branch head. The branch may appear diverged after squash because it retains the original review commits; this is expected and does not indicate content drift at the merge boundary.
-
-## 3. Accepted release state
+## 2. Accepted release state
 
 ```text
 v0.1.0..v0.1.10  ACCEPTED / TAG READY
+v0.1.11            ACCEPTED / TAG READY
 ```
 
-The exact v0.1.0..v0.1.10 cumulative targets are frozen in the final tag ledger.
+Frozen validated target for `v0.1.11`:
 
-`TAG READY` is evidence of release readiness only. This file does not authorize creation or push of Git tags.
+```text
+fce9a3a2e56783206d63dbcac0d8a65e50008c10
+```
 
-The former PB-09/PB-10 pending state is historical. The reconstructed PB closeout boundary is accepted as `v0.1.10`.
+`TAG READY` is evidence only. This file does not authorize creation or push of Git tags.
 
-Any future live-market execution is a new operational action and still requires fresh authorization.
-
-## 4. Canonical namespace
+## 3. Canonical namespace
 
 ```text
 UWBS-101..104  FROZEN / CONFLICT / LEGACY-ONLY
@@ -62,67 +50,77 @@ UWBS-108       C0-003  on-chain anomaly × market context
 UWBS-109       C0-004  historical exploit / replay
 ```
 
-Historical references to `UWBS-101..104` may be retained as provenance, but they must not be used as active implementation IDs. Context-insufficient historical references remain `AMBIGUOUS`.
-
-## 5. Current release CP
-
-### v0.1.11 — Crypto On-chain Event Intelligence
+## 4. v0.1.11 completion
 
 ```text
 REL-11A  C0-001 / UWBS-106  ACCEPTED / INTEGRATED
-   -> REL-11B  C0-002 / UWBS-107  ACCEPTED / INTEGRATED
-   -> REL-11C  C0-003 / UWBS-108  ACCEPTED / INTEGRATED
-   -> REL-11D  C0-004 / UWBS-109  NEXT
-   -> REL-11X  cumulative acceptance / TAG READY decision
+REL-11B  C0-002 / UWBS-107  ACCEPTED / INTEGRATED
+REL-11C  C0-003 / UWBS-108  ACCEPTED / INTEGRATED
+REL-11D  C0-004 / UWBS-109  ACCEPTED / INTEGRATED
+REL-11X  cumulative acceptance  ACCEPTED / TAG READY
 ```
 
-Accepted crypto-market-structure evidence `UWBS-068..079` feeds C0-003 and C0-004. Abnormal transfer or market behavior alone must not be promoted to a confirmed security incident.
-
-### v0.1.12 — Macro Release / Yen Carry Observability
+Accepted cumulative validation:
 
 ```text
-REL-12A  A0-018 macro release Fact / consensus / revision
-   -> REL-12B  surprise + bounded event-window transmission
-   -> REL-12C  CARRY_BUILD / CARRY_STABLE / CARRY_COOLING
-   -> existing A0-005 carry-unwind / deleveraging interpretation
-   -> REL-12D  historical / revision / stale-market / false-positive validation
-   -> REL-12X  cumulative acceptance / TAG READY decision
+crypto_onchain                33 passed
+crypto_context/derivatives/
+archive/time/canary          111 passed
+full analysis               1151 passed
+compileall                   PASS
+git diff --check             PASS
 ```
 
-A0-018 extends the accepted macro/carry foundation; it does not duplicate `CARRY_UNWIND_CANDIDATE` or `DELEVERAGING_REGIME`.
+## 5. Current release CP — v0.1.12
+
+```text
+REL-12A
+A0-018 stage 1
+Macro release Fact / consensus / prior / revision contract
+(PCE / Durable Goods initial families)
+        |
+        v
+REL-12B
+Deterministic surprise + bounded event-window transmission
+(30m / 2h / 1d; US2Y / JP2Y / spread / USDJPY)
+        |
+        v
+REL-12C
+CARRY_BUILD / CARRY_STABLE / CARRY_COOLING
+        |
+        v
+existing A0-005
+CARRY_UNWIND_CANDIDATE / DELEVERAGING_REGIME
+        |
+        v
+REL-12D
+Historical / revision / stale-market / contradiction / false-positive validation
+        |
+        v
+REL-12X
+Cumulative v0.1.12 acceptance / TAG READY decision
+```
+
+A0-018 extends accepted A0-003/A0-004/A0-013..016 and feeds the existing A0-005 carry-unwind path. It must not claim observed capital flow without a direct eligible flow source.
 
 ## 6. Selected restart point
 
-Management refresh MFR-01..06 and its integration review are complete.
-
-The selected feature restart is now:
-
 ```text
-v0.1.11 REL-11D
-  -> C0-004 / UWBS-109
+NEXT RELEASE: v0.1.12
+  -> REL-12A / A0-018 / UWBS-105
 ```
-
-After v0.1.11 acceptance, the planned next release begins at:
-
-```text
-v0.1.12 REL-12A
-  -> A0-018 / UWBS-105
-```
-
-The release order is a planning decision; A0-018 has no technical dependency on C0-001..004.
 
 ## 7. Restart rule
 
-After an interruption:
+After interruption:
 
 1. read this file;
-2. read `CURRENT_CRITICAL_PATH_RECONCILIATION_2026-10-03.md` for detailed CP;
-3. read `CURRENT_UWBS_PROGRESS_TRACKER.md` for task state;
+2. read `CURRENT_CRITICAL_PATH_RECONCILIATION_2026-10-03.md`;
+3. read `CURRENT_UWBS_PROGRESS_TRACKER.md`;
 4. use `WBS_PROVISIONAL_ID_REGISTRY.md` for identifier authority;
-5. use the final tag ledger for v0.1.0..v0.1.10 boundaries;
-6. use the v0.1.11/v0.1.12 release plan for planned release work;
-7. never restart accepted UWBS-080..100 or PB-00..PB-10 work;
-8. never start new work under frozen UWBS-101..104;
-9. resume current feature work from `v0.1.11 REL-11D / C0-004 / UWBS-109` until evidence advances the CP.
+5. use the final tag ledger for v0.1.0..v0.1.10;
+6. use `REL_11X_V0_1_11_ACCEPTANCE_2026-10-03.md` for the v0.1.11 frozen target;
+7. never restart accepted C0-001..004 work;
+8. resume from `v0.1.12 REL-12A / A0-018 / UWBS-105`.
 
 No provider activation, Worker/Cron mutation, D1 mutation, paid procurement, live PB execution, automated trading, tag creation, history rewrite, or force push is authorized by this index.
