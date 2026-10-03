@@ -8,7 +8,7 @@ Scope: management / WBS / CP / release / namespace documentation only
 
 ## 1. Review purpose
 
-Verify that the management refresh branch can be reviewed for integration without leaving competing current authorities, stale restart points, namespace ambiguity, or contradictory release allocations.
+Verify that the management refresh branch can be reviewed for integration without leaving competing current authorities, stale restart points, namespace ambiguity, contradictory release allocations, or contradictory dependency edges.
 
 This review does not merge the branch, create/push tags, activate providers, mutate Worker/Cron/D1, execute PB/live-market work, or modify trading behavior.
 
@@ -151,9 +151,21 @@ Previous defect: exact frozen tag targets were correct, but the forward note sto
 
 Correction: forward note now records v0.1.11 and v0.1.12 while preserving all v0.1.0..10 target SHAs unchanged.
 
+### J. A0-018 dependency direction
+
+Previous defect: the formal WBS table listed existing `A0-005` in the A0-018 dependency field even though the canonical CP is `A0-018 -> A0-005`.
+
+Correction: split the formal table into **upstream dependency** and **downstream integration**. A0-018 now depends on A0-003 / A0-004 / A0-007 and A0-013..016; the existing A0-005 carry-unwind path is explicitly downstream.
+
+### K. C0 market-structure dependency scope
+
+Previous defect: C0-001 could be read as directly blocked by the full accepted `UWBS-068..079` market-structure lane, while the canonical CP only requires those evidence edges at C0-003/C0-004.
+
+Correction: C0-001 now depends on I0 provenance/idempotency boundaries; `UWBS-068..079` is explicitly a direct accepted dependency at C0-003/C0-004 and related non-blocking context for earlier stages.
+
 ## 6. Formal WBS review
 
-Result: **PASS**
+Result: **PASS after dependency clarification**
 
 Formal post-100 WBS files:
 
@@ -161,15 +173,51 @@ Formal post-100 WBS files:
   - `C0-001..004`
   - `UWBS-106..109`
   - release target `v0.1.11`
+  - direct accepted market-structure dependency enters at C0-003/C0-004
 
 - `docs/WORK_BREAKDOWN_ANALYST_CROSS_MARKET_POST100_2026-10-03.md`
   - `A0-018`
   - `UWBS-105`
   - release target `v0.1.12`
+  - A0-005 is downstream integration, not an A0-018 prerequisite
 
 Formal incorporation and implementation acceptance remain separate. A0-018 and C0-001..004 are incorporated but not yet implemented/accepted.
 
-## 7. Historical-evidence handling
+## 7. Changed-file role classification
+
+All 19 files in the reviewed branch diff have an explicit governance role.
+
+### A. Current authority / normative planning
+
+1. `docs/WORK_BREAKDOWN_ANALYST_CROSS_MARKET_POST100_2026-10-03.md` — formal A0-018 WBS authority.
+2. `docs/WORK_BREAKDOWN_CRYPTO_ONCHAIN_EVENT_INTELLIGENCE_2026-10-03.md` — formal C0-001..004 WBS authority.
+3. `docs/release/V0_1_0_TO_V0_1_10_FINAL_TAG_LEDGER_2026-10-03.md` — accepted/tag-ready target authority through v0.1.10; does not authorize tag creation.
+4. `docs/release/V0_1_11_UWBS_NAMESPACE_CORRECTION_2026-10-03.md` — current correction of old 101..104 release allocation.
+5. `docs/release/V0_1_11_V0_1_12_RELEASE_PLAN_2026-10-03.md` — forward release authority for v0.1.11/v0.1.12.
+6. `docs/work-management/local-corporate-intelligence/CURRENT_CRITICAL_PATH_RECONCILIATION.md` — date-independent current restart index.
+7. `docs/work-management/local-corporate-intelligence/CURRENT_CRITICAL_PATH_RECONCILIATION_2026-10-03.md` — detailed current CP authority.
+8. `docs/work-management/local-corporate-intelligence/CURRENT_LOCAL_CORPORATE_INTELLIGENCE_PROGRESS_TRACKER.md` — aggregate current operating tracker.
+9. `docs/work-management/local-corporate-intelligence/CURRENT_UWBS_PROGRESS_TRACKER.md` — current UWBS status authority.
+10. `docs/work-management/local-corporate-intelligence/UWBS_101_104_NAMESPACE_RECONCILIATION_2026-10-03.md` — canonical namespace decision.
+11. `docs/work-management/local-corporate-intelligence/WBS_PROVISIONAL_ID_REGISTRY.md` — canonical provisional-ID/formal-mapping registry.
+12. `docs/work-management/local-corporate-intelligence/WBS_UNREFLECTED_TASK_BACKLOG_CANONICAL_APPEND_2026-10-03.md` — current disposition bridge from historical backlog to formal WBS.
+
+### B. Historical / superseded evidence retained intentionally
+
+13. `docs/release/V0_1_VERSION_BOUNDARY_PLAN_2026-09-28.md` — historical/superseded release planning evidence.
+14. `docs/work-management/local-corporate-intelligence/WBS_UNREFLECTED_CRYPTO_ONCHAIN_SECURITY_EXTENSION_2026-10-02.md` — historical planning source; superseded for execution.
+15. `docs/work-management/local-corporate-intelligence/WBS_UNREFLECTED_MACRO_CARRY_OBSERVABILITY_CANONICAL_2026-10-03.md` — historical/canonical remap source; superseded by formal A0-018 execution authority.
+
+### C. Process closeout / audit / review evidence
+
+16. `docs/work-management/local-corporate-intelligence/MANAGEMENT_FILE_REFRESH_PLAN_2026-10-03.md` — completed MFR-01..06 process record and authority inventory.
+17. `docs/work-management/local-corporate-intelligence/MFR_06_FORMAL_WBS_INCORPORATION_CLOSEOUT_2026-10-03.md` — formal-incorporation closeout evidence.
+18. `docs/work-management/local-corporate-intelligence/UWBS_101_REMOTE_LIBRARY_AUDIT_2026-10-03.md` — audit evidence; explicitly non-exhaustive for all 50 branches.
+19. `docs/work-management/local-corporate-intelligence/INTEGRATION_PRE_REVIEW_2026-10-03.md` — this merge-readiness review.
+
+No changed file has an undefined authority role after this classification.
+
+## 8. Historical-evidence handling
 
 Result: **PASS**
 
@@ -177,8 +225,9 @@ Result: **PASS**
 - The 2026-09-28 release plan remains available as provenance but is visibly superseded.
 - WBS-unreflected source filenames remain for traceability but no longer claim current execution authority.
 - Audit/evidence documents are not rewritten merely because their recorded next actions were later completed.
+- Current authority always wins over a contradictory historical snapshot without rewriting the historical snapshot itself.
 
-## 8. Change-scope review
+## 9. Change-scope review
 
 Result: **PASS**
 
@@ -186,7 +235,7 @@ The branch diff against `main` contains management/release/WBS documentation onl
 
 The branch remains a documentation/governance integration branch.
 
-## 9. Known non-blocking incomplete audit
+## 10. Known non-blocking incomplete audit
 
 Status: **OPEN / NON-BLOCKING FOR THIS MANAGEMENT MERGE REVIEW**
 
@@ -202,7 +251,7 @@ This does not currently block integration of the reconciled management authoriti
 
 A future audit may complete the all-branch inventory without changing the current namespace decision unless contradictory current authority is actually discovered.
 
-## 10. Merge-readiness classification
+## 11. Merge-readiness classification
 
 Current classification:
 
@@ -211,15 +260,17 @@ Current classification:
 Meaning:
 
 - no known active management-authority conflict remains in the reviewed files;
-- current namespace, WBS, CP and release allocation agree;
+- current namespace, formal WBS, CP and release allocation agree;
+- formal dependency direction now agrees with the CP in both A0 and C0 additions;
 - accepted v0.1.0..10 targets are unchanged;
 - next feature restart is unambiguous;
+- all 19 changed files have explicit authority/evidence roles;
 - historical files are distinguishable from current authorities;
 - branch integration itself has not yet been performed.
 
 Before any merge action, re-check branch ancestry against `main` and confirm it remains zero-behind or otherwise reconcile new `main` commits normally.
 
-## 11. Authorization boundary
+## 12. Authorization boundary
 
 This review does **not** authorize:
 
