@@ -1,202 +1,146 @@
 # OrderScope — Management File Refresh Plan
 
 Date: 2026-10-03
-Status: Active planning report
+Status: **MFR-01..06 COMPLETE / INTEGRATION PRE-REVIEW**
 Scope: WBS / CP / UWBS / version boundary / release readiness / current trackers / provisional-ID governance
 
 ## 1. Purpose
 
 Refresh the repository's management files so that a reader can determine the current OrderScope state without accidentally treating dated evidence snapshots as current authority.
 
-The refresh must preserve append-only historical evidence and update only the files that are intended to represent current state, canonical identifiers, active dependencies, or release boundaries.
+Historical evidence remains preserved. Current authorities are synchronized separately rather than rewriting older acceptance snapshots.
 
 ## 2. Governing rule
 
-Management files are classified into four roles.
+Management files use four roles:
 
 | Class | Role | Mutation policy |
 |---|---|---|
 | A | Current-state authority | Keep synchronized with the latest accepted repository state |
-| B | Identity / WBS authority | Update when provisional IDs, canonical mappings, or formal WBS incorporation changes |
-| C | Release authority | Update when accepted version boundaries, TAG READY state, or release closeout changes |
-| D | Evidence / historical snapshot | Preserve as immutable or append-only evidence; do not rewrite to mimic the current state |
+| B | Identity / WBS authority | Update when canonical IDs or formal WBS mappings change |
+| C | Release authority | Update when release boundaries or TAG READY state changes |
+| D | Evidence / historical snapshot | Preserve as immutable or append-only historical evidence |
 
-A dated acceptance, audit, manifest, reconciliation, or post-integration report is evidence unless that document explicitly declares itself the current canonical authority.
+A dated historical report does not become current authority merely because it remains in the repository.
 
-## 3. Priority management files
+## 3. Current authorities after refresh
 
-### P0 — current-state and identity files
+### Current / identity
 
-1. `docs/work-management/local-corporate-intelligence/CURRENT_CRITICAL_PATH_RECONCILIATION.md`
-2. `docs/work-management/local-corporate-intelligence/CURRENT_UWBS_PROGRESS_TRACKER.md`
-3. `docs/work-management/local-corporate-intelligence/CURRENT_LOCAL_CORPORATE_INTELLIGENCE_PROGRESS_TRACKER.md`
-4. `docs/work-management/local-corporate-intelligence/WBS_PROVISIONAL_ID_REGISTRY.md`
-5. `docs/release/V0_1_VERSION_BOUNDARY_PLAN_2026-09-28.md`
-6. Final TAG READY / release ledger used for the v0.1.0-v0.1.10 boundary, if not yet incorporated into `main`
+- `CURRENT_CRITICAL_PATH_RECONCILIATION.md` — date-independent restart index
+- `CURRENT_CRITICAL_PATH_RECONCILIATION_2026-10-03.md` — detailed current CP authority
+- `CURRENT_UWBS_PROGRESS_TRACKER.md`
+- `CURRENT_LOCAL_CORPORATE_INTELLIGENCE_PROGRESS_TRACKER.md`
+- `WBS_PROVISIONAL_ID_REGISTRY.md`
+- `UWBS_101_104_NAMESPACE_RECONCILIATION_2026-10-03.md`
 
-### P1 — formal WBS / CP incorporation targets
+### Release
 
-- Normative Analyst / Cross-Market WBS documents referenced by the provisional-ID registry
-- Normative CP index / execution-order documents referenced by the current CP reconciliation
-- Canonical WBS-unreflected backlog and active append files that still contain pending incorporation records
+- `docs/release/V0_1_0_TO_V0_1_10_FINAL_TAG_LEDGER_2026-10-03.md`
+- `docs/release/V0_1_11_UWBS_NAMESPACE_CORRECTION_2026-10-03.md`
+- `docs/release/V0_1_11_V0_1_12_RELEASE_PLAN_2026-10-03.md`
 
-### P2 — evidence references used for reconciliation
+### Formal post-100 WBS
 
-- `REC_*` acceptance / manifest files
-- `POST_*` integration review / audit files
-- dated `*_RECONCILIATION_*` files
-- accepted implementation reports and test evidence
+- `docs/WORK_BREAKDOWN_CRYPTO_ONCHAIN_EVENT_INTELLIGENCE_2026-10-03.md`
+- `docs/WORK_BREAKDOWN_ANALYST_CROSS_MARKET_POST100_2026-10-03.md`
 
-P2 files are evidence inputs and should normally not be rewritten during this refresh.
+### Historical release planning
 
-## 4. Refresh sequence
+- `docs/release/V0_1_VERSION_BOUNDARY_PLAN_2026-09-28.md` is historical/superseded for current release decisions.
 
-The update order is dependency-driven.
+## 4. Canonical post-100 result
 
 ```text
-accepted evidence / integration state
-        |
-        v
-release / TAG READY ledger
-        |
-        v
-version boundary
-        |
-        +-------------------+
-        |                   |
-        v                   v
-CURRENT CP            CURRENT UWBS
-        |                   |
-        +---------+---------+
-                  v
-      CURRENT overall progress tracker
-                  |
-                  v
-      WBS provisional-ID / formal-WBS reconciliation
+UWBS-101..104  FROZEN / CONFLICT / LEGACY-ONLY
+UWBS-105       -> A0-018 -> v0.1.12
+UWBS-106       -> C0-001 -> v0.1.11 REL-11A
+UWBS-107       -> C0-002 -> v0.1.11 REL-11B
+UWBS-108       -> C0-003 -> v0.1.11 REL-11C
+UWBS-109       -> C0-004 -> v0.1.11 REL-11D
 ```
 
-The provisional-ID registry can be updated earlier only when an ID collision blocks all downstream references. `UWBS-101` is currently such a blocker and must be resolved before new UWBS-101+ references are normalized.
+Current release sequence:
 
-## 5. Audit state model
+```text
+v0.1.10  PB / active-market validation closeout  ACCEPTED / TAG READY
+   -> v0.1.11  Crypto On-chain Event Intelligence
+   -> v0.1.12  Macro Release / Yen Carry Observability
+```
 
-Each management-file assertion is classified as:
+## 5. MFR completion ledger
 
-- `CURRENT` — matches the latest accepted state.
-- `STALE` — still describes a formerly valid state that has since advanced.
-- `MISSING` — required current information is absent.
-- `CONFLICT` — two active management sources assign incompatible meanings or states.
+| Work package | Result | Primary evidence |
+|---|---|---|
+| MFR-01 — namespace reconciliation | **COMPLETE** | `UWBS_101_104_NAMESPACE_RECONCILIATION_2026-10-03.md` |
+| MFR-02 — release / TAG READY reconciliation | **COMPLETE** | final v0.1.0..10 tag ledger + v0.1.11/12 release authorities |
+| MFR-03 — CURRENT CP reconciliation | **COMPLETE** | dated and date-independent CURRENT CP files |
+| MFR-04 — CURRENT UWBS reconciliation | **COMPLETE** | `CURRENT_UWBS_PROGRESS_TRACKER.md` |
+| MFR-05 — overall tracker reconciliation | **COMPLETE** | `CURRENT_LOCAL_CORPORATE_INTELLIGENCE_PROGRESS_TRACKER.md` |
+| MFR-06 — formal WBS / backlog incorporation | **COMPLETE** | A0-018, C0-001..004 formal WBS + canonical backlog append + MFR-06 closeout |
 
-No file is modified solely because it is old; a dated file that is historical evidence can remain unchanged.
+## 6. Historical namespace handling
 
-## 6. Planned work packages
+The original collision used `UWBS-101` for both Macro/Carry and Crypto planning. The current resolution does not delete or rewrite that historical evidence.
 
-### MFR-01 — UWBS namespace reconciliation
+Contextual mapping:
 
-Goal: eliminate active provisional-ID ambiguity before updating trackers.
+```text
+Macro old UWBS-101 -> UWBS-105 -> A0-018
+Crypto old UWBS-101 -> UWBS-106 -> C0-001
+Crypto old UWBS-102 -> UWBS-107 -> C0-002
+Crypto old UWBS-103 -> UWBS-108 -> C0-003
+Crypto old UWBS-104 -> UWBS-109 -> C0-004
+```
 
-Tasks:
+Context-insufficient old references remain `AMBIGUOUS`.
 
-1. inventory all active references at and above `UWBS-101`;
-2. compare branch chronology, merge status, and declared canonical status;
-3. distinguish historical append evidence from current namespace ownership;
-4. assign canonical IDs without rewriting historical evidence;
-5. record explicit legacy-to-canonical aliases where required.
+## 7. Release state
 
-Acceptance condition: each active task has exactly one canonical provisional ID and historical references remain traceable.
+The exact cumulative boundaries for `v0.1.0..v0.1.10` are frozen in the final tag ledger and are `ACCEPTED / TAG READY`.
 
-### MFR-02 — release / TAG READY reconciliation
+No Git tag creation or push has been authorized by the management refresh.
 
-Goal: align the release boundary plan with the latest accepted tag-ready ledger and integration evidence.
+Planned release CP:
 
-Tasks:
+```text
+v0.1.11
+REL-11A -> REL-11B -> REL-11C -> REL-11D -> REL-11X
 
-1. verify the latest accepted v0.1.0-v0.1.10 boundary;
-2. distinguish `TAG READY` from an actually created/pushed Git tag;
-3. update stale reserved/pending states in the current release authority;
-4. preserve prior release evidence as dated history.
+v0.1.12
+REL-12A -> REL-12B -> REL-12C -> existing A0-005 -> REL-12D -> REL-12X
+```
 
-Acceptance condition: the current release authority answers version readiness without requiring interpretation of obsolete snapshots.
+## 8. Integration pre-review
 
-### MFR-03 — CURRENT CP reconciliation
+Current phase: **integration pre-review**.
 
-Goal: make `CURRENT_CRITICAL_PATH_RECONCILIATION.md` reflect the accepted feature path and any remaining market-dependent execution path.
+The review must verify:
 
-Tasks:
+1. all CURRENT files point to the same restart state;
+2. no active source treats UWBS-101..104 as canonical implementation IDs;
+3. WBS registry records the formal A0-018 / C0-001..004 mappings;
+4. release documents agree that v0.1.11 = C0-001..004 and v0.1.12 = A0-018;
+5. old release-planning documents are explicitly historical/superseded where their states conflict with current authorities;
+6. accepted v0.1.0..10 targets remain unchanged;
+7. no tag creation, live-provider activation, Worker/Cron mutation, D1 mutation, PB execution, history rewrite, or force push was introduced by documentation reconciliation.
 
-1. reconcile PB closeout state;
-2. reconcile accepted UWBS feature lanes;
-3. incorporate newly formalized UWBS dependencies after MFR-01;
-4. explicitly mark experimental/deferred stages that are not release blockers.
+## 9. Selected next action
 
-Acceptance condition: every open CP node has a clear predecessor, successor, blocker, and disposition.
+```text
+CURRENT: integration pre-review / authority-drift check
+NEXT after review: merge-readiness decision for the management branch
+NEXT feature after integration: v0.1.11 REL-11A / C0-001 / UWBS-106
+```
 
-### MFR-04 — CURRENT UWBS reconciliation
+`v0.1.12 REL-12A / A0-018 / UWBS-105` follows the planned release order after v0.1.11 acceptance. A0-018 is not technically dependent on C0-001..004; the ordering is release governance.
 
-Goal: synchronize the current UWBS tracker with accepted implementation, integration, pending planning extensions, and canonical remaps.
+## 10. Change discipline
 
-Tasks:
+- Preserve historical evidence and aliases.
+- Current planning uses canonical IDs only.
+- Do not equate `TAG READY` with a created/pushed Git tag.
+- Do not alter accepted implementation code as part of management reconciliation.
+- Do not authorize provider/runtime/trading actions through a management document.
 
-1. verify accepted state through `UWBS-100`;
-2. incorporate canonical post-100 planning tasks after MFR-01;
-3. distinguish `Accepted`, `Integrated`, `Pending`, `Experimental`, and `Unreflected` states;
-4. retain provenance links to dated acceptance/reconciliation evidence.
-
-Acceptance condition: the tracker contains no active legacy aliases as if they were canonical IDs.
-
-### MFR-05 — overall progress tracker reconciliation
-
-Goal: make the aggregate tracker a summary of the reconciled release, CP, and UWBS authorities rather than an independent competing source of truth.
-
-Tasks:
-
-1. derive status from MFR-02 through MFR-04;
-2. remove stale blocker statements already closed elsewhere;
-3. retain unresolved external/provider/market-hours conditions explicitly.
-
-Acceptance condition: the overall tracker has no state that contradicts the lower-level current authorities.
-
-### MFR-06 — formal WBS / backlog incorporation review
-
-Goal: close the gap between WBS-unreflected planning extensions and normative WBS/CP.
-
-Tasks:
-
-1. enumerate active `WBS_UNREFLECTED_*` files;
-2. mark already incorporated records as incorporated rather than deleting historical files;
-3. promote approved tasks into normative WBS/CP;
-4. update `WBS_PROVISIONAL_ID_REGISTRY.md` with formal mappings when assigned.
-
-Acceptance condition: every unreflected task is either pending with a reason, formally incorporated, superseded with an alias, or explicitly deferred.
-
-## 7. Immediate known risk — UWBS-101 collision
-
-Two incompatible uses of `UWBS-101` are known and must be resolved before MFR-03 through MFR-06:
-
-1. Macro Release Surprise / Yen Carry Flow Observability, recorded on branch `docs/uwbs-101-macro-carry-observability` in a dated append created on 2026-10-01.
-2. Crypto On-chain Security / cross-chain wallet-and-transfer Fact contract, recorded on `main` in a 2026-10-02 WBS-unreflected extension that reserves `UWBS-101..104`.
-
-This plan does not decide the winner by date alone. Canonical ownership must be determined using repository state, merge/incorporation status, explicit canonical declarations, and the append-only registry rule. Historical text must not be rewritten even if one side is remapped.
-
-## 8. Change discipline
-
-- Do not alter accepted implementation code while reconciling management documentation unless a separate implementation defect is discovered.
-- Do not erase historical UWBS aliases.
-- Do not equate `TAG READY` with a pushed Git tag.
-- Do not promote a planning extension into normative WBS/CP without recording the transition.
-- Prefer additive canonical alias/remap records over history rewrites.
-- After each management-file update, re-check all direct cross-references to the changed identifier or state.
-
-## 9. Completion criteria
-
-The management refresh is complete when:
-
-1. no active provisional ID has more than one canonical task meaning;
-2. current CP, current UWBS, overall tracker, release boundary, and ID registry agree;
-3. all accepted v0.1.x boundaries are represented consistently;
-4. historical evidence remains preserved and clearly separated from current authority;
-5. WBS-unreflected extensions have explicit `Pending`, `Incorporated`, `Deferred`, or `Superseded/Remapped` disposition;
-6. a fresh repository review can identify the next executable task without reconstructing state from multiple dated reports.
-
-## 10. First execution step
-
-Execute `MFR-01 — UWBS namespace reconciliation`, starting with the `UWBS-101` collision, before modifying the current UWBS/CP trackers.
+The management refresh work packages are closed; remaining work is review of authority consistency and merge readiness.
