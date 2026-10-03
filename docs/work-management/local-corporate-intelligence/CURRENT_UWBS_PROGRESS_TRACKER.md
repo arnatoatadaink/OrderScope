@@ -1,6 +1,6 @@
 # OrderScope — Current UWBS Progress Tracker
 
-Status: **CURRENT UWBS OVERLAY**
+Status: **CURRENT UWBS OVERLAY / v0.1.11 ACCEPTED / SESSION CLOSED**
 Updated: 2026-10-03
 
 This tracker is the current UWBS-specific overlay for canonical task progress. Historical evidence remains immutable; current planning references use canonical IDs.
@@ -35,18 +35,18 @@ Crypto legacy UWBS-104 -> UWBS-109 -> C0-004
 
 | UWBS | Formal WBS | Task | Current status | Release allocation |
 |---|---|---|---|---|
-| UWBS-105 | A0-018 | Macro Release Surprise / Yen Carry Flow Observability | **Implementation pending / NEXT** | **v0.1.12 REL-12A..D** |
+| UWBS-105 | A0-018 | Macro Release Surprise / Yen Carry Flow Observability | **Implementation pending / NEXT SESSION** | **v0.1.12 REL-12A..D** |
 | UWBS-106 | C0-001 | Cross-chain project/wallet/contract registry + confirmed-transfer Fact | **Accepted / Integrated** | **v0.1.11 REL-11A** |
 | UWBS-107 | C0-002 | Abnormal on-chain flow Derived Metrics + candidate-state machine | **Accepted / Integrated** | **v0.1.11 REL-11B** |
 | UWBS-108 | C0-003 | Join on-chain anomaly with price/OI/funding/liquidation context | **Accepted / Integrated** | **v0.1.11 REL-11C** |
 | UWBS-109 | C0-004 | Historical exploit price-impact dataset + replay | **Accepted / Integrated** | **v0.1.11 REL-11D** |
 
-## 4. Release state
+## 4. Release / tag state
 
 ```text
-v0.1.10  ACCEPTED / TAG READY
-v0.1.11  ACCEPTED / TAG READY
-v0.1.12  NEXT / IMPLEMENTATION PENDING
+v0.1.0..v0.1.10  ACCEPTED / TAG READY / TAG NOT CREATED
+v0.1.11            ACCEPTED / TAG READY / TAG NOT CREATED
+v0.1.12            NEXT SESSION / IMPLEMENTATION PENDING
 ```
 
 Validated v0.1.11 target:
@@ -54,6 +54,8 @@ Validated v0.1.11 target:
 ```text
 fce9a3a2e56783206d63dbcac0d8a65e50008c10
 ```
+
+Current tag-state authority: `docs/release/V0_1_0_TO_V0_1_11_TAG_READY_STATUS_2026-10-03.md`.
 
 ## 5. v0.1.11 cumulative evidence
 
@@ -74,7 +76,7 @@ REL-11A..D / C0-001..004 / UWBS-106..109  ACCEPTED / INTEGRATED
 REL-11X                                      ACCEPTED / TAG READY
 
 v0.1.12
-REL-12A / A0-018 / UWBS-105                 NEXT
+REL-12A / A0-018 / UWBS-105                 NEXT SESSION
  -> REL-12B
  -> REL-12C
  -> existing A0-005 unwind/deleveraging path
@@ -82,15 +84,13 @@ REL-12A / A0-018 / UWBS-105                 NEXT
  -> REL-12X
 ```
 
-`TAG READY` does not authorize creation or push of a Git tag.
-
 ## 7. Current interpretation
 
 ```text
 UWBS-062..100        ACCEPTED / INTEGRATED (except UWBS-079 Stage B non-blocking experiment)
 UWBS-101..104        FROZEN CONFLICT / LEGACY-ONLY
-UWBS-105             A0-018 — v0.1.12 NEXT
+UWBS-105             A0-018 — v0.1.12 NEXT SESSION
 UWBS-106..109        C0-001..004 — ACCEPTED / INTEGRATED / v0.1.11 TAG READY
 ```
 
-Next feature restart point is `v0.1.12 REL-12A / A0-018 / UWBS-105`.
+This session closes at v0.1.11. Next-session restart point is `v0.1.12 REL-12A / A0-018 / UWBS-105`.
