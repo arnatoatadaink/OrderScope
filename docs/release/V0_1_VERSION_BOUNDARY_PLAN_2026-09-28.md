@@ -1,6 +1,19 @@
 # OrderScope v0.1.x Version Boundary Plan
 
-Status: **PROPOSED RELEASE / TAGGING PLAN — PB CLOSE REQUIRED BEFORE FINALIZATION**
+> **Status: HISTORICAL / SUPERSEDED FOR CURRENT RELEASE PLANNING**
+>
+> This 2026-09-28 plan is retained as planning provenance. Its PB-close status, reserved/taggable classifications, candidate boundary commits, and recommended tagging strategy describe the repository state reviewed on 2026-09-28 and must not be used as current release authority.
+>
+> Current authorities as of 2026-10-03 are:
+>
+> - `docs/release/V0_1_0_TO_V0_1_10_FINAL_TAG_LEDGER_2026-10-03.md` — exact accepted cumulative targets for v0.1.0..v0.1.10;
+> - `docs/release/V0_1_11_V0_1_12_RELEASE_PLAN_2026-10-03.md` — planned v0.1.11 / v0.1.12 boundaries;
+> - `docs/work-management/local-corporate-intelligence/CURRENT_CRITICAL_PATH_RECONCILIATION_2026-10-03.md` — current CP;
+> - `docs/work-management/local-corporate-intelligence/CURRENT_UWBS_PROGRESS_TRACKER.md` — current task state.
+>
+> Current interpretation: v0.1.0..v0.1.10 are ACCEPTED / TAG READY; v0.1.11 is C0-001..004 / UWBS-106..109; v0.1.12 is A0-018 / UWBS-105. No Git tag creation or push is authorized by this historical document or by the supersession notice.
+
+Historical status at time of writing: **PROPOSED RELEASE / TAGGING PLAN — PB CLOSE REQUIRED BEFORE FINALIZATION**
 Date: 2026-09-28
 Branch reviewed: `feat/uwbs-100-volatility-calibration`
 
@@ -182,7 +195,7 @@ Expected capabilities:
 - theme activation / rotation / repricing state;
 - historical calibration and Canary.
 
-Current release state: **reserved, not taggable from the reviewed branch**.
+Current release state at 2026-09-28: **reserved, not taggable from the reviewed branch**.
 
 ### v0.1.5 — Listing Compliance
 
@@ -200,7 +213,7 @@ Expected capabilities:
 - LVWR reference Canary;
 - no automatic equation of notice with actual delisting.
 
-Current release state: **reserved, not taggable from the reviewed branch**.
+Current release state at 2026-09-28: **reserved, not taggable from the reviewed branch**.
 
 ### v0.1.6 — Crypto Market Structure
 
@@ -221,7 +234,7 @@ Expected capabilities:
 - NEAR reference Canary;
 - Pacific weekend/weekday handoff analysis.
 
-Current release state: **reserved, not taggable from the reviewed branch**.
+Current release state at 2026-09-28: **reserved, not taggable from the reviewed branch**.
 
 ### v0.1.7 — Oil / Commodity / Cross-Asset
 
@@ -242,7 +255,7 @@ Primary capabilities:
 - historical Canary;
 - Worker/D1 capacity assessment.
 
-Boundary commit:
+Historical candidate boundary commit:
 
 `33ca0587d6105202f791f0c8c6c4e9cd6da3ac3d`
 
@@ -266,7 +279,7 @@ Primary capabilities:
 - applicability guard;
 - Powerfleet lifecycle Canary / false-positive suite.
 
-Boundary commit:
+Historical candidate boundary commit:
 
 `ae9f72b48a2b8e6a51bc2b2273969e7dc32d5325`
 
@@ -293,11 +306,11 @@ Primary capabilities:
 - Canary confusion-matrix and lead/lag evaluation;
 - capacity assessment integration.
 
-Boundary commit:
+Historical candidate boundary commit:
 
 `8151d1c2727fd22b0e9f0222f589cee666c99ffc`
 
-Latest UWBS-100 local acceptance evidence:
+Latest UWBS-100 local acceptance evidence known to this 2026-09-28 document:
 
 ```text
 focused:           13 passed
@@ -310,21 +323,18 @@ Review focus: IV and VIX remain volatility evidence; no automatic directional, c
 
 ## 6. Legacy unassigned UWBS IDs
 
-The following valid legacy IDs are not assigned to the release sequence above until their incorporation/closeout is explicitly reconciled:
+The following valid legacy IDs were not assigned to the release sequence in this 2026-09-28 plan:
 
 ```text
 UWBS-005..010
 UWBS-017..022
 ```
 
-Do not silently insert them into an already tagged historical version. Once their final disposition is known, either:
+Do not use this historical section to override a later explicit incorporation or disposition.
 
-- document them as covered/deferred with no release increment; or
-- allocate `v0.1.10+` if they introduce accepted functionality.
+## 7. Historical main-integration procedure after PB close
 
-## 7. Main-integration procedure after PB close
-
-Recommended order:
+Recommended order as written on 2026-09-28:
 
 ```text
 1. Complete PB-09 active-session validation.
@@ -339,22 +349,18 @@ Recommended order:
 10. Create annotated tags only for boundaries that correspond to real accepted commit states.
 ```
 
-Do not rewrite historical commits solely to make the semantic-version sequence visually contiguous.
+This sequence has since been superseded by the reconstructed final tag ledger and current CP.
 
-## 8. Final tag recommendation
+## 8. Historical tag recommendation
 
-Two valid strategies exist.
+The original plan considered two strategies:
 
-### Strategy A — Evidence-preserving (recommended)
+### Strategy A — Evidence-preserving
 
 Use `v0.1.0` for the post-PB product baseline, then tag only later/independently meaningful accepted boundaries whose ancestry and semantics are valid. Keep `v0.1.1..v0.1.6` as release-manifest logical versions until/unless reconstructed cleanly.
 
-This preserves the real development history.
-
 ### Strategy B — Reconstructed release branch
 
-Create a dedicated release branch from the original WBS baseline and replay accepted UWBS lanes in desired semantic order, producing exact `v0.1.0..v0.1.9` cumulative trees.
+Create a dedicated release branch from the original WBS baseline and replay accepted UWBS lanes in desired semantic order, producing exact cumulative trees.
 
-Use this only if byte-level reproducibility of every intermediate version is worth the extra risk and review cost. Do not rewrite `main` history.
-
-For OrderScope, **Strategy A is preferred**.
+The later reconstruction work produced the current exact-boundary ledger. Refer to the 2026-10-03 release authorities rather than using this section as a current recommendation.
